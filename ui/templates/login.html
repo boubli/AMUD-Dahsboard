@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMUD Dashboard - Administrative Sign In</title>
+    <meta name="description" content="Access the secure management panel of your AMUD Dashboard container launcher to manage home lab services.">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1.5rem;">
+    <div class="modal-content" style="max-width: 400px; animation: none;">
+        <div class="modal-header" style="justify-content: center; text-align: center; border-bottom: none;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <div class="icon-wrapper" style="width: 4rem; height: 4rem; border-radius: 1rem; margin-bottom: 0.5rem;">
+                    <i data-lucide="shield-check" style="width: 2rem; height: 2rem;"></i>
+                </div>
+                <h3>Sign In</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary);">Access AMUD Dashboard management panel</p>
+            </div>
+        </div>
+
+        {{if .}}
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger); padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; text-align: center;">
+            {{.}}
+        </div>
+        {{end}}
+
+        <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="admin" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+                Sign In
+            </button>
+
+            <a href="/" style="text-align: center; font-size: 0.85rem; color: var(--text-secondary); text-decoration: none; hover: color: var(--text-primary);">
+                Return to Dashboard as Guest
+            </a>
+        </form>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

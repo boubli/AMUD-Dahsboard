@@ -1,0 +1,37 @@
+# System/IDEs
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/*.log
+frontend/.env*
+
+# Backend
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/.pytest_cache/
+backend/venv/
+backend/env/
+backend/.env
+
+# Security/Data
+backend/uploads/*
+!backend/uploads/.gitkeep
+data/
+mongo_data/
+
+# Relics
+scratch/
+test_reports/
+memory/
+
+# Local Dev Files (Never push to public GitHub repo)
+backend_test.py
+contracts.md
+test_result.md

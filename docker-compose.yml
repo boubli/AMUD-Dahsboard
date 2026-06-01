@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: amud_app
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_PATH=/app/data/amud.db
+      - PORT=8000
+    volumes:
+      - ./data:/app/data

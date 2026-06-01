@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ open: false, showCmd: false, query: '' }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMUD Dashboard - High-Performance Intelligent Home Lab Cockpit</title>
+    <meta name="description" content="AMUD is an ultra-lean, high-performance, single-binary home lab application launcher dashboard that runs under 25MB of RAM with embedded SQLite database, HTMX polling pings, and container auto-discovery.">
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body @keydown.window.prevent.ctrl.k="showCmd = !showCmd; $nextTick(() => $refs.search.focus())" @keydown.window.escape="showCmd = false">
+    <header>
+        <div class="logo-container">
+            <h1>
+                <i data-lucide="layout-dashboard"></i>
+                AMUD Dashboard
+            </h1>
+        </div>
+        
+        <!-- Host Micro-Telemetry -->
+        <div id="telemetry-widget" hx-get="/telemetry" hx-trigger="load" hx-swap="outerHTML">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Querying telemetry...</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <!-- Ctrl+K Tip -->
+            <div style="font-size: 0.8rem; color: var(--text-secondary); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; border-radius: 0.375rem; background: rgba(255,255,255,0.01); display: flex; align-items: center; gap: 0.25rem;">
+                <kbd style="font-family: inherit; font-weight: 600;">Ctrl</kbd>+<kbd style="font-family: inherit; font-weight: 600;">K</kbd> Find
+            </div>
+
+            <!-- Login / Logout state -->
+            {{if eq .UserRole "Admin"}}
+            <!-- Backup Button -->
+            <a href="/admin/backup" class="btn btn-secondary" style="text-decoration: none;" title="Backup Database">
+                <i data-lucide="download"></i>
+                Backup
+            </a>
+
+            <!-- Restore File Form -->
+            <form hx-post="/admin/restore" 
+                  hx-encoding="multipart/form-data" 
+                  hx-target="#restore-msg"
+                  style="display: inline-block;">
+                <label class="btn btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0;">
+                    <i data-lucide="upload"></i>
+                    Restore
+                    <input type="file" name="database" style="display: none;" onchange="htmx.trigger(this.form, 'submit')">
+                </label>
+            </form>
+
+            <button class="btn" @click="open = true">
+                <i data-lucide="plus-circle"></i>
+                Add App
+            </button>
+            <a href="/logout" class="btn btn-secondary" style="text-decoration: none;">
+                <i data-lucide="log-out"></i>
+                Sign Out
+            </a>
+            {{else}}
+            <a href="/login" class="btn" style="text-decoration: none;">
+                <i data-lucide="key-round"></i>
+                Sign In
+            </a>
+            {{end}}
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- System Message notifications -->
+        <div id="restore-msg" style="width: 100%;"></div>
+
+        <!-- Categories tabs loaded dynamically -->
+        <div id="category-tabs" hx-get="/categories" hx-trigger="load" hx-swap="outerHTML">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Loading categories...</span>
+        </div>
+
+        <!-- Cards grid -->
+        <div hx-get="/apps" hx-trigger="load" hx-swap="outerHTML">
+            <div style="display: flex; justify-content: center; padding: 3rem;">
+                <i data-lucide="loader-2" class="animate-spin" style="width: 2.5rem; height: 2.5rem; color: var(--text-secondary);"></i>
+            </div>
+        </div>
+    </main>
+
+    <!-- Admin Form Modal (Alpine-controlled) -->
+    <div class="modal-overlay" x-show="open" x-transition.opacity style="display: none;">
+        <div class="modal-content" @click.away="open = false">
+            <div class="modal-header">
+                <h3>Add Application</h3>
+                <button class="close-btn" @click="open = false">&times;</button>
+            </div>
+            <form hx-post="/apps" 
+                  hx-target="#app-grid" 
+                  hx-swap="outerHTML" 
+                  hx-on::after-request="if(event.detail.successful) { open = false; this.reset(); htmx.trigger('#category-tabs', 'load'); }"
+                  style="display: flex; flex-direction: column; gap: 1.25rem;">
+                
+                <div class="form-group">
+                    <label for="name">Application Name</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Proxmox VE" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="url">URL</label>
+                    <input type="url" id="url" name="url" class="form-control" placeholder="e.g. https://192.168.1.100:8006" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="icon">Icon Name (Lucide)</label>
+                    <input type="text" id="icon" name="icon" class="form-control" placeholder="e.g. server, container, tv, globe" value="globe">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text" id="category" name="category" class="form-control" placeholder="e.g. Infrastructure, Media" value="General">
+                </div>
+
+                <div class="form-group">
+                    <label for="node_tag">Node Tag</label>
+                    <input type="text" id="node_tag" name="node_tag" class="form-control" placeholder="e.g. Local, Proxmox" value="Local">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" name="description" class="form-control" placeholder="Short description of the service">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="open = false">Cancel</button>
+                    <button type="submit" class="btn">Add Service</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Command Palette Modal -->
+    <div class="modal-overlay" x-show="showCmd" x-transition.opacity style="display: none;" @click="showCmd = false">
+        <div class="modal-content" style="max-width: 600px;" @click.stop>
+            <div class="modal-header" style="padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="search" style="width: 1.1rem; height: 1.1rem; color: var(--accent);"></i>
+                    <h3 style="font-size: 1.1rem;">Command Palette</h3>
+                </div>
+                <span style="font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color); padding: 0.15rem 0.35rem; border-radius: 0.25rem; background: rgba(255,255,255,0.02);">ESC to Close</span>
+            </div>
+            <div class="form-group" style="margin-top: 1rem; margin-bottom: 0;">
+                <input type="text" 
+                       x-ref="search"
+                       x-model="query" 
+                       @input="filterCards(query)"
+                       class="form-control" 
+                       placeholder="Filter by name, category, or node tag..." 
+                       style="width: 100%; font-size: 1.05rem; padding: 0.75rem 1.25rem;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
+        // Re-run Lucide whenever HTMX swaps content
+        document.body.addEventListener('htmx:afterSwap', (evt) => {
+            lucide.createIcons();
+        });
+
+        // Global search filtering logic
+        function filterCards(query) {
+            const cards = document.querySelectorAll('#app-grid .app-card');
+            const q = query.toLowerCase().trim();
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(q)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

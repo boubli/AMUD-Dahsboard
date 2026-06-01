@@ -1,0 +1,16 @@
+<div id="telemetry-widget" style="display: flex; gap: 1.5rem; align-items: center; font-size: 0.85rem; color: var(--text-secondary); background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 0.5rem;" hx-get="/telemetry" hx-trigger="every 10s" hx-swap="outerHTML">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="cpu" style="width: 1rem; height: 1rem; color: var(--accent);"></i>
+        <span>CPU: <strong style="color: var(--text-primary);">{{.CPU}}%</strong></span>
+        <div style="width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+            <div style="width: {{.CPU}}%; height: 100%; background: var(--accent); border-radius: 3px;"></div>
+        </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="hard-drive" style="width: 1rem; height: 1rem; color: var(--success);"></i>
+        <span>RAM: <strong style="color: var(--text-primary);">{{.RAM}}%</strong> <span style="font-size: 0.75rem;">({{.RAMUsedGB}}G/{{.RAMTotalGB}}G)</span></span>
+        <div style="width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+            <div style="width: {{.RAM}}%; height: 100%; background: var(--success); border-radius: 3px;"></div>
+        </div>
+    </div>
+</div>
