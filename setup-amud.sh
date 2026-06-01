@@ -22,6 +22,8 @@ error() {
     echo -e "\033[1;31m[ERROR]\033[0m $1" >&2
 }
 
+PCT_EXPORTS='export DEBIAN_FRONTEND=noninteractive; export LANG=C.UTF-8; export LC_ALL=C.UTF-8;'
+
 # 1. Host Execution Pre-checks
 if [ ! -d "/etc/pve" ]; then
     error "This script must be executed directly on a Proxmox VE host shell."
@@ -92,13 +94,11 @@ pct create "$CT_ID" "local:vztmpl/$TEMPLATE_FILE" \
 info "Waiting for container to boot and get network address..."
 sleep 12
 
-# Force system-wide locale to silence Perl and Apt warnings permanently
+# Force system-wide locale to silence Perl and Apt warnings permanently.
 pct exec "$CT_ID" -- bash -c "
   echo 'LC_ALL=C.UTF-8' >> /etc/environment
   echo 'LANG=C.UTF-8' >> /etc/environment
-  export DEBIAN_FRONTEND=noninteractive
-  export LANG=C.UTF-8
-  export LC_ALL=C.UTF-8
+  ${PCT_EXPORTS}
   apt-get update -qq >/dev/null
   apt-get install -y -qq locales >/dev/null
   echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
@@ -108,37 +108,37 @@ pct exec "$CT_ID" -- bash -c "
 
 # 5. Dependency Toolchain & Docker Installation
 info "Installing core guest dependencies..."
-pct exec "$CT_ID" -- apt-get update -y >/dev/null
-pct exec "$CT_ID" -- apt-get install -y curl gnupg lsb-release ca-certificates git >/dev/null
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} apt-get update -y >/dev/null"
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} apt-get install -y curl gnupg lsb-release ca-certificates git >/dev/null"
 
 info "Installing Docker Engine inside guest container..."
-pct exec "$CT_ID" -- sh -c "curl -fsSL https://get.docker.com | sh" >/dev/null
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} curl -fsSL https://get.docker.com | sh" >/dev/null
 # Configure Docker default DNS to bypass Proxmox LXC nested network/DNS resolution bottlenecks
-pct exec "$CT_ID" -- sh -c "mkdir -p /etc/docker && echo '{\"dns\": [\"1.1.1.1\", \"8.8.8.8\"]}' > /etc/docker/daemon.json"
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} mkdir -p /etc/docker && echo '{\"dns\": [\"1.1.1.1\", \"8.8.8.8\"]}' > /etc/docker/daemon.json"
 pct exec "$CT_ID" -- systemctl restart docker >/dev/null || true
 pct exec "$CT_ID" -- systemctl enable --now docker >/dev/null
 
 # 6. Persistent Docker Volume Orchestration
 info "Creating named volumes for data persistence..."
-pct exec "$CT_ID" -- docker volume create portainer_data >/dev/null
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} docker volume create portainer_data >/dev/null"
 
 # 7. Deploy Portainer Community Edition
 info "Deploying Portainer CE on port 9000..."
-pct exec "$CT_ID" -- docker run -d \
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} docker run -d \
     --name portainer \
     --restart always \
     -p 9000:9000 \
     -p 9443:9443 \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v portainer_data:/data \
-    portainer/portainer-ce:latest >/dev/null
+  portainer/portainer-ce:latest >/dev/null"
 
 # 8. Clone AMUD Workspace and Generate Lightweight Go Compose
 info "Cloning AMUD-Dashboard repository for local compilation..."
-pct exec "$CT_ID" -- git clone https://github.com/boubli/AMUD-Dahsboard.git /opt/amud >/dev/null
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} git clone https://github.com/boubli/AMUD-Dahsboard.git /opt/amud >/dev/null"
 
 info "Writing local-build Docker Compose file to /opt/amud/..."
-pct exec "$CT_ID" -- sh -c "cat << 'EOF' > /opt/amud/docker-compose.yml
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} cat << 'EOF' > /opt/amud/docker-compose.yml
 version: '3.8'
 
 services:
@@ -159,7 +159,7 @@ EOF"
 
 # 9. Autostart & Local Compile Stack
 info "Compiling and starting AMUD Go/HTMX environment (this may take a few minutes)..."
-pct exec "$CT_ID" -- sh -c "cd /opt/amud && docker compose up --build -d" >/dev/null
+pct exec "$CT_ID" -- bash -c "${PCT_EXPORTS} cd /opt/amud && docker compose up --build -d" >/dev/null
 
 # 9.5 Downscale container resources to production boundaries
 info "Restricting container resources to runtime limits (256MB RAM)..."
