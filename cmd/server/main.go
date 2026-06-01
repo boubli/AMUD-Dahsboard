@@ -43,12 +43,13 @@ func main() {
 
 	// Parse templates from embedded FS
 	var err error
-	handlers.Templates, err = template.ParseFS(ui.TemplateFS, 
-		"templates/base.html", 
+	handlers.Templates, err = template.ParseFS(ui.TemplateFS,
+		"templates/base.html",
 		"templates/dashboard.html", 
 		"templates/telemetry.html",
 		"templates/login.html",
 		"templates/categories.html",
+		"templates/components/settings.html",
 	)
 	if err != nil {
 		slog.Error("Failed to parse embedded HTML templates", "error", err)
@@ -64,6 +65,8 @@ func main() {
 	mux.HandleFunc("POST /apps/{id}/restart", handlers.HandleRestartApp)
 	mux.HandleFunc("GET /telemetry", handlers.HandleTelemetry)
 	mux.HandleFunc("GET /categories", handlers.HandleCategories)
+	mux.HandleFunc("POST /admin/settings", handlers.HandleSettings)
+	mux.HandleFunc("GET /api/stats/{service}", handlers.HandleServiceStat)
 	
 	// Authentication routes
 	mux.HandleFunc("GET /login", handlers.HandleLogin)
@@ -98,9 +101,9 @@ func main() {
 // Request logging middleware. Writes request metadata at DEBUG level.
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		slog.Debug("HTTP request intercepted", 
-			"method", r.Method, 
-			"path", r.URL.Path, 
+		slog.Debug("HTTP request intercepted",
+			"method", r.Method,
+			"path", r.URL.Path,
 			"remote_address", r.RemoteAddr,
 		)
 		next.ServeHTTP(w, r)

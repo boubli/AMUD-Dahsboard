@@ -1,0 +1,64 @@
+{{define "settings.html"}}
+<div class="drawer-backdrop" x-show="drawerOpen" x-transition.opacity @click="drawerOpen = false" style="display: none;"></div>
+<aside class="settings-drawer" x-show="drawerOpen" x-transition:enter="drawer-enter" x-transition:enter-start="drawer-enter-start" x-transition:enter-end="drawer-enter-end" x-transition:leave="drawer-leave" x-transition:leave-start="drawer-leave-start" x-transition:leave-end="drawer-leave-end" style="display: none;">
+    <div class="settings-drawer__header">
+        <div>
+            <p class="eyebrow">Control Plane</p>
+            <h2>Settings</h2>
+        </div>
+        <button type="button" class="icon-button" @click="drawerOpen = false" aria-label="Close settings panel">
+            <i data-lucide="x"></i>
+        </button>
+    </div>
+
+    <form class="settings-form" hx-post="/admin/settings" hx-target="#settings-save-status" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful){ window.location.reload(); }">
+        <div id="settings-save-status" class="settings-save-status"></div>
+
+        <section class="settings-group">
+            <h3>Branding</h3>
+            <label class="field">
+                <span>App Name</span>
+                <input type="text" name="app_name" class="form-control" x-model="appName" placeholder="AMUD Dashboard">
+            </label>
+            <label class="field">
+                <span>Tagline</span>
+                <input type="text" name="tagline" class="form-control" x-model="tagline" placeholder="High-Performance Intelligent Home Lab Cockpit">
+            </label>
+        </section>
+
+        <section class="settings-group">
+            <h3>Background</h3>
+            <input type="hidden" name="background_theme" :value="theme">
+            <div class="theme-grid">
+                <button type="button" class="theme-chip" :class="theme === 'aurora' ? 'is-active' : ''" @click="setTheme('aurora')">Aurora</button>
+                <button type="button" class="theme-chip" :class="theme === 'midnight' ? 'is-active' : ''" @click="setTheme('midnight')">Midnight</button>
+                <button type="button" class="theme-chip" :class="theme === 'sunset' ? 'is-active' : ''" @click="setTheme('sunset')">Sunset</button>
+                <button type="button" class="theme-chip" :class="theme === 'forest' ? 'is-active' : ''" @click="setTheme('forest')">Forest</button>
+                <button type="button" class="theme-chip" :class="theme === 'mountains' ? 'is-active' : ''" @click="setTheme('mountains')">Mountains</button>
+                <button type="button" class="theme-chip" :class="theme === 'city' ? 'is-active' : ''" @click="setTheme('city')">City</button>
+            </div>
+        </section>
+
+        <section class="settings-group">
+            <h3>Layout</h3>
+            <label class="toggle-row">
+                <span>Search</span>
+                <input type="checkbox" name="search_enabled" x-model="searchEnabled">
+            </label>
+            <label class="toggle-row">
+                <span>Greeting</span>
+                <input type="checkbox" name="show_greeting" x-model="showGreeting">
+            </label>
+            <label class="toggle-row">
+                <span>Clock</span>
+                <input type="checkbox" name="show_clock" x-model="showClock">
+            </label>
+        </section>
+
+        <div class="settings-drawer__footer">
+            <button type="button" class="btn btn-secondary" @click="drawerOpen = false">Cancel</button>
+            <button type="submit" class="btn">Save Changes</button>
+        </div>
+    </form>
+</aside>
+{{end}}

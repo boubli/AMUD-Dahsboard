@@ -43,7 +43,7 @@
 </div>
 {{end}}
 
-<div id="app-grid" class="app-grid" hx-get="/apps/status" hx-trigger="every 30s, reload-grid from:body" hx-swap="outerHTML">
+<div id="app-grid" class="app-grid" hx-trigger="reload-grid from:body" hx-swap="outerHTML">
     {{if .Apps}}
         {{range .Apps}}
             {{template "card" .}}

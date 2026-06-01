@@ -59,6 +59,10 @@ func InitDB() {
 			password_hash TEXT NOT NULL,
 			role TEXT NOT NULL DEFAULT 'Guest'
 		);`,
+		`CREATE TABLE IF NOT EXISTS settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL
+		);`,
 	}
 
 	for i, q := range migrations {
@@ -73,6 +77,26 @@ func InitDB() {
 	_, _ = DB.Exec("ALTER TABLE apps ADD COLUMN node_tag TEXT DEFAULT 'Local';")
 
 	slog.Debug("SQLite structural schema migrations validated")
+
+	var settingsCount int
+	err = DB.QueryRow("SELECT COUNT(*) FROM settings").Scan(&settingsCount)
+	if err == nil && settingsCount == 0 {
+		slog.Info("Seeding dashboard preference settings")
+		defaults := map[string]string{
+			"app_name":         "AMUD Dashboard",
+			"tagline":          "High-Performance Intelligent Home Lab Cockpit",
+			"search_enabled":   "true",
+			"show_greeting":    "true",
+			"show_clock":       "true",
+			"background_theme": "aurora",
+		}
+		for key, value := range defaults {
+			_, err = DB.Exec("INSERT INTO settings (key, value) VALUES (?, ?)", key, value)
+			if err != nil {
+				slog.Error("Failed to seed dashboard setting", "key", key, "error", err)
+			}
+		}
+	}
 
 	// Seed default apps if empty
 	var appCount int

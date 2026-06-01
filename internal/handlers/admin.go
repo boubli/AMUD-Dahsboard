@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/boubli/AMUD-Dashboard/internal/auth"
 	"github.com/boubli/AMUD-Dashboard/internal/database"
@@ -119,4 +120,59 @@ func HandleRestore(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(`<div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); color: var(--success); padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; text-align: center; width: 100%; margin-top: 1rem;">
 		Database restored successfully. Reloading...
 	</div>`))
+}
+
+func HandleSettings(w http.ResponseWriter, r *http.Request) {
+	session, _ := auth.GetSession(r)
+	if session.Role != "Admin" {
+		http.Error(w, "unauthorized action", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "failed to parse settings form", http.StatusBadRequest)
+		return
+	}
+
+	settings := map[string]string{
+		"app_name":         r.FormValue("app_name"),
+		"tagline":          r.FormValue("tagline"),
+		"background_theme": r.FormValue("background_theme"),
+		"search_enabled":   strconv.FormatBool(r.FormValue("search_enabled") == "on" || r.FormValue("search_enabled") == "true"),
+		"show_greeting":    strconv.FormatBool(r.FormValue("show_greeting") == "on" || r.FormValue("show_greeting") == "true"),
+		"show_clock":       strconv.FormatBool(r.FormValue("show_clock") == "on" || r.FormValue("show_clock") == "true"),
+	}
+
+	if settings["app_name"] == "" {
+		settings["app_name"] = "AMUD Dashboard"
+	}
+	if settings["tagline"] == "" {
+		settings["tagline"] = "High-Performance Intelligent Home Lab Cockpit"
+	}
+	if settings["background_theme"] == "" {
+		settings["background_theme"] = "aurora"
+	}
+
+	if err := database.SaveSettings(settings); err != nil {
+		slog.Error("failed to persist dashboard settings", "error", err)
+		http.Error(w, "failed to save settings", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Trigger", "settings-saved")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = w.Write([]byte(`<div class="settings-save-note">Settings saved. Refreshing dashboard...</div>`))
+}
+
+func HandleServiceStat(w http.ResponseWriter, r *http.Request) {
+	service := r.PathValue("service")
+	label := "Active"
+	if service == "plex" || service == "jellyfin" {
+		label = "0 Watching"
+	} else if service == "proxmox" {
+		label = "Healthy"
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = w.Write([]byte(`<span class="stat-pill" id="stat-` + service + `" hx-get="/api/stats/` + service + `" hx-trigger="every 10s" hx-swap="outerHTML">` + label + `</span>`))
 }

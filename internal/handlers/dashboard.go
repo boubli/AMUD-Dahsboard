@@ -19,6 +19,15 @@ import (
 
 var Templates *template.Template
 
+type DashboardSettings struct {
+	AppName         string
+	Tagline         string
+	SearchEnabled   bool
+	ShowGreeting    bool
+	ShowClock       bool
+	BackgroundTheme string
+}
+
 type CardViewData struct {
 	App       models.App
 	UserRole  string
@@ -31,8 +40,36 @@ type AppsViewData struct {
 	UserRole string
 }
 
-type HeaderViewData struct {
-	UserRole string
+type PageViewData struct {
+	Session  auth.Session
+	Settings DashboardSettings
+}
+
+func loadDashboardSettings() DashboardSettings {
+	values, err := database.LoadSettings()
+	if err != nil {
+		return DashboardSettings{
+			AppName:         "AMUD Dashboard",
+			Tagline:         "High-Performance Intelligent Home Lab Cockpit",
+			SearchEnabled:   true,
+			ShowGreeting:    true,
+			ShowClock:       true,
+			BackgroundTheme: "aurora",
+		}
+	}
+
+	searchEnabled, _ := strconv.ParseBool(values["search_enabled"])
+	showGreeting, _ := strconv.ParseBool(values["show_greeting"])
+	showClock, _ := strconv.ParseBool(values["show_clock"])
+
+	return DashboardSettings{
+		AppName:         values["app_name"],
+		Tagline:         values["tagline"],
+		SearchEnabled:   searchEnabled,
+		ShowGreeting:    showGreeting,
+		ShowClock:       showClock,
+		BackgroundTheme: values["background_theme"],
+	}
 }
 
 func HandleIndex(w http.ResponseWriter, r *http.Request) {
@@ -42,9 +79,10 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session, _ := auth.GetSession(r)
+	settings := loadDashboardSettings()
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := Templates.ExecuteTemplate(w, "base.html", HeaderViewData{UserRole: session.Role})
+	err := Templates.ExecuteTemplate(w, "base.html", PageViewData{Session: session, Settings: settings})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -52,8 +90,9 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 
 func HandleGetApps(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("category")
+	query := r.URL.Query().Get("q")
 
-	apps, err := fetchAppsFiltered(category)
+	apps, err := fetchAppsFiltered(category, query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -291,18 +330,29 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func fetchAppsFiltered(category string) ([]models.App, error) {
+func fetchAppsFiltered(category, query string) ([]models.App, error) {
 	var rows *sql.Rows
 	var err error
+	var args []any
+	var conditions []string
+	baseQuery := "SELECT id, name, url, icon, description, category, node_tag FROM apps"
 
 	if category != "" {
-		rows, err = database.DB.Query(
-			"SELECT id, name, url, icon, description, category, node_tag FROM apps WHERE category = ? ORDER BY id DESC",
-			category,
-		)
-	} else {
-		rows, err = database.DB.Query("SELECT id, name, url, icon, description, category, node_tag FROM apps ORDER BY id DESC")
+		conditions = append(conditions, "category = ?")
+		args = append(args, category)
 	}
+	if query != "" {
+		conditions = append(conditions, "(LOWER(name) LIKE ? OR LOWER(url) LIKE ? OR LOWER(COALESCE(description, '')) LIKE ? OR LOWER(COALESCE(category, '')) LIKE ? OR LOWER(COALESCE(node_tag, '')) LIKE ?)")
+		search := "%" + strings.ToLower(query) + "%"
+		args = append(args, search, search, search, search, search)
+	}
+
+	if len(conditions) > 0 {
+		baseQuery += " WHERE " + strings.Join(conditions, " AND ")
+	}
+	baseQuery += " ORDER BY id DESC"
+
+	rows, err = database.DB.Query(baseQuery, args...)
 
 	if err != nil {
 		return nil, err
