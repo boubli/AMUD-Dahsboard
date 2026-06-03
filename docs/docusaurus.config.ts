@@ -11,11 +11,12 @@ const config: Config = {
   url: 'https://boubli.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/AMUD-Dahsboard/',
+  baseUrl: '/AMUD-Dashboard/',
 
   // GitHub pages deployment config.
+  // If you aren't using GitHub pages, you don't need these.
   organizationName: 'boubli', // Usually your GitHub org/user name.
-  projectName: 'AMUD-Dahsboard', // Usually your repo name.
+  projectName: 'AMUD-Dashboard', // Usually your repo name.
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
@@ -32,7 +33,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl:
-            'https://github.com/boubli/AMUD-Dahsboard/tree/main/docs/',
+            'https://github.com/boubli/AMUD-Dashboard/tree/main/docs/',
         },
         blog: false, // Disable the blog plugin
         theme: {
@@ -63,7 +64,7 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: 'https://github.com/boubli/AMUD-Dahsboard',
+          href: 'https://github.com/boubli/AMUD-Dashboard',
           label: 'GitHub',
           position: 'right',
         },
@@ -86,7 +87,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub Repository',
-              href: 'https://github.com/boubli/AMUD-Dahsboard',
+              href: 'https://github.com/boubli/AMUD-Dashboard',
             },
           ],
         },

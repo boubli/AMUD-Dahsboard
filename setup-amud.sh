@@ -106,7 +106,7 @@ pct exec "$CT_ID" -- bash -c "export DEBIAN_FRONTEND=noninteractive; apt-get upd
 
 # 6. Fetch Latest Release Version
 info "Querying latest release from GitHub API..."
-REPO="boubli/AMUD-Dahsboard"
+REPO="boubli/AMUD-Dashboard"
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
 
 if [ -z "$LATEST_RELEASE" ]; then
@@ -189,7 +189,7 @@ TEMPLATE_MOTD=$(cat << 'EOF'
 | $$  | $$| $$  \$ | $$ \$$    $$| $$    $$
  \$$   \$$ \$$      \$$  \$$$$$$  \$$$$$$$ 
 ==============================================================
-AMUD-Dahsboard (LXC OS: Debian 12 - Native Service)
+AMUD-Dashboard (LXC OS: Debian 12 - Native Service)
 ==============================================================
   Local IP Address: http://__IP__
   Access UI / API:   http://__IP__:8000 (Port 8000)

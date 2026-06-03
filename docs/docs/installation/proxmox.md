@@ -11,7 +11,7 @@ AMUD features an **Autopilot Installer** specifically built for Proxmox VE. The 
 Run the following command in your Proxmox Host shell (as root):
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dahsboard/main/setup-amud.sh | bash
+curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amud.sh | bash
 ```
 
 ## What the Script Does
@@ -46,5 +46,5 @@ http://<YOUR_PROXMOX_IP>:8000/
 To update AMUD to the latest release, run the updater script on your Proxmox Host:
 
 ```bash
-curl -sSL https://github.com/boubli/AMUD-Dahsboard/releases/latest/download/update-amud.sh | bash
+curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/update-amud.sh | bash
 ```

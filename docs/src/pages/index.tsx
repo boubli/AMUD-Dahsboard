@@ -28,7 +28,7 @@ function HomepageHeader() {
           </Link>
           <Link
             className="button button--outline button--lg"
-            to="https://github.com/boubli/AMUD-Dahsboard"
+            to="https://github.com/boubli/AMUD-Dashboard"
             style={{ color: '#7aa2f7', borderColor: '#7aa2f7', fontWeight: 'bold' }}>
             GitHub Repository
           </Link>

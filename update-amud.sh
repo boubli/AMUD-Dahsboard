@@ -21,7 +21,7 @@ error() {
     echo -e "\033[1;31m[ERROR]\033[0m $1" >&2
 }
 
-REPO="boubli/AMUD-Dahsboard"
+REPO="boubli/AMUD-Dashboard"
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
 
 if [ -z "$LATEST_RELEASE" ]; then
