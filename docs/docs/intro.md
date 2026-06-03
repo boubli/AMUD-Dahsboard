@@ -6,13 +6,13 @@ sidebar_position: 1
 
 Welcome to **AMUD (Advanced Modern Unified Dashboard)**.
 
-AMUD is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles under **10MB of RAM** (combined server and agent).
+AMUD is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles at roughly **~26MB of RAM** (combined server and agent) with a **~660MB disk footprint** when deployed as a full Debian LXC container.
 
 ## Why AMUD Demolishes Legacy Dashboards
 
 ### 1. Bare-Metal Resource Discipline
 * **The Legacy Problem:** Legacy dashboards rely on heavy PHP/Laravel lifecycles, requiring background web servers (Nginx/Apache) and PHP-FPM daemons that swallow 150MB+ RAM just sitting idle. 
-* **The AMUD Solution:** Written in pure, compiled Rust. It executes native machine code with zero interpreter overhead, running the entire dashboard, telemetry layer, and database inside a strict **~10MB RAM** envelope at idle.
+* **The AMUD Solution:** Written in pure, compiled Rust. It executes native machine code with zero interpreter overhead, running the entire dashboard, telemetry layer, and database inside a strict **~26MB RAM** envelope at idle in a full LXC container.
 
 ### 2. Zero-YAML, 100% UI-Driven Control
 * **The Legacy Problem:** Next-gen dashboards force you to spend hours manually writing, indenting, and debugging hundreds of lines of complex YAML text files just to add a shortcut.
