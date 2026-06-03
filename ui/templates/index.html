@@ -35,7 +35,7 @@
                 <!-- Weather Widget -->
                 <div class="weather-widget">
                     <i data-lucide="sun"></i>
-                    <span>{{weather_info}}</span>
+                    <span id="live-weather">Detecting...</span>
                 </div>
                 
                 <!-- Admin Operations -->
@@ -599,6 +599,25 @@
                 navigator.serviceWorker.register('/static/sw.js');
             });
         }
+    </script>
+    <script>
+        // Fetch Live Weather automatically based on IP location
+        fetch('https://wttr.in/?format=%t+%C')
+            .then(res => {
+                if (!res.ok) throw new Error('Weather API failed');
+                return res.text();
+            })
+            .then(data => {
+                if (!data.includes('Unknown') && !data.includes('HTML')) {
+                    document.getElementById('live-weather').textContent = data.trim();
+                } else {
+                    document.getElementById('live-weather').textContent = 'Unavailable';
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                document.getElementById('live-weather').textContent = 'Offline';
+            });
     </script>
 </body>
 </html>

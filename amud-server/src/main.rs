@@ -119,7 +119,7 @@ fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("glass_blur_intensity", "16");
     s.insert("glass_opacity", "0.45");
     s.insert("bento_radius", "16");
-    s.insert("weather_info", "13.1°F Clear");
+
     s.into()
 }
 
@@ -450,7 +450,7 @@ async fn dashboard_handler(
     let glass_blur = settings.get("glass_blur_intensity").map(|s| s.as_str()).unwrap_or("16");
     let glass_opacity = settings.get("glass_opacity").map(|s| s.as_str()).unwrap_or("0.45");
     let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
-    let weather_info = settings.get("weather_info").map(|s| s.as_str()).unwrap_or("13.1°F Clear");
+
     let overlay_theme = settings.get("overlay_theme").map(|s| s.as_str()).unwrap_or("cyber");
     let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
 
@@ -923,7 +923,7 @@ async fn dashboard_handler(
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
         .replace("{{bento_radius}}", bento_radius)
-        .replace("{{weather_info}}", weather_info)
+
         .replace("<!-- APPS_GRID -->", &apps_html)
         .replace("<!-- STREAMS_ROW -->", &streams_html)
         .replace("<!-- CATEGORY_TABS -->", &category_tabs_html)
