@@ -1,5 +1,6 @@
 # AMUD Dashboard
 
+![AMUD Dashboard UI](assist/amud-dashboard.png)
 AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles under **10MB of RAM** (combined server and agent).
 
 **Ready to deploy? Refer directly to our [AMUD Deployment Guide](DEPLOY.md) for automated installer scripts, Portainer configs, and Docker CLI instructions.**
