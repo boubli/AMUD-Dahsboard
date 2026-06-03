@@ -53,7 +53,7 @@ const config: Config = {
       title: 'AMUD',
       logo: {
         alt: 'AMUD Logo',
-        src: 'img/logo.svg', // We will keep the default react logo for now, or use our own
+        src: 'img/AMUD-logo.png',
       },
       items: [
         {
