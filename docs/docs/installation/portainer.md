@@ -6,8 +6,8 @@ sidebar_position: 3
 
 Portainer provides an excellent Web UI for managing Docker containers. You can deploy the AMUD Dashboard inside Portainer using a Custom Stack.
 
-> [!WARNING]  
-> Deploying via Docker/Portainer means the native Proxmox LXC telemetry features (live container CPU/RAM stats) will be disabled, since the dashboard is running inside an isolated Docker network instead of directly on your hypervisor.
+> [!NOTE]  
+> The included AMUD Agent container automatically maps your Docker socket. This allows the dashboard to stream live **Running/Stopped** indicators for all of your Docker containers directly into the UI!
 
 ## Deploying the Stack
 
@@ -29,11 +29,23 @@ services:
       - "8000:8000"
     volumes:
       - amud_data:/app/data
+      - amud_run:/var/run/amud
+    restart: unless-stopped
+
+  amud-agent:
+    image: tradmss/amud-dashboard:latest
+    container_name: amud-agent
+    entrypoint: ["/app/amud-agent"]
+    volumes:
+      - amud_run:/var/run/amud
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
 
 volumes:
   amud_data:
     name: amud_data
+  amud_run:
+    name: amud_run
 ```
 
 7. Scroll down to the bottom and click **Deploy the stack**.

@@ -149,6 +149,41 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             }
         }
 
+        // Fetch Docker info from Docker Engine and merge
+        if std::path::Path::new("/var/run/docker.sock").exists() {
+            if let Ok(output) = std::process::Command::new("curl")
+                .args(&["-s", "--unix-socket", "/var/run/docker.sock", "http://localhost/containers/json"])
+                .output()
+            {
+                #[derive(serde::Deserialize)]
+                struct DockerContainer {
+                    #[serde(rename = "Names")]
+                    names: Vec<String>,
+                    #[serde(rename = "State")]
+                    state: String,
+                }
+                
+                if let Ok(dockers) = serde_json::from_slice::<Vec<DockerContainer>>(&output.stdout) {
+                    for (i, d) in dockers.into_iter().enumerate() {
+                        let name = d.names.into_iter().next().unwrap_or_default().replace("/", "");
+                        
+                        // We set vmid to a safe negative sequence so it doesn't collide with Proxmox LXC IDs (100+)
+                        lxc_containers.push(LxcContainer {
+                            vmid: -1000 - i as i64,
+                            status: d.state,
+                            name,
+                            cpu: None,
+                            maxmem: None,
+                            mem: None,
+                            maxdisk: None,
+                            disk: None,
+                            uptime: None,
+                        });
+                    }
+                }
+            }
+        }
+
         let telemetry = Telemetry {
             cpu_usage,
             ram_usage,

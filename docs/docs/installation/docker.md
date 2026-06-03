@@ -6,8 +6,8 @@ sidebar_position: 2
 
 You can deploy AMUD effortlessly using the official Docker images. We provide instructions for both `Docker Compose` and the `Docker CLI`.
 
-> [!WARNING]
-> Running AMUD inside Docker will currently disable the native Proxmox LXC telemetry features (live LXC CPU/RAM stats), as the dashboard runs isolated inside the container rather than on the host bare-metal.
+> [!NOTE]
+> The included AMUD Agent container automatically maps your Docker socket. This allows the dashboard to stream live **Running/Stopped** indicators for all of your Docker containers directly into the UI!
 
 ## Option A: Docker Compose (Recommended)
 
@@ -24,6 +24,16 @@ services:
       - "8000:8000"
     volumes:
       - ./amud_data:/app/data
+      - ./amud_run:/var/run/amud
+    restart: unless-stopped
+
+  amud-agent:
+    image: tradmss/amud-dashboard:latest
+    container_name: amud-agent
+    entrypoint: ["/app/amud-agent"]
+    volumes:
+      - ./amud_run:/var/run/amud
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
 ```
 
@@ -35,14 +45,28 @@ docker-compose up -d
 
 ## Option B: Docker CLI (docker run)
 
-If you prefer to run a single command without creating a compose file, use the following `docker run` command:
+If you prefer to run a single command without creating a compose file, you will need to create a shared docker volume for the socket, and run both containers:
 
 ```bash
+# Create shared volume for IPC
+docker volume create amud_run
+
+# Start the dashboard server
 docker run -d \
   --name amud-dashboard \
   -p 8000:8000 \
   -v amud_data:/app/data \
+  -v amud_run:/var/run/amud \
   --restart unless-stopped \
+  tradmss/amud-dashboard:latest
+
+# Start the Docker telemetry agent
+docker run -d \
+  --name amud-agent \
+  -v amud_run:/var/run/amud \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  --restart unless-stopped \
+  --entrypoint "/app/amud-agent" \
   tradmss/amud-dashboard:latest
 ```
 
