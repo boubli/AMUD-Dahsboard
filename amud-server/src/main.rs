@@ -113,7 +113,7 @@ fn get_default_settings() -> HashMap<&'static str, &'static str> {
     let mut s = HashMap::new();
     s.insert("app_name", "AMUD");
     s.insert("tagline", "Homelab Operations Cockpit");
-    s.insert("accent_color", "#38bdf8");
+    s.insert("accent_color", "#cf6427");
     s.insert("custom_bg_url", "/static/wallpaper.png");
     s.insert("app_logo", "");
     s.insert("glass_blur_intensity", "16");
@@ -446,7 +446,7 @@ async fn dashboard_handler(
         custom_bg_url = "/static/wallpaper.png";
     }
     let app_logo = settings.get("app_logo").map(|s| s.as_str()).unwrap_or("");
-    let accent_color = settings.get("accent_color").map(|s| s.as_str()).unwrap_or("#38bdf8");
+    let accent_color = settings.get("accent_color").map(|s| s.as_str()).unwrap_or("#cf6427");
     let glass_blur = settings.get("glass_blur_intensity").map(|s| s.as_str()).unwrap_or("16");
     let glass_opacity = settings.get("glass_opacity").map(|s| s.as_str()).unwrap_or("0.45");
     let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
@@ -961,7 +961,7 @@ async fn login_page(
     }
     let app_logo = settings.get("app_logo").map(|s| s.as_str()).unwrap_or("");
     let app_name = settings.get("app_name").map(|s| s.as_str()).unwrap_or("AMUD");
-    let accent_color = settings.get("accent_color").map(|s| s.as_str()).unwrap_or("#38bdf8");
+    let accent_color = settings.get("accent_color").map(|s| s.as_str()).unwrap_or("#cf6427");
     let glass_blur = settings.get("glass_blur_intensity").map(|s| s.as_str()).unwrap_or("16");
     let glass_opacity = settings.get("glass_opacity").map(|s| s.as_str()).unwrap_or("0.45");
     let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
@@ -1205,6 +1205,13 @@ async fn settings_handler(
     if session.map(|s| s.role == "Admin").unwrap_or(false) {
         let db = state.db.lock().unwrap();
         for (key, val) in form {
+            if key == "new_password" {
+                if !val.is_empty() {
+                    let hashed = hash_password(&val);
+                    db.execute("UPDATE users SET password_hash = ? WHERE username = 'admin'", params![hashed]).ok();
+                }
+                continue;
+            }
             db.execute(
                 "INSERT INTO settings (key, value) VALUES (?1, ?2)
                  ON CONFLICT(key) DO UPDATE SET value = ?2",

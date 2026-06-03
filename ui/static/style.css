@@ -5,10 +5,10 @@
     --brand-bg-image: url('https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg');
     --brand-title: "AMUD";
     --brand-slogan: "Homelab Operations Cockpit";
-    --brand-logo-url: url('/static/logo.svg');
+    --brand-logo-url: url('/static/AMUD-logo.png');
     
-    --accent-color: #38bdf8; /* sky-400 */
-    --accent-glow: rgba(56, 189, 248, 0.15);
+    --accent-color: #cf6427; /* user defined accent */
+    --accent-glow: rgba(207, 100, 39, 0.15);
     --glass-blur-intensity: 16px;
     --glass-opacity: 0.45;
     

@@ -25,7 +25,7 @@
         <header class="topbar">
             <div class="brand-section">
                 <div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
-                <h1 class="brand-title">{{app_name}}</h1>
+                <h1 class="brand-title">{{app_name}} DASHBOARD</h1>
             </div>
             
             <div style="display: flex; align-items: center; gap: 1rem;">
@@ -241,6 +241,16 @@
                 <div class="form-group" style="margin-top:0.75rem;">
                     <label>Glass Blur Strength (px)</label>
                     <input type="range" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
+                </div>
+            </div>
+
+            <!-- Section 4: Security -->
+            <div class="settings-section">
+                <h3><i data-lucide="lock" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Security</h3>
+                
+                <div class="form-group">
+                    <label>Change Admin Password</label>
+                    <input type="password" name="new_password" class="form-control" placeholder="Enter new password (leave blank to keep current)">
                 </div>
             </div>
 
