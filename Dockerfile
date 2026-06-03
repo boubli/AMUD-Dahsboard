@@ -35,8 +35,9 @@ COPY --from=builder /usr/src/amud/target/release/amud-agent /app/amud-agent
 # Copy static assets and UI files needed at runtime
 COPY --from=builder /usr/src/amud/ui /app/ui
 
-# Ensure data directory exists
+# Ensure data directory exists and set it as a volume
 RUN mkdir -p /app/data
+VOLUME /app/data
 
 # Expose port 8000
 EXPOSE 8000
