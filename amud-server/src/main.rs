@@ -505,7 +505,7 @@ async fn dashboard_handler(
             } else if app.name.to_lowercase().contains("portainer") {
                 r#"<span class="status-badge ms">452 ms</span>"#
             } else {
-                r#"<span class="status-badge">RUNNING</span>"#
+                r#"<span class="status-badge">ACTIVE</span>"#
             };
 
             // Build Sub-Metrics Grid
@@ -651,11 +651,11 @@ async fn dashboard_handler(
                 sub_metrics = r#"
                 <div class="nested-metrics-grid">
                     <div class="metric-block">
-                        <span class="metric-value">99.9%</span>
-                        <span class="metric-label">Uptime</span>
+                        <span class="metric-value">Bookmark</span>
+                        <span class="metric-label">Type</span>
                     </div>
                     <div class="metric-block">
-                        <span class="metric-value">Online</span>
+                        <span class="metric-value">Linked</span>
                         <span class="metric-label">Status</span>
                     </div>
                 </div>"#.to_string();

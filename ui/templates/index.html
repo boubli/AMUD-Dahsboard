@@ -97,17 +97,17 @@
                 </div>
             </div>
 
-            <!-- NAS storage stats -->
+            <!-- Disk storage stats -->
             <div class="glass-panel telemetry-card">
                 <div class="telemetry-header">
-                    <span class="telemetry-title">NAS</span>
-                    <span class="telemetry-value" id="val-nas-free">0 TB Free</span>
+                    <span class="telemetry-title">Disk</span>
+                    <span class="telemetry-value" id="val-nas-free">0 GB Free</span>
                 </div>
                 <div class="telemetry-bar-container">
                     <div class="telemetry-bar-fill" id="bar-nas-usage" style="width: 0%;"></div>
                 </div>
                 <div class="telemetry-subinfo">
-                    <span id="val-nas-used">0 TB Used</span>
+                    <span id="val-nas-used">0 GB Used</span>
                     <span>Disk Capacity</span>
                 </div>
             </div>
@@ -463,9 +463,9 @@
                     document.getElementById('bar-pve-cpu').style.width = `${sys.cpu_usage}%`;
                     document.getElementById('val-pve-mem').innerText = `Mem ${sys.ram_usage}%`;
                     
-                    document.getElementById('val-nas-free').innerText = `${(sys.disk_total_gb - sys.disk_used_gb).toFixed(1)} TB Free`;
+                    document.getElementById('val-nas-free').innerText = `${(sys.disk_total_gb - sys.disk_used_gb).toFixed(1)} GB Free`;
                     document.getElementById('bar-nas-usage').style.width = `${sys.disk_usage}%`;
-                    document.getElementById('val-nas-used').innerText = `${sys.disk_used_gb.toFixed(1)} TB Used`;
+                    document.getElementById('val-nas-used').innerText = `${sys.disk_used_gb.toFixed(1)} GB Used`;
                 }
 
                 // Update network metrics
