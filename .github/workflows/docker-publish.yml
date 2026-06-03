@@ -34,11 +34,21 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=ref,event=tag
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          provenance: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Build Docker image
+        run: |
+          TAGS="${{ steps.meta.outputs.tags }}"
+          CMD="docker build"
+          for tag in $TAGS; do
+            CMD="$CMD -t $tag"
+          done
+          CMD="$CMD ."
+          echo "Building image..."
+          eval $CMD
+
+      - name: Push Docker image
+        run: |
+          TAGS="${{ steps.meta.outputs.tags }}"
+          for tag in $TAGS; do
+            echo "Pushing $tag..."
+            docker push $tag
+          done
