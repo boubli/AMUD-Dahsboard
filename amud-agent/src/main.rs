@@ -14,6 +14,20 @@ struct Telemetry {
     disk_usage: i32,
     disk_used_gb: f64,
     disk_total_gb: f64,
+    lxc_containers: Vec<LxcContainer>,
+}
+
+#[derive(Serialize, serde::Deserialize, Clone, Default)]
+struct LxcContainer {
+    vmid: i64,
+    status: String,
+    name: String,
+    cpu: Option<f64>,
+    maxmem: Option<i64>,
+    mem: Option<i64>,
+    maxdisk: Option<i64>,
+    disk: Option<i64>,
+    uptime: Option<i64>,
 }
 
 fn main() {
@@ -124,6 +138,17 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let disk_total_gb = (total_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
         let disk_used_gb = (used_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
+        // Fetch LXC info from Proxmox
+        let mut lxc_containers = Vec::new();
+        if let Ok(output) = std::process::Command::new("pvesh")
+            .args(&["get", "/nodes/localhost/lxc", "--output-format", "json"])
+            .output()
+        {
+            if let Ok(containers) = serde_json::from_slice::<Vec<LxcContainer>>(&output.stdout) {
+                lxc_containers = containers;
+            }
+        }
+
         let telemetry = Telemetry {
             cpu_usage,
             ram_usage,
@@ -133,6 +158,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             disk_usage,
             disk_used_gb,
             disk_total_gb,
+            lxc_containers,
         };
 
         // Serialize and push
@@ -142,6 +168,6 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         stream.write_all(&serialized)?;
         stream.flush()?;
 
-        sleep(Duration::from_secs(3));
+        sleep(Duration::from_secs(5));
     }
 }

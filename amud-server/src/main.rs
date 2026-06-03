@@ -40,6 +40,19 @@ struct Session {
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
+struct LxcContainer {
+    vmid: i64,
+    status: String,
+    name: String,
+    cpu: Option<f64>,
+    maxmem: Option<i64>,
+    mem: Option<i64>,
+    maxdisk: Option<i64>,
+    disk: Option<i64>,
+    uptime: Option<i64>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Default)]
 struct AgentTelemetry {
     cpu_usage: i32,
     ram_usage: i32,
@@ -49,6 +62,8 @@ struct AgentTelemetry {
     disk_usage: i32,
     disk_used_gb: f64,
     disk_total_gb: f64,
+    #[serde(default)]
+    lxc_containers: Vec<LxcContainer>,
 }
 
 #[derive(Serialize, Clone)]
@@ -679,7 +694,7 @@ async fn dashboard_handler(
 
             let card = format!(
                 r#"
-                <div class="glass-panel app-card">
+                <div class="glass-panel app-card" data-app-name="{}">
                     <div class="app-card-header">
                         <a href="{}" target="_blank" rel="noopener noreferrer" class="app-card-identity" style="text-decoration:none; color:inherit;">
                             <div class="app-card-icon">
@@ -690,14 +705,14 @@ async fn dashboard_handler(
                                 <p class="app-card-desc">{}</p>
                             </div>
                         </a>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;" class="app-card-badges">
                             {}
                             {}
                         </div>
                     </div>
                     {}
                 </div>"#,
-                app.url, brand_logo, app.name, app.description, status_badge, delete_btn, sub_metrics
+                name_lower, app.url, brand_logo, app.name, app.description, status_badge, delete_btn, sub_metrics
             );
             cols[col_idx].push_str(&card);
         }

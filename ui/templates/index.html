@@ -466,6 +466,57 @@
                     document.getElementById('val-nas-free').innerText = `${(sys.disk_total_gb - sys.disk_used_gb).toFixed(1)} GB Free`;
                     document.getElementById('bar-nas-usage').style.width = `${sys.disk_usage}%`;
                     document.getElementById('val-nas-used').innerText = `${sys.disk_used_gb.toFixed(1)} GB Used`;
+
+                    // Update LXC matching custom apps
+                    if (sys.lxc_containers && sys.lxc_containers.length > 0) {
+                        const appCards = document.querySelectorAll('.app-card');
+                        appCards.forEach(card => {
+                            const appName = card.getAttribute('data-app-name');
+                            if (!appName) return;
+
+                            const match = sys.lxc_containers.find(lxc => 
+                                lxc.name.toLowerCase() === appName || 
+                                appName.includes(lxc.name.toLowerCase()) || 
+                                lxc.name.toLowerCase().includes(appName)
+                            );
+
+                            if (match) {
+                                const badgeContainer = card.querySelector('.app-card-badges');
+                                if (badgeContainer) {
+                                    const existingBadge = badgeContainer.querySelector('.status-badge');
+                                    const isRunning = match.status === 'running';
+                                    
+                                    if (existingBadge && !existingBadge.classList.contains('ms')) {
+                                        existingBadge.innerText = match.status.toUpperCase();
+                                        if (isRunning) {
+                                            existingBadge.style.color = '#10b981';
+                                            existingBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+                                            existingBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                                        } else {
+                                            existingBadge.style.color = '#ef4444';
+                                            existingBadge.style.background = 'rgba(239, 68, 68, 0.1)';
+                                            existingBadge.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                                        }
+                                    }
+                                }
+
+                                const metricsGrid = card.querySelector('.nested-metrics-grid');
+                                // Only override the default generic Bookmark/Linked metrics grid
+                                if (metricsGrid && metricsGrid.innerHTML.includes('Bookmark')) {
+                                    metricsGrid.innerHTML = `
+                                        <div class="metric-block">
+                                            <span class="metric-value" style="color: ${match.cpu > 0.8 ? '#ef4444' : 'inherit'}">${match.cpu ? (match.cpu * 100).toFixed(1) + '%' : '0%'}</span>
+                                            <span class="metric-label">CPU</span>
+                                        </div>
+                                        <div class="metric-block">
+                                            <span class="metric-value">${match.mem && match.maxmem ? ((match.mem / match.maxmem) * 100).toFixed(1) + '%' : '0%'}</span>
+                                            <span class="metric-label">RAM</span>
+                                        </div>
+                                    `;
+                                }
+                            }
+                        });
+                    }
                 }
 
                 // Update network metrics
