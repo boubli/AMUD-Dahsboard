@@ -1,0 +1,16 @@
+{
+  "name": "AMUD Dashboard",
+  "short_name": "AMUD",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0b10",
+  "theme_color": "#cf6427",
+  "icons": [
+    {
+      "src": "/static/AMUD-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
