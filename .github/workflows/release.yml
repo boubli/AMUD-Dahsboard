@@ -47,5 +47,8 @@ jobs:
             target/release/amud-server
             target/release/amud-agent
             ui.tar.gz
+            setup-amud.sh
+            update-amud.sh
+            uninstall-amud.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

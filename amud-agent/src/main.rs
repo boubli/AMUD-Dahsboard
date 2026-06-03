@@ -45,7 +45,7 @@ type StreamType = std::net::TcpStream;
 #[cfg(unix)]
 fn establish_connection() -> Result<StreamType, std::io::Error> {
     let path = std::env::var("AMUD_SOCKET_PATH")
-        .unwrap_or_else(|_| "/var/run/amud.sock".to_string());
+        .unwrap_or_else(|_| "/opt/amud/run/amud.sock".to_string());
     
     println!("Connecting via UDS to {}", path);
     match std::os::unix::net::UnixStream::connect(&path) {

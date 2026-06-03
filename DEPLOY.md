@@ -10,7 +10,7 @@ The elite deployment method for Proxmox VE clusters uses our native autopilot sh
 
 ### How the Autopilot Script Works:
 1. **Container Setup**: Provisions a minimal Debian 12 Linux Container (LXC) on Proxmox, allocating **256MB RAM** (with 256MB swap) for a native production runtime.
-2. **Directory Bind-Mounting**: Configures a secure directory `/var/run/amud` on the Proxmox host and bind-mounts it to the LXC container as `/var/run/amud`.
+2. **Directory Bind-Mounting**: Configures a secure directory `/opt/amud/run` on the Proxmox host and bind-mounts it to the LXC container as `/opt/amud/run`.
 3. **App Orchestration**: Retrieves the latest precompiled `amud-server` and `ui.tar.gz` assets directly from the official **GitHub Releases** page inside the LXC container, configuring them to run natively under `systemd`. No Docker, compiler, or Go/Rust toolchain is needed.
 4. **Host Agent Installation**: Downloads the latest precompiled `amud-agent` binary directly from GitHub Releases, installs it at `/usr/local/bin/amud-agent` on the Proxmox host, and configures a lightweight `systemd` daemon (`amud-agent.service`). This agent streams real-time CPU, RAM, and disk metrics to the server via the UNIX Domain Socket.
 
@@ -26,7 +26,7 @@ chmod +x *.sh
 
 Alternatively, you can run the installer directly via a single-line command:
 ```bash
-curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dahsboard/main/setup-amud.sh | bash
+curl -sSL https://github.com/boubli/AMUD-Dahsboard/releases/latest/download/setup-amud.sh | bash
 ```
 
 ---
@@ -47,7 +47,7 @@ cd AMUD-Dahsboard
 
 Or run the updater directly via curl:
 ```bash
-curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dahsboard/main/update-amud.sh | bash
+curl -sSL https://github.com/boubli/AMUD-Dahsboard/releases/latest/download/update-amud.sh | bash
 ```
 
 ---
@@ -65,7 +65,7 @@ cd AMUD-Dahsboard
 
 Or run the uninstaller directly via curl:
 ```bash
-curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dahsboard/main/uninstall-amud.sh | bash
+curl -sSL https://github.com/boubli/AMUD-Dahsboard/releases/latest/download/uninstall-amud.sh | bash
 ```
 
 ---
@@ -89,10 +89,10 @@ services:
     environment:
       - DB_PATH=/app/data/amud.db
       - PORT=8000
-      - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
     volumes:
       - ./data:/app/data
-      - /var/run/amud:/var/run/amud
+      - /opt/amud/run:/opt/amud/run
 ```
 4. Click **Deploy the stack**.
 

@@ -89,10 +89,10 @@ pct create "$CT_ID" "local:vztmpl/$TEMPLATE_FILE" \
     -nameserver "1.1.1.1 8.8.8.8" >/dev/null
 
 info "Creating host socket directory and configuring bind-mount..."
-mkdir -p /var/run/amud
-chmod 777 /var/run/amud
+mkdir -p /opt/amud/run
+chmod 777 /opt/amud/run
 # Append bind mount mapping to LXC config
-echo "mp0: /var/run/amud,mp=/var/run/amud" >> "/etc/pve/lxc/${CT_ID}.conf"
+echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> "/etc/pve/lxc/${CT_ID}.conf"
 
 info "Starting container $CT_ID..."
 pct start "$CT_ID" >/dev/null
@@ -139,7 +139,7 @@ Restart=always
 RestartSec=5
 Environment=PORT=8000
 Environment=DB_PATH=/opt/amud/data/amud.db
-Environment=AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
 
 [Install]
 WantedBy=multi-user.target
@@ -164,7 +164,7 @@ Type=simple
 ExecStart=/usr/local/bin/amud-agent
 Restart=always
 RestartSec=5
-Environment=AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
 
 [Install]
 WantedBy=multi-user.target

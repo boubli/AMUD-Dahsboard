@@ -275,7 +275,7 @@ fn start_agent_listener(
         #[cfg(unix)]
         {
             let socket_path = std::env::var("AMUD_SOCKET_PATH")
-                .unwrap_or_else(|_| "/var/run/amud.sock".to_string());
+                .unwrap_or_else(|_| "/opt/amud/run/amud.sock".to_string());
             run_uds_listener(&socket_path, latest_telemetry.clone(), agent_connected.clone()).await;
         }
 

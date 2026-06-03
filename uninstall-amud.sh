@@ -46,7 +46,7 @@ fi
 # 3. Clean up host files and sockets
 info "Cleaning up host binaries, files, and sockets..."
 rm -f /usr/local/bin/amud-agent
-rm -rf /var/run/amud
+rm -rf /opt/amud/run /var/run/amud
 
 success "AMUD Dashboard ecosystem has been completely uninstalled from your Proxmox host!"
 echo "=============================================================="
