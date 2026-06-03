@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "amud-agent",
+    "amud-server"
+]
+resolver = "2"

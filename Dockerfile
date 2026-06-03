@@ -1,30 +1,45 @@
 # Stage 1: Build stage
-FROM golang:1.22-alpine AS builder
+FROM rust:1.75-slim AS builder
 
-WORKDIR /app
+WORKDIR /usr/src/amud
 
-# Copy all source files
+# Install compilation dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy workspace source files
 COPY . .
 
-# Run go mod tidy to resolve and download dependencies
-RUN go mod tidy
-
-# Compile static binary directly
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o amud-bin ./cmd/server
+# Compile release binaries
+RUN cargo build --release
 
 # Stage 2: Runtime stage
-FROM alpine:latest
+FROM debian:bookworm-slim
 
-# Install ca-certificates
-RUN apk add --no-cache ca-certificates
+# Install system runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    sqlite3 \
+    libsqlite3-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy binary from builder stage
-COPY --from=builder /app/amud-bin .
+# Copy compiled binaries from builder stage
+COPY --from=builder /usr/src/amud/target/release/amud-server /app/amud-server
+COPY --from=builder /usr/src/amud/target/release/amud-agent /app/amud-agent
+
+# Copy static assets and UI files needed at runtime
+COPY --from=builder /usr/src/amud/ui /app/ui
+
+# Ensure data directory exists
+RUN mkdir -p /app/data
 
 # Expose port 8000
 EXPOSE 8000
 
-# Set entrypoint to run the binary
-ENTRYPOINT ["./amud-bin"]
+# Set entrypoint to run the server
+ENTRYPOINT ["/app/amud-server"]

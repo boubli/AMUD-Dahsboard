@@ -1,30 +1,78 @@
-# AMUD Deployment Guide
+# AMUD Deployment & Maintenance Guide
 
-This document outlines the verified production deployment methodologies for the AMUD Dashboard across micro-resource footprints, virtual environments, and container orchestrators.
+This document outlines the verified production deployment methodologies for the AMUD Dashboard. AMUD is designed to run with a microscopic resource footprint (less than 10MB RAM combined) by avoiding heavy virtualization layers or Docker nesting within the LXC container.
 
 ---
 
-## 1. Proxmox VE Autopilot Deployment (LXC Native)
+## 1. Proxmox VE Autopilot Deployment (LXC & Host Agent)
 
-The elite deployment method for Proxmox clusters uses our native shell script (`setup-amud.sh`) to automate container provisioning and hardware scaling directly from the host.
+The elite deployment method for Proxmox VE clusters uses our native autopilot shell script (`setup-amud.sh`) to automate container provisioning, directory bind-mounting, and host telemetry agent installation directly from GitHub Releases.
 
-### Automation Script Functions:
-1. Provisions a minimal Debian Linux Container (LXC).
-2. Allocates a strict maximum pool of **512MB RAM** and 1 vCPU.
-3. Automatically sets up the base runtime environment, clones the repository, and pulls the single-service micro-container image.
-4. Downscales host-level CPU priority variables to production constraints.
+### How the Autopilot Script Works:
+1. **Container Setup**: Provisions a minimal Debian 12 Linux Container (LXC) on Proxmox, allocating **256MB RAM** (with 256MB swap) for a native production runtime.
+2. **Directory Bind-Mounting**: Configures a secure directory `/var/run/amud` on the Proxmox host and bind-mounts it to the LXC container as `/var/run/amud`.
+3. **App Orchestration**: Retrieves the latest precompiled `amud-server` and `ui.tar.gz` assets directly from the official **GitHub Releases** page inside the LXC container, configuring them to run natively under `systemd`. No Docker, compiler, or Go/Rust toolchain is needed.
+4. **Host Agent Installation**: Downloads the latest precompiled `amud-agent` binary directly from GitHub Releases, installs it at `/usr/local/bin/amud-agent` on the Proxmox host, and configures a lightweight `systemd` daemon (`amud-agent.service`). This agent streams real-time CPU, RAM, and disk metrics to the server via the UNIX Domain Socket.
 
 ### Execution:
-SSH into your Proxmox VE host and execute the automated onboarding workflow:
+SSH into your Proxmox VE host as `root` and run:
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/boubli/AMUD-Dahsboard/main/setup-amud.sh)"
+# Clone the repository and execute the installer
+git clone https://github.com/boubli/AMUD-Dahsboard.git
+cd AMUD-Dahsboard
+chmod +x *.sh
+./setup-amud.sh
+```
+
+Alternatively, you can run the installer directly via a single-line command:
+```bash
+curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dahsboard/main/setup-amud.sh | bash
 ```
 
 ---
 
-## 2. Portainer Stack Deployment (Web Editor)
+## 2. How to Update AMUD to the Latest Release
 
-For standard containerized host management panels:
+When a new version of the AMUD Dashboard or Agent is released on GitHub, you can perform an in-place update of both the LXC server and the Proxmox host agent without destroying your configuration or database.
+
+The update script `update-amud.sh` automatically queries the GitHub API for the latest release, stops the services, replaces the binaries and UI templates with the latest precompiled release assets, and restarts the services.
+
+### Update execution:
+SSH into your Proxmox VE host as `root` and run:
+```bash
+# Navigate to the cloned folder and run the updater
+cd AMUD-Dahsboard
+./update-amud.sh
+```
+
+Or run the updater directly via curl:
+```bash
+curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dahsboard/main/update-amud.sh | bash
+```
+
+---
+
+## 3. Complete Uninstallation / Cleanup
+
+If you need to completely remove the AMUD Dashboard LXC and the Proxmox host telemetry agent, we provide an uninstaller script that destroys the container, stops/deletes the host agent, and removes all socket directories.
+
+SSH into your Proxmox VE host as `root` and run:
+```bash
+# Run the uninstaller script from the cloned repository
+cd AMUD-Dahsboard
+./uninstall-amud.sh
+```
+
+Or run the uninstaller directly via curl:
+```bash
+curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dahsboard/main/uninstall-amud.sh | bash
+```
+
+---
+
+## 4. Portainer Stack Deployment (Web Editor)
+
+For standard containerized host management panels (when running as a standalone container, not on Proxmox LXC):
 1. Open your Portainer Web UI.
 2. Select **Stacks** -> **Add Stack**.
 3. Under the Web Editor panel, paste the following single-service definition:
@@ -37,18 +85,20 @@ services:
     container_name: amud_app
     restart: always
     ports:
-      - "8000:8000"
+      - "80:8000"
     environment:
       - DB_PATH=/app/data/amud.db
       - PORT=8000
+      - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
     volumes:
       - ./data:/app/data
+      - /var/run/amud:/var/run/amud
 ```
 4. Click **Deploy the stack**.
 
 ---
 
-## 3. Standalone Docker Compose (CLI Native)
+## 5. Standalone Docker Compose (CLI Native)
 
 To compile and launch the dashboard locally on any Linux server:
 ```bash

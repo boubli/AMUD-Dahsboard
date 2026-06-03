@@ -1,6 +1,6 @@
 # AMUD Dashboard
 
-AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles under **25MB of RAM**.
+AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles under **10MB of RAM** (combined server and agent).
 
 **Ready to deploy? Refer directly to our [AMUD Deployment Guide](DEPLOY.md) for automated installer scripts, Portainer configs, and Docker CLI instructions.**
 
@@ -10,22 +10,22 @@ AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home
 
 ### 1. Bare-Metal Resource Discipline
 * **The Legacy Problem:** Heimdall relies on a heavy PHP/Laravel lifecycle, requiring background web servers (Nginx/Apache) and PHP-FPM daemons that swallow 150MB+ RAM just sitting idle. 
-* **The AMUD Solution:** Written in pure, compiled Go 1.22+. It executes native machine code with zero interpreter overhead, running the entire dashboard, telemetry layer, and database inside a strict **< 25MB RAM** envelope.
+* **The AMUD Solution:** Written in pure, compiled Rust. It executes native machine code with zero interpreter overhead, running the entire dashboard, telemetry layer, and database inside a strict **~10MB RAM** envelope at idle.
 
 ### 2. Zero-YAML, 100% UI-Driven Control
 * **The Legacy Problem:** Next-gen dashboards force you to spend hours manually writing, indenting, and debugging hundreds of lines of complex YAML text files just to add a shortcut.
-* **The AMUD Solution:** Powered by an embedded, ultra-fast **SQLite (Pure-Go/CGO-Free)** architecture. You get the advanced layout categories, tagging, and sub-pages of a modern dashboard, but configured entirely through an elegant, reactive user interface. 
+* **The AMUD Solution:** Powered by an embedded, ultra-fast **SQLite (Rusqlite)** architecture. You get the advanced layout categories, tagging, and sub-pages of a modern dashboard, but configured entirely through an elegant, reactive user interface. 
 
 ### 3. Active Cockpit vs. Passive Bookmarks
 * **The Legacy Problem:** Traditional dashboards are just glorified lists of web links. If a service freezes or crashes, they are completely blind to it.
 * **The AMUD Solution:** 
-  * **Asynchronous Goroutine Pings:** Background threads concurrently scan your services every 30s, streaming live status pings to the UI via HTMX without blocking your browser.
-  * **Ecosystem Auto-Discovery:** Interfaces with the environment (like the local Docker socket) to auto-detect newly deployed services using simple container labels.
-  * **Direct Power Actions:** Send secure `Stop`, `Start`, or `Restart` signals to microservices directly from the dashboard interface cards.
+  * **Asynchronous Tokio Telemetry:** Background tokio threads concurrently poll your metrics and stream live updates to the UI via WebSockets without blocking your browser or causing layout lags.
+  * **Integrated Live Clock, Search & Category Filters:** View a live-updating local clock and customized greetings based on the hour of the day, search the web with a configurable search widget, and filter applications dynamically client-side with category filter tabs.
+  * **Dynamic Media Streams:** The dashboard automatically hides Plex/Jellyfin stream cards if those applications aren't registered in your homelab database, showing them only when configured.
 
-### 4. Micro-JWT Access Control
+### 4. Admin vs. Guest Profiles
 * **The Legacy Problem:** Sharing your landing page with family members usually means exposing your sensitive admin tools (Proxmox, Portainer) or setting up massive external proxy layers.
-* **The AMUD Solution:** Built-in cryptographic user management. Admins see the full cluster control array; guests or family profiles get a stripped-down, read-only media configuration out of the box.
+* **The AMUD Solution:** Built-in cryptographic user roles. Admins see the full cluster control array (with add/delete buttons and settings drawer); guests or family profiles get a clean, read-only dashboard layout out of the box.
 
 ---
 
@@ -33,8 +33,8 @@ AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home
 
 | Dimension | Heimdall Application Dashboard | AMUD Dashboard |
 | :--- | :---: | :---: |
-| **Engine** | PHP 8+ / Laravel | Go 1.22+ Standard Library |
+| **Engine** | PHP 8+ / Laravel | Rust / Axum / Tokio |
 | **Runtime Overhead** | High (Interpreted PHP-FPM) | Zero (Native Compiled Machine Code) |
-| **Assets Injection** | Read from host disk paths | Statically embedded into binary (`//go:embed`) |
-| **Idle RAM Footprint** | 80MB - 150MB | **< 20MB** |
+| **Assets Injection** | Read from host disk paths | Embedded templates (`include_str!`) + static files |
+| **Idle RAM Footprint** | 80MB - 150MB | **~10MB (Combined server/agent)** |
 | **Boot Time** | 2 - 5 seconds | **Sub-millisecond (Instant)** |

@@ -35,3 +35,7 @@ memory/
 backend_test.py
 contracts.md
 test_result.md
+
+# Rust
+target/
+*.log

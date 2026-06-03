@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{app_name}}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- Alpine.js for drawer state / bindings -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Vector Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Inline variables setup for clean database variable override -->
+    <style>
+        :root {
+            /* ROOT_CSS */
+        }
+    </style>
+</head>
+<body x-data="{ drawerOpen: false, addAppModalOpen: false, appIconUrl: '' }">
+    <div class="dashboard-container">
+        
+        <!-- Header / Topbar -->
+        <header class="topbar">
+            <div class="brand-section">
+                <div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
+                <h1 class="brand-title">{{app_name}}</h1>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <!-- Weather Widget -->
+                <div class="weather-widget">
+                    <i data-lucide="sun"></i>
+                    <span>{{weather_info}}</span>
+                </div>
+                
+                <!-- Admin Operations -->
+                <!-- AUTH_BUTTONS -->
+            </div>
+        </header>
+
+        <!-- Hero Greeting & Clock Widget -->
+        <section class="hero-section">
+            <div class="greeting-box">
+                <h2 class="greeting-title" id="greeting-content">Working late, <span class="username-highlight">{{username}}</span></h2>
+                <p class="greeting-subtitle" id="live-date">Monday · June 1, 2026</p>
+            </div>
+            <div class="clock-box glass-panel">
+                <div class="clock-display">
+                    <span class="clock-time" id="live-time">12:00</span>
+                    <div class="clock-meta">
+                        <span class="clock-ampm" id="live-ampm">AM</span>
+                        <span class="clock-label">LOCAL TIME</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Bar Widget -->
+        <div class="search-bar-wrapper">
+            <div class="search-bar glass-panel">
+                <select id="search-engine" class="search-engine-select">
+                    <option value="google">Google</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                    <option value="bing">Bing</option>
+                </select>
+                <div class="search-input-divider"></div>
+                <div class="search-input-wrapper">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="search-input" class="search-input" placeholder="Search the web...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Filters Tabs -->
+        <div class="category-filters-wrapper">
+            <div class="category-filters" id="category-tabs-container">
+                <!-- CATEGORY_TABS -->
+            </div>
+        </div>
+
+        <!-- Top Row: Telemetry Micro-bars -->
+        <section class="telemetry-row">
+            <!-- PVE Host Stats -->
+            <div class="glass-panel telemetry-card">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">PVE</span>
+                    <span class="telemetry-value" id="val-pve-cpu">CPU 0%</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-pve-cpu" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span>Host Agent CPU Stats</span>
+                    <span id="val-pve-mem">Mem 0%</span>
+                </div>
+            </div>
+
+            <!-- NAS storage stats -->
+            <div class="glass-panel telemetry-card">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">NAS</span>
+                    <span class="telemetry-value" id="val-nas-free">0 TB Free</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-nas-usage" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span id="val-nas-used">0 TB Used</span>
+                    <span>Disk Capacity</span>
+                </div>
+            </div>
+
+            <!-- Network Internal stats -->
+            <div class="glass-panel telemetry-card">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">Internal</span>
+                    <span class="telemetry-value" id="val-net-int-tx">9 kbit/s TX</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-net-int" style="width: 4%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span>vmbr1</span>
+                    <span id="val-net-int-rx">2 kbit/s RX</span>
+                </div>
+            </div>
+
+            <!-- Network External stats -->
+            <div class="glass-panel telemetry-card">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">External</span>
+                    <span class="telemetry-value" id="val-net-ext-tx">540 kbit/s TX</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-net-ext" style="width: 18%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span>enp5s0</span>
+                    <span id="val-net-ext-rx">50 kbit/s RX</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Second Row: Active Media Streams -->
+        <!-- STREAMS_ROW -->
+
+        <!-- Main Bento Grid Columns -->
+        <main class="bento-grid">
+            <!-- APPS_GRID -->
+        </main>
+    </div>
+
+    <!-- Rebranding Settings Drawer -->
+    <div class="drawer-backdrop" x-show="drawerOpen" x-transition.opacity @click="drawerOpen = false" style="display: none;"></div>
+    <aside class="settings-drawer" x-show="drawerOpen" x-transition:enter="transition ease-out duration-250" x-transition:enter-start="transform translate-x-full" x-transition:enter-end="transform translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="transform translate-x-0" x-transition:leave-end="transform translate-x-full" style="display: none;">
+        <div class="drawer-header">
+            <div>
+                <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Control Plane</p>
+                <h2>Settings</h2>
+            </div>
+            <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="drawerOpen = false">
+                <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
+            </button>
+        </div>
+
+        <form action="/admin/settings" method="POST" class="settings-form" style="display:flex; flex-direction:column; gap:0.25rem;">
+            
+            <!-- Section 1: Branding -->
+            <div class="settings-section">
+                <h3><i data-lucide="layout-template" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Branding</h3>
+                <div class="form-group">
+                    <label>Dashboard Title</label>
+                    <input type="text" name="app_name" class="form-control" value="{{app_name}}" placeholder="AMUD">
+                </div>
+
+                <div class="form-group" style="margin-top:0.75rem;">
+                    <label>Tagline / Slogan</label>
+                    <input type="text" name="tagline" class="form-control" value="{{tagline}}" placeholder="Homelab Operations Cockpit">
+                </div>
+            </div>
+
+            <!-- Section 2: Themes & Backdrop -->
+            <div class="settings-section">
+                <h3><i data-lucide="palette" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Themes & Wallpaper</h3>
+                
+                <div class="form-group">
+                    <label>Accent Color</label>
+                    <input type="color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:2.5rem; padding:0.2rem; cursor:pointer;">
+                </div>
+
+                <div class="form-group" style="margin-top:0.75rem;">
+                    <label>Wallpaper Overlay Tint Theme</label>
+                    <select name="overlay_theme" class="form-control" style="margin-top:0.35rem; cursor:pointer;">
+                        <option value="cyber" {{eq_cyber}}>Cyber (Vibrant Violet/Blue - Default)</option>
+                        <option value="aurora" {{eq_aurora}}>Aurora (Mystic Teal/Emerald)</option>
+                        <option value="crimson" {{eq_crimson}}>Crimson (Blood Red/Charcoal)</option>
+                        <option value="sunset" {{eq_sunset}}>Sunset (Deep Amber/Twilight Violet)</option>
+                        <option value="obsidian" {{eq_obsidian}}>Obsidian (Monochrome Dark Slate)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top:0.75rem;">
+                    <label>Wallpaper Background (URL or Upload)</label>
+                    <input type="text" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="Wallpaper URL">
+                    <div class="upload-zone" @click="$refs.bgFileInput.click()">
+                        <input type="file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
+                        <i data-lucide="image"></i>
+                        <span>Select wallpaper image</span>
+                        <span class="upload-hint">PNG, JPG, SVG (Max 2MB).</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:0.75rem;">
+                    <label>Dashboard Logo (URL or Upload)</label>
+                    <input type="text" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
+                    <div class="upload-zone" @click="$refs.logoFileInput.click()">
+                        <input type="file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
+                        <i data-lucide="upload-cloud"></i>
+                        <span>Select logo image</span>
+                        <span class="upload-hint">SVG, PNG, JPG (Max 2MB).</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Glass Panel Parameters -->
+            <div class="settings-section">
+                <h3><i data-lucide="sliders" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Glass & Layout</h3>
+                
+                <div class="form-group">
+                    <label>Corner Bento Radius (px)</label>
+                    <input type="range" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
+                </div>
+
+                <div class="form-group" style="margin-top:0.75rem;">
+                    <label>Glass Panel Opacity</label>
+                    <input type="range" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
+                </div>
+
+                <div class="form-group" style="margin-top:0.75rem;">
+                    <label>Glass Blur Strength (px)</label>
+                    <input type="range" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
+                </div>
+            </div>
+
+            <div class="drawer-footer" style="margin-top:0.5rem; padding-top:0.75rem;">
+                <button type="button" class="btn btn-secondary" @click="drawerOpen = false">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+            </div>
+        </form>
+    </aside>
+
+    <!-- Add Application Modal -->
+    <div class="modal-backdrop" x-show="addAppModalOpen" x-transition.opacity @click="addAppModalOpen = false" style="display: none;"></div>
+    <div class="modal" x-show="addAppModalOpen" x-transition style="display: none;">
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Registry</p>
+                <h2>Add Application</h2>
+            </div>
+            <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="addAppModalOpen = false">
+                <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
+            </button>
+        </div>
+
+        <form action="/apps" method="POST" class="settings-form">
+            <div class="form-group">
+                <label>Application Name</label>
+                <input type="text" name="name" class="form-control" required placeholder="e.g. Radarr">
+            </div>
+
+            <div class="form-group">
+                <label>Application URL</label>
+                <input type="url" name="url" class="form-control" required placeholder="e.g. http://192.168.1.50:7878">
+            </div>
+
+            <div class="form-group">
+                <label>Icon Identifier / Upload Logo</label>
+                <input type="text" name="icon" x-model="appIconUrl" class="form-control" placeholder="e.g. radarr, sonarr, or image URL">
+                <div class="upload-zone" @click="$refs.appIconFileInput.click()">
+                    <input type="file" x-ref="appIconFileInput" style="display:none;" @change="handleFileUpload($event, 'appIcon')">
+                    <i data-lucide="upload-cloud"></i>
+                    <span>Select app icon file</span>
+                    <span class="upload-hint">SVG, PNG, JPG, ICO (Max 2MB). Recommended size: 256x256px.</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <input type="text" name="category" class="form-control" placeholder="e.g. Media, Infrastructure (Defaults to General)">
+            </div>
+
+            <div class="form-group">
+                <label>Node Tag</label>
+                <input type="text" name="node_tag" class="form-control" placeholder="e.g. Local, PVE-1 (Defaults to Local)">
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" class="form-control" rows="2" placeholder="Brief description of the app service"></textarea>
+            </div>
+
+            <div class="drawer-footer">
+                <button type="button" class="btn btn-secondary" @click="addAppModalOpen = false">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Application</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Init Lucide vector icons
+        lucide.createIcons();
+
+        // File upload helper handler
+        function handleFileUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                alert("File size exceeds 2MB limit!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("image", file);
+
+            fetch("/admin/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) return res.text().then(text => { throw new Error(text) });
+                return res.json();
+            })
+            .then(data => {
+                if (type === 'logo') {
+                    // Update input value directly
+                    const el = document.querySelector('input[name="app_logo"]');
+                    if (el) {
+                        el.value = data.url;
+                        el.dispatchEvent(new Event('input'));
+                    }
+                } else if (type === 'bg') {
+                    const el = document.querySelector('input[name="custom_bg_url"]');
+                    if (el) {
+                        el.value = data.url;
+                        el.dispatchEvent(new Event('input'));
+                    }
+                } else if (type === 'appIcon') {
+                    // Set Alpine binding variable
+                    const el = document.querySelector('body');
+                    const alpineData = Alpine.$data(el);
+                    if (alpineData) {
+                        alpineData.appIconUrl = data.url;
+                    }
+                }
+                console.log("Uploaded file successfully mapping to:", data.url);
+            })
+            .catch(err => {
+                alert("Upload failed: " + err.message);
+            });
+        }
+
+        // Clock, greeting and date updater
+        function updateClock() {
+            const now = new Date();
+            
+            // Time
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            document.getElementById('live-time').innerText = `${hours}:${minutes}`;
+            document.getElementById('live-ampm').innerText = ampm;
+
+            // Date
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const rawDate = now.toLocaleDateString('en-US', dateOptions);
+            const parts = rawDate.split(', ');
+            if (parts.length >= 3) {
+                document.getElementById('live-date').innerText = `${parts[0]} · ${parts[1]}, ${parts[2]}`;
+            } else {
+                document.getElementById('live-date').innerText = rawDate.replace(/,/g, ' ·');
+            }
+
+            // Greeting
+            const rawHours = now.getHours();
+            let greeting = "Hello";
+            if (rawHours >= 5 && rawHours < 12) {
+                greeting = "Good morning";
+            } else if (rawHours >= 12 && rawHours < 18) {
+                greeting = "Good afternoon";
+            } else if (rawHours >= 18 && rawHours < 22) {
+                greeting = "Good evening";
+            } else {
+                greeting = "Working late";
+            }
+            const greetingEl = document.getElementById('greeting-content');
+            if (greetingEl) {
+                const usernameEl = greetingEl.querySelector('.username-highlight');
+                const username = usernameEl ? usernameEl.innerText : 'guest';
+                greetingEl.innerHTML = `${greeting}, <span class="username-highlight">${username}</span>`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Search engine redirection
+        document.getElementById('search-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const query = encodeURIComponent(this.value.trim());
+                if (!query) return;
+                const engine = document.getElementById('search-engine').value;
+                let url = `https://www.google.com/search?q=${query}`;
+                if (engine === 'duckduckgo') {
+                    url = `https://duckduckgo.com/?q=${query}`;
+                } else if (engine === 'bing') {
+                    url = `https://www.bing.com/search?q=${query}`;
+                }
+                window.open(url, '_blank');
+                this.value = '';
+            }
+        });
+
+        // Client-side category filtering
+        function filterCategory(category, element) {
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            if (element) {
+                element.classList.add('active');
+            }
+
+            document.querySelectorAll('.app-card').forEach(card => {
+                if (category === 'all') {
+                    card.style.display = 'flex';
+                } else {
+                    const cardCat = card.getAttribute('data-category');
+                    if (cardCat === category) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // WebSocket live updates handler
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socketUrl = `${protocol}//${window.location.host}/ws`;
+        const ws = new WebSocket(socketUrl);
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                // Update system metrics micro-bars
+                if (data.system) {
+                    const sys = data.system;
+                    document.getElementById('val-pve-cpu').innerText = `CPU ${sys.cpu_usage}%`;
+                    document.getElementById('bar-pve-cpu').style.width = `${sys.cpu_usage}%`;
+                    document.getElementById('val-pve-mem').innerText = `Mem ${sys.ram_usage}%`;
+                    
+                    document.getElementById('val-nas-free').innerText = `${(sys.disk_total_gb - sys.disk_used_gb).toFixed(1)} TB Free`;
+                    document.getElementById('bar-nas-usage').style.width = `${sys.disk_usage}%`;
+                    document.getElementById('val-nas-used').innerText = `${sys.disk_used_gb.toFixed(1)} TB Used`;
+                }
+
+                // Update network metrics
+                if (data.network) {
+                    const net = data.network;
+                    document.getElementById('val-net-int-tx').innerText = `${net.internal_tx} TX`;
+                    document.getElementById('val-net-int-rx').innerText = `${net.internal_rx} RX`;
+                    document.getElementById('val-net-ext-tx').innerText = `${net.external_tx} TX`;
+                    document.getElementById('val-net-ext-rx').innerText = `${net.external_rx} RX`;
+                }
+
+                // Update active media playbacks
+                if (data.streams) {
+                    if (data.streams.plex) {
+                        const plex = data.streams.plex;
+                        const plexTrack = document.getElementById('plex-track');
+                        if (plexTrack) plexTrack.innerText = plex.title;
+                        const plexTimer = document.getElementById('plex-timer');
+                        if (plexTimer) plexTimer.innerText = plex.active ? `${plex.current_time} / ${plex.total_time}` : '-';
+                        const plexProgress = document.getElementById('plex-progress');
+                        if (plexProgress) plexProgress.style.width = `${plex.progress_percent}%`;
+
+                        // Update status indicator dot text on Plex app card if it exists
+                        const plexStatusText = document.getElementById('plex-status-text');
+                        if (plexStatusText) {
+                            plexStatusText.innerText = plex.active ? '1 Streaming' : '0 Streaming';
+                            const dot = plexStatusText.previousElementSibling;
+                            if (dot) {
+                                dot.className = plex.active ? 'status-dot orange' : 'status-dot blue';
+                            }
+                        }
+                    }
+                    if (data.streams.emby) {
+                        const emby = data.streams.emby;
+                        const embyTrack = document.getElementById('emby-track');
+                        if (embyTrack) embyTrack.innerText = emby.title;
+                        const embyTimer = document.getElementById('emby-timer');
+                        if (embyTimer) embyTimer.innerText = emby.active ? `${emby.current_time} / ${emby.total_time}` : '-';
+                        const embyProgress = document.getElementById('emby-progress');
+                        if (embyProgress) embyProgress.style.width = `${emby.progress_percent}%`;
+
+                        // Update status indicator dot text on Jellyfin app card if it exists
+                        const embyStatusText = document.getElementById('emby-status-text');
+                        if (embyStatusText) {
+                            embyStatusText.innerText = emby.active ? '1 Watching' : '0 Watching';
+                            const dot = embyStatusText.previousElementSibling;
+                            if (dot) {
+                                dot.className = emby.active ? 'status-dot green' : 'status-dot blue';
+                            }
+                        }
+                    }
+                }
+
+            } catch (err) {
+                console.error("Failed to parse websocket message:", err);
+            }
+        };
+
+        ws.onclose = () => {
+            console.warn("WebSocket closed. Attempting reload in 5s.");
+            setTimeout(() => { window.location.reload(); }, 5000);
+        };
+    </script>
+</body>
+</html>
