@@ -33,21 +33,15 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=ref,event=tag
 
-      - name: Build Docker image
-        run: |
-          TAGS="${{ steps.meta.outputs.tags }}"
-          CMD="DOCKER_BUILDKIT=0 docker build"
-          for tag in $TAGS; do
-            CMD="$CMD -t $tag"
-          done
-          CMD="$CMD ."
-          echo "Building image..."
-          eval $CMD
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Push Docker image
-        run: |
-          TAGS="${{ steps.meta.outputs.tags }}"
-          for tag in $TAGS; do
-            echo "Pushing $tag..."
-            DOCKER_BUILDKIT=0 docker push $tag
-          done
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          provenance: false
+          no-cache: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
