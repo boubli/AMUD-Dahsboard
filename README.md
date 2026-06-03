@@ -1,6 +1,6 @@
 # AMUD Dashboard
 
-![AMUD Dashboard UI](assist/amud-dashboard.png)
+![AMUD Dashboard UI](assist/AMUD-Dashboard.png)
 AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles under **10MB of RAM** (combined server and agent).
 
 **📚 Official Documentation:** [https://boubli.github.io/AMUD-Dashboard/](https://boubli.github.io/AMUD-Dashboard/)

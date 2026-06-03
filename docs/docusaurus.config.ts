@@ -44,7 +44,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/amud-dashboard.png',
+    image: 'img/AMUD-Dashboard.png',
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: false,

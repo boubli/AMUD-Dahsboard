@@ -34,7 +34,7 @@ function HomepageHeader() {
           </Link>
         </div>
         <div style={{ marginTop: '3rem', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-          <img src="img/amud-dashboard.png" alt="AMUD Dashboard Preview" style={{ width: '100%', display: 'block' }} />
+          <img src="img/AMUD-Dashboard.png" alt="AMUD Dashboard Preview" style={{ width: '100%', display: 'block' }} />
         </div>
       </div>
     </header>
