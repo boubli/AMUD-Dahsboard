@@ -102,7 +102,7 @@ sleep 12
 
 # 5. Dependency Toolchain
 info "Installing core guest dependencies..."
-pct exec "$CT_ID" -- bash -c "export DEBIAN_FRONTEND=noninteractive; apt-get update -y && apt-get install -y curl tar ca-certificates >/dev/null"
+pct exec "$CT_ID" -- bash -c "export DEBIAN_FRONTEND=noninteractive; export LC_ALL=C; apt-get update -y && apt-get install -y curl tar ca-certificates >/dev/null"
 
 # 6. Fetch Latest Release Version
 info "Querying latest release from GitHub API..."
