@@ -1,3 +1,6 @@
+<div align="center">
+  <img src="assist/amud-logo-github.png" alt="AMUD Logo" width="300" />
+</div>
 
 # AMUD Dashboard
 
