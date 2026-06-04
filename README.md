@@ -1,8 +1,3 @@
-<div align="center">
-
-<img src="assist/AMUD-logo.png" width="200" alt="AMUD Logo">
-
-<br>
 
 # AMUD Dashboard
 
