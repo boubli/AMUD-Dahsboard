@@ -21,7 +21,7 @@
         }
     </style>
 </head>
-<body x-data="{ drawerOpen: false, addAppModalOpen: false, appIconUrl: '' }">
+<body x-data="{ drawerOpen: false, addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '' } }">
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
@@ -321,6 +321,65 @@
         </form>
     </div>
 
+    <!-- Edit Application Modal -->
+    <div class="modal-backdrop" x-show="editAppModalOpen" x-transition.opacity @click="editAppModalOpen = false" style="display: none;"></div>
+    <div class="modal" x-show="editAppModalOpen" x-transition style="display: none;">
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Registry</p>
+                <h2>Edit Application</h2>
+            </div>
+            <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="editAppModalOpen = false">
+                <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
+            </button>
+        </div>
+
+        <form action="/apps/edit" method="POST" class="settings-form">
+            <input type="hidden" name="id" x-model="editApp.id">
+
+            <div class="form-group">
+                <label>Application Name</label>
+                <input type="text" name="name" class="form-control" required x-model="editApp.name" placeholder="e.g. Radarr">
+            </div>
+
+            <div class="form-group">
+                <label>Application URL</label>
+                <input type="url" name="url" class="form-control" required x-model="editApp.url" placeholder="e.g. http://192.168.1.50:7878">
+            </div>
+
+            <div class="form-group">
+                <label>Icon Identifier / Upload Logo</label>
+                <input type="text" name="icon" x-model="editApp.icon" class="form-control" placeholder="e.g. radarr, sonarr, or image URL">
+                <div class="upload-zone" @click="$refs.editAppIconFileInput.click()">
+                    <input type="file" x-ref="editAppIconFileInput" style="display:none;" @change="handleFileUpload($event, 'editAppIcon')">
+                    <i data-lucide="upload-cloud"></i>
+                    <span>Select app icon file</span>
+                    <span class="upload-hint">SVG, PNG, JPG, ICO (Max 2MB). Recommended size: 256x256px.</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <input type="text" name="category" x-model="editApp.category" class="form-control" placeholder="e.g. Media, Infrastructure (Defaults to General)">
+            </div>
+
+            <div class="form-group">
+                <label>Node Tag</label>
+                <input type="text" name="node_tag" x-model="editApp.node_tag" class="form-control" placeholder="e.g. Local, PVE-1 (Defaults to Local)">
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" x-model="editApp.description" class="form-control" rows="2" placeholder="Brief description of the app service"></textarea>
+            </div>
+
+            <div class="drawer-footer">
+                <button type="button" class="btn btn-secondary" @click="editAppModalOpen = false">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
     <script>
         // Init Lucide vector icons
         lucide.createIcons();
@@ -366,6 +425,13 @@
                     const alpineData = Alpine.$data(el);
                     if (alpineData) {
                         alpineData.appIconUrl = data.url;
+                    }
+                } else if (type === 'editAppIcon') {
+                    // Set Alpine binding variable for edit mode
+                    const el = document.querySelector('body');
+                    const alpineData = Alpine.$data(el);
+                    if (alpineData) {
+                        alpineData.editApp.icon = data.url;
                     }
                 }
                 console.log("Uploaded file successfully mapping to:", data.url);

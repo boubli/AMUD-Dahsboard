@@ -667,6 +667,30 @@ select.form-control option {
     height: 0.95rem;
 }
 
+/* Edit application button */
+.btn-edit-app {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-edit-app:hover {
+    color: var(--accent-color);
+    background: var(--accent-glow);
+}
+
+.btn-edit-app svg {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
 /* Card Status indicator dots */
 .app-status-indicator {
     display: flex;

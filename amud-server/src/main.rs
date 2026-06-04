@@ -233,6 +233,7 @@ async fn main() {
         .route("/admin/upload", post(upload_handler))
         .route("/apps", post(add_app_handler))
         .route("/apps/delete", post(delete_app_handler))
+        .route("/apps/edit", post(edit_app_handler))
         .nest_service("/uploads", tower_http::services::ServeDir::new("data/uploads"))
         .nest_service("/static", tower_http::services::ServeDir::new("ui/static"))
         .with_state(state);
@@ -487,28 +488,52 @@ async fn dashboard_handler(
             let col_idx = i % 3;
             
             // Resolve Built-in Brand Logo
-            let brand_logo = match app.icon.to_lowercase().as_str() {
-                "plex" => "/static/logos/plex.svg",
-                "jellyfin" => "/static/logos/jellyfin.svg",
-                "proxmox" => "/static/logos/proxmox.svg",
-                "portainer" => "/static/logos/portainer.svg",
-                "home-assistant" | "homeassistant" => "/static/logos/home-assistant.svg",
-                "nextcloud" => "/static/logos/nextcloud.svg",
-                "adguard" | "adguard-home" => "/static/logos/adguard-home.svg",
-                "pihole" | "pi-hole" => "/static/logos/pi-hole.svg",
-                "sonarr" => "/static/logos/sonarr.svg",
-                "radarr" => "/static/logos/radarr.svg",
-                "qbittorrent" => "/static/logos/qbittorrent.svg",
-                "transmission" => "/static/logos/transmission.svg",
-                "overseerr" => "/static/logos/overseerr.svg",
-                "truenas" => "/static/logos/truenas.svg",
-                "casaos" => "/static/logos/casaos.svg",
-                _ => {
-                    if app.icon.starts_with("http") || app.icon.starts_with("/") {
-                        &app.icon
-                    } else {
-                        "/static/fallback.svg"
+            let lowercase_icon = app.icon.to_lowercase();
+            let mut resolved_logo = String::new();
+            if app.icon.starts_with("http") || app.icon.starts_with("/") {
+                resolved_logo = app.icon.clone();
+            } else if !lowercase_icon.is_empty() {
+                let possible_paths = [
+                    format!("ui/static/logos/{}.svg", lowercase_icon),
+                    format!("ui/static/logos/{}.png", lowercase_icon),
+                    format!("ui/static/logos/{}.jpg", lowercase_icon),
+                    format!("ui/static/logos/{}.svg", lowercase_icon.replace(' ', "-")),
+                    format!("ui/static/logos/{}.png", lowercase_icon.replace(' ', "-")),
+                    format!("static/logos/{}.svg", lowercase_icon),
+                    format!("static/logos/{}.png", lowercase_icon),
+                ];
+                for path in &possible_paths {
+                    if std::path::Path::new(path).exists() {
+                        let web_path = if path.starts_with("ui/") {
+                            path["ui".len()..].to_string()
+                        } else {
+                            format!("/{}", path)
+                        };
+                        resolved_logo = web_path;
+                        break;
                     }
+                }
+            }
+            let brand_logo = if !resolved_logo.is_empty() {
+                resolved_logo
+            } else {
+                match lowercase_icon.as_str() {
+                    "plex" => "/static/logos/plex.svg".to_string(),
+                    "jellyfin" => "/static/logos/jellyfin.svg".to_string(),
+                    "proxmox" => "/static/logos/proxmox.svg".to_string(),
+                    "portainer" => "/static/logos/portainer.svg".to_string(),
+                    "home-assistant" | "homeassistant" => "/static/logos/home-assistant.svg".to_string(),
+                    "nextcloud" => "/static/logos/nextcloud.svg".to_string(),
+                    "adguard" | "adguard-home" => "/static/logos/adguard-home.svg".to_string(),
+                    "pihole" | "pi-hole" => "/static/logos/pi-hole.svg".to_string(),
+                    "sonarr" => "/static/logos/sonarr.svg".to_string(),
+                    "radarr" => "/static/logos/radarr.svg".to_string(),
+                    "qbittorrent" => "/static/logos/qbittorrent.svg".to_string(),
+                    "transmission" => "/static/logos/transmission.svg".to_string(),
+                    "overseerr" => "/static/logos/overseerr.svg".to_string(),
+                    "truenas" => "/static/logos/truenas.svg".to_string(),
+                    "casaos" => "/static/logos/casaos.svg".to_string(),
+                    _ => "/static/fallback.svg".to_string(),
                 }
             };
 
@@ -677,16 +702,26 @@ async fn dashboard_handler(
             }
 
             let delete_btn = if is_admin {
+                let app_json = serde_json::to_string(&app).unwrap_or_default();
+                let escaped_json = app_json
+                    .replace('&', "&amp;")
+                    .replace('"', "&quot;")
+                    .replace('\'', "&#39;");
                 format!(
                     r#"
-                    <form action="/apps/delete" method="POST" style="margin: 0; display: inline-flex; align-items: center;">
-                        <input type="hidden" name="id" value="{}">
-                        <button type="submit" class="btn-delete-app" title="Delete application">
-                            <i data-lucide="trash-2"></i>
+                    <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                        <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); editAppModalOpen = true;">
+                            <i data-lucide="edit-2"></i>
                         </button>
-                    </form>
+                        <form action="/apps/delete" method="POST" style="margin: 0; display: inline-flex; align-items: center;">
+                            <input type="hidden" name="id" value="{}">
+                            <button type="submit" class="btn-delete-app" title="Delete application">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </form>
+                    </div>
                     "#,
-                    app.id
+                    escaped_json, app.id
                 )
             } else {
                 "".to_string()
@@ -1262,6 +1297,37 @@ async fn delete_app_handler(
             if let Ok(id) = id_str.parse::<i64>() {
                 let db = state.db.lock().unwrap();
                 db.execute("DELETE FROM apps WHERE id = ?", params![id]).ok();
+            }
+        }
+    }
+    Redirect::to("/")
+}
+
+// Edit App Handler
+async fn edit_app_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if session.map(|s| s.role == "Admin").unwrap_or(false) {
+        if let Some(id_str) = form.get("id") {
+            if let Ok(id) = id_str.parse::<i64>() {
+                let name = form.get("name").cloned().unwrap_or_default();
+                let url = form.get("url").cloned().unwrap_or_default();
+                let icon = form.get("icon").cloned().unwrap_or_default();
+                let category = form.get("category").cloned().unwrap_or_else(|| "General".to_string());
+                let node_tag = form.get("node_tag").cloned().unwrap_or_else(|| "Local".to_string());
+                let description = form.get("description").cloned().unwrap_or_default();
+
+                if !name.is_empty() && !url.is_empty() {
+                    let db = state.db.lock().unwrap();
+                    db.execute(
+                        "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ? WHERE id = ?",
+                        params![name, url, icon, description, category, node_tag, id],
+                    )
+                    .ok();
+                }
             }
         }
     }
