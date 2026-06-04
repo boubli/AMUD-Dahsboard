@@ -40,5 +40,5 @@ AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home
 | **Engine** | PHP 8+ / Laravel | Rust / Axum / Tokio |
 | **Runtime Overhead** | High (Interpreted PHP-FPM) | Zero (Native Compiled Machine Code) |
 | **Assets Injection** | Read from host disk paths | Embedded templates (`include_str!`) + static files |
-| **Idle RAM Footprint** | 80MB - 150MB | **~10MB (Combined server/agent)** |
+| **Idle RAM Footprint** | 80MB - 150MB | **~26MB (Combined server/agent)** |
 | **Boot Time** | 2 - 5 seconds | **Sub-millisecond (Instant)** |
