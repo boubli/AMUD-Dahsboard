@@ -81,7 +81,7 @@ version: '3.8'
 
 services:
   app:
-    image: boubli/amud:latest
+    image: tradmss/amud:latest
     container_name: amud_app
     restart: always
     ports:
