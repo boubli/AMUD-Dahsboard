@@ -253,6 +253,36 @@ fn hash_password(password: &str) -> String {
     hex::encode(hasher.finalize())
 }
 
+// Escape user-controlled text before injecting it into HTML.
+fn escape_html(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    for c in input.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+// Force a safe scheme on user-supplied URLs to neutralize javascript:/data: vectors.
+fn normalize_url(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+    let lower = trimmed.to_lowercase();
+    if lower.starts_with("http://") || lower.starts_with("https://") {
+        trimmed.to_string()
+    } else {
+        format!("http://{}", trimmed)
+    }
+}
+
 // Get User session helper
 fn get_session(headers: &HeaderMap, sessions: &RwLock<HashMap<String, Session>>) -> Option<Session> {
     headers
@@ -747,7 +777,7 @@ async fn dashboard_handler(
                     </div>
                     {}
                 </div>"#,
-                name_lower, app.url, brand_logo, app.name, app.description, status_badge, delete_btn, sub_metrics
+                escape_html(&name_lower), escape_html(&app.url), escape_html(&brand_logo), escape_html(&app.name), escape_html(&app.description), status_badge, delete_btn, sub_metrics
             );
             cols[col_idx].push_str(&card);
         }
@@ -882,10 +912,15 @@ async fn dashboard_handler(
     );
     for cat in categories.iter() {
         let count = apps.iter().filter(|a| &a.category == cat).count();
-        let cat_slug = cat.to_lowercase().replace(' ', "-");
+        let cat_slug: String = cat
+            .to_lowercase()
+            .replace(' ', "-")
+            .chars()
+            .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
+            .collect();
         category_tabs_html.push_str(&format!(
             r#"<button class="filter-tab" onclick="filterCategory('{}', this)">{} <span class="filter-count">{}</span></button>"#,
-            cat_slug, cat, count
+            escape_html(&cat_slug), escape_html(cat), count
         ));
     }
 
@@ -1267,7 +1302,7 @@ async fn add_app_handler(
     let session = get_session(&headers, &state.sessions);
     if session.map(|s| s.role == "Admin").unwrap_or(false) {
         let name = form.get("name").cloned().unwrap_or_default();
-        let url = form.get("url").cloned().unwrap_or_default();
+        let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
         let icon = form.get("icon").cloned().unwrap_or_default();
         let category = form.get("category").cloned().unwrap_or_else(|| "General".to_string());
         let node_tag = form.get("node_tag").cloned().unwrap_or_else(|| "Local".to_string());
@@ -1314,7 +1349,7 @@ async fn edit_app_handler(
         if let Some(id_str) = form.get("id") {
             if let Ok(id) = id_str.parse::<i64>() {
                 let name = form.get("name").cloned().unwrap_or_default();
-                let url = form.get("url").cloned().unwrap_or_default();
+                let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
                 let icon = form.get("icon").cloned().unwrap_or_default();
                 let category = form.get("category").cloned().unwrap_or_else(|| "General".to_string());
                 let node_tag = form.get("node_tag").cloned().unwrap_or_else(|| "Local".to_string());

@@ -7,3 +7,10 @@ edition = "2021"
 sysinfo = "0.30.12"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+tokio = { version = "1", features = ["rt", "net", "io-util", "macros"] }
+hyper = { version = "1", features = ["client", "http1"] }
+hyper-util = { version = "0.1", features = ["client", "client-legacy", "http1", "tokio"] }
+http-body-util = "0.1"
+hyperlocal = "0.9"
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "tls12", "ring"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "tls12", "std", "logging"] }

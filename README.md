@@ -13,6 +13,54 @@ AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home
 
 ---
 
+## Proxmox Telemetry Configuration
+
+AMUD now communicates **directly with the Proxmox VE REST API** for container telemetry. The agent no longer shells out to the `pvesh` Python CLI on every poll — it issues native, lightweight HTTPS requests over `hyper`, dramatically reducing CPU and memory overhead on your Proxmox host.
+
+To enable LXC telemetry, provide the agent with a Proxmox API token.
+
+### 1. Create an API Token
+
+In the Proxmox web UI:
+
+1. Navigate to **Datacenter → Permissions → API Tokens**.
+2. Click **Add**.
+3. Select the **User** the token belongs to (e.g. `root@pam`).
+4. Enter a **Token ID** (e.g. `amud`).
+5. *(Optional)* Leave **Privilege Separation** unchecked to inherit the user's permissions, or assign the token explicit `VM.Audit` / `Sys.Audit` rights on the relevant nodes.
+6. Click **Add**, then **copy the Secret value immediately** — Proxmox displays it only once.
+
+### 2. Set the Environment Variable
+
+Pass the credential to the agent via `PVE_API_TOKEN`. It must contain the **entire** value, including the `PVEAPIToken=` scheme prefix:
+
+```bash
+PVE_API_TOKEN=PVEAPIToken=USER@REALM!TOKENID=SECRET
+```
+
+For example:
+
+```bash
+PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+> If this variable is unset, the agent simply skips Proxmox polling — host CPU/RAM/disk metrics continue to work normally.
+
+### 3. Add it to `docker-compose.yml`
+
+```yaml
+services:
+  amud-agent:
+    image: boubli/amud-agent:latest
+    environment:
+      - PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    volumes:
+      - /opt/amud/run:/opt/amud/run
+    restart: unless-stopped
+```
+
+---
+
 ## Why AMUD Demolishes Legacy Dashboards (Heimdall, Homepage, Homarr)
 
 ### 1. Bare-Metal Resource Discipline

@@ -1,6 +1,7 @@
 use std::io::Write;
+use std::sync::Arc;
 use std::thread::sleep;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use serde::Serialize;
 use sysinfo::System;
 
@@ -80,9 +81,214 @@ fn establish_connection() -> Result<StreamType, std::io::Error> {
     std::net::TcpStream::connect(addr)
 }
 
+// Trust-all certificate verifier. Proxmox ships a self-signed cert on :8006 and
+// the agent only ever talks to the loopback node, so standard chain validation
+// cannot succeed and MITM on 127.0.0.1 is not a meaningful threat. This disables
+// verification deliberately and MUST NOT be reused for remote/non-loopback hosts.
+#[derive(Debug)]
+struct NoVerifier;
+
+impl rustls::client::danger::ServerCertVerifier for NoVerifier {
+    fn verify_server_cert(
+        &self,
+        _end_entity: &rustls::pki_types::CertificateDer<'_>,
+        _intermediates: &[rustls::pki_types::CertificateDer<'_>],
+        _server_name: &rustls::pki_types::ServerName<'_>,
+        _ocsp_response: &[u8],
+        _now: rustls::pki_types::UnixTime,
+    ) -> Result<rustls::client::danger::ServerCertVerified, rustls::Error> {
+        Ok(rustls::client::danger::ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        _message: &[u8],
+        _cert: &rustls::pki_types::CertificateDer<'_>,
+        _dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        _message: &[u8],
+        _cert: &rustls::pki_types::CertificateDer<'_>,
+        _dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+        rustls::crypto::ring::default_provider()
+            .signature_verification_algorithms
+            .supported_schemes()
+    }
+}
+
+// Native Proxmox LXC fetch over HTTPS (replaces the `pvesh` subprocess fork).
+// Reads PVE_API_TOKEN and queries the local PVE API. Returns an empty vec on any
+// failure so a missing token or unreachable node never crashes the telemetry loop.
+fn fetch_lxc_containers() -> Vec<LxcContainer> {
+    let token = match std::env::var("PVE_API_TOKEN") {
+        Ok(t) if !t.is_empty() => t,
+        _ => return Vec::new(),
+    };
+
+    // Drive the async hyper client on a lightweight current-thread runtime so the
+    // rest of the agent stays synchronous.
+    let rt = match tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+    {
+        Ok(rt) => rt,
+        Err(_) => return Vec::new(),
+    };
+
+    rt.block_on(async move {
+        use http_body_util::{BodyExt, Empty};
+        use hyper::body::Bytes;
+        use hyper_util::client::legacy::Client;
+        use hyper_util::rt::TokioExecutor;
+
+        // Build a rustls client config that trusts the Proxmox self-signed cert.
+        let tls = rustls::ClientConfig::builder_with_provider(Arc::new(
+            rustls::crypto::ring::default_provider(),
+        ))
+        .with_safe_default_protocol_versions();
+        let tls = match tls {
+            Ok(b) => b
+                .dangerous()
+                .with_custom_certificate_verifier(Arc::new(NoVerifier))
+                .with_no_client_auth(),
+            Err(_) => return Vec::new(),
+        };
+
+        let https = hyper_rustls::HttpsConnectorBuilder::new()
+            .with_tls_config(tls)
+            .https_or_http()
+            .enable_http1()
+            .build();
+
+        // legacy::Client handles connection setup/pooling, so no manual handshake.
+        let client: Client<_, Empty<Bytes>> =
+            Client::builder(TokioExecutor::new()).build(https);
+
+        // PVE_API_TOKEN is expected to hold the full credential, including the
+        // `PVEAPIToken=` scheme prefix, e.g. `PVEAPIToken=root@pam!amud=<secret>`.
+        let req = match hyper::Request::builder()
+            .method("GET")
+            .uri("https://localhost:8006/api2/json/nodes/localhost/lxc")
+            .header("Authorization", token)
+            .body(Empty::<Bytes>::new())
+        {
+            Ok(r) => r,
+            Err(_) => return Vec::new(),
+        };
+
+        let resp = match client.request(req).await {
+            Ok(r) => r,
+            Err(_) => return Vec::new(),
+        };
+
+        let body = match resp.into_body().collect().await {
+            Ok(b) => b.to_bytes(),
+            Err(_) => return Vec::new(),
+        };
+
+        // The PVE REST API wraps the array in a `{ "data": [...] }` envelope,
+        // unlike the bare array that `pvesh --output-format json` returned.
+        #[derive(serde::Deserialize)]
+        struct PveResponse {
+            data: Vec<LxcContainer>,
+        }
+
+        serde_json::from_slice::<PveResponse>(&body)
+            .map(|parsed| parsed.data)
+            .unwrap_or_default()
+    })
+}
+
+// Native Docker fetch over the Engine API UNIX socket (replaces the `curl` fork).
+// Returns (name, state) pairs. Empty vec on any failure or if the socket is absent.
+fn fetch_docker_containers() -> Vec<(String, String)> {
+    if !std::path::Path::new("/var/run/docker.sock").exists() {
+        return Vec::new();
+    }
+
+    let rt = match tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+    {
+        Ok(rt) => rt,
+        Err(_) => return Vec::new(),
+    };
+
+    rt.block_on(async move {
+        use http_body_util::{BodyExt, Empty};
+        use hyper::body::Bytes;
+        use hyper_util::client::legacy::Client;
+        use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
+
+        // hyperlocal's UnixConnector speaks HTTP/1 directly over the socket.
+        let client: Client<UnixConnector, Empty<Bytes>> = Client::unix();
+
+        let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", "/containers/json").into();
+        let req = match hyper::Request::builder()
+            .method("GET")
+            .uri(uri)
+            .header("Host", "localhost")
+            .body(Empty::<Bytes>::new())
+        {
+            Ok(r) => r,
+            Err(_) => return Vec::new(),
+        };
+
+        let resp = match client.request(req).await {
+            Ok(r) => r,
+            Err(_) => return Vec::new(),
+        };
+
+        let body = match resp.into_body().collect().await {
+            Ok(b) => b.to_bytes(),
+            Err(_) => return Vec::new(),
+        };
+
+        #[derive(serde::Deserialize)]
+        struct DockerContainer {
+            #[serde(rename = "Names")]
+            names: Vec<String>,
+            #[serde(rename = "State")]
+            state: String,
+        }
+
+        match serde_json::from_slice::<Vec<DockerContainer>>(&body) {
+            Ok(dockers) => dockers
+                .into_iter()
+                .map(|d| {
+                    let name = d
+                        .names
+                        .into_iter()
+                        .next()
+                        .unwrap_or_default()
+                        .replace('/', "");
+                    (name, d.state)
+                })
+                .collect(),
+            Err(_) => Vec::new(),
+        }
+    })
+}
+
 fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
     let mut sys = System::new_all();
-    
+
+    // Proxmox LXC data is polled on its own slower 10s cadence to minimize overhead.
+    // We cache the last result and reuse it between fetches.
+    let mut cached_lxc: Vec<LxcContainer> = Vec::new();
+    let mut last_lxc_fetch = Instant::now()
+        .checked_sub(Duration::from_secs(10))
+        .unwrap_or_else(Instant::now);
+
     loop {
         // Refresh telemetry
         sys.refresh_all();
@@ -138,50 +344,27 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let disk_total_gb = (total_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
         let disk_used_gb = (used_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
-        // Fetch LXC info from Proxmox
-        let mut lxc_containers = Vec::new();
-        if let Ok(output) = std::process::Command::new("pvesh")
-            .args(&["get", "/nodes/localhost/lxc", "--output-format", "json"])
-            .output()
-        {
-            if let Ok(containers) = serde_json::from_slice::<Vec<LxcContainer>>(&output.stdout) {
-                lxc_containers = containers;
-            }
+        // Fetch LXC info from Proxmox natively (no subprocess fork), throttled to every 10s.
+        if last_lxc_fetch.elapsed() >= Duration::from_secs(10) {
+            cached_lxc = fetch_lxc_containers();
+            last_lxc_fetch = Instant::now();
         }
+        let mut lxc_containers = cached_lxc.clone();
 
-        // Fetch Docker info from Docker Engine and merge
-        if std::path::Path::new("/var/run/docker.sock").exists() {
-            if let Ok(output) = std::process::Command::new("curl")
-                .args(&["-s", "--unix-socket", "/var/run/docker.sock", "http://localhost/containers/json"])
-                .output()
-            {
-                #[derive(serde::Deserialize)]
-                struct DockerContainer {
-                    #[serde(rename = "Names")]
-                    names: Vec<String>,
-                    #[serde(rename = "State")]
-                    state: String,
-                }
-                
-                if let Ok(dockers) = serde_json::from_slice::<Vec<DockerContainer>>(&output.stdout) {
-                    for (i, d) in dockers.into_iter().enumerate() {
-                        let name = d.names.into_iter().next().unwrap_or_default().replace("/", "");
-                        
-                        // We set vmid to a safe negative sequence so it doesn't collide with Proxmox LXC IDs (100+)
-                        lxc_containers.push(LxcContainer {
-                            vmid: -1000 - i as i64,
-                            status: d.state,
-                            name,
-                            cpu: None,
-                            maxmem: None,
-                            mem: None,
-                            maxdisk: None,
-                            disk: None,
-                            uptime: None,
-                        });
-                    }
-                }
-            }
+        // Fetch Docker containers natively over the UNIX socket (no curl fork) and merge.
+        for (i, (name, state)) in fetch_docker_containers().into_iter().enumerate() {
+            // Negative vmid sequence so Docker entries never collide with Proxmox LXC IDs (100+).
+            lxc_containers.push(LxcContainer {
+                vmid: -1000 - i as i64,
+                status: state,
+                name,
+                cpu: None,
+                maxmem: None,
+                mem: None,
+                maxdisk: None,
+                disk: None,
+                uptime: None,
+            });
         }
 
         let telemetry = Telemetry {
