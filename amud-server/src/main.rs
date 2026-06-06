@@ -166,6 +166,41 @@ async fn main() {
     )
     .unwrap();
 
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            color TEXT DEFAULT '#64748b',
+            sort_order INTEGER DEFAULT 0
+        );",
+        [],
+    )
+    .unwrap();
+
+    // Seed default categories if empty
+    {
+        let mut stmt_cats = conn.prepare("SELECT COUNT(*) FROM categories").unwrap();
+        let cat_count: i64 = stmt_cats.query_row([], |r| r.get(0)).unwrap();
+        if cat_count == 0 {
+            println!("Seeding default categories...");
+            let defaults = [
+                ("General", "#64748b", 0),
+                ("Media", "#f97316", 1),
+                ("Infrastructure", "#3b82f6", 2),
+                ("Monitoring", "#10b981", 3),
+                ("Network", "#8b5cf6", 4),
+                ("Storage", "#ec4899", 5),
+            ];
+            for (name, color, order) in defaults {
+                conn.execute(
+                    "INSERT INTO categories (name, color, sort_order) VALUES (?, ?, ?)",
+                    params![name, color, order],
+                )
+                .ok();
+            }
+        }
+    }
+
     // Check settings count
     {
         let mut stmt = conn.prepare("SELECT COUNT(*) FROM settings").unwrap();
@@ -231,9 +266,13 @@ async fn main() {
         .route("/ws", get(ws_handler))
         .route("/admin/settings", post(settings_handler))
         .route("/admin/upload", post(upload_handler))
+        .route("/admin/credentials", post(credentials_handler))
         .route("/apps", post(add_app_handler))
         .route("/apps/delete", post(delete_app_handler))
         .route("/apps/edit", post(edit_app_handler))
+        .route("/api/categories", get(list_categories_handler).post(add_category_handler))
+        .route("/api/categories/delete", post(delete_category_handler))
+        .route("/api/categories/edit", post(edit_category_handler))
         .nest_service("/uploads", tower_http::services::ServeDir::new("data/uploads"))
         .nest_service("/static", tower_http::services::ServeDir::new("ui/static"))
         .with_state(state);
@@ -439,13 +478,30 @@ async fn run_tcp_listener(
     }
 }
 
-fn get_overlay_gradient(theme: &str) -> &'static str {
+fn get_overlay_gradient(theme: &str, custom_color: Option<&str>) -> String {
     match theme.to_lowercase().as_str() {
-        "aurora" => "linear-gradient(135deg, rgba(4, 15, 15, 0.88) 0%, rgba(6, 24, 20, 0.82) 100%)",
-        "crimson" => "linear-gradient(135deg, rgba(18, 8, 8, 0.88) 0%, rgba(12, 10, 15, 0.82) 100%)",
-        "obsidian" => "linear-gradient(135deg, rgba(10, 10, 12, 0.92) 0%, rgba(15, 15, 18, 0.88) 100%)",
-        "sunset" => "linear-gradient(135deg, rgba(20, 8, 12, 0.88) 0%, rgba(8, 10, 20, 0.82) 100%)",
-        _ => "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)", // default cyber
+        "aurora" => "linear-gradient(135deg, rgba(4, 15, 15, 0.88) 0%, rgba(6, 24, 20, 0.82) 100%)".to_string(),
+        "crimson" => "linear-gradient(135deg, rgba(18, 8, 8, 0.88) 0%, rgba(12, 10, 15, 0.82) 100%)".to_string(),
+        "obsidian" => "linear-gradient(135deg, rgba(10, 10, 12, 0.92) 0%, rgba(15, 15, 18, 0.88) 100%)".to_string(),
+        "sunset" => "linear-gradient(135deg, rgba(20, 8, 12, 0.88) 0%, rgba(8, 10, 20, 0.82) 100%)".to_string(),
+        "custom" => {
+            if let Some(hex) = custom_color {
+                if hex.starts_with('#') && hex.len() == 7 {
+                    if let (Ok(r), Ok(g), Ok(b)) = (
+                        u8::from_str_radix(&hex[1..3], 16),
+                        u8::from_str_radix(&hex[3..5], 16),
+                        u8::from_str_radix(&hex[5..7], 16),
+                    ) {
+                        return format!(
+                            "linear-gradient(135deg, rgba({}, {}, {}, 0.88) 0%, rgba({}, {}, {}, 0.82) 100%)",
+                            r / 2, g / 2, b / 2, r / 3, g / 3, b / 3
+                        );
+                    }
+                }
+            }
+            "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)".to_string()
+        }
+        _ => "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)".to_string(),
     }
 }
 
@@ -483,7 +539,33 @@ async fn dashboard_handler(
     let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
 
     let overlay_theme = settings.get("overlay_theme").map(|s| s.as_str()).unwrap_or("cyber");
+    let custom_overlay_color = settings.get("custom_overlay_color").map(|s| s.as_str()).unwrap_or("#1a1a2e");
+    let weather_lat = settings.get("weather_latitude").map(|s| s.as_str()).unwrap_or("");
+    let weather_lon = settings.get("weather_longitude").map(|s| s.as_str()).unwrap_or("");
     let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
+
+    // Load Categories from DB for dropdown
+    let mut db_categories = Vec::<(i64, String)>::new();
+    {
+        let db = state.db.lock().unwrap();
+        let mut stmt = db.prepare("SELECT id, name FROM categories ORDER BY sort_order ASC, name ASC").unwrap();
+        let mut rows = stmt.query([]).unwrap();
+        while let Some(row) = rows.next().unwrap() {
+            let id: i64 = row.get(0).unwrap();
+            let name: String = row.get(1).unwrap();
+            db_categories.push((id, name));
+        }
+    }
+    let mut category_options_html = String::new();
+    for (_id, cat_name) in &db_categories {
+        category_options_html.push_str(&format!(
+            r#"<option value="{}">{}</option>"#,
+            escape_html(cat_name), escape_html(cat_name)
+        ));
+    }
+    if category_options_html.is_empty() {
+        category_options_html = r#"<option value="General">General</option>"#.to_string();
+    }
 
     // Load Applications
     let apps_html;
@@ -575,8 +657,16 @@ async fn dashboard_handler(
             } else if app.name.to_lowercase().contains("portainer") {
                 r#"<span class="status-badge ms">452 ms</span>"#
             } else {
-                r#"<span class="status-badge">ACTIVE</span>"#
+                r#"<span class="status-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border-card);">CHECKING...</span>"#
             };
+
+            // Category slug for filtering
+            let cat_slug: String = app.category
+                .to_lowercase()
+                .replace(' ', "-")
+                .chars()
+                .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
+                .collect();
 
             // Build Sub-Metrics Grid
             let sub_metrics;
@@ -759,7 +849,7 @@ async fn dashboard_handler(
 
             let card = format!(
                 r#"
-                <div class="glass-panel app-card" data-app-name="{}">
+                <div class="glass-panel app-card" data-app-name="{}" data-category="{}">
                     <div class="app-card-header">
                         <a href="{}" target="_blank" rel="noopener noreferrer" class="app-card-identity" style="text-decoration:none; color:inherit;">
                             <div class="app-card-icon">
@@ -777,7 +867,7 @@ async fn dashboard_handler(
                     </div>
                     {}
                 </div>"#,
-                escape_html(&name_lower), escape_html(&app.url), escape_html(&brand_logo), escape_html(&app.name), escape_html(&app.description), status_badge, delete_btn, sub_metrics
+                escape_html(&name_lower), escape_html(&cat_slug), escape_html(&app.url), escape_html(&brand_logo), escape_html(&app.name), escape_html(&app.description), status_badge, delete_btn, sub_metrics
             );
             cols[col_idx].push_str(&card);
         }
@@ -951,7 +1041,7 @@ async fn dashboard_handler(
         "rgba(56, 189, 248, 0.15)".to_string()
     };
 
-    let overlay_gradient = get_overlay_gradient(overlay_theme);
+    let overlay_gradient = get_overlay_gradient(overlay_theme, Some(custom_overlay_color));
 
     let root_css = format!(
         r#"
@@ -1004,6 +1094,11 @@ async fn dashboard_handler(
         .replace("{{eq_crimson}}", if overlay_theme == "crimson" { "selected" } else { "" })
         .replace("{{eq_sunset}}", if overlay_theme == "sunset" { "selected" } else { "" })
         .replace("{{eq_obsidian}}", if overlay_theme == "obsidian" { "selected" } else { "" })
+        .replace("{{eq_custom}}", if overlay_theme == "custom" { "selected" } else { "" })
+        .replace("{{custom_overlay_color}}", custom_overlay_color)
+        .replace("{{weather_latitude}}", weather_lat)
+        .replace("{{weather_longitude}}", weather_lon)
+        .replace("<!-- CATEGORY_OPTIONS -->", &category_options_html)
         .replace("{{is_admin}}", if is_admin { "true" } else { "false" });
 
     Html(result)
@@ -1063,7 +1158,8 @@ async fn login_page(
         "rgba(56, 189, 248, 0.15)".to_string()
     };
 
-    let overlay_gradient = get_overlay_gradient(overlay_theme);
+    let custom_overlay_color = settings.get("custom_overlay_color").map(|s| s.as_str()).unwrap_or("#1a1a2e");
+    let overlay_gradient = get_overlay_gradient(overlay_theme, Some(custom_overlay_color));
 
     let root_css = format!(
         r#"
@@ -1275,11 +1371,8 @@ async fn settings_handler(
     if session.map(|s| s.role == "Admin").unwrap_or(false) {
         let db = state.db.lock().unwrap();
         for (key, val) in form {
-            if key == "new_password" {
-                if !val.is_empty() {
-                    let hashed = hash_password(&val);
-                    db.execute("UPDATE users SET password_hash = ? WHERE username = 'admin'", params![hashed]).ok();
-                }
+            // Skip any password fields — credentials are changed via /admin/credentials
+            if key == "new_password" || key == "old_password" || key == "repeat_password" || key == "new_username" {
                 continue;
             }
             db.execute(
@@ -1291,6 +1384,248 @@ async fn settings_handler(
         }
     }
     Redirect::to("/")
+}
+
+// Secure Credentials Update Handler
+async fn credentials_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    let sess = match session {
+        Some(ref s) if s.role == "Admin" => s,
+        _ => {
+            return Response::builder()
+                .status(StatusCode::FORBIDDEN)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+                .unwrap();
+        }
+    };
+
+    let old_password = form.get("old_password").cloned().unwrap_or_default();
+    let new_password = form.get("new_password").cloned().unwrap_or_default();
+    let new_username = form.get("new_username").cloned().unwrap_or_default();
+
+    if old_password.is_empty() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Old password is required"}"#))
+            .unwrap();
+    }
+
+    let old_hash = hash_password(&old_password);
+    let db = state.db.lock().unwrap();
+
+    // Verify old password matches the current user's password
+    let stored_hash: Result<String, _> = db
+        .prepare("SELECT password_hash FROM users WHERE username = ?")
+        .unwrap()
+        .query_row(params![sess.username], |row| row.get(0));
+
+    match stored_hash {
+        Ok(ref h) if h == &old_hash => {}
+        _ => {
+            return Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(r#"{"error":"Old password is incorrect"}"#))
+                .unwrap();
+        }
+    }
+
+    // Update username if provided (check uniqueness first)
+    let mut actual_username = sess.username.clone();
+    if !new_username.is_empty() && new_username != sess.username {
+        let count: i64 = db
+            .prepare("SELECT COUNT(*) FROM users WHERE username = ?")
+            .unwrap()
+            .query_row(params![new_username], |row| row.get(0))
+            .unwrap_or(0);
+        
+        if count > 0 {
+            return Response::builder()
+                .status(StatusCode::CONFLICT)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(r#"{"error":"Username is already taken"}"#))
+                .unwrap();
+        }
+
+        if db.execute(
+            "UPDATE users SET username = ? WHERE username = ?",
+            params![new_username, sess.username],
+        ).is_ok() {
+            actual_username = new_username.clone();
+            
+            // Also update the session in memory so that it matches the new username
+            if let Some(cookie_header) = headers.get("cookie").and_then(|c| c.to_str().ok()) {
+                if let Some(token) = cookie_header
+                    .split(';')
+                    .map(|s| s.trim())
+                    .find(|s| s.starts_with("amud_session="))
+                    .map(|s| s["amud_session=".len()..].to_string())
+                {
+                    if let Some(s) = state.sessions.write().unwrap().get_mut(&token) {
+                        s.username = new_username.clone();
+                    }
+                }
+            }
+        }
+    }
+
+    // Update password if provided
+    if !new_password.is_empty() {
+        let new_hash = hash_password(&new_password);
+        db.execute(
+            "UPDATE users SET password_hash = ? WHERE username = ?",
+            params![new_hash, actual_username],
+        )
+        .ok();
+    }
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(axum::body::Body::from(r#"{"success":true}"#))
+        .unwrap()
+}
+
+// Categories CRUD Handlers
+async fn list_categories_handler(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let db = state.db.lock().unwrap();
+    let mut stmt = db
+        .prepare("SELECT id, name, color, sort_order FROM categories ORDER BY sort_order ASC, name ASC")
+        .unwrap();
+    let mut rows = stmt.query([]).unwrap();
+    let mut categories = Vec::new();
+    while let Some(row) = rows.next().unwrap() {
+        let id: i64 = row.get(0).unwrap();
+        let name: String = row.get(1).unwrap();
+        let color: String = row.get(2).unwrap();
+        let sort_order: i64 = row.get(3).unwrap();
+        categories.push(serde_json::json!({
+            "id": id,
+            "name": name,
+            "color": color,
+            "sort_order": sort_order
+        }));
+    }
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(axum::body::Body::from(serde_json::to_string(&categories).unwrap()))
+        .unwrap()
+}
+
+async fn add_category_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    let name = form.get("name").cloned().unwrap_or_default();
+    let color = form.get("color").cloned().unwrap_or_else(|| "#64748b".to_string());
+
+    if name.is_empty() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Category name is required"}"#))
+            .unwrap();
+    }
+
+    let db = state.db.lock().unwrap();
+    match db.execute(
+        "INSERT INTO categories (name, color) VALUES (?, ?)",
+        params![name, color],
+    ) {
+        Ok(_) => Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"success":true}"#))
+            .unwrap(),
+        Err(_) => Response::builder()
+            .status(StatusCode::CONFLICT)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Category already exists"}"#))
+            .unwrap(),
+    }
+}
+
+async fn delete_category_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    if let Some(id_str) = form.get("id") {
+        if let Ok(id) = id_str.parse::<i64>() {
+            let db = state.db.lock().unwrap();
+            db.execute("DELETE FROM categories WHERE id = ?", params![id]).ok();
+        }
+    }
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(axum::body::Body::from(r#"{"success":true}"#))
+        .unwrap()
+}
+
+async fn edit_category_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    if let Some(id_str) = form.get("id") {
+        if let Ok(id) = id_str.parse::<i64>() {
+            let name = form.get("name").cloned().unwrap_or_default();
+            let color = form.get("color").cloned().unwrap_or_else(|| "#64748b".to_string());
+            if !name.is_empty() {
+                let db = state.db.lock().unwrap();
+                db.execute(
+                    "UPDATE categories SET name = ?, color = ? WHERE id = ?",
+                    params![name, color, id],
+                )
+                .ok();
+            }
+        }
+    }
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(axum::body::Body::from(r#"{"success":true}"#))
+        .unwrap()
 }
 
 // Add App Handler

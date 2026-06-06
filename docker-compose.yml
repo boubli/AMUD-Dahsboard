@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: tradmss/amud-dashboard:latest
     container_name: amud_app
     restart: always
     ports:
@@ -12,5 +10,22 @@ services:
     environment:
       - DB_PATH=/app/data/amud.db
       - PORT=8000
+      - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
     volumes:
       - ./data:/app/data
+      - amud_run:/var/run/amud
+
+  agent:
+    image: tradmss/amud-dashboard:latest
+    container_name: amud_agent
+    entrypoint: ["/app/amud-agent"]
+    environment:
+      - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+    volumes:
+      - amud_run:/var/run/amud
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
+
+volumes:
+  amud_run:
+    name: amud_run

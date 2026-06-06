@@ -81,7 +81,7 @@ version: '3.8'
 
 services:
   app:
-    image: tradmss/amud:latest
+    image: tradmss/amud-dashboard:latest
     container_name: amud_app
     restart: always
     ports:
@@ -94,6 +94,15 @@ services:
       - ./data:/app/data
       - /opt/amud/run:/opt/amud/run
 ```
+
+**Environment Variables:**
+
+| Variable | Default | Description |
+|---|---|---|
+| `DB_PATH` | `/app/data/amud.db` | SQLite database file path |
+| `PORT` | `8000` | HTTP server listen port |
+| `AMUD_SOCKET_PATH` | `/opt/amud/run/amud.sock` | Unix domain socket path for agent IPC |
+
 4. Click **Deploy the stack**.
 
 ---

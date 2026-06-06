@@ -614,6 +614,31 @@ body {
     font-size: 1.3rem;
 }
 
+/* Settings Drawer Tabs layout */
+.settings-tabs {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.settings-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.settings-tabs .tab-btn {
+    border: 1px solid transparent !important;
+}
+
+.settings-tabs .tab-btn.active {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.settings-tabs .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: #fff !important;
+}
+
 /* Redesigned Settings drawer layout section container */
 .settings-section {
     background: rgba(255, 255, 255, 0.02);
@@ -935,5 +960,51 @@ select.form-control option {
 /* Single-Column Stream layout */
 .streams-row.single-col {
     grid-template-columns: 1fr;
+}
+
+/* Manage Categories modal glass panel - disable hover lift */
+.modal .glass-panel:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Credential form feedback messages */
+#cred-error-msg, #cred-success-msg {
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+}
+
+#cred-error-msg {
+    background: var(--danger-bg);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+#cred-success-msg {
+    background: var(--success-bg);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Color input styling */
+input[type="color"].form-control {
+    padding: 0.15rem;
+    cursor: pointer;
+}
+
+/* Responsive adjustments for new sections */
+@media (max-width: 768px) {
+    .bento-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .telemetry-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .streams-row {
+        grid-template-columns: 1fr;
+    }
 }
 

@@ -80,4 +80,4 @@ http://<YOUR_SERVER_IP>:8000/
 > [!TIP]  
 > **Default Admin Login:**  
 > Username: `admin`  
-> Password: `password`  
+> Password: `admin`  

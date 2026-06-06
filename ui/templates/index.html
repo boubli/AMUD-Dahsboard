@@ -21,7 +21,7 @@
         }
     </style>
 </head>
-<body x-data="{ drawerOpen: false, addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '' } }">
+<body x-data="{ drawerOpen: false, addAppModalOpen: false, editAppModalOpen: false, manageCategoriesOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '' }, categories: [] }">
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
@@ -157,7 +157,7 @@
 
     <!-- Rebranding Settings Drawer -->
     <div class="drawer-backdrop" x-show="drawerOpen" x-transition.opacity @click="drawerOpen = false" style="display: none;"></div>
-    <aside class="settings-drawer" x-show="drawerOpen" x-transition:enter="transition ease-out duration-250" x-transition:enter-start="transform translate-x-full" x-transition:enter-end="transform translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="transform translate-x-0" x-transition:leave-end="transform translate-x-full" style="display: none;">
+    <aside class="settings-drawer" x-data="{ activeTab: 'branding' }" x-show="drawerOpen" x-transition:enter="transition ease-out duration-250" x-transition:enter-start="transform translate-x-full" x-transition:enter-end="transform translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="transform translate-x-0" x-transition:leave-end="transform translate-x-full" style="display: none;">
         <div class="drawer-header">
             <div>
                 <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Control Plane</p>
@@ -168,96 +168,171 @@
             </button>
         </div>
 
+        <!-- Tab Navigation Bar -->
+        <div class="settings-tabs" style="display: flex; gap: 0.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'branding' }" @click="activeTab = 'branding'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
+                <i data-lucide="layout-template" style="width: 0.9rem; height: 0.9rem;"></i> Branding
+            </button>
+            <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'appearance' }" @click="activeTab = 'appearance'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
+                <i data-lucide="palette" style="width: 0.9rem; height: 0.9rem;"></i> Appearance
+            </button>
+            <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'weather' }" @click="activeTab = 'weather'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
+                <i data-lucide="cloud-sun" style="width: 0.9rem; height: 0.9rem;"></i> Weather
+            </button>
+            <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'security' }" @click="activeTab = 'security'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
+                <i data-lucide="lock" style="width: 0.9rem; height: 0.9rem;"></i> Security
+            </button>
+            <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'categories' }" @click="activeTab = 'categories'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
+                <i data-lucide="tag" style="width: 0.9rem; height: 0.9rem;"></i> Categories
+            </button>
+        </div>
+
         <form action="/admin/settings" method="POST" class="settings-form" style="display:flex; flex-direction:column; gap:0.25rem;">
             
-            <!-- Section 1: Branding -->
-            <div class="settings-section">
+            <!-- Tab 1: Branding -->
+            <div class="settings-section" x-show="activeTab === 'branding'" style="margin-bottom: 0;">
                 <h3><i data-lucide="layout-template" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Branding</h3>
                 <div class="form-group">
                     <label>Dashboard Title</label>
                     <input type="text" name="app_name" class="form-control" value="{{app_name}}" placeholder="AMUD">
                 </div>
 
-                <div class="form-group" style="margin-top:0.75rem;">
+                <div class="form-group" style="margin-top:0.75rem; margin-bottom:0;">
                     <label>Tagline / Slogan</label>
                     <input type="text" name="tagline" class="form-control" value="{{tagline}}" placeholder="Homelab Operations Cockpit">
                 </div>
             </div>
 
-            <!-- Section 2: Themes & Backdrop -->
-            <div class="settings-section">
-                <h3><i data-lucide="palette" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Themes & Wallpaper</h3>
-                
-                <div class="form-group">
-                    <label>Accent Color</label>
-                    <input type="color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:2.5rem; padding:0.2rem; cursor:pointer;">
-                </div>
+            <!-- Tab 2: Themes, Wallpaper & Glass layout -->
+            <div x-show="activeTab === 'appearance'" style="display:flex; flex-direction:column; gap:1rem;">
+                <div class="settings-section" style="margin-bottom: 0;">
+                    <h3><i data-lucide="palette" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Themes & Wallpaper</h3>
+                    
+                    <div class="form-group">
+                        <label>Accent Color</label>
+                        <input type="color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:2.5rem; padding:0.2rem; cursor:pointer;">
+                    </div>
 
-                <div class="form-group" style="margin-top:0.75rem;">
-                    <label>Wallpaper Overlay Tint Theme</label>
-                    <select name="overlay_theme" class="form-control" style="margin-top:0.35rem; cursor:pointer;">
-                        <option value="cyber" {{eq_cyber}}>Cyber (Vibrant Violet/Blue - Default)</option>
-                        <option value="aurora" {{eq_aurora}}>Aurora (Mystic Teal/Emerald)</option>
-                        <option value="crimson" {{eq_crimson}}>Crimson (Blood Red/Charcoal)</option>
-                        <option value="sunset" {{eq_sunset}}>Sunset (Deep Amber/Twilight Violet)</option>
-                        <option value="obsidian" {{eq_obsidian}}>Obsidian (Monochrome Dark Slate)</option>
-                    </select>
-                </div>
+                    <div class="form-group" style="margin-top:0.75rem;">
+                        <label>Wallpaper Overlay Tint Theme</label>
+                        <select name="overlay_theme" id="overlay-theme-select" class="form-control" style="margin-top:0.35rem; cursor:pointer;" onchange="toggleCustomOverlay()">
+                            <option value="cyber" {{eq_cyber}}>Cyber (Vibrant Violet/Blue - Default)</option>
+                            <option value="aurora" {{eq_aurora}}>Aurora (Mystic Teal/Emerald)</option>
+                            <option value="crimson" {{eq_crimson}}>Crimson (Blood Red/Charcoal)</option>
+                            <option value="sunset" {{eq_sunset}}>Sunset (Deep Amber/Twilight Violet)</option>
+                            <option value="obsidian" {{eq_obsidian}}>Obsidian (Monochrome Dark Slate)</option>
+                            <option value="custom" {{eq_custom}}>Custom (Pick Your Own Color)</option>
+                        </select>
+                    </div>
 
-                <div class="form-group" style="margin-top:0.75rem;">
-                    <label>Wallpaper Background (URL or Upload)</label>
-                    <input type="text" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="Wallpaper URL">
-                    <div class="upload-zone" @click="$refs.bgFileInput.click()">
-                        <input type="file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
-                        <i data-lucide="image"></i>
-                        <span>Select wallpaper image</span>
-                        <span class="upload-hint">PNG, JPG, SVG (Max 2MB).</span>
+                    <div class="form-group" id="custom-overlay-group" style="margin-top:0.75rem; display:none;">
+                        <label>Custom Overlay Color</label>
+                        <input type="color" name="custom_overlay_color" class="form-control" value="{{custom_overlay_color}}" style="height:2.5rem; padding:0.2rem; cursor:pointer;">
+                    </div>
+
+                    <div class="form-group" style="margin-top:0.75rem;">
+                        <label>Wallpaper Background (URL or Upload)</label>
+                        <input type="text" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="Wallpaper URL">
+                        <div class="upload-zone" @click="$refs.bgFileInput.click()">
+                            <input type="file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
+                            <i data-lucide="image"></i>
+                            <span>Select wallpaper image</span>
+                            <span class="upload-hint">PNG, JPG, SVG (Max 2MB).</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top:0.75rem; margin-bottom:0;">
+                        <label>Dashboard Logo (URL or Upload)</label>
+                        <input type="text" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
+                        <div class="upload-zone" @click="$refs.logoFileInput.click()">
+                            <input type="file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
+                            <i data-lucide="upload-cloud"></i>
+                            <span>Select logo image</span>
+                            <span class="upload-hint">SVG, PNG, JPG (Max 2MB).</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top:0.75rem;">
-                    <label>Dashboard Logo (URL or Upload)</label>
-                    <input type="text" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
-                    <div class="upload-zone" @click="$refs.logoFileInput.click()">
-                        <input type="file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
-                        <i data-lucide="upload-cloud"></i>
-                        <span>Select logo image</span>
-                        <span class="upload-hint">SVG, PNG, JPG (Max 2MB).</span>
+                <!-- Section 3: Glass Panel Parameters -->
+                <div class="settings-section" style="margin-bottom: 0;">
+                    <h3><i data-lucide="sliders" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Glass & Layout</h3>
+                    
+                    <div class="form-group">
+                        <label>Corner Bento Radius (px)</label>
+                        <input type="range" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
+                    </div>
+
+                    <div class="form-group" style="margin-top:0.75rem;">
+                        <label>Glass Panel Opacity</label>
+                        <input type="range" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
+                    </div>
+
+                    <div class="form-group" style="margin-top:0.75rem; margin-bottom:0;">
+                        <label>Glass Blur Strength (px)</label>
+                        <input type="range" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
                     </div>
                 </div>
             </div>
 
-            <!-- Section 3: Glass Panel Parameters -->
-            <div class="settings-section">
-                <h3><i data-lucide="sliders" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Glass & Layout</h3>
+            <!-- Tab 3: Weather Location -->
+            <div class="settings-section" x-show="activeTab === 'weather'" style="margin-bottom: 0;">
+                <h3><i data-lucide="map-pin" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Weather Location</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">Set manual coordinates for accurate weather. Leave blank to auto-detect via IP geolocation.</p>
                 
-                <div class="form-group">
-                    <label>Corner Bento Radius (px)</label>
-                    <input type="range" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
-                </div>
-
-                <div class="form-group" style="margin-top:0.75rem;">
-                    <label>Glass Panel Opacity</label>
-                    <input type="range" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
-                </div>
-
-                <div class="form-group" style="margin-top:0.75rem;">
-                    <label>Glass Blur Strength (px)</label>
-                    <input type="range" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Latitude</label>
+                        <input type="text" name="weather_latitude" class="form-control" value="{{weather_latitude}}" placeholder="e.g. 33.5731">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Longitude</label>
+                        <input type="text" name="weather_longitude" class="form-control" value="{{weather_longitude}}" placeholder="e.g. -7.5898">
+                    </div>
                 </div>
             </div>
 
-            <!-- Section 4: Security -->
-            <div class="settings-section">
+            <!-- Tab 4: Security -->
+            <div class="settings-section" x-show="activeTab === 'security'" style="margin-bottom: 0;">
                 <h3><i data-lucide="lock" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Security</h3>
                 
                 <div class="form-group">
-                    <label>Change Admin Password</label>
-                    <input type="password" name="new_password" class="form-control" placeholder="Enter new password (leave blank to keep current)">
+                    <label>Change Username</label>
+                    <input type="text" id="cred-new-username" class="form-control" placeholder="Enter new username (leave blank to keep current)">
                 </div>
+
+                <div class="form-group">
+                    <label>Old Password <span style="color:var(--danger);">*</span></label>
+                    <input type="password" id="cred-old-password" class="form-control" placeholder="Current password (required)">
+                </div>
+
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="cred-new-password" class="form-control" placeholder="New password (leave blank to keep current)">
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Repeat New Password</label>
+                    <input type="password" id="cred-repeat-password" class="form-control" placeholder="Repeat new password">
+                </div>
+
+                <p id="cred-error-msg" style="display:none; color: var(--danger); font-size: 0.78rem; margin-top: 0.25rem;"></p>
+                <p id="cred-success-msg" style="display:none; color: var(--success); font-size: 0.78rem; margin-top: 0.25rem;"></p>
+
+                <button type="button" class="btn btn-primary" onclick="submitCredentials()" style="width:100%; margin-top: 1rem;">
+                    <i data-lucide="shield-check" style="width:0.85rem; height:0.85rem;"></i> Update Credentials
+                </button>
             </div>
 
-            <div class="drawer-footer" style="margin-top:0.5rem; padding-top:0.75rem;">
+            <!-- Tab 5: Category Management -->
+            <div class="settings-section" x-show="activeTab === 'categories'" style="margin-bottom: 0;">
+                <h3><i data-lucide="tag" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Categories</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">Manage, add, and configure application categorization filters and colors.</p>
+                <button type="button" class="btn btn-secondary" @click="manageCategoriesOpen = true; loadCategories();" style="width:100%;">
+                    <i data-lucide="settings-2" style="width:0.85rem; height:0.85rem;"></i> Manage Categories
+                </button>
+            </div>
+
+            <div class="drawer-footer" x-show="activeTab === 'branding' || activeTab === 'appearance' || activeTab === 'weather'" style="margin-top:0.75rem; padding-top:0.75rem;">
                 <button type="button" class="btn btn-secondary" @click="drawerOpen = false">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Settings</button>
             </div>
@@ -301,7 +376,9 @@
 
             <div class="form-group">
                 <label>Category</label>
-                <input type="text" name="category" class="form-control" placeholder="e.g. Media, Infrastructure (Defaults to General)">
+                <select name="category" class="form-control">
+                    <!-- CATEGORY_OPTIONS -->
+                </select>
             </div>
 
             <div class="form-group">
@@ -360,7 +437,9 @@
 
             <div class="form-group">
                 <label>Category</label>
-                <input type="text" name="category" x-model="editApp.category" class="form-control" placeholder="e.g. Media, Infrastructure (Defaults to General)">
+                <select name="category" x-model="editApp.category" class="form-control">
+                    <!-- CATEGORY_OPTIONS -->
+                </select>
             </div>
 
             <div class="form-group">
@@ -378,6 +457,54 @@
                 <button type="submit" class="btn btn-primary">Save Changes</button>
             </div>
         </form>
+    </div>
+
+    <!-- Manage Categories Modal -->
+    <div class="modal-backdrop" x-show="manageCategoriesOpen" x-transition.opacity @click="manageCategoriesOpen = false" style="display: none;"></div>
+    <div class="modal" x-show="manageCategoriesOpen" x-transition style="display: none;">
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Administration</p>
+                <h2>Manage Categories</h2>
+            </div>
+            <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="manageCategoriesOpen = false">
+                <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
+            </button>
+        </div>
+
+        <div id="categories-list" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.25rem; max-height: 300px; overflow-y: auto;">
+            <template x-for="cat in categories" :key="cat.id">
+                <div class="glass-panel" style="padding:0.6rem 0.85rem; display:flex; align-items:center; justify-content:space-between; border-radius:var(--radius-md);">
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                        <span :style="'width:12px;height:12px;border-radius:50%;background:'+cat.color" style="display:inline-block;"></span>
+                        <span style="font-size:0.88rem; font-weight:600;" x-text="cat.name"></span>
+                    </div>
+                    <div style="display:flex; gap:0.35rem;">
+                        <button type="button" class="btn-delete-app" title="Delete category" @click="deleteCategory(cat.id)">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </template>
+            <p x-show="categories.length === 0" style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:1rem;">No categories found.</p>
+        </div>
+
+        <div style="border-top:1px solid var(--border-card); padding-top:1rem;">
+            <h3 style="font-size:0.85rem; font-weight:700; margin-bottom:0.75rem;">Add New Category</h3>
+            <div style="display:grid; grid-template-columns: 1fr auto; gap:0.5rem; align-items:end;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Name</label>
+                    <input type="text" id="new-cat-name" class="form-control" placeholder="e.g. Downloads">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Color</label>
+                    <input type="color" id="new-cat-color" class="form-control" value="#64748b" style="height:2.5rem; width:3rem; padding:0.2rem; cursor:pointer;">
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="addCategory()" style="width:100%; margin-top:0.75rem;">
+                Add Category
+            </button>
+        </div>
     </div>
 
     <script>
@@ -526,6 +653,128 @@
             });
         }
 
+        // Custom overlay tint toggle
+        function toggleCustomOverlay() {
+            const select = document.getElementById('overlay-theme-select');
+            const group = document.getElementById('custom-overlay-group');
+            if (select && group) {
+                group.style.display = select.value === 'custom' ? 'block' : 'none';
+            }
+        }
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', toggleCustomOverlay);
+
+        // Secure credential update
+        function submitCredentials() {
+            const errEl = document.getElementById('cred-error-msg');
+            const sucEl = document.getElementById('cred-success-msg');
+            errEl.style.display = 'none';
+            sucEl.style.display = 'none';
+
+            const oldPw = document.getElementById('cred-old-password').value;
+            const newPw = document.getElementById('cred-new-password').value;
+            const repeatPw = document.getElementById('cred-repeat-password').value;
+            const newUser = document.getElementById('cred-new-username').value;
+
+            if (!oldPw) {
+                errEl.textContent = 'Old password is required.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            if (newPw && newPw !== repeatPw) {
+                errEl.textContent = 'New passwords do not match.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            formData.append('old_password', oldPw);
+            if (newPw) formData.append('new_password', newPw);
+            if (newUser) formData.append('new_username', newUser);
+
+            fetch('/admin/credentials', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok && data.success) {
+                    sucEl.textContent = 'Credentials updated successfully! Please sign in again.';
+                    sucEl.style.display = 'block';
+                    document.getElementById('cred-old-password').value = '';
+                    document.getElementById('cred-new-password').value = '';
+                    document.getElementById('cred-repeat-password').value = '';
+                    document.getElementById('cred-new-username').value = '';
+                    setTimeout(() => { window.location.href = '/logout'; }, 1500);
+                } else {
+                    errEl.textContent = data.error || 'Failed to update credentials.';
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(() => {
+                errEl.textContent = 'Network error. Please try again.';
+                errEl.style.display = 'block';
+            });
+        }
+
+        // Category management functions
+        function loadCategories() {
+            fetch('/api/categories')
+                .then(res => res.json())
+                .then(data => {
+                    const el = document.querySelector('body');
+                    const alpineData = Alpine.$data(el);
+                    if (alpineData) alpineData.categories = data;
+                    // Re-init lucide icons for newly added template elements
+                    setTimeout(() => lucide.createIcons(), 100);
+                })
+                .catch(err => console.error('Failed to load categories:', err));
+        }
+
+        function addCategory() {
+            const name = document.getElementById('new-cat-name').value.trim();
+            const color = document.getElementById('new-cat-color').value;
+            if (!name) { alert('Category name is required.'); return; }
+
+            const formData = new URLSearchParams();
+            formData.append('name', name);
+            formData.append('color', color);
+
+            fetch('/api/categories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('new-cat-name').value = '';
+                    loadCategories();
+                } else {
+                    alert(data.error || 'Failed to add category.');
+                }
+            })
+            .catch(() => alert('Network error.'));
+        }
+
+        function deleteCategory(id) {
+            if (!confirm('Are you sure you want to delete this category?')) return;
+
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+
+            fetch('/api/categories/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(() => loadCategories())
+            .catch(() => alert('Network error.'));
+        }
+
         // WebSocket live updates handler
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const socketUrl = `${protocol}//${window.location.host}/ws`;
@@ -667,29 +916,46 @@
         }
     </script>
     <script>
-        // Fetch Live Weather automatically based on IP location
-        fetch('https://get.geojs.io/v1/ip/geo.json')
-            .then(res => res.json())
-            .then(geo => fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&current_weather=true`))
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.current_weather) {
-                    const w = data.current_weather;
-                    let cond = 'Clear';
-                    if (w.weathercode > 0 && w.weathercode <= 3) cond = 'Cloudy';
-                    if (w.weathercode >= 45 && w.weathercode <= 48) cond = 'Fog';
-                    if (w.weathercode >= 51 && w.weathercode <= 67) cond = 'Rain';
-                    if (w.weathercode >= 71 && w.weathercode <= 77) cond = 'Snow';
-                    if (w.weathercode >= 95) cond = 'Storm';
-                    document.getElementById('live-weather').textContent = `${w.temperature}°C ${cond}`;
-                } else {
-                    document.getElementById('live-weather').textContent = 'Unavailable';
-                }
-            })
-            .catch(e => {
-                console.error(e);
-                document.getElementById('live-weather').textContent = 'Offline';
-            });
+        // Fetch Live Weather — use manual coordinates if set, otherwise auto-detect via IP
+        (function() {
+            const manualLat = '{{weather_latitude}}'.trim();
+            const manualLon = '{{weather_longitude}}'.trim();
+
+            function fetchWeather(lat, lon) {
+                fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.current_weather) {
+                            const w = data.current_weather;
+                            let cond = 'Clear';
+                            if (w.weathercode > 0 && w.weathercode <= 3) cond = 'Cloudy';
+                            if (w.weathercode >= 45 && w.weathercode <= 48) cond = 'Fog';
+                            if (w.weathercode >= 51 && w.weathercode <= 67) cond = 'Rain';
+                            if (w.weathercode >= 71 && w.weathercode <= 77) cond = 'Snow';
+                            if (w.weathercode >= 95) cond = 'Storm';
+                            document.getElementById('live-weather').textContent = `${w.temperature}°C ${cond}`;
+                        } else {
+                            document.getElementById('live-weather').textContent = 'Unavailable';
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById('live-weather').textContent = 'Offline';
+                    });
+            }
+
+            if (manualLat && manualLon && !isNaN(parseFloat(manualLat)) && !isNaN(parseFloat(manualLon))) {
+                // Use admin-configured coordinates for accurate weather
+                fetchWeather(manualLat, manualLon);
+            } else {
+                // Fallback: auto-detect location via IP geolocation
+                fetch('https://get.geojs.io/v1/ip/geo.json')
+                    .then(res => res.json())
+                    .then(geo => fetchWeather(geo.latitude, geo.longitude))
+                    .catch(() => {
+                        document.getElementById('live-weather').textContent = 'Offline';
+                    });
+            }
+        })();
     </script>
 </body>
 </html>

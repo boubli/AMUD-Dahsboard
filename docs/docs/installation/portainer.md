@@ -48,6 +48,12 @@ volumes:
     name: amud_run
 ```
 
+> [!NOTE]
+> **Environment Variables:**  
+> `DB_PATH` — SQLite database path (default: `/app/data/amud.db`)  
+> `PORT` — HTTP listen port (default: `8000`)  
+> `AMUD_SOCKET_PATH` — Unix domain socket for agent↔server IPC  
+
 7. Scroll down to the bottom and click **Deploy the stack**.
 
 ## Accessing the Dashboard
@@ -61,5 +67,5 @@ http://<YOUR_SERVER_IP>:8000/
 > [!TIP]  
 > **Default Login Credentials:**  
 > **Username:** `admin`  
-> **Password:** `password`  
+> **Password:** `admin`  
 > *(We highly recommend changing these from the settings page after your first login!)*

@@ -329,9 +329,29 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
         // Disk metrics
         let disks = sysinfo::Disks::new_with_refreshed_list();
-        let mut total_disk = 0;
-        let mut avail_disk = 0;
+        let mut total_disk: u64 = 0;
+        let mut avail_disk: u64 = 0;
+        let mut seen_devices = std::collections::HashSet::new();
         for disk in &disks {
+            let fs = disk.file_system().to_string_lossy().to_lowercase();
+            let mount = disk.mount_point().to_string_lossy().to_string();
+            // Skip virtual/pseudo filesystems
+            if fs == "tmpfs" || fs == "overlay" || fs == "squashfs"
+                || fs == "devtmpfs" || fs == "sysfs" || fs == "proc"
+                || fs == "devpts" || fs == "cgroup" || fs == "cgroup2"
+                || fs == "none" || fs == "ramfs"
+            {
+                continue;
+            }
+            // Skip snap and loop mounts
+            if mount.starts_with("/snap") || mount.starts_with("/dev/loop") {
+                continue;
+            }
+            // Skip duplicate devices (e.g. bind mounts of the same partition)
+            let device_name = disk.name().to_string_lossy().to_string();
+            if !seen_devices.insert(device_name) {
+                continue;
+            }
             total_disk += disk.total_space();
             avail_disk += disk.available_space();
         }
