@@ -33,66 +33,135 @@ Once the script completes, it will output the IP address of your new dashboard.
 
 Open your browser and navigate to:
 ```
-http://<YOUR_PROXMOX_IP>:8000/
+http://<YOUR_LXC_IP>:8000/
 ```
 
-> [!TIP]
-> **Default Admin Login:**
-> Username: `admin`
-> Password: `password`
+:::tip Default Admin Login
+Username: `admin`  
+Password: `password`
+:::
 
-## Proxmox Telemetry Configuration
+---
 
-AMUD communicates **directly with the Proxmox VE REST API** for container telemetry. The agent issues native, lightweight HTTPS requests over `hyper` instead of shelling out to the `pvesh` Python CLI, dramatically reducing CPU and memory overhead on the host.
+## Proxmox API Token Setup (Required for LXC Monitoring)
 
-To enable LXC telemetry, provide the agent with a Proxmox API token.
+AMUD communicates **directly with the Proxmox VE REST API** for live container telemetry. Without an API token, the agent will still stream host-level CPU, RAM, and disk metrics — but your app cards will remain stuck on **"CHECKING..."** because the agent cannot query your LXC containers.
 
-### 1. Create an API Token
+:::warning This step is mandatory for LXC status monitoring
+If you skip this section, your dashboard will work but all application cards will show **"CHECKING..."** instead of live **RUNNING** / **STOPPED** badges.
+:::
 
-In the Proxmox web UI:
+### Step 1 — Create an API Token in Proxmox
 
-1. Navigate to **Datacenter → Permissions → API Tokens**.
-2. Click **Add**.
-3. Select the **User** the token belongs to (e.g. `root@pam`).
-4. Enter a **Token ID** (e.g. `amud`).
-5. *(Optional)* Leave **Privilege Separation** unchecked to inherit the user's permissions, or assign explicit `VM.Audit` / `Sys.Audit` rights on the relevant nodes.
-6. Click **Add**, then **copy the Secret value immediately** — Proxmox displays it only once.
+1. Open the **Proxmox Web UI** (typically `https://YOUR_IP:8006`).
+2. Navigate to **Datacenter → Permissions → API Tokens**.
+3. Click **Add**.
+4. Fill in the fields:
+   - **User:** `root@pam` (or any user with at least `VM.Audit` + `Sys.Audit` privileges)
+   - **Token ID:** `amud`
+5. **⚠️ UNCHECK "Privilege Separation"** — this is the most critical step.
 
-### 2. Set the Environment Variable
+:::danger Privilege Separation Must Be Unchecked
+By default, Proxmox enables **Privilege Separation** when creating API tokens. When this is ON, your token starts with **zero permissions** — even if it belongs to `root@pam`. The Proxmox API will return an empty container list, and your app cards will remain stuck on "CHECKING...".
 
-Pass the credential to the agent via `PVE_API_TOKEN`. It must contain the **entire** value, including the `PVEAPIToken=` scheme prefix:
+**You MUST uncheck this checkbox** to allow the token to inherit the user's permissions.
+:::
+
+6. Click **Add**, then **immediately copy the Secret value** — Proxmox displays it **only once**.
+
+The full token credential will look like this:
+
+```
+PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+### Step 2 — Configure the Agent Service
+
+Edit the `amud-agent` systemd service file on your **Proxmox host**:
 
 ```bash
-PVE_API_TOKEN=PVEAPIToken=USER@REALM!TOKENID=SECRET
+nano /etc/systemd/system/amud-agent.service
 ```
 
-For example:
+Add the `PVE_API_TOKEN` environment variable under the `[Service]` section. Your file should look like this:
+
+```ini title="/etc/systemd/system/amud-agent.service"
+[Unit]
+Description=AMUD Host Telemetry Agent
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/amud-agent
+Restart=always
+RestartSec=5
+Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
+Environment="PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+[Install]
+WantedBy=multi-user.target
+```
+
+:::caution Make sure to include the closing quote
+The `Environment` line must have **both** an opening `"` and a closing `"` around the value. Missing the closing quote will cause systemd to fail silently.
+:::
+
+### Step 3 — Restart the Agent
+
+Save the file (`Ctrl+O`, `Enter`, `Ctrl+X` in nano) and restart the agent:
 
 ```bash
-PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+systemctl daemon-reload
+systemctl restart amud-agent
 ```
 
-> If this variable is unset, the agent skips Proxmox polling — host CPU/RAM/disk metrics still work normally.
+### Step 4 — Verify It Works
 
-### 3. Add it to `docker-compose.yml`
+Check the agent logs to confirm it's fetching your containers:
 
-```yaml
-services:
-  amud-agent:
-    image: boubli/amud-agent:latest
-    environment:
-      - PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    volumes:
-      - /opt/amud/run:/opt/amud/run
-    restart: unless-stopped
+```bash
+journalctl -u amud-agent --no-pager -n 15
 ```
 
-> 📖 For the complete walkthrough, see the [AMUD Dashboard Installation Guide](http://tradmss.me/AMUD-Dashboard/).
+You should see output like this:
+
+```
+[LXC] Fetching containers from: https://localhost:8006/api2/json/nodes/YOUR_NODE/lxc
+[LXC] Successfully fetched 20 containers from PVE.
+```
+
+If you see `Successfully fetched 0 containers`, refer to the [Troubleshooting Guide](/docs/troubleshooting) below.
+
+---
+
+## Minimal Permissions Token (Advanced)
+
+If you prefer not to use `root@pam` or want tighter security, you can create a dedicated user with minimal permissions:
+
+1. **Create a new user** in Proxmox (e.g., `amud@pve`).
+2. **Assign permissions** — the agent only needs read access:
+   - `VM.Audit` on `/vms` (to list and read LXC container status)
+   - `Sys.Audit` on `/nodes` (to read node information)
+3. **Create an API token** for `amud@pve` with **Privilege Separation unchecked**.
+4. Use the new token in the agent service file.
+
+```bash
+# Example: Create a PVE user and assign audit-only permissions
+pveum user add amud@pve
+pveum aclmod / -user amud@pve -role PVEAuditor
+pveum user token add amud@pve amud --privsep 0
+```
+
+---
 
 ## Updating
 
 To update AMUD to the latest release, run the updater script on your Proxmox Host:
 
 ```bash
-curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/update-amud.sh | bash
+bash <(curl -fsSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/update-amud.sh)
 ```
+
+:::note
+The update script preserves your database, settings, and API token configuration. It only replaces the server binary, UI assets, and agent binary.
+:::

@@ -31,6 +31,56 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 
 ---
 
+## 1.1 Proxmox API Token Configuration (Required for LXC Monitoring)
+
+After the autopilot script completes, the agent will stream host-level CPU, RAM, and disk metrics immediately. However, to enable **live LXC container status monitoring** (turning "CHECKING..." badges into "RUNNING"/"STOPPED"), you must provide the agent with a Proxmox API token.
+
+### Create a Token in Proxmox
+
+1. Open the **Proxmox Web UI** (`https://YOUR_IP:8006`).
+2. Navigate to **Datacenter → Permissions → API Tokens**.
+3. Click **Add**.
+4. Set:
+   - **User:** `root@pam`
+   - **Token ID:** `amud`
+   - **⚠️ UNCHECK "Privilege Separation"** (enabled by default — if left checked, the token has zero permissions and the API will return an empty container list)
+5. Click **Add**, then **copy the Secret value immediately** (Proxmox shows it only once).
+
+### Add the Token to the Agent Service
+
+Edit the agent's systemd unit file on the **Proxmox host**:
+
+```bash
+nano /etc/systemd/system/amud-agent.service
+```
+
+Add this line under `[Service]` (replace with your real token):
+
+```ini
+Environment="PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+```
+
+> **Important:** The line must have both opening `"` and closing `"` quotes.
+
+Then reload and restart:
+
+```bash
+systemctl daemon-reload
+systemctl restart amud-agent
+```
+
+### Verify
+
+```bash
+journalctl -u amud-agent --no-pager -n 10
+```
+
+You should see: `[LXC] Successfully fetched XX containers from PVE.`
+
+> For detailed troubleshooting, see the full [Troubleshooting Guide](https://tradmss.me/AMUD-Dashboard/docs/troubleshooting).
+
+---
+
 ## 2. How to Update AMUD to the Latest Release
 
 When a new version of the AMUD Dashboard or Agent is released on GitHub, you can perform an in-place update of both the LXC server and the Proxmox host agent without destroying your configuration or database.
