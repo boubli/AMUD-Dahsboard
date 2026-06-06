@@ -131,7 +131,10 @@ impl rustls::client::danger::ServerCertVerifier for NoVerifier {
 fn fetch_lxc_containers() -> Vec<LxcContainer> {
     let token = match std::env::var("PVE_API_TOKEN") {
         Ok(t) if !t.is_empty() => t,
-        _ => return Vec::new(),
+        _ => {
+            eprintln!("[LXC] PVE_API_TOKEN not set or empty, skipping LXC fetch.");
+            return Vec::new();
+        }
     };
 
     // Drive the async hyper client on a lightweight current-thread runtime so the
@@ -141,7 +144,10 @@ fn fetch_lxc_containers() -> Vec<LxcContainer> {
         .build()
     {
         Ok(rt) => rt,
-        Err(_) => return Vec::new(),
+        Err(e) => {
+            eprintln!("[LXC] Failed to build tokio runtime: {}", e);
+            return Vec::new();
+        }
     };
 
     rt.block_on(async move {
@@ -160,7 +166,10 @@ fn fetch_lxc_containers() -> Vec<LxcContainer> {
                 .dangerous()
                 .with_custom_certificate_verifier(Arc::new(NoVerifier))
                 .with_no_client_auth(),
-            Err(_) => return Vec::new(),
+            Err(e) => {
+                eprintln!("[LXC] Failed to build TLS config: {}", e);
+                return Vec::new();
+            }
         };
 
         let https = hyper_rustls::HttpsConnectorBuilder::new()
@@ -179,25 +188,44 @@ fn fetch_lxc_containers() -> Vec<LxcContainer> {
             .trim()
             .to_string();
 
+        let api_url = format!("https://localhost:8006/api2/json/nodes/{}/lxc", node_name);
+        eprintln!("[LXC] Fetching containers from: {} (Authorization: {}...)", api_url, &token[..token.len().min(30)]);
+
         let req = match hyper::Request::builder()
             .method("GET")
-            .uri(format!("https://localhost:8006/api2/json/nodes/{}/lxc", node_name))
-            .header("Authorization", token)
+            .uri(&api_url)
+            .header("Authorization", &token)
             .body(Empty::<Bytes>::new())
         {
             Ok(r) => r,
-            Err(_) => return Vec::new(),
+            Err(e) => {
+                eprintln!("[LXC] Failed to build HTTP request: {}", e);
+                return Vec::new();
+            }
         };
 
         let resp = match client.request(req).await {
             Ok(r) => r,
-            Err(_) => return Vec::new(),
+            Err(e) => {
+                eprintln!("[LXC] HTTP request to PVE API failed: {}", e);
+                return Vec::new();
+            }
         };
 
+        let status = resp.status();
         let body = match resp.into_body().collect().await {
             Ok(b) => b.to_bytes(),
-            Err(_) => return Vec::new(),
+            Err(e) => {
+                eprintln!("[LXC] Failed to read response body: {}", e);
+                return Vec::new();
+            }
         };
+
+        if !status.is_success() {
+            let body_str = String::from_utf8_lossy(&body);
+            eprintln!("[LXC] PVE API returned HTTP {}: {}", status, &body_str[..body_str.len().min(500)]);
+            return Vec::new();
+        }
 
         // The PVE REST API wraps the array in a `{ "data": [...] }` envelope,
         // unlike the bare array that `pvesh --output-format json` returned.
@@ -206,9 +234,17 @@ fn fetch_lxc_containers() -> Vec<LxcContainer> {
             data: Vec<LxcContainer>,
         }
 
-        serde_json::from_slice::<PveResponse>(&body)
-            .map(|parsed| parsed.data)
-            .unwrap_or_default()
+        match serde_json::from_slice::<PveResponse>(&body) {
+            Ok(parsed) => {
+                eprintln!("[LXC] Successfully fetched {} containers from PVE.", parsed.data.len());
+                parsed.data
+            }
+            Err(e) => {
+                let body_str = String::from_utf8_lossy(&body);
+                eprintln!("[LXC] Failed to parse PVE response: {}. Body: {}", e, &body_str[..body_str.len().min(500)]);
+                Vec::new()
+            }
+        }
     })
 }
 
