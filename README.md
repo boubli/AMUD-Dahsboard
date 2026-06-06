@@ -93,3 +93,14 @@ services:
 | **Assets Injection** | Read from host disk paths | Embedded templates (`include_str!`) + static files |
 | **Idle RAM Footprint** | 80MB - 150MB | **~26MB (Combined server/agent)** |
 | **Boot Time** | 2 - 5 seconds | **Sub-millisecond (Instant)** |
+
+---
+
+## Support & Donation
+
+If you find AMUD helpful in organizing your self-hosted services or saving server memory, please consider supporting the project!
+
+* 💖 **GitHub Sponsors:** [Sponsor @boubli on GitHub](https://github.com/sponsors/boubli)
+
+Every contribution helps keep development active. Thank you!
+
