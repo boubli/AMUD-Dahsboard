@@ -173,11 +173,15 @@ fn fetch_lxc_containers() -> Vec<LxcContainer> {
         let client: Client<_, Empty<Bytes>> =
             Client::builder(TokioExecutor::new()).build(https);
 
-        // PVE_API_TOKEN is expected to hold the full credential, including the
-        // `PVEAPIToken=` scheme prefix, e.g. `PVEAPIToken=root@pam!amud=<secret>`.
+        // Proxmox node names match the system hostname
+        let node_name = std::fs::read_to_string("/etc/hostname")
+            .unwrap_or_else(|_| "localhost".to_string())
+            .trim()
+            .to_string();
+
         let req = match hyper::Request::builder()
             .method("GET")
-            .uri("https://localhost:8006/api2/json/nodes/localhost/lxc")
+            .uri(format!("https://localhost:8006/api2/json/nodes/{}/lxc", node_name))
             .header("Authorization", token)
             .body(Empty::<Bytes>::new())
         {
