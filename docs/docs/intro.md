@@ -8,6 +8,18 @@ Welcome to **AMUD (Advanced Modern Unified Dashboard)**.
 
 AMUD is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles at roughly **~26MB of RAM** (combined server and agent) with a **~660MB disk footprint** when deployed as a full Debian LXC container.
 
+## How AMUD Works (Architecture)
+
+Below is an overview of how the AMUD Dashboard and Telemetry Agent communicate to aggregate metrics and report container status in real-time.
+
+![AMUD Architecture Diagram](/img/amud-architecture.svg)
+
+AMUD uses a decoupled client-server architecture:
+- **amud-agent**: Runs on the hypervisor host (e.g. Proxmox VE) or docker host. It polls system metrics and container states, sending them through a fast Unix domain socket.
+- **amud-socket (`amud.sock`)**: A shared Unix Domain socket. By using a secure socket instead of standard TCP network ports, we avoid exposure and overhead, transferring telemetry at lightning speed.
+- **amud-server**: Listens to the socket and serves the dashboard user interface to your browser over HTTP. It utilizes lightweight **WebSockets** to stream live statistics directly to you.
+
+
 ## Why AMUD Demolishes Legacy Dashboards
 
 ### 1. Bare-Metal Resource Discipline

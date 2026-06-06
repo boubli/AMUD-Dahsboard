@@ -64,6 +64,11 @@ const config: Config = {
           label: 'Documentation',
         },
         {
+          to: '/docs/donate',
+          label: 'Donate',
+          position: 'right',
+        },
+        {
           href: 'https://github.com/boubli/AMUD-Dashboard',
           label: 'GitHub',
           position: 'right',
@@ -80,6 +85,10 @@ const config: Config = {
               label: 'Getting Started',
               to: '/docs/intro',
             },
+            {
+              label: 'Troubleshooting',
+              to: '/docs/troubleshooting',
+            },
           ],
         },
         {
@@ -91,8 +100,17 @@ const config: Config = {
             },
           ],
         },
+        {
+          title: 'Support',
+          items: [
+            {
+              label: 'Donate',
+              to: '/docs/donate',
+            },
+          ],
+        },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} AMUD Ecosystem. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} AMUD Dashboard. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

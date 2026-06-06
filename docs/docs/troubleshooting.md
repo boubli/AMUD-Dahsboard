@@ -254,6 +254,77 @@ systemctl restart amud-agent
 
 ---
 
+## Docker / Portainer: Permission Denied on docker.sock
+
+**Symptom:** The agent log reports errors like:
+```
+[Docker] Error connecting to docker socket: Permission denied (os error 13)
+```
+
+**Cause:** The user executing the agent inside the container does not have permission to read/write the mapped `/var/run/docker.sock` on the host system.
+
+**Fixes:**
+
+1. **Run container as root (Recommended):**
+   In your `docker-compose.yml`, make sure the `amud-agent` container runs as root. You can do this by omitting user specifications, as default is root, which has access to the socket.
+2. **Change host socket permissions:**
+   Alternatively, grant read/write access to the docker socket on the host machine:
+   ```bash
+   sudo chmod 666 /var/run/docker.sock
+   ```
+
+---
+
+## Reverse Proxy: WebSockets Disconnect (0% Metrics)
+
+**Symptom:** The dashboard Web UI loads fine, but all host metrics (CPU/RAM/Disk) remain at `0%` and no live statuses stream. In your browser console (F12), you see errors like:
+```
+WebSocket connection to 'wss://amud.yourdomain.com/ws' failed: Error during WebSocket handshake: Unexpected response code: 400
+```
+
+**Cause:** The reverse proxy (Nginx, NPM, Apache) is forwarding HTTP traffic but stripping the headers required to "upgrade" the connection to WebSockets.
+
+**Fixes:**
+
+1. **Verify WebSocket Headers:** Refer to the [Reverse Proxy Configuration](/docs/installation/reverse-proxy) guide and ensure the following headers are set in your proxy block:
+   ```nginx
+   proxy_http_version 1.1;
+   proxy_set_header Upgrade $http_upgrade;
+   proxy_set_header Connection "upgrade";
+   ```
+2. **Nginx Proxy Manager:** Edit your proxy host in the NPM interface, check the **Websockets Support** toggle box, and click **Save**.
+3. **Cloudflare Tunnels:** Ensure WebSockets are enabled under your domain's **Network** settings in the Cloudflare dashboard.
+
+---
+
+## Database is Locked or Permission Denied
+
+**Symptom:** You receive errors like `database is locked` or `ReadOnly / Permission Denied` when trying to save settings or add apps in the dashboard UI.
+
+**Cause:**
+- Multiple instances of `amud-server` are running and contesting access to the SQLite database.
+- The user running the `amud-server` service does not have write access to `/opt/amud/data/` or `/opt/amud/data/amud.db`.
+
+**Fixes:**
+
+1. **Check for duplicate server processes:**
+   ```bash
+   ps aux | grep amud-server
+   ```
+   If multiple processes are running, stop the service and terminate all duplicates:
+   ```bash
+   sudo systemctl stop amud-server
+   sudo killall amud-server
+   sudo systemctl start amud-server
+   ```
+2. **Fix file permissions:**
+   Ensure the directory and database file are writable:
+   ```bash
+   sudo chmod -R 777 /opt/amud/data
+   ```
+
+---
+
 ## Getting Help
 
 If your issue isn't covered here:
@@ -267,3 +338,4 @@ cat /tmp/amud-debug.log
 ```
 
 2. Open an issue on [GitHub](https://github.com/boubli/AMUD-Dashboard/issues) with the log output and your Proxmox version.
+
