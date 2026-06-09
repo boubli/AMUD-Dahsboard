@@ -100,9 +100,11 @@ services:
 
 ## Support & Donation
 
-If you find AMUD helpful in organizing your self-hosted services or saving server memory, please consider supporting the project!
+AMUD is completely free with every feature unlocked. A donation is optional and unlocks nothing extra - it is simply a kind way to support continued development.
 
 * 💖 **GitHub Sponsors:** [Sponsor @boubli on GitHub](https://github.com/sponsors/boubli)
+* 💳 **Card (Stripe):** [Donate via Card](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)
+* ☕ **Ko-fi:** [Support on Ko-fi](https://ko-fi.com/Youssefboubli)
 
 Every contribution helps keep development active. Thank you!
 

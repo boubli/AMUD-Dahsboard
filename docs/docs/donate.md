@@ -2,7 +2,7 @@
 
 AMUD is an open-source, community-driven dashboard created to optimize resource usage in homelabs and servers. It is developed and maintained entirely in my free time.
 
-If AMUD has made managing your home lab easier, saved you server RAM, or improved your cockpit layout, please consider supporting the project! Your contributions go directly towards motivating development, testing on multiple platforms, and implementing new features.
+AMUD is completely free and you already have every feature unlocked. A donation is **not required and unlocks nothing extra** - it is simply a kind way to support continued development. Your contributions go directly towards motivating development, testing on multiple platforms, and implementing new features.
 
 ---
 
@@ -13,9 +13,8 @@ Below are the options to support my work. You can choose a recurring sponsorship
 | Platform | Support Link | Details |
 |---|---|---|
 | **GitHub Sponsors** | [Sponsor on GitHub](https://github.com/sponsors/boubli) | Support the author directly via GitHub Sponsors (0% platform fees). |
-| **Ko-fi** | [Support on Ko-fi](https://ko-fi.com/boubli) | Great for one-time coffee contributions or flexible recurring support. |
-| **Buy Me a Coffee** | [Buy Me a Coffee](https://www.buymeacoffee.com/boubli) | Quick one-time support options. |
-| **PayPal** | [Donate via PayPal](https://paypal.me/boubli) | Standard, secure direct money transfer. |
+| **Card (Stripe)** | [Donate via Card](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00) | Quick, secure one-time card payment through Stripe. |
+| **Ko-fi** | [Support on Ko-fi](https://ko-fi.com/Youssefboubli) | Great for one-time coffee contributions or flexible recurring support. |
 
 ---
 
