@@ -1,7 +1,8 @@
 [package]
 name = "amud-agent"
-version = "1.0.0"
+version = "1.2.0"
 edition = "2021"
+
 
 [dependencies]
 sysinfo = "0.30.12"

@@ -16,7 +16,7 @@ dependencies = [
 
 [[package]]
 name = "amud-agent"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "http-body-util",
  "hyper",
@@ -32,7 +32,7 @@ dependencies = [
 
 [[package]]
 name = "amud-server"
-version = "1.0.0"
+version = "1.2.0"
 dependencies = [
  "axum",
  "chrono",
