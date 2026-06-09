@@ -4,70 +4,98 @@ sidebar_position: 4
 
 # Bare-Metal Linux Installation
 
-For users who want to run AMUD directly on a Linux server (Debian, Ubuntu, Fedora, Arch Linux, Rocky Linux, etc.) without Proxmox VE or Docker, you can install the pre-compiled binaries and run them as native `systemd` background services.
+Deploying AMUD directly on a bare-metal Linux host (Debian, Ubuntu, Fedora, Arch Linux, Rocky Linux, etc.) ensures the absolute lowest memory footprint and direct, unvirtualized access to hardware sensors. 
 
-Running bare-metal gives you the absolute lowest memory footprint and direct access to host system hardware metrics.
+To achieve a production-grade deployment, this guide details how to install the binaries, set up a dedicated low-privilege system user, apply secure folder permissions, and configure hardened systemd background services.
 
 ---
 
 ## 1. Prerequisites
 
 - A systemd-compatible Linux distribution.
-- `wget` or `curl` installed.
-- Root or `sudo` privileges.
+- CLI utilities installed: `curl`, `wget`, `tar`.
+- Administrative rights (`sudo` or `root` shell).
 
 ---
 
-## 2. Directory Structure Setup
+## 2. Low-Privilege Security Model (User & Directories)
 
-AMUD uses `/opt/amud/` as its default directory for database files, UI assets, and runtime socket communications.
+Running application servers as `root` exposes your host system to unnecessary risks. We will create a restricted system user and group named `amud` with no login shell, dedicated strictly to executing the AMUD dashboard server.
 
-Create these directories on your server:
+### Step 1: Create the system user and group
+```bash
+# Create a system group
+sudo groupadd --system amud
+
+# Create a system user associated with the group, with no login shell
+sudo useradd --system \
+             -g amud \
+             -s /sbin/nologin \
+             -c "AMUD Daemon User" \
+             amud
+```
+
+### Step 2: Establish the directory tree
+AMUD uses `/opt/amud/` for its application files:
+- `/opt/amud/run`: Unix Domain Socket for IPC.
+- `/opt/amud/data`: SQLite database.
+- `/opt/amud/ui`: Web UI HTML, JS, and CSS static templates.
 
 ```bash
+# Create the directory structure
 sudo mkdir -p /opt/amud/run /opt/amud/data /opt/amud/ui
-sudo chmod 755 /opt/amud/run /opt/amud/data
+```
+
+### Step 3: Apply ownership and permissions
+The `amud` user must own the database and runtime folders. The agent (which runs as `root` to poll host metrics) and the server (running as `amud`) will both communicate via `/opt/amud/run/amud.sock`. We use group ownership and permissions to ensure they can read and write to the socket.
+
+```bash
+# Set folder ownership
+sudo chown -R amud:amud /opt/amud
+
+# Set folder permissions (775 allows group-write for local socket creation)
+sudo chmod 775 /opt/amud/run
+sudo chmod 770 /opt/amud/data
 ```
 
 ---
 
 ## 3. Download Release Assets
 
-We provide pre-compiled x86_64 binaries for every stable release.
+We distribute pre-compiled `x86_64` and `arm64` binaries for every stable release.
 
-Download the server, agent, and UI templates directly to your system:
+Download the dashboard server, telemetry agent, and frontend UI templates:
 
 ```bash
-# 1. Download and install amud-server
+# 1. Download and install the amud-server binary
 wget https://github.com/boubli/AMUD-Dashboard/releases/latest/download/amud-server
 chmod +x amud-server
 sudo mv amud-server /usr/local/bin/
 
-# 2. Download and install amud-agent
+# 2. Download and install the amud-agent binary
 wget https://github.com/boubli/AMUD-Dashboard/releases/latest/download/amud-agent
 chmod +x amud-agent
 sudo mv amud-agent /usr/local/bin/
 
-# 3. Download and extract the frontend UI assets
+# 3. Download and extract the static frontend UI assets
 wget https://github.com/boubli/AMUD-Dashboard/releases/latest/download/ui.tar.gz
 sudo tar -xzf ui.tar.gz -C /opt/amud/ui/
 ```
 
 ---
 
-## 4. Create Systemd Services
+## 4. Hardened Systemd Service Configurations
 
-To make sure AMUD starts automatically on boot and auto-restarts if a crash occurs, configure systemd unit files.
+To ensure AMUD automatically starts on boot, restarts if it crashes, and operates inside a secure sandbox, configure systemd unit files with modern isolation parameters.
 
-### A. AMUD Server Service
+### A. AMUD Server Service (Hardened & Non-Root)
 
 Create `/etc/systemd/system/amud-server.service`:
-
 ```bash
 sudo nano /etc/systemd/system/amud-server.service
 ```
 
-Paste the following configuration:
+Paste the following configuration. Note the sandboxing parameters under `[Service]`:
 
 ```ini title="/etc/systemd/system/amud-server.service"
 [Unit]
@@ -76,23 +104,37 @@ After=network.target
 
 [Service]
 Type=simple
+User=amud
+Group=amud
 WorkingDirectory=/opt/amud
 ExecStart=/usr/local/bin/amud-server
 Restart=always
 RestartSec=5
+
+# Environment variables
 Environment=PORT=8000
 Environment=DB_PATH=/opt/amud/data/amud.db
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
 Environment=UI_DIR=/opt/amud/ui
+UMask=0002
+
+# Sandboxing and security hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+ReadWritePaths=/opt/amud/data /opt/amud/run
+ReadOnlyPaths=/opt/amud/ui
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-### B. AMUD Agent Service
+### B. AMUD Agent Service (System Telemetry)
+
+The agent runs as `root` to poll host hardware statistics (reading `/proc` and `/sys/class` interfaces) and container states directly.
 
 Create `/etc/systemd/system/amud-agent.service`:
-
 ```bash
 sudo nano /etc/systemd/system/amud-agent.service
 ```
@@ -106,10 +148,12 @@ After=network.target
 
 [Service]
 Type=simple
+User=root
 ExecStart=/usr/local/bin/amud-agent
 Restart=always
 RestartSec=5
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
+UMask=0002
 
 [Install]
 WantedBy=multi-user.target
@@ -119,37 +163,48 @@ WantedBy=multi-user.target
 
 ## 5. Enable and Start Services
 
-Reload the systemd manager configuration, enable the services to start at boot, and start them now:
+Reload systemd to detect the new configurations, enable the services to launch at boot, and start them:
 
 ```bash
 # Reload systemd configuration
 sudo systemctl daemon-reload
 
-# Enable and start amud-server
+# Enable and start services immediately
 sudo systemctl enable --now amud-server
-
-# Enable and start amud-agent
 sudo systemctl enable --now amud-agent
 ```
 
 ---
 
-## 6. Verification
+## 6. Verification and Diagnostics
 
-### Check service statuses:
+### Service Status Checks
+Verify that both services are active and running:
 ```bash
 sudo systemctl status amud-server
 sudo systemctl status amud-agent
 ```
 
-Both services should report `active (running)`.
-
-### Verify Unix Socket creation:
-Check that the IPC socket is present in the runtime directory:
+### Unix Socket Verification
+Confirm that the agent and server are sharing the IPC socket:
 ```bash
 ls -la /opt/amud/run/
 ```
-You should see `amud.sock` listed.
+You should see the socket file:
+```
+srwxrwxr-x 1 amud amud 0 Jun  9 18:00 amud.sock
+```
+
+### Reading Daemon Logs
+To inspect real-time log outputs or troubleshoot issues, use `journalctl`:
+
+```bash
+# View dashboard server logs
+sudo journalctl -u amud-server -f -n 50
+
+# View telemetry agent logs
+sudo journalctl -u amud-agent -f -n 50
+```
 
 ---
 
@@ -160,7 +215,7 @@ Navigate to your server's IP address on port 8000:
 http://<YOUR_SERVER_IP>:8000/
 ```
 
-:::tip Default Admin Credentials
-- **Username:** `admin`
-- **Password:** `admin` (or `password` depending on version config)
+:::tip Default Credentials
+- **Username**: `admin`
+- **Password**: `password` (or `admin` depending on configuration)
 :::

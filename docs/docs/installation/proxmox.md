@@ -2,166 +2,214 @@
 sidebar_position: 1
 ---
 
-# Proxmox Installation
+# Proxmox VE Installation
 
-AMUD features an **Autopilot Installer** specifically built for Proxmox VE. The script will automatically spin up an ultra-lean Debian 12 LXC container to host the AMUD Server, and it will install the AMUD Telemetry Agent directly onto your Proxmox host.
+AMUD features a professional **Autopilot Installer** specifically built for Proxmox Virtual Environment (VE). The installation script automatically provisions a lightweight, ultra-lean Debian 12 LXC container to host the AMUD Server, and deploys the compiled, native AMUD Telemetry Agent directly onto your Proxmox hypervisor host.
 
-## Quick Install Command
+---
 
-Run the following command in your Proxmox Host shell (as root):
+## 1. Architecture Overview
+
+To understand the installation steps, it is helpful to visualize how AMUD achieves its ultra-low resource profile (~26MB RAM combined):
+
+```
++---------------------------------------------------------------------------------+
+|                                 PROXMOX HOST                                    |
+|                                                                                 |
+|  +-----------------------+                    +------------------------------+  |
+|  |  Proxmox VE REST API  |                    |      amud-agent (Host)       |  |
+|  |  (LXC Container List) |                    |  - Polls local system info   |  |
+|  +-----------+-----------+                    |  - Communicates with PVE API |  |
+|              ^                                +--------------+---------------+  |
+|              | (localhost HTTPS:8006 API)                    |                  |
+|              v                                               v                  |
+|  +---------------------------+                +------------------------------+  |
+|  |     pveproxy service      |                |      /opt/amud/run/          |  |
+|  +---------------------------+                |        amud.sock             |  |
+|                                               +--------------+---------------+  |
+|                                                              ^                  |
+|  +-----------------------------------------------------------+---------------+  |
+|  |  AMUD LXC CONTAINER (ID: 101)                             | Bind Mount    |  |
+|  |                                                           v                  |
+|  |  +--------------------------------------------------------+-----------+  |  |
+|  |  |  amud-server (Rust Server)                                         |  |  |
+|  |  |  - Serves HTTP UI on Port 8000                                     |  |  |
+|  |  |  - Streams metrics to Browser via WebSockets                       |  |  |
+|  |  +--------------------------------------------------------------------+  |  |
+|  +--------------------------------------------------------------------------+  |
++---------------------------------------------------------------------------------+
+```
+
+The system is decoupled into two lightweight Rust daemons:
+1. **`amud-agent` (runs on host)**: A high-frequency telemetry collector. It reads host hardware statistics directly from `/proc` and `/sys` interfaces, and queries the local Proxmox REST API (via port 8006) to fetch container states. It writes this metrics data to a Unix Domain socket.
+2. **`amud-server` (runs in LXC container)**: A web backend built with Tokio and Axum. It reads telemetry data from the shared Unix socket, manages configuration settings in an embedded SQLite database, and broadcasts updates to connected browsers using persistent WebSockets.
+
+---
+
+## 2. Quick Install Command
+
+Run the following command in your Proxmox Host shell as the `root` user:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amud.sh | bash
 ```
 
-## What the Script Does
+### What the Script Installs and Configures
+1. **Agent Setup**:
+   - Downloads the pre-compiled native `amud-agent` binary and installs it to `/usr/local/bin/amud-agent`.
+   - Creates a dedicated `systemd` service (`amud-agent.service`) configured to auto-restart.
+   - Initializes `/opt/amud/run` for runtime IPC socket files.
+2. **LXC Container Provisioning**:
+   - Downloads the official Debian 12 template if it is not already present in your local storage.
+   - Spins up container ID `101` named `amud-dashboard` (1 CPU Core, 512MB RAM, 4GB Disk).
+   - Establishes a secure bind-mount mapping `/opt/amud/run` on the host to `/opt/amud/run` in the container.
+3. **Server Deployment**:
+   - Sets up `/opt/amud/data` inside the container for the SQLite database.
+   - Installs the `amud-server` binary and extracts UI assets to `/opt/amud/ui`.
+   - Registers and starts the `amud-server.service` daemon.
 
-1. **Host Agent Installation:**
-   - Downloads the compiled `amud-agent` binary.
-   - Creates a secure `systemd` service for the agent.
-   - Starts the agent to begin collecting host metrics and LXC states natively via the **Proxmox REST API** (no `pvesh`/Python subprocess).
-2. **LXC Server Creation:**
-   - Automatically downloads the official Debian 12 standard LXC template if not present.
-   - Spins up a highly optimized container (ID: 101, Name: `amud-dashboard`).
-   - Configures a bind-mount to share the secure Unix socket between the Host Agent and the Server.
-   - Downloads the `amud-server` and `ui.tar.gz` templates inside the container.
-   - Creates and starts the server `systemd` service.
+---
 
-## Accessing the Dashboard
+## 3. Initial Dashboard Access
 
-Once the script completes, it will output the IP address of your new dashboard.
+Once the installation completes, the script displays the container's IP address.
 
-Open your browser and navigate to:
-```
-http://<YOUR_LXC_IP>:8000/
-```
+1. Open your browser and navigate to:
+   ```
+   http://<YOUR_LXC_IP>:8000/
+   ```
+2. Log in using the default administrator credentials:
+   - **Username**: `admin`
+   - **Password**: `password`
 
-:::tip Default Admin Login
-Username: `admin`  
-Password: `password`
+:::warning Change Default Password Immediately
+Log in, navigate to **Settings → Admin Profile**, and change the administrator password immediately to secure your installation.
 :::
 
 ---
 
-## Proxmox API Token Setup (Required for LXC Monitoring)
+## 4. Proxmox API Token Configuration
 
-AMUD communicates **directly with the Proxmox VE REST API** for live container telemetry. Without an API token, the agent will still stream host-level CPU, RAM, and disk metrics — but your app cards will remain stuck on **"CHECKING..."** because the agent cannot query your LXC containers.
+To display live status badges (**RUNNING**, **STOPPED**) for other containers on your dashboard, the `amud-agent` needs a Proxmox API token. Without a token, the agent will report host metrics (CPU/RAM/Disk), but your app cards will remain stuck on **"CHECKING..."**.
 
-:::warning This step is mandatory for LXC status monitoring
-If you skip this section, your dashboard will work but all application cards will show **"CHECKING..."** instead of live **RUNNING** / **STOPPED** badges.
-:::
+AMUD is designed with security in mind. Rather than using administrative credentials, we recommend setting up a restricted, read-only PVE user.
 
-### Step 1 — Create an API Token in Proxmox
+### Option A: Direct CLI Provisioning (Recommended for Pros)
 
-1. Open the **Proxmox Web UI** (typically `https://YOUR_IP:8006`).
-2. Navigate to **Datacenter → Permissions → API Tokens**.
-3. Click **Add**.
-4. Fill in the fields:
-   - **User:** `root@pam` (or any user with at least `VM.Audit` + `Sys.Audit` privileges)
-   - **Token ID:** `amud`
-5. **⚠️ UNCHECK "Privilege Separation"** — this is the most critical step.
-
-:::danger Privilege Separation Must Be Unchecked
-By default, Proxmox enables **Privilege Separation** when creating API tokens. When this is ON, your token starts with **zero permissions** — even if it belongs to `root@pam`. The Proxmox API will return an empty container list, and your app cards will remain stuck on "CHECKING...".
-
-**You MUST uncheck this checkbox** to allow the token to inherit the user's permissions.
-:::
-
-6. Click **Add**, then **immediately copy the Secret value** — Proxmox displays it **only once**.
-
-The full token credential will look like this:
-
-```
-PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-```
-
-### Step 2 — Configure the Agent Service
-
-Edit the `amud-agent` systemd service file on your **Proxmox host**:
+For an automated, reproducible setup, paste the following script block directly into your Proxmox host terminal. It creates a restricted group, a local user, assigns read-only audit permissions, and generates the API token:
 
 ```bash
-nano /etc/systemd/system/amud-agent.service
+# 1. Create a custom permission role with absolute minimum read privileges
+pveum role add AMUDAgentRole -privs "VM.Audit Sys.Audit"
+
+# 2. Create a restricted local system user group and user
+pveum group add amud-group
+pveum user add amud@pve -group amud-group -comment "Telemetry Agent User"
+
+# 3. Associate our custom role with the group across the cluster path
+pveum aclmod / -group amud-group -role AMUDAgentRole
+
+# 4. Generate the API Token for the user WITH privilege separation disabled (required)
+pveum user token add amud@pve amud-token --privsep 0
 ```
 
-Add the `PVE_API_TOKEN` environment variable under the `[Service]` section. Your file should look like this:
-
-```ini title="/etc/systemd/system/amud-agent.service"
-[Unit]
-Description=AMUD Host Telemetry Agent
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/amud-agent
-Restart=always
-RestartSec=5
-Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
-Environment="PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-
-[Install]
-WantedBy=multi-user.target
+The terminal will print the credentials. Look for the line containing:
 ```
-
-:::caution Make sure to include the closing quote
-The `Environment` line must have **both** an opening `"` and a closing `"` around the value. Missing the closing quote will cause systemd to fail silently.
-:::
-
-### Step 3 — Restart the Agent
-
-Save the file (`Ctrl+O`, `Enter`, `Ctrl+X` in nano) and restart the agent:
-
-```bash
-systemctl daemon-reload
-systemctl restart amud-agent
+PVEAPIToken=amud@pve!amud-token=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
-
-### Step 4 — Verify It Works
-
-Check the agent logs to confirm it's fetching your containers:
-
-```bash
-journalctl -u amud-agent --no-pager -n 15
-```
-
-You should see output like this:
-
-```
-[LXC] Fetching containers from: https://localhost:8006/api2/json/nodes/YOUR_NODE/lxc
-[LXC] Successfully fetched 20 containers from PVE.
-```
-
-If you see `Successfully fetched 0 containers`, refer to the [Troubleshooting Guide](/docs/troubleshooting) below.
+Copy this value.
 
 ---
 
-## Minimal Permissions Token (Advanced)
+### Option B: Proxmox Web UI Provisioning
 
-If you prefer not to use `root@pam` or want tighter security, you can create a dedicated user with minimal permissions:
+If you prefer to configure permissions visually:
 
-1. **Create a new user** in Proxmox (e.g., `amud@pve`).
-2. **Assign permissions** — the agent only needs read access:
-   - `VM.Audit` on `/vms` (to list and read LXC container status)
-   - `Sys.Audit` on `/nodes` (to read node information)
-3. **Create an API token** for `amud@pve` with **Privilege Separation unchecked**.
-4. Use the new token in the agent service file.
+1. **Create the Role**:
+   - Navigate to **Datacenter → Permissions → Roles** and click **Create**.
+   - Name the role `AMUDAgentRole`.
+   - Check two permissions: **`VM.Audit`** (to inspect LXC/VM state) and **`Sys.Audit`** (to inspect host node details). Click **Create**.
+2. **Create the User**:
+   - Navigate to **Datacenter → Permissions → Users** and click **Add**.
+   - Set User name to `amud` and Realm to `pve`. Click **Add**.
+3. **Assign Access Control Permissions (ACL)**:
+   - Navigate to **Datacenter → Permissions** and click **Add → API Path Permission**.
+   - Set **Path** to `/` (cluster root).
+   - Select User `amud@pve`.
+   - Select Role `AMUDAgentRole`. Click **Add**.
+4. **Generate the Token**:
+   - Navigate to **Datacenter → Permissions → API Tokens** and click **Add**.
+   - Select User `amud@pve` and set Token ID to `amud-token`.
+   - **⚠️ CRITICAL: Uncheck "Privilege Separation"**.
+   - Click **Add** and copy the token secret displayed on your screen.
 
-```bash
-# Example: Create a PVE user and assign audit-only permissions
-pveum user add amud@pve
-pveum aclmod / -user amud@pve -role PVEAuditor
-pveum user token add amud@pve amud --privsep 0
-```
+:::danger Privilege Separation Notice
+If **Privilege Separation** is checked, the token is treated as an isolated entity with zero inherited permissions. This will cause the Proxmox API to return empty lists, leaving your dashboard cards stuck on **"CHECKING..."**. Always ensure it is unchecked.
+:::
 
 ---
 
-## Updating
+## 5. Saving and Testing Token in AMUD
 
-To update AMUD to the latest release, run the updater script on your Proxmox Host:
+Once you have your API token, configure it using AMUD's built-in settings panel:
 
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/update-amud.sh)
-```
+1. Log into your **AMUD Dashboard** as an administrator.
+2. Click the **Settings** gear icon in the top right.
+3. Select the **Proxmox** tab.
+4. Paste the complete API token value into the input field:
+   ```
+   PVEAPIToken=amud@pve!amud-token=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   ```
+5. Click **Test Connection**. 
+   - The server will immediately send a verification request through the IPC socket to the host agent.
+   - The host agent attempts to contact the Proxmox REST API using the supplied token.
+   - If successful, a green confirmation message is shown: **"Connection Tested Successfully! Proxmox is reachable."**
+   - If it fails, the panel displays diagnostic details (e.g. invalid signature, permission denied, or port unreachable) to help you fix the issue.
+6. Click **Save Settings**. The configuration is saved to the SQLite database, and the server pushes the token to the agent in real time. No services need to be restarted.
 
-:::note
-The update script preserves your database, settings, and API token configuration. It only replaces the server binary, UI assets, and agent binary.
-:::
+---
+
+## 6. Advanced / Headless Configuration
+
+For infrastructure-as-code deployments or headless scripts, you can set the token directly on the Proxmox host using Systemd environment variables:
+
+1. Edit the agent service configuration:
+   ```bash
+   nano /etc/systemd/system/amud-agent.service
+   ```
+2. Define the token inside the `[Service]` block:
+   ```ini title="/etc/systemd/system/amud-agent.service"
+   [Service]
+   Type=simple
+   ExecStart=/usr/local/bin/amud-agent
+   Restart=always
+   RestartSec=5
+   Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
+   Environment="PVE_API_TOKEN=PVEAPIToken=amud@pve!amud-token=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+   ```
+3. Reload systemd and restart the agent:
+   ```bash
+   systemctl daemon-reload
+   systemctl restart amud-agent
+   ```
+
+---
+
+## 7. Troubleshooting Socket Mounts
+
+If the dashboard displays `0%` metrics for the host CPU/RAM/Disk, the agent and server cannot communicate via the Unix socket file.
+
+1. **Verify socket creation on host**:
+   ```bash
+   ls -la /opt/amud/run/amud.sock
+   ```
+   You should see a socket file owned by root (or your runtime user) with permissions `srwxrwxrwx`.
+2. **Verify mount mapping inside LXC**:
+   ```bash
+   pct config 101 | grep mp0
+   ```
+   It should return: `mp0: /opt/amud/run,mp=/opt/amud/run`. If missing, append it to `/etc/pve/lxc/101.conf` and reboot the container:
+   ```bash
+   echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> /etc/pve/lxc/101.conf
+   pct reboot 101
+   ```
