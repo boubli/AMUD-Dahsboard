@@ -313,7 +313,10 @@ async fn main() {
         .route("/ws", get(ws_handler))
         .route("/admin/settings", get(settings_page_handler).post(settings_handler))
         .route("/admin/proxmox/test", post(test_proxmox_handler))
-        .route("/admin/upload", post(upload_handler))
+        .route(
+            "/admin/upload",
+            post(upload_handler).layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024)),
+        )
         .route("/admin/credentials", post(credentials_handler))
         .route("/apps", post(add_app_handler))
         .route("/apps/delete", post(delete_app_handler))
@@ -2589,10 +2592,10 @@ async fn upload_handler(
                 }
             };
 
-            if bytes.len() > 2 * 1024 * 1024 {
+            if bytes.len() > 5 * 1024 * 1024 {
                 return Response::builder()
                     .status(StatusCode::BAD_REQUEST)
-                    .body(axum::body::Body::from("File size exceeds 2MB limit"))
+                    .body(axum::body::Body::from("File size exceeds 5MB limit"))
                     .unwrap();
             }
 

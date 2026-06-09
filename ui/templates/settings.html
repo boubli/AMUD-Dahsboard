@@ -650,7 +650,7 @@
     <script>
         function settingsState() {
             return {
-                activeTab: 'branding',
+                activeTab: localStorage.getItem('amud_settings_tab') || 'branding',
                 unsavedChanges: false,
                 catModalOpen: false,
                 catEditing: false,
@@ -658,9 +658,16 @@
                 whEditing: false,
                 usrModalOpen: false,
                 usrEditing: false,
-                
+
+                init() {
+                    if (this.activeTab === 'categories') loadCategories();
+                    else if (this.activeTab === 'webhooks') loadWebhooks();
+                    else if (this.activeTab === 'users') loadUsers();
+                },
+
                 switchTab(tab) {
                     this.activeTab = tab;
+                    localStorage.setItem('amud_settings_tab', tab);
                     if (tab === 'categories') loadCategories();
                     if (tab === 'webhooks') loadWebhooks();
                     if (tab === 'users') loadUsers();
@@ -669,32 +676,31 @@
                 handleFileUpload(event, target) {
                     const file = event.target.files[0];
                     if (!file) return;
-                    if (file.size > 2 * 1024 * 1024) {
-                        alert("File too large. Max 2MB.");
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert("File too large. Max 5MB.");
                         return;
                     }
                     const formData = new FormData();
-                    formData.append('file', file);
+                    formData.append('image', file);
                     fetch('/admin/upload', {
                         method: 'POST',
                         body: formData
                     })
-                    .then(r => r.json())
+                    .then(res => {
+                        if (!res.ok) return res.text().then(text => { throw new Error(text || ('HTTP ' + res.status)) });
+                        return res.json();
+                    })
                     .then(data => {
-                        if (data.success) {
-                            if (target === 'bg') {
-                                this.$refs.bgInputText.value = data.url;
-                            } else if (target === 'logo') {
-                                this.$refs.logoInputText.value = data.url;
-                            }
-                            this.unsavedChanges = true;
-                        } else {
-                            alert(data.error || "Upload failed");
+                        if (target === 'bg') {
+                            this.$refs.bgInputText.value = data.url;
+                        } else if (target === 'logo') {
+                            this.$refs.logoInputText.value = data.url;
                         }
+                        this.unsavedChanges = true;
                     })
                     .catch(e => {
                         console.error(e);
-                        alert("Upload failed due to network error.");
+                        alert("Upload failed: " + e.message);
                     });
                 },
 

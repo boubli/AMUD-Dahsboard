@@ -190,7 +190,7 @@
                     <input type="file" x-ref="appIconFileInput" style="display:none;" @change="handleFileUpload($event, 'appIcon')">
                     <i data-lucide="upload-cloud"></i>
                     <span>Select app icon file</span>
-                    <span class="upload-hint">SVG, PNG, JPG, ICO (Max 2MB). Recommended size: 256x256px.</span>
+                    <span class="upload-hint">SVG, PNG, JPG, ICO (Max 5MB). Recommended size: 256x256px.</span>
                 </div>
             </div>
 
@@ -251,7 +251,7 @@
                     <input type="file" x-ref="editAppIconFileInput" style="display:none;" @change="handleFileUpload($event, 'editAppIcon')">
                     <i data-lucide="upload-cloud"></i>
                     <span>Select app icon file</span>
-                    <span class="upload-hint">SVG, PNG, JPG, ICO (Max 2MB). Recommended size: 256x256px.</span>
+                    <span class="upload-hint">SVG, PNG, JPG, ICO (Max 5MB). Recommended size: 256x256px.</span>
                 </div>
             </div>
 
@@ -290,8 +290,8 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            if (file.size > 2 * 1024 * 1024) {
-                alert("File size exceeds 2MB limit!");
+            if (file.size > 5 * 1024 * 1024) {
+                alert("File size exceeds 5MB limit!");
                 return;
             }
 
