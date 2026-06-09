@@ -301,7 +301,7 @@ async fn main() {
         .route("/login", get(login_page).post(login_handler))
         .route("/logout", get(logout_handler))
         .route("/ws", get(ws_handler))
-        .route("/admin/settings", post(settings_handler))
+        .route("/admin/settings", get(settings_page_handler).post(settings_handler))
         .route("/admin/proxmox/test", post(test_proxmox_handler))
         .route("/admin/upload", post(upload_handler))
         .route("/admin/credentials", post(credentials_handler))
@@ -322,6 +322,12 @@ async fn main() {
         .route("/api/webhooks/edit", post(edit_webhook_handler))
         .route("/api/webhooks/delete", post(delete_webhook_handler))
         .route("/api/webhooks/test", post(test_webhook_handler))
+        .route(
+            "/api/users",
+            get(list_users_handler).post(add_user_handler),
+        )
+        .route("/api/users/edit", post(edit_user_handler))
+        .route("/api/users/delete", post(delete_user_handler))
 
         .nest_service(
             "/uploads",
@@ -422,11 +428,11 @@ async fn send_webhook_notification(
 
     let response = if is_discord {
         let title = if event_type == "test" {
-            "🔔 AMUD Webhook Test".to_string()
+            "ðŸ”” AMUD Webhook Test".to_string()
         } else if status == "running" {
-            format!("🟢 Container Started: {}", container_name)
+            format!("ðŸŸ¢ Container Started: {}", container_name)
         } else {
-            format!("🔴 Container Stopped: {}", container_name)
+            format!("ðŸ”´ Container Stopped: {}", container_name)
         };
 
         let desc = if event_type == "test" {
@@ -471,9 +477,9 @@ async fn send_webhook_notification(
         client.post(&url).json(&payload).send().await
     } else if is_telegram {
         let text = if event_type == "test" {
-            "<b>🔔 AMUD Alert Test</b>\nYour Webhook Alerts Engine is successfully configured and ready to notify!".to_string()
+            "<b>ðŸ”” AMUD Alert Test</b>\nYour Webhook Alerts Engine is successfully configured and ready to notify!".to_string()
         } else {
-            let status_emoji = if status == "running" { "🟢" } else { "🔴" };
+            let status_emoji = if status == "running" { "ðŸŸ¢" } else { "ðŸ”´" };
             format!(
                 "{} <b>AMUD Alert: Container Status Changed</b>\n\n<b>Container:</b> <code>{}</code>\n<b>Status:</b> <code>{}</code>\n<b>Provider:</b> <code>{}</code>\n<b>VMID/ID:</b> <code>{}</code>",
                 status_emoji, container_name, status.to_uppercase(), provider, vmid
@@ -1434,7 +1440,7 @@ async fn dashboard_handler(
             <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
                 <i data-lucide="plus" style="width:0.95rem; height:0.95rem;"></i> Add App
             </button>
-            <button type="button" class="glass-panel btn-admin" @click="drawerOpen = true" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
+            <button type="button" class="glass-panel btn-admin" onclick="window.location.href='/admin/settings'" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
                 <i data-lucide="sliders-horizontal" style="width:0.95rem; height:0.95rem;"></i> Settings
             </button>
             "#
@@ -2031,7 +2037,7 @@ async fn settings_handler(
         let db = state.db.lock().unwrap();
         let mut new_token = None;
         for (key, val) in form {
-            // Skip any password fields — credentials are changed via /admin/credentials
+            // Skip any password fields â€” credentials are changed via /admin/credentials
             if key == "new_password"
                 || key == "old_password"
                 || key == "repeat_password"
@@ -2064,7 +2070,7 @@ async fn settings_handler(
             }
         }
     }
-    Redirect::to("/")
+    Redirect::to("/admin/settings")
 }
 
 // Proxmox VE API Token connection tester handler
@@ -2888,6 +2894,198 @@ async fn test_webhook_handler(
             .body(axum::body::Body::from(r#"{"error":"Webhook not found"}"#))
             .unwrap()
     }
+}
+
+// User Management Handlers
+async fn list_users_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let mut users = Vec::new();
+    {
+        let db = state.db.lock().unwrap();
+        let mut stmt = db.prepare("SELECT id, username, role FROM users").unwrap();
+        let mut rows = stmt.query([]).unwrap();
+        while let Some(row) = rows.next().unwrap() {
+            let id: i64 = row.get(0).unwrap();
+            let username: String = row.get(1).unwrap();
+            let role: String = row.get(2).unwrap();
+            users.push(serde_json::json!({ "id": id, "username": username, "role": role }));
+        }
+    }
+    axum::response::Json(users)
+}
+
+#[derive(Deserialize)]
+struct AddUserForm {
+    username: String,
+    password: Option<String>,
+    role: String,
+}
+
+async fn add_user_handler(
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<AddUserForm>,
+) -> impl IntoResponse {
+    let pass = form.password.unwrap_or_default();
+    if pass.is_empty() {
+        return (StatusCode::BAD_REQUEST, "Password is required for new users.".to_string());
+    }
+    let p_hash = hash_password(&pass);
+    let db = state.db.lock().unwrap();
+    match db.execute(
+        "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+        params![form.username.trim(), p_hash, form.role],
+    ) {
+        Ok(_) => (StatusCode::OK, "User added".to_string()),
+        Err(_) => (StatusCode::BAD_REQUEST, "Username already exists or invalid.".to_string()),
+    }
+}
+
+#[derive(Deserialize)]
+struct EditUserForm {
+    id: i64,
+    username: String,
+    password: Option<String>,
+    role: String,
+}
+
+async fn edit_user_handler(
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<EditUserForm>,
+) -> impl IntoResponse {
+    let db = state.db.lock().unwrap();
+    if let Some(pass) = form.password.filter(|p| !p.trim().is_empty()) {
+        let p_hash = hash_password(&pass);
+        match db.execute(
+            "UPDATE users SET username = ?, password_hash = ?, role = ? WHERE id = ?",
+            params![form.username.trim(), p_hash, form.role, form.id],
+        ) {
+            Ok(_) => (StatusCode::OK, "User updated".to_string()),
+            Err(_) => (StatusCode::BAD_REQUEST, "Update failed.".to_string()),
+        }
+    } else {
+        match db.execute(
+            "UPDATE users SET username = ?, role = ? WHERE id = ?",
+            params![form.username.trim(), form.role, form.id],
+        ) {
+            Ok(_) => (StatusCode::OK, "User updated".to_string()),
+            Err(_) => (StatusCode::BAD_REQUEST, "Update failed.".to_string()),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct DeleteUserForm {
+    id: i64,
+}
+
+async fn delete_user_handler(
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<DeleteUserForm>,
+) -> impl IntoResponse {
+    let db = state.db.lock().unwrap();
+    db.execute("DELETE FROM users WHERE id = ?", params![form.id]).ok();
+    (StatusCode::OK, "Deleted".to_string())
+}
+
+async fn settings_page_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if session.as_ref().map(|s| s.role.as_str()) != Some("Admin") {
+        return Html("<h1>Access Denied: Admins Only</h1>".to_string());
+    }
+
+    let mut settings = HashMap::new();
+    {
+        let db = state.db.lock().unwrap();
+        let mut stmt = db.prepare("SELECT key, value FROM settings").unwrap();
+        let mut rows = stmt.query([]).unwrap();
+        while let Some(row) = rows.next().unwrap() {
+            let key: String = row.get(0).unwrap();
+            let value: String = row.get(1).unwrap();
+            settings.insert(key, value);
+        }
+    }
+
+    let app_name = settings.get("app_name").map(|s| s.as_str()).unwrap_or("AMUD");
+    let tagline = settings.get("tagline").map(|s| s.as_str()).unwrap_or("Homelab Operations Cockpit");
+    let mut custom_bg_url = settings.get("custom_bg_url").map(|s| s.as_str()).unwrap_or("/static/wallpaper.png");
+    if custom_bg_url.is_empty() || custom_bg_url == "https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg" {
+        custom_bg_url = "/static/wallpaper.png";
+    }
+    let app_logo = settings.get("app_logo").map(|s| s.as_str()).unwrap_or("");
+    let accent_color = settings.get("accent_color").map(|s| s.as_str()).unwrap_or("#cf6427");
+    let glass_blur = settings.get("glass_blur_intensity").map(|s| s.as_str()).unwrap_or("16");
+    let glass_opacity = settings.get("glass_opacity").map(|s| s.as_str()).unwrap_or("0.45");
+    let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
+    let overlay_theme = settings.get("overlay_theme").map(|s| s.as_str()).unwrap_or("cyber");
+    let custom_overlay_color = settings.get("custom_overlay_color").map(|s| s.as_str()).unwrap_or("#1a1a2e");
+    let weather_latitude = settings.get("weather_latitude").map(|s| s.as_str()).unwrap_or("");
+    let weather_longitude = settings.get("weather_longitude").map(|s| s.as_str()).unwrap_or("");
+    let pve_api_token = settings.get("pve_api_token").map(|s| s.as_str()).unwrap_or("");
+
+    let bg_url_style = if custom_bg_url.is_empty() { "".to_string() } else { format!("--brand-bg-image: url('{}');", custom_bg_url) };
+    let logo_url_style = if app_logo.is_empty() { "".to_string() } else { format!("--brand-logo-url: url('{}');", app_logo) };
+    
+    let opacity_f: f64 = glass_opacity.parse().unwrap_or(0.45);
+    let accent_glow = if accent_color.starts_with('#') && accent_color.len() == 7 {
+        if let (Ok(r), Ok(g), Ok(b)) = (
+            u8::from_str_radix(&accent_color[1..3], 16),
+            u8::from_str_radix(&accent_color[3..5], 16),
+            u8::from_str_radix(&accent_color[5..7], 16),
+        ) {
+            format!("rgba({}, {}, {}, 0.15)", r, g, b)
+        } else {
+            "rgba(56, 189, 248, 0.15)".to_string()
+        }
+    } else {
+        "rgba(56, 189, 248, 0.15)".to_string()
+    };
+    
+    let overlay_gradient = get_overlay_gradient(overlay_theme, Some(custom_overlay_color));
+
+    let root_css = format!(
+        r#"
+            {}
+            {}
+            --brand-title: "{}";
+            --brand-slogan: "{}";
+            --accent-color: {};
+            --accent-glow: {};
+            --glass-blur-intensity: {}px;
+            --glass-opacity: {};
+            --radius-xl: {}px;
+            --bg-card: rgba(15, 20, 25, {});
+            --brand-overlay-gradient: {};
+        "#,
+        bg_url_style, logo_url_style, app_name, tagline, accent_color, accent_glow, glass_blur, glass_opacity, bento_radius, opacity_f, overlay_gradient
+    );
+
+    let settings_tmpl = include_str!("../../ui/templates/settings.html");
+    let username = session.as_ref().map(|s| s.username.as_str()).unwrap_or("guest");
+    let result = settings_tmpl
+        .replace("/* ROOT_CSS */", &root_css)
+        .replace("{{app_name}}", app_name)
+        .replace("{{tagline}}", tagline)
+        .replace("{{custom_bg_url}}", custom_bg_url)
+        .replace("{{app_logo}}", app_logo)
+        .replace("{{accent_color}}", accent_color)
+        .replace("{{glass_blur_intensity}}", glass_blur)
+        .replace("{{glass_opacity}}", glass_opacity)
+        .replace("{{bento_radius}}", bento_radius)
+        .replace("{{weather_latitude}}", weather_latitude)
+        .replace("{{weather_longitude}}", weather_longitude)
+        .replace("{{pve_api_token}}", pve_api_token)
+        .replace("{{username}}", username)
+        .replace("{{eq_cyber}}", if overlay_theme == "cyber" { "selected" } else { "" })
+        .replace("{{eq_aurora}}", if overlay_theme == "aurora" { "selected" } else { "" })
+        .replace("{{eq_crimson}}", if overlay_theme == "crimson" { "selected" } else { "" })
+        .replace("{{eq_sunset}}", if overlay_theme == "sunset" { "selected" } else { "" })
+        .replace("{{eq_obsidian}}", if overlay_theme == "obsidian" { "selected" } else { "" })
+        .replace("{{eq_custom}}", if overlay_theme == "custom" { "selected" } else { "" })
+        .replace("{{custom_overlay_color}}", custom_overlay_color);
+
+    Html(result)
 }
 
 #[cfg(test)]

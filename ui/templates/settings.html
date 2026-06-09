@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - {{app_name}}</title>
+    <link rel="icon" href="/static/AMUD-logo.png" type="image/png">
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Vector Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            /* ROOT_CSS */
+        }
+        
+        .settings-layout {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background: var(--bg-color);
+            position: relative;
+            z-index: 10;
+        }
+
+        .settings-sidebar {
+            width: 280px;
+            background: rgba(15, 20, 25, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            z-index: 20;
+        }
+
+        .settings-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2.5rem 3rem;
+            position: relative;
+            z-index: 15;
+            scroll-behavior: smooth;
+        }
+
+        .settings-header-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .settings-header-brand .brand-logo {
+            width: 28px;
+            height: 28px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .settings-header-brand h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+            padding-left: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border-radius: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+        }
+
+        .nav-item.active {
+            background: var(--accent-glow);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .settings-content-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .settings-page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .settings-page-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        .settings-block {
+            background: rgba(15, 20, 25, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-xl);
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-block h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .save-bar {
+            position: fixed;
+            bottom: 2rem;
+            right: 3rem;
+            background: rgba(15, 20, 25, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            transform: translateY(150%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .save-bar.visible {
+            transform: translateY(0);
+        }
+
+        /* Management Table styling */
+        .mgmt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .mgmt-table th, .mgmt-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .mgmt-table th {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .mgmt-table td {
+            font-size: 0.9rem;
+        }
+        .mgmt-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Generic modal for editing mgmt rows */
+        .mgmt-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 25, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 450px;
+            max-width: 90vw;
+            z-index: 100;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body x-data="settingsState()">
+    <!-- Ambient Wallpaper Background identical to dashboard -->
+    <div class="wallpaper-bg" style="background-image: var(--brand-bg-image);"></div>
+    <div class="wallpaper-overlay"></div>
+
+    <div class="settings-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="settings-sidebar">
+            <a href="/" class="settings-header-brand">
+                <i data-lucide="arrow-left" style="width:1.2rem; height:1.2rem; color:var(--text-muted);"></i>
+                <div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
+                <h2>{{app_name}} Settings</h2>
+            </a>
+
+            <div class="nav-section">
+                <div class="nav-section-title">General</div>
+                <button class="nav-item" :class="{ 'active': activeTab === 'branding' }" @click="switchTab('branding')">
+                    <i data-lucide="layout-template"></i> Branding
+                </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'appearance' }" @click="switchTab('appearance')">
+                    <i data-lucide="palette"></i> Appearance
+                </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'weather' }" @click="switchTab('weather')">
+                    <i data-lucide="cloud-sun"></i> Weather
+                </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'proxmox' }" @click="switchTab('proxmox')">
+                    <i data-lucide="server"></i> Proxmox VE
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <button class="nav-item" :class="{ 'active': activeTab === 'categories' }" @click="switchTab('categories')">
+                    <i data-lucide="tag"></i> Categories
+                </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'webhooks' }" @click="switchTab('webhooks')">
+                    <i data-lucide="bell"></i> Webhook Alerts
+                </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'users' }" @click="switchTab('users')">
+                    <i data-lucide="users"></i> User Management
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <button class="nav-item" :class="{ 'active': activeTab === 'security' }" @click="switchTab('security')">
+                    <i data-lucide="shield-check"></i> Security
+                </button>
+            </div>
+            
+            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                AMUD Dashboard v1.2.0
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="settings-main">
+            <form action="/admin/settings" method="POST" id="mainSettingsForm" @input="unsavedChanges = true">
+                <div class="settings-content-wrapper">
+                    
+                    <!-- TAB: BRANDING -->
+                    <div x-show="activeTab === 'branding'" x-transition.opacity>
+                        <h1 class="settings-page-title">Branding</h1>
+                        <p class="settings-page-subtitle">Customize the core identity of your dashboard.</p>
+                        
+                        <div class="settings-block">
+                            <h3><i data-lucide="layout-template" style="color:var(--accent-color);"></i> Dashboard Identity</h3>
+                            <div class="form-group">
+                                <label>Dashboard Title</label>
+                                <input type="text" name="app_name" class="form-control" value="{{app_name}}" placeholder="AMUD">
+                            </div>
+                            <div class="form-group" style="margin-top:1rem;">
+                                <label>Tagline / Slogan</label>
+                                <input type="text" name="tagline" class="form-control" value="{{tagline}}" placeholder="Homelab Operations Cockpit">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: APPEARANCE -->
+                    <div x-show="activeTab === 'appearance'" x-transition.opacity style="display:none;">
+                        <h1 class="settings-page-title">Appearance</h1>
+                        <p class="settings-page-subtitle">Personalize your visual experience with themes, wallpapers, and glass effects.</p>
+                        
+                        <div class="settings-block">
+                            <h3><i data-lucide="image" style="color:var(--accent-color);"></i> Wallpaper & Logos</h3>
+                            <div class="form-group">
+                                <label>Wallpaper Background (URL or Upload)</label>
+                                <input type="text" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="/static/wallpaper.png">
+                                <div class="upload-zone" @click="$refs.bgFileInput.click()" style="margin-top:0.5rem;">
+                                    <input type="file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
+                                    <i data-lucide="upload-cloud"></i>
+                                    <span>Select wallpaper image</span>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:1.5rem;">
+                                <label>Dashboard Logo (URL or Upload)</label>
+                                <input type="text" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
+                                <div class="upload-zone" @click="$refs.logoFileInput.click()" style="margin-top:0.5rem;">
+                                    <input type="file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
+                                    <i data-lucide="upload-cloud"></i>
+                                    <span>Select logo image</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="palette" style="color:var(--accent-color);"></i> Color & Theme</h3>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>Accent Color</label>
+                                    <input type="color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Wallpaper Overlay Tint Theme</label>
+                                    <select name="overlay_theme" id="overlay-theme-select" class="form-control" style="height:3rem; cursor:pointer;" onchange="toggleCustomOverlay()">
+                                        <option value="cyber" {{eq_cyber}}>Cyber (Vibrant Violet/Blue - Default)</option>
+                                        <option value="aurora" {{eq_aurora}}>Aurora (Mystic Teal/Emerald)</option>
+                                        <option value="crimson" {{eq_crimson}}>Crimson (Blood Red/Charcoal)</option>
+                                        <option value="sunset" {{eq_sunset}}>Sunset (Deep Amber/Twilight Violet)</option>
+                                        <option value="obsidian" {{eq_obsidian}}>Obsidian (Monochrome Dark Slate)</option>
+                                        <option value="custom" {{eq_custom}}>Custom (Pick Your Own Color)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group" id="custom-overlay-group" style="margin-top:1rem; display:none;">
+                                <label>Custom Overlay Color</label>
+                                <input type="color" name="custom_overlay_color" class="form-control" value="{{custom_overlay_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
+                            </div>
+                        </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="sliders" style="color:var(--accent-color);"></i> Glass & Layout Parameters</h3>
+                            <div class="form-group">
+                                <label>Corner Bento Radius (px)</label>
+                                <input type="range" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
+                            </div>
+                            <div class="form-group" style="margin-top:1.5rem;">
+                                <label>Glass Panel Opacity</label>
+                                <input type="range" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
+                            </div>
+                            <div class="form-group" style="margin-top:1.5rem;">
+                                <label>Glass Blur Strength (px)</label>
+                                <input type="range" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: WEATHER -->
+                    <div x-show="activeTab === 'weather'" x-transition.opacity style="display:none;">
+                        <h1 class="settings-page-title">Weather</h1>
+                        <p class="settings-page-subtitle">Configure location parameters for the local weather widget.</p>
+                        
+                        <div class="settings-block">
+                            <h3><i data-lucide="map-pin" style="color:var(--accent-color);"></i> Geolocation</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Set manual coordinates for accurate weather. Leave blank to auto-detect via IP geolocation.</p>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>Latitude</label>
+                                    <input type="text" name="weather_latitude" class="form-control" value="{{weather_latitude}}" placeholder="e.g. 33.5731">
+                                </div>
+                                <div class="form-group">
+                                    <label>Longitude</label>
+                                    <input type="text" name="weather_longitude" class="form-control" value="{{weather_longitude}}" placeholder="e.g. -7.5898">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: PROXMOX -->
+                    <div x-show="activeTab === 'proxmox'" x-transition.opacity style="display:none;">
+                        <h1 class="settings-page-title">Proxmox Integration</h1>
+                        <p class="settings-page-subtitle">Connect AMUD to your Proxmox VE hypervisor API.</p>
+                        
+                        <div class="settings-block">
+                            <h3><i data-lucide="server" style="color:var(--accent-color);"></i> API Configuration</h3>
+                            <div class="form-group">
+                                <label>PVE API Token</label>
+                                <input type="password" name="pve_api_token" id="pve_api_token" class="form-control" value="{{pve_api_token}}" placeholder="PVEAPIToken=root@pam!tokenid=xxxx-xxxx-xxxx-xxxx" style="font-family: monospace;" @input="unsavedChanges = true">
+                            </div>
+                            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button type="button" id="btn-test-pve" class="btn btn-secondary" onclick="testProxmoxConnection()" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: auto; max-width: 200px;">
+                                    <i data-lucide="refresh-cw" id="icon-test-pve" style="width: 0.95rem; height: 0.95rem;"></i> Test Connection
+                                </button>
+                                <div id="pve-test-result" style="display: none; padding: 0.6rem; border-radius: var(--bento-radius); font-size: 0.85rem; font-weight: 500; border: 1px solid transparent; transition: all 0.3s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Floating Save Bar -->
+                <div class="save-bar" :class="{ 'visible': unsavedChanges }">
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-weight:600; font-size:0.9rem;">Unsaved Changes</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">You have modified settings that need to be saved.</span>
+                    </div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button type="button" class="btn btn-secondary" @click="window.location.reload()">Discard</button>
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- TAB: CATEGORIES (Data Table, outside the main form) -->
+            <div x-show="activeTab === 'categories'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                    <h1 class="settings-page-title" style="margin:0;">Categories</h1>
+                    <button class="btn btn-primary" @click="openAddCategoryModal()"><i data-lucide="plus"></i> New Category</button>
+                </div>
+                <p class="settings-page-subtitle">Manage app grouping and colored tags.</p>
+                
+                <div class="settings-block" style="padding: 0;">
+                    <table class="mgmt-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Color</th>
+                                <th>Order</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categories-table-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB: WEBHOOKS -->
+            <div x-show="activeTab === 'webhooks'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                    <h1 class="settings-page-title" style="margin:0;">Webhook Alerts</h1>
+                    <button class="btn btn-primary" @click="openAddWebhookModal()"><i data-lucide="plus"></i> New Webhook</button>
+                </div>
+                <p class="settings-page-subtitle">Configure automated notifications for container state changes.</p>
+                
+                <div class="settings-block" style="padding: 0;">
+                    <table class="mgmt-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Events</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="webhooks-table-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB: USERS -->
+            <div x-show="activeTab === 'users'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                    <h1 class="settings-page-title" style="margin:0;">User Management</h1>
+                    <button class="btn btn-primary" @click="openAddUserModal()"><i data-lucide="user-plus"></i> New User</button>
+                </div>
+                <p class="settings-page-subtitle">Manage access roles, create guests, or provision admins.</p>
+                
+                <div class="settings-block" style="padding: 0;">
+                    <table class="mgmt-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB: SECURITY (Self Password) -->
+            <div x-show="activeTab === 'security'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
+                <h1 class="settings-page-title">Security</h1>
+                <p class="settings-page-subtitle">Update your personal account credentials.</p>
+                
+                <div class="settings-block">
+                    <h3><i data-lucide="shield-check" style="color:var(--accent-color);"></i> Change Credentials</h3>
+                    
+                    <div class="form-group">
+                        <label>Change Username</label>
+                        <input type="text" id="cred-new-username" class="form-control" placeholder="Enter new username (leave blank to keep current)">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label>Old Password <span style="color:var(--danger);">*</span></label>
+                        <input type="password" id="cred-old-password" class="form-control" placeholder="Current password (required)">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label>New Password</label>
+                        <input type="password" id="cred-new-password" class="form-control" placeholder="New password (leave blank to keep current)">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label>Repeat New Password</label>
+                        <input type="password" id="cred-repeat-password" class="form-control" placeholder="Repeat new password">
+                    </div>
+
+                    <p id="cred-error-msg" style="display:none; color: var(--danger); font-size: 0.85rem; margin-top: 1rem;"></p>
+                    <p id="cred-success-msg" style="display:none; color: var(--success); font-size: 0.85rem; margin-top: 1rem;"></p>
+
+                    <button type="button" class="btn btn-primary" onclick="submitCredentials()" style="margin-top: 1.5rem;">
+                        Update Credentials
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modals for Management -->
+    <!-- Category Modal -->
+    <div class="drawer-backdrop" x-show="catModalOpen" x-transition.opacity @click="catModalOpen = false" style="display: none; z-index:90;"></div>
+    <div class="mgmt-modal" x-show="catModalOpen" x-transition style="display: none;">
+        <h3 style="margin-bottom:1.5rem;" x-text="catEditing ? 'Edit Category' : 'Add Category'"></h3>
+        <input type="hidden" id="cat-id">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="cat-name" class="form-control" required>
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Color</label>
+            <input type="color" id="cat-color" class="form-control" style="height:3rem; padding:0.2rem;" value="#64748b">
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Sort Order (Lower = First)</label>
+            <input type="number" id="cat-order" class="form-control" value="0">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+            <button class="btn btn-secondary" @click="catModalOpen = false">Cancel</button>
+            <button class="btn btn-primary" onclick="saveCategory()">Save</button>
+        </div>
+    </div>
+
+    <!-- Webhook Modal -->
+    <div class="drawer-backdrop" x-show="whModalOpen" x-transition.opacity @click="whModalOpen = false" style="display: none; z-index:90;"></div>
+    <div class="mgmt-modal" x-show="whModalOpen" x-transition style="display: none;">
+        <h3 style="margin-bottom:1.5rem;" x-text="whEditing ? 'Edit Webhook' : 'Add Webhook'"></h3>
+        <input type="hidden" id="wh-id">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="wh-name" class="form-control" required placeholder="e.g. Discord Alerts">
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Webhook URL</label>
+            <input type="text" id="wh-url" class="form-control" required placeholder="https://discord.com/api/webhooks/...">
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Subscribe to Events</label>
+            <select id="wh-events" class="form-control" multiple style="height:auto; padding:0.5rem;">
+                <option value="container_started" selected>Container Started (🟢)</option>
+                <option value="container_stopped" selected>Container Stopped (🔴)</option>
+                <option value="agent_connected" selected>Agent Connected</option>
+                <option value="agent_disconnected" selected>Agent Disconnected</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-top:1rem; display:flex; align-items:center; gap:0.5rem;">
+            <input type="checkbox" id="wh-active" checked style="width:1.2rem; height:1.2rem; accent-color:var(--accent-color);">
+            <label style="margin:0;">Active / Enabled</label>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+            <button class="btn btn-secondary" @click="whModalOpen = false">Cancel</button>
+            <button class="btn btn-primary" onclick="saveWebhook()">Save</button>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div class="drawer-backdrop" x-show="usrModalOpen" x-transition.opacity @click="usrModalOpen = false" style="display: none; z-index:90;"></div>
+    <div class="mgmt-modal" x-show="usrModalOpen" x-transition style="display: none;">
+        <h3 style="margin-bottom:1.5rem;" x-text="usrEditing ? 'Edit User' : 'Add User'"></h3>
+        <input type="hidden" id="usr-id">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="usr-name" class="form-control" required autocomplete="off">
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Password <span x-show="usrEditing" style="font-weight:normal; font-size:0.75rem;">(Leave blank to keep current)</span></label>
+            <input type="password" id="usr-pass" class="form-control" autocomplete="new-password">
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Role</label>
+            <select id="usr-role" class="form-control">
+                <option value="Guest">Guest (Read Only)</option>
+                <option value="Admin">Admin (Full Access)</option>
+            </select>
+        </div>
+        <p id="usr-error-msg" style="display:none; color:var(--danger); font-size:0.85rem; margin-top:1rem;"></p>
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+            <button class="btn btn-secondary" @click="usrModalOpen = false">Cancel</button>
+            <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+        </div>
+    </div>
+
+
+    <!-- Script logic for Settings Page -->
+    <script>
+        function settingsState() {
+            return {
+                activeTab: 'branding',
+                unsavedChanges: false,
+                catModalOpen: false,
+                catEditing: false,
+                whModalOpen: false,
+                whEditing: false,
+                usrModalOpen: false,
+                usrEditing: false,
+                
+                switchTab(tab) {
+                    this.activeTab = tab;
+                    if (tab === 'categories') loadCategories();
+                    if (tab === 'webhooks') loadWebhooks();
+                    if (tab === 'users') loadUsers();
+                },
+
+                handleFileUpload(event, target) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert("File too large. Max 2MB.");
+                        return;
+                    }
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    fetch('/admin/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (target === 'bg') {
+                                this.$refs.bgInputText.value = data.url;
+                            } else if (target === 'logo') {
+                                this.$refs.logoInputText.value = data.url;
+                            }
+                            this.unsavedChanges = true;
+                        } else {
+                            alert(data.error || "Upload failed");
+                        }
+                    })
+                    .catch(e => {
+                        console.error(e);
+                        alert("Upload failed due to network error.");
+                    });
+                },
+
+                openAddCategoryModal() {
+                    this.catEditing = false;
+                    document.getElementById('cat-id').value = '';
+                    document.getElementById('cat-name').value = '';
+                    document.getElementById('cat-color').value = '#64748b';
+                    document.getElementById('cat-order').value = '0';
+                    this.catModalOpen = true;
+                },
+
+                openAddWebhookModal() {
+                    this.whEditing = false;
+                    document.getElementById('wh-id').value = '';
+                    document.getElementById('wh-name').value = '';
+                    document.getElementById('wh-url').value = '';
+                    const sel = document.getElementById('wh-events');
+                    for (let i = 0; i < sel.options.length; i++) sel.options[i].selected = true;
+                    document.getElementById('wh-active').checked = true;
+                    this.whModalOpen = true;
+                },
+
+                openAddUserModal() {
+                    this.usrEditing = false;
+                    document.getElementById('usr-id').value = '';
+                    document.getElementById('usr-name').value = '';
+                    document.getElementById('usr-pass').value = '';
+                    document.getElementById('usr-role').value = 'Guest';
+                    document.getElementById('usr-error-msg').style.display = 'none';
+                    this.usrModalOpen = true;
+                }
+            }
+        }
+
+        function toggleCustomOverlay() {
+            const sel = document.getElementById('overlay-theme-select').value;
+            const cg = document.getElementById('custom-overlay-group');
+            if(sel === 'custom') {
+                cg.style.display = 'block';
+            } else {
+                cg.style.display = 'none';
+            }
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            toggleCustomOverlay();
+        });
+
+        // Categories Logic
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/categories');
+                const data = await res.json();
+                const tbody = document.getElementById('categories-table-body');
+                tbody.innerHTML = '';
+                data.forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${c.name}</strong></td>
+                        <td><div style="width:20px; height:20px; border-radius:4px; background:${c.color};" title="${c.color}"></div></td>
+                        <td>${c.sort_order}</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editCategory(${c.id}, '${c.name}', '${c.color}', ${c.sort_order})">Edit</button>
+                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteCategory(${c.id})">Del</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function editCategory(id, name, color, order) {
+            const state = Alpine.$data(document.body);
+            state.catEditing = true;
+            document.getElementById('cat-id').value = id;
+            document.getElementById('cat-name').value = name;
+            document.getElementById('cat-color').value = color;
+            document.getElementById('cat-order').value = order;
+            state.catModalOpen = true;
+        }
+
+        async function saveCategory() {
+            const state = Alpine.$data(document.body);
+            const id = document.getElementById('cat-id').value;
+            const name = document.getElementById('cat-name').value;
+            const color = document.getElementById('cat-color').value;
+            const order = document.getElementById('cat-order').value;
+            
+            const formData = new URLSearchParams();
+            formData.append('name', name);
+            formData.append('color', color);
+            formData.append('sort_order', order);
+
+            const url = state.catEditing ? '/api/categories/edit' : '/api/categories';
+            if (state.catEditing) formData.append('id', id);
+
+            await fetch(url, { method: 'POST', body: formData });
+            state.catModalOpen = false;
+            loadCategories();
+        }
+
+        async function deleteCategory(id) {
+            if(!confirm("Are you sure you want to delete this category? Apps in this category will keep their text tag.")) return;
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            await fetch('/api/categories/delete', { method: 'POST', body: formData });
+            loadCategories();
+        }
+
+        // Webhooks Logic
+        async function loadWebhooks() {
+            try {
+                const res = await fetch('/api/webhooks');
+                const data = await res.json();
+                const tbody = document.getElementById('webhooks-table-body');
+                tbody.innerHTML = '';
+                data.forEach(w => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${w.name}</strong></td>
+                        <td><span style="font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:0.2rem 0.4rem; border-radius:4px;">${w.event_types.split(',').length} events</span></td>
+                        <td>${w.is_active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--danger);">Disabled</span>'}</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="testWebhook(${w.id})">Test</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editWebhook(${w.id}, '${w.name.replace(/'/g, "\\'")}', '${w.url.replace(/'/g, "\\'")}', '${w.event_types}', ${w.is_active})">Edit</button>
+                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteWebhook(${w.id})">Del</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function editWebhook(id, name, url, events, active) {
+            const state = Alpine.$data(document.body);
+            state.whEditing = true;
+            document.getElementById('wh-id').value = id;
+            document.getElementById('wh-name').value = name;
+            document.getElementById('wh-url').value = url;
+            const evArr = events.split(',').map(e => e.trim());
+            const sel = document.getElementById('wh-events');
+            for(let i=0; i<sel.options.length; i++) {
+                sel.options[i].selected = evArr.includes(sel.options[i].value);
+            }
+            document.getElementById('wh-active').checked = (active === 1 || active === true);
+            state.whModalOpen = true;
+        }
+
+        async function saveWebhook() {
+            const state = Alpine.$data(document.body);
+            const id = document.getElementById('wh-id').value;
+            const name = document.getElementById('wh-name').value;
+            const url = document.getElementById('wh-url').value;
+            const sel = document.getElementById('wh-events');
+            let events = [];
+            for(let i=0; i<sel.options.length; i++) {
+                if(sel.options[i].selected) events.push(sel.options[i].value);
+            }
+            const active = document.getElementById('wh-active').checked ? 1 : 0;
+
+            const formData = new URLSearchParams();
+            formData.append('name', name);
+            formData.append('url', url);
+            formData.append('event_types', events.join(','));
+            formData.append('is_active', active);
+
+            const endpoint = state.whEditing ? '/api/webhooks/edit' : '/api/webhooks';
+            if(state.whEditing) formData.append('id', id);
+
+            await fetch(endpoint, { method: 'POST', body: formData });
+            state.whModalOpen = false;
+            loadWebhooks();
+        }
+
+        async function deleteWebhook(id) {
+            if(!confirm("Are you sure you want to delete this webhook?")) return;
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            await fetch('/api/webhooks/delete', { method: 'POST', body: formData });
+            loadWebhooks();
+        }
+
+        async function testWebhook(id) {
+            alert("Test payload triggered! Check your webhook destination.");
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            await fetch('/api/webhooks/test', { method: 'POST', body: formData });
+        }
+
+        // Users Logic
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/users');
+                const data = await res.json();
+                const tbody = document.getElementById('users-table-body');
+                tbody.innerHTML = '';
+                data.forEach(u => {
+                    const tr = document.createElement('tr');
+                    const roleBadge = u.role === 'Admin' ? '<span style="color:var(--accent-color); font-weight:600;">Admin</span>' : '<span style="color:var(--text-muted);">Guest</span>';
+                    tr.innerHTML = `
+                        <td>${u.id}</td>
+                        <td><strong>${u.username}</strong></td>
+                        <td>${roleBadge}</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editUser(${u.id}, '${u.username}', '${u.role}')">Edit</button>
+                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteUser(${u.id}, '${u.username}')">Del</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function editUser(id, username, role) {
+            const state = Alpine.$data(document.body);
+            state.usrEditing = true;
+            document.getElementById('usr-id').value = id;
+            document.getElementById('usr-name').value = username;
+            document.getElementById('usr-pass').value = '';
+            document.getElementById('usr-role').value = role;
+            document.getElementById('usr-error-msg').style.display = 'none';
+            state.usrModalOpen = true;
+        }
+
+        async function saveUser() {
+            const state = Alpine.$data(document.body);
+            const err = document.getElementById('usr-error-msg');
+            const id = document.getElementById('usr-id').value;
+            const name = document.getElementById('usr-name').value.trim();
+            const pass = document.getElementById('usr-pass').value;
+            const role = document.getElementById('usr-role').value;
+
+            if (!name) { err.textContent = "Username is required"; err.style.display = "block"; return; }
+            if (!state.usrEditing && !pass) { err.textContent = "Password is required for new users"; err.style.display = "block"; return; }
+
+            const formData = new URLSearchParams();
+            formData.append('username', name);
+            if (pass) formData.append('password', pass);
+            formData.append('role', role);
+
+            const endpoint = state.usrEditing ? '/api/users/edit' : '/api/users';
+            if(state.usrEditing) formData.append('id', id);
+
+            const res = await fetch(endpoint, { method: 'POST', body: formData });
+            if (res.ok) {
+                state.usrModalOpen = false;
+                loadUsers();
+            } else {
+                const txt = await res.text();
+                err.textContent = txt;
+                err.style.display = "block";
+            }
+        }
+
+        async function deleteUser(id, username) {
+            if(username === '{{username}}') {
+                alert("You cannot delete your own account.");
+                return;
+            }
+            if(!confirm("Are you sure you want to delete user '" + username + "'?")) return;
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            await fetch('/api/users/delete', { method: 'POST', body: formData });
+            loadUsers();
+        }
+
+        // PVE Test & Credentials Self-Edit from previous index.html logic
+        async function testProxmoxConnection() {
+            const btn = document.getElementById('btn-test-pve');
+            const icon = document.getElementById('icon-test-pve');
+            const resultBox = document.getElementById('pve-test-result');
+            
+            icon.classList.add('lucide-spin');
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none';
+            resultBox.style.display = 'none';
+            
+            try {
+                const formData = new URLSearchParams();
+                formData.append('token', document.getElementById('pve_api_token').value);
+                const response = await fetch('/admin/proxmox/test', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                resultBox.style.display = 'block';
+                if (data.success) {
+                    resultBox.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                    resultBox.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                    resultBox.style.color = '#10b981';
+                    resultBox.innerHTML = '<i data-lucide="check-circle" style="width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem;"></i> Successfully connected to Proxmox VE API';
+                } else {
+                    resultBox.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    resultBox.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                    resultBox.style.color = '#ef4444';
+                    resultBox.innerHTML = '<i data-lucide="x-circle" style="width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem;"></i> Error: ' + (data.error || 'Connection failed');
+                }
+                lucide.createIcons();
+            } catch (err) {
+                resultBox.style.display = 'block';
+                resultBox.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                resultBox.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                resultBox.style.color = '#ef4444';
+                resultBox.innerHTML = '<i data-lucide="x-circle" style="width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem;"></i> Network error communicating with AMUD server.';
+                lucide.createIcons();
+            } finally {
+                icon.classList.remove('lucide-spin');
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+
+        async function submitCredentials() {
+            const newUsername = document.getElementById('cred-new-username').value;
+            const oldPass = document.getElementById('cred-old-password').value;
+            const newPass = document.getElementById('cred-new-password').value;
+            const repeatPass = document.getElementById('cred-repeat-password').value;
+            const errorMsg = document.getElementById('cred-error-msg');
+            const successMsg = document.getElementById('cred-success-msg');
+
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            if (!oldPass) {
+                errorMsg.textContent = "Current password is required to make changes.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            if (newPass && newPass !== repeatPass) {
+                errorMsg.textContent = "New passwords do not match.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            if (newUsername) formData.append('new_username', newUsername);
+            formData.append('old_password', oldPass);
+            if (newPass) formData.append('new_password', newPass);
+
+            try {
+                const response = await fetch('/admin/credentials', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    successMsg.textContent = "Credentials updated successfully. If username changed, you may need to log in again.";
+                    successMsg.style.display = 'block';
+                    document.getElementById('cred-old-password').value = '';
+                    document.getElementById('cred-new-password').value = '';
+                    document.getElementById('cred-repeat-password').value = '';
+                } else {
+                    const text = await response.text();
+                    errorMsg.textContent = "Error: " + text;
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.textContent = "Network error occurred.";
+                errorMsg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
