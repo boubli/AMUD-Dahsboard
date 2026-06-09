@@ -1008,3 +1008,70 @@ input[type="color"].form-control {
     }
 }
 
+/* Container Controls & Cockpit buttons */
+.container-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+    padding: 0.15rem;
+}
+
+.btn-ctrl {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-ctrl:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-ctrl.start:hover:not(:disabled) {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.btn-ctrl.stop:hover:not(:disabled) {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.btn-ctrl.restart:hover:not(:disabled) {
+    color: var(--accent-color);
+    background: var(--accent-glow);
+}
+
+.btn-ctrl:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.container-controls.loading {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+

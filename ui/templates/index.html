@@ -185,6 +185,9 @@
             <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'categories' }" @click="activeTab = 'categories'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
                 <i data-lucide="tag" style="width: 0.9rem; height: 0.9rem;"></i> Categories
             </button>
+            <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'proxmox' }" @click="activeTab = 'proxmox'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
+                <i data-lucide="server" style="width: 0.9rem; height: 0.9rem;"></i> Proxmox
+            </button>
         </div>
 
         <form action="/admin/settings" method="POST" class="settings-form" style="display:flex; flex-direction:column; gap:0.25rem;">
@@ -332,7 +335,28 @@
                 </button>
             </div>
 
-            <div class="drawer-footer" x-show="activeTab === 'branding' || activeTab === 'appearance' || activeTab === 'weather'" style="margin-top:0.75rem; padding-top:0.75rem;">
+            <!-- Tab 6: Proxmox settings -->
+            <div x-show="activeTab === 'proxmox'" style="display:flex; flex-direction:column; gap:1rem;">
+                <div class="settings-section" style="margin-bottom: 0;">
+                    <h3><i data-lucide="server" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Proxmox VE Integration</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">Configure your Proxmox VE API Token. This will be used to monitor LXC container statuses in real time.</p>
+                    
+                    <div class="form-group">
+                        <label>PVE API Token</label>
+                        <input type="password" name="pve_api_token" id="pve_api_token" class="form-control" value="{{pve_api_token}}" placeholder="PVEAPIToken=root@pam!tokenid=xxxx-xxxx-xxxx-xxxx" style="font-family: monospace;">
+                    </div>
+
+                    <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button type="button" id="btn-test-pve" class="btn btn-secondary" onclick="testProxmoxConnection()" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.6rem; font-size: 0.85rem; font-weight: 600;">
+                            <i data-lucide="refresh-cw" id="icon-test-pve" style="width: 0.95rem; height: 0.95rem;"></i> Test Connection
+                        </button>
+                        <div id="pve-test-result" style="display: none; padding: 0.6rem; border-radius: var(--bento-radius); font-size: 0.78rem; font-weight: 500; text-align: center; border: 1px solid transparent; transition: all 0.3s ease;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="drawer-footer" x-show="activeTab === 'branding' || activeTab === 'appearance' || activeTab === 'weather' || activeTab === 'proxmox'" style="margin-top:0.75rem; padding-top:0.75rem;">
                 <button type="button" class="btn btn-secondary" @click="drawerOpen = false">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Settings</button>
             </div>
@@ -719,6 +743,59 @@
             });
         }
 
+        function testProxmoxConnection() {
+            const btn = document.getElementById('btn-test-pve');
+            const icon = document.getElementById('icon-test-pve');
+            const resultEl = document.getElementById('pve-test-result');
+            const token = document.getElementById('pve_api_token').value;
+
+            if (!btn || !resultEl) return;
+
+            // Visual feedback - Loading state
+            btn.disabled = true;
+            icon.classList.add('animate-spin');
+            resultEl.style.display = 'none';
+            resultEl.style.backgroundColor = 'transparent';
+            resultEl.style.borderColor = 'transparent';
+            resultEl.style.color = 'var(--text-secondary)';
+
+            const formData = new URLSearchParams();
+            formData.append('pve_api_token', token);
+
+            fetch('/admin/proxmox/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                icon.classList.remove('animate-spin');
+                resultEl.style.display = 'block';
+
+                if (data.success) {
+                    resultEl.textContent = 'Connection Tested Successfully! Proxmox is reachable.';
+                    resultEl.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                    resultEl.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                    resultEl.style.color = '#10b981';
+                } else {
+                    resultEl.textContent = 'Connection Failed: ' + (data.error || 'Unknown Error');
+                    resultEl.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    resultEl.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                    resultEl.style.color = '#ef4444';
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                icon.classList.remove('animate-spin');
+                resultEl.style.display = 'block';
+                resultEl.textContent = 'Network error testing connection: ' + err;
+                resultEl.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                resultEl.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                resultEl.style.color = '#ef4444';
+            });
+        }
+
         // Category management functions
         function loadCategories() {
             fetch('/api/categories')
@@ -775,6 +852,63 @@
             .catch(() => alert('Network error.'));
         }
 
+        // Trigger container actions (start/stop/restart) for Admin
+        function triggerContainerAction(button, action) {
+            const ctrlContainer = button.closest('.container-controls');
+            if (!ctrlContainer) return;
+            
+            const id = ctrlContainer.getAttribute('data-id');
+            const provider = ctrlContainer.getAttribute('data-provider');
+            if (!id || !provider) return;
+            
+            // Add loading/disabled state to the controls
+            ctrlContainer.classList.add('loading');
+            const btns = ctrlContainer.querySelectorAll('.btn-ctrl');
+            btns.forEach(btn => btn.disabled = true);
+            
+            // Show loading spinner
+            const origIcon = button.innerHTML;
+            button.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width:0.75rem; height:0.75rem;"></i>';
+            lucide.createIcons(); // refresh icon markup
+            
+            const formData = new URLSearchParams();
+            formData.append('provider', provider);
+            formData.append('id', id);
+            formData.append('action', action);
+            
+            fetch('/apps/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok && data.success) {
+                    console.log(`Successfully triggered action ${action} on ${provider} container ${id}`);
+                    // Keep loading state until telemetry loop updates the status to verify execution success
+                    setTimeout(() => {
+                        ctrlContainer.classList.remove('loading');
+                        btns.forEach(btn => btn.disabled = false);
+                        button.innerHTML = origIcon;
+                        lucide.createIcons();
+                    }, 5000);
+                } else {
+                    alert(data.error || 'Failed to trigger action.');
+                    ctrlContainer.classList.remove('loading');
+                    btns.forEach(btn => btn.disabled = false);
+                    button.innerHTML = origIcon;
+                    lucide.createIcons();
+                }
+            })
+            .catch(() => {
+                alert('Network error.');
+                ctrlContainer.classList.remove('loading');
+                btns.forEach(btn => btn.disabled = false);
+                button.innerHTML = origIcon;
+                lucide.createIcons();
+            });
+        }
+
         // WebSocket live updates handler
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const socketUrl = `${protocol}//${window.location.host}/ws`;
@@ -809,6 +943,31 @@
                             );
 
                             if (match) {
+                                // Update container controls if they exist (only for admin)
+                                const ctrlContainer = card.querySelector('.container-controls');
+                                if (ctrlContainer) {
+                                    const isDocker = match.vmid < 0;
+                                    const provider = isDocker ? 'docker' : 'lxc';
+                                    const containerId = isDocker ? match.name : match.vmid;
+                                    
+                                    ctrlContainer.setAttribute('data-id', containerId);
+                                    ctrlContainer.setAttribute('data-provider', provider);
+                                    
+                                    // Check loading state to prevent flickering during action execution
+                                    if (!ctrlContainer.classList.contains('loading')) {
+                                        ctrlContainer.style.display = 'inline-flex';
+                                        
+                                        const isRunning = match.status === 'running';
+                                        const startBtn = ctrlContainer.querySelector('.btn-ctrl.start');
+                                        const stopBtn = ctrlContainer.querySelector('.btn-ctrl.stop');
+                                        const restartBtn = ctrlContainer.querySelector('.btn-ctrl.restart');
+                                        
+                                        if (startBtn) startBtn.style.display = isRunning ? 'none' : 'inline-flex';
+                                        if (stopBtn) stopBtn.style.display = isRunning ? 'inline-flex' : 'none';
+                                        if (restartBtn) restartBtn.style.display = isRunning ? 'inline-flex' : 'none';
+                                    }
+                                }
+
                                 const badgeContainer = card.querySelector('.app-card-badges');
                                 if (badgeContainer) {
                                     const existingBadge = badgeContainer.querySelector('.status-badge');

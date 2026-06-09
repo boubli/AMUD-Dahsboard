@@ -6,20 +6,21 @@ use axum::{
     http::{header, HeaderMap, StatusCode},
     response::{Html, IntoResponse, Redirect, Response},
     routing::{get, post},
-    Form,
-    Router,
+    Form, Router,
 };
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::fs;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::Path as FilePath;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
-use tokio::net::{TcpListener as TokioTcpListener, UnixListener as TokioUnixListener};
+use tokio::net::TcpListener as TokioTcpListener;
+#[cfg(unix)]
+use tokio::net::UnixListener as TokioUnixListener;
 
 // Data models
 #[derive(Clone, Serialize, Deserialize)]
@@ -98,6 +99,12 @@ struct FullTelemetry {
     apps: HashMap<String, AppMetrics>,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+struct PveTestResult {
+    success: bool,
+    error: Option<String>,
+}
+
 // Global App State
 #[allow(dead_code)]
 struct AppState {
@@ -106,6 +113,8 @@ struct AppState {
     latest_telemetry: Arc<RwLock<AgentTelemetry>>,
     agent_connected: Arc<RwLock<bool>>,
     plex_progress: Arc<RwLock<f64>>,
+    agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
+    pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
 }
 
 // Global default settings
@@ -119,6 +128,7 @@ fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("glass_blur_intensity", "16");
     s.insert("glass_opacity", "0.45");
     s.insert("bento_radius", "16");
+    s.insert("pve_api_token", "");
 
     s.into()
 }
@@ -201,19 +211,15 @@ async fn main() {
         }
     }
 
-    // Check settings count
+    // Seed default settings if they don't exist
     {
-        let mut stmt = conn.prepare("SELECT COUNT(*) FROM settings").unwrap();
-        let count: i64 = stmt.query_row([], |r| r.get(0)).unwrap();
-        if count == 0 {
-            println!("Seeding default settings...");
-            for (key, val) in get_default_settings() {
-                conn.execute(
-                    "INSERT INTO settings (key, value) VALUES (?, ?)",
-                    params![key, val],
-                )
-                .ok();
-            }
+        println!("Ensuring default settings exist...");
+        for (key, val) in get_default_settings() {
+            conn.execute(
+                "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
+                params![key, val],
+            )
+            .ok();
         }
     }
 
@@ -243,6 +249,8 @@ async fn main() {
     let latest_telemetry = Arc::new(RwLock::new(AgentTelemetry::default()));
     let agent_connected = Arc::new(RwLock::new(false));
     let plex_progress = Arc::new(RwLock::new(66.2));
+    let agent_command_tx = Arc::new(Mutex::new(None));
+    let pve_test_response = Arc::new(RwLock::new(None));
 
     let state = Arc::new(AppState {
         db: shared_db.clone(),
@@ -250,10 +258,18 @@ async fn main() {
         latest_telemetry: latest_telemetry.clone(),
         agent_connected: agent_connected.clone(),
         plex_progress: plex_progress.clone(),
+        agent_command_tx: agent_command_tx.clone(),
+        pve_test_response: pve_test_response.clone(),
     });
 
     // Start Host Agent listener (Background task)
-    start_agent_listener(latest_telemetry, agent_connected);
+    start_agent_listener(
+        shared_db.clone(),
+        latest_telemetry,
+        agent_connected,
+        agent_command_tx,
+        pve_test_response,
+    );
 
     // Start Plex Playback Simulator (Background task)
     start_plex_simulator(plex_progress);
@@ -265,15 +281,23 @@ async fn main() {
         .route("/logout", get(logout_handler))
         .route("/ws", get(ws_handler))
         .route("/admin/settings", post(settings_handler))
+        .route("/admin/proxmox/test", post(test_proxmox_handler))
         .route("/admin/upload", post(upload_handler))
         .route("/admin/credentials", post(credentials_handler))
         .route("/apps", post(add_app_handler))
         .route("/apps/delete", post(delete_app_handler))
         .route("/apps/edit", post(edit_app_handler))
-        .route("/api/categories", get(list_categories_handler).post(add_category_handler))
+        .route("/apps/action", post(app_action_handler))
+        .route(
+            "/api/categories",
+            get(list_categories_handler).post(add_category_handler),
+        )
         .route("/api/categories/delete", post(delete_category_handler))
         .route("/api/categories/edit", post(edit_category_handler))
-        .nest_service("/uploads", tower_http::services::ServeDir::new("data/uploads"))
+        .nest_service(
+            "/uploads",
+            tower_http::services::ServeDir::new("data/uploads"),
+        )
         .nest_service("/static", tower_http::services::ServeDir::new("ui/static"))
         .with_state(state);
 
@@ -323,7 +347,10 @@ fn normalize_url(raw: &str) -> String {
 }
 
 // Get User session helper
-fn get_session(headers: &HeaderMap, sessions: &RwLock<HashMap<String, Session>>) -> Option<Session> {
+fn get_session(
+    headers: &HeaderMap,
+    sessions: &RwLock<HashMap<String, Session>>,
+) -> Option<Session> {
     headers
         .get("cookie")
         .and_then(|c| c.to_str().ok())
@@ -353,22 +380,41 @@ fn start_plex_simulator(plex_progress: Arc<RwLock<f64>>) {
 
 // Metrics collector listener task
 fn start_agent_listener(
+    db: Arc<Mutex<Connection>>,
     latest_telemetry: Arc<RwLock<AgentTelemetry>>,
     agent_connected: Arc<RwLock<bool>>,
+    agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
+    pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
 ) {
     tokio::spawn(async move {
         #[cfg(unix)]
         {
             let socket_path = std::env::var("AMUD_SOCKET_PATH")
                 .unwrap_or_else(|_| "/opt/amud/run/amud.sock".to_string());
-            run_uds_listener(&socket_path, latest_telemetry.clone(), agent_connected.clone()).await;
+            run_uds_listener(
+                &socket_path,
+                db.clone(),
+                latest_telemetry.clone(),
+                agent_connected.clone(),
+                agent_command_tx.clone(),
+                pve_test_response.clone(),
+            )
+            .await;
         }
 
         #[cfg(windows)]
         {
-            let addr = std::env::var("AMUD_TCP_ADDR")
-                .unwrap_or_else(|_| "127.0.0.1:8050".to_string());
-            run_tcp_listener(&addr, latest_telemetry.clone(), agent_connected.clone()).await;
+            let addr =
+                std::env::var("AMUD_TCP_ADDR").unwrap_or_else(|_| "127.0.0.1:8050".to_string());
+            run_tcp_listener(
+                &addr,
+                db.clone(),
+                latest_telemetry.clone(),
+                agent_connected.clone(),
+                agent_command_tx.clone(),
+                pve_test_response.clone(),
+            )
+            .await;
         }
     });
 }
@@ -376,18 +422,28 @@ fn start_agent_listener(
 #[cfg(unix)]
 async fn run_uds_listener(
     path: &str,
+    db: Arc<Mutex<Connection>>,
     latest_telemetry: Arc<RwLock<AgentTelemetry>>,
     agent_connected: Arc<RwLock<bool>>,
+    agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
+    pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
 ) {
-    let uds_path = if FilePath::new(path).parent().map(|p| p.exists()).unwrap_or(false) {
+    let uds_path = if FilePath::new(path)
+        .parent()
+        .map(|p| p.exists())
+        .unwrap_or(false)
+    {
         path
     } else {
         "/tmp/amud.sock"
     };
 
-    println!("Starting agent listener via UNIX Domain Socket at {}", uds_path);
+    println!(
+        "Starting agent listener via UNIX Domain Socket at {}",
+        uds_path
+    );
     fs::remove_file(uds_path).ok();
-    
+
     let listener = match TokioUnixListener::bind(uds_path) {
         Ok(l) => {
             fs::set_permissions(uds_path, std::fs::Permissions::from_mode(0o666)).ok();
@@ -403,10 +459,33 @@ async fn run_uds_listener(
         if let Ok((stream, _)) = listener.accept().await {
             println!("AMUD-Agent telemetry client UDS stream accepted.");
             *agent_connected.write().unwrap() = true;
-            let (reader, _) = stream.into_split();
+
+            let (reader, mut writer) = stream.into_split();
             let t_clone = latest_telemetry.clone();
             let c_clone = agent_connected.clone();
-            
+            let tx_clone = agent_command_tx.clone();
+            let db_clone = db.clone();
+            let pve_test_response_clone = pve_test_response.clone();
+
+            // Set up communication channel
+            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
+            *agent_command_tx.lock().unwrap() = Some(tx.clone());
+
+            // Spawn writer task
+            tokio::spawn(async move {
+                use tokio::io::AsyncWriteExt;
+                while let Some(cmd) = rx.recv().await {
+                    if let Err(e) = writer.write_all(cmd.as_bytes()).await {
+                        eprintln!("Failed to write command to UDS: {}", e);
+                        break;
+                    }
+                    if let Err(e) = writer.flush().await {
+                        eprintln!("Failed to flush command to UDS: {}", e);
+                        break;
+                    }
+                }
+            });
+
             tokio::spawn(async move {
                 use tokio::io::AsyncBufReadExt;
                 let mut reader = tokio::io::BufReader::new(reader);
@@ -415,13 +494,48 @@ async fn run_uds_listener(
                     if n == 0 {
                         break; // EOF
                     }
-                    if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(&line) {
+
+                    #[derive(Deserialize)]
+                    struct ConfigReq {
+                        request: String,
+                    }
+                    #[derive(Deserialize)]
+                    struct PveTestMsg {
+                        test_pve_result: PveTestResult,
+                    }
+
+                    if let Ok(req) = serde_json::from_str::<ConfigReq>(&line) {
+                        if req.request == "get_config" {
+                            let token = {
+                                let db_lock = db_clone.lock().unwrap();
+                                let mut stmt = db_lock
+                                    .prepare(
+                                        "SELECT value FROM settings WHERE key = 'pve_api_token'",
+                                    )
+                                    .unwrap();
+                                stmt.query_row([], |row| row.get::<_, String>(0))
+                                    .unwrap_or_default()
+                            };
+                            let config_payload = serde_json::json!({
+                                "config": {
+                                    "pve_api_token": token
+                                }
+                            });
+                            if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
+                                serialized.push(b'\n');
+                                let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());
+                            }
+                        }
+                    } else if let Ok(msg) = serde_json::from_str::<PveTestMsg>(&line) {
+                        *pve_test_response_clone.write().unwrap() = Some(msg.test_pve_result);
+                    } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(&line) {
                         *t_clone.write().unwrap() = metrics;
                     }
                     line.clear();
                 }
                 println!("AMUD-Agent telemetry client disconnected.");
                 *c_clone.write().unwrap() = false;
+                *tx_clone.lock().unwrap() = None; // clear command tx
             });
         }
     }
@@ -429,17 +543,25 @@ async fn run_uds_listener(
 
 // For fallback or cross-compiles
 #[cfg(not(unix))]
+#[allow(dead_code)]
 async fn run_uds_listener(
     _path: &str,
+    _db: Arc<Mutex<Connection>>,
     _latest_telemetry: Arc<RwLock<AgentTelemetry>>,
     _agent_connected: Arc<RwLock<bool>>,
-) {}
+    _agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
+    _pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
+) {
+}
 
 #[allow(dead_code)]
 async fn run_tcp_listener(
     addr: &str,
+    db: Arc<Mutex<Connection>>,
     latest_telemetry: Arc<RwLock<AgentTelemetry>>,
     agent_connected: Arc<RwLock<bool>>,
+    agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
+    pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
 ) {
     println!("Starting agent listener via TCP loopback on {}", addr);
     let listener = match TokioTcpListener::bind(addr).await {
@@ -454,9 +576,32 @@ async fn run_tcp_listener(
         if let Ok((stream, _)) = listener.accept().await {
             println!("AMUD-Agent telemetry client TCP stream accepted.");
             *agent_connected.write().unwrap() = true;
-            let (reader, _) = stream.into_split();
+
+            let (reader, mut writer) = stream.into_split();
             let t_clone = latest_telemetry.clone();
             let c_clone = agent_connected.clone();
+            let tx_clone = agent_command_tx.clone();
+            let db_clone = db.clone();
+            let pve_test_response_clone = pve_test_response.clone();
+
+            // Set up communication channel
+            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
+            *agent_command_tx.lock().unwrap() = Some(tx.clone());
+
+            // Spawn writer task
+            tokio::spawn(async move {
+                use tokio::io::AsyncWriteExt;
+                while let Some(cmd) = rx.recv().await {
+                    if let Err(e) = writer.write_all(cmd.as_bytes()).await {
+                        eprintln!("Failed to write command to TCP: {}", e);
+                        break;
+                    }
+                    if let Err(e) = writer.flush().await {
+                        eprintln!("Failed to flush command to TCP: {}", e);
+                        break;
+                    }
+                }
+            });
 
             tokio::spawn(async move {
                 use tokio::io::AsyncBufReadExt;
@@ -466,13 +611,48 @@ async fn run_tcp_listener(
                     if n == 0 {
                         break; // EOF
                     }
-                    if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(&line) {
+
+                    #[derive(Deserialize)]
+                    struct ConfigReq {
+                        request: String,
+                    }
+                    #[derive(Deserialize)]
+                    struct PveTestMsg {
+                        test_pve_result: PveTestResult,
+                    }
+
+                    if let Ok(req) = serde_json::from_str::<ConfigReq>(&line) {
+                        if req.request == "get_config" {
+                            let token = {
+                                let db_lock = db_clone.lock().unwrap();
+                                let mut stmt = db_lock
+                                    .prepare(
+                                        "SELECT value FROM settings WHERE key = 'pve_api_token'",
+                                    )
+                                    .unwrap();
+                                stmt.query_row([], |row| row.get::<_, String>(0))
+                                    .unwrap_or_default()
+                            };
+                            let config_payload = serde_json::json!({
+                                "config": {
+                                    "pve_api_token": token
+                                }
+                            });
+                            if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
+                                serialized.push(b'\n');
+                                let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());
+                            }
+                        }
+                    } else if let Ok(msg) = serde_json::from_str::<PveTestMsg>(&line) {
+                        *pve_test_response_clone.write().unwrap() = Some(msg.test_pve_result);
+                    } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(&line) {
                         *t_clone.write().unwrap() = metrics;
                     }
                     line.clear();
                 }
                 println!("AMUD-Agent telemetry client disconnected.");
                 *c_clone.write().unwrap() = false;
+                *tx_clone.lock().unwrap() = None; // clear command tx
             });
         }
     }
@@ -480,10 +660,18 @@ async fn run_tcp_listener(
 
 fn get_overlay_gradient(theme: &str, custom_color: Option<&str>) -> String {
     match theme.to_lowercase().as_str() {
-        "aurora" => "linear-gradient(135deg, rgba(4, 15, 15, 0.88) 0%, rgba(6, 24, 20, 0.82) 100%)".to_string(),
-        "crimson" => "linear-gradient(135deg, rgba(18, 8, 8, 0.88) 0%, rgba(12, 10, 15, 0.82) 100%)".to_string(),
-        "obsidian" => "linear-gradient(135deg, rgba(10, 10, 12, 0.92) 0%, rgba(15, 15, 18, 0.88) 100%)".to_string(),
-        "sunset" => "linear-gradient(135deg, rgba(20, 8, 12, 0.88) 0%, rgba(8, 10, 20, 0.82) 100%)".to_string(),
+        "aurora" => "linear-gradient(135deg, rgba(4, 15, 15, 0.88) 0%, rgba(6, 24, 20, 0.82) 100%)"
+            .to_string(),
+        "crimson" => {
+            "linear-gradient(135deg, rgba(18, 8, 8, 0.88) 0%, rgba(12, 10, 15, 0.82) 100%)"
+                .to_string()
+        }
+        "obsidian" => {
+            "linear-gradient(135deg, rgba(10, 10, 12, 0.92) 0%, rgba(15, 15, 18, 0.88) 100%)"
+                .to_string()
+        }
+        "sunset" => "linear-gradient(135deg, rgba(20, 8, 12, 0.88) 0%, rgba(8, 10, 20, 0.82) 100%)"
+            .to_string(),
         "custom" => {
             if let Some(hex) = custom_color {
                 if hex.starts_with('#') && hex.len() == 7 {
@@ -499,9 +687,11 @@ fn get_overlay_gradient(theme: &str, custom_color: Option<&str>) -> String {
                     }
                 }
             }
-            "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)".to_string()
+            "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)"
+                .to_string()
         }
-        _ => "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)".to_string(),
+        _ => "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)"
+            .to_string(),
     }
 }
 
@@ -511,7 +701,7 @@ async fn dashboard_handler(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
-    
+
     // Load Settings
     let mut settings = HashMap::new();
     {
@@ -524,31 +714,73 @@ async fn dashboard_handler(
             settings.insert(key, value);
         }
     }
-    
+
     // Populate default placeholders if missing
-    let app_name = settings.get("app_name").map(|s| s.as_str()).unwrap_or("AMUD");
-    let tagline = settings.get("tagline").map(|s| s.as_str()).unwrap_or("Homelab Operations Cockpit");
-    let mut custom_bg_url = settings.get("custom_bg_url").map(|s| s.as_str()).unwrap_or("/static/wallpaper.png");
-    if custom_bg_url.is_empty() || custom_bg_url == "https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg" {
+    let app_name = settings
+        .get("app_name")
+        .map(|s| s.as_str())
+        .unwrap_or("AMUD");
+    let tagline = settings
+        .get("tagline")
+        .map(|s| s.as_str())
+        .unwrap_or("Homelab Operations Cockpit");
+    let mut custom_bg_url = settings
+        .get("custom_bg_url")
+        .map(|s| s.as_str())
+        .unwrap_or("/static/wallpaper.png");
+    if custom_bg_url.is_empty()
+        || custom_bg_url
+            == "https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg"
+    {
         custom_bg_url = "/static/wallpaper.png";
     }
     let app_logo = settings.get("app_logo").map(|s| s.as_str()).unwrap_or("");
-    let accent_color = settings.get("accent_color").map(|s| s.as_str()).unwrap_or("#cf6427");
-    let glass_blur = settings.get("glass_blur_intensity").map(|s| s.as_str()).unwrap_or("16");
-    let glass_opacity = settings.get("glass_opacity").map(|s| s.as_str()).unwrap_or("0.45");
-    let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
+    let accent_color = settings
+        .get("accent_color")
+        .map(|s| s.as_str())
+        .unwrap_or("#cf6427");
+    let glass_blur = settings
+        .get("glass_blur_intensity")
+        .map(|s| s.as_str())
+        .unwrap_or("16");
+    let glass_opacity = settings
+        .get("glass_opacity")
+        .map(|s| s.as_str())
+        .unwrap_or("0.45");
+    let bento_radius = settings
+        .get("bento_radius")
+        .map(|s| s.as_str())
+        .unwrap_or("16");
 
-    let overlay_theme = settings.get("overlay_theme").map(|s| s.as_str()).unwrap_or("cyber");
-    let custom_overlay_color = settings.get("custom_overlay_color").map(|s| s.as_str()).unwrap_or("#1a1a2e");
-    let weather_lat = settings.get("weather_latitude").map(|s| s.as_str()).unwrap_or("");
-    let weather_lon = settings.get("weather_longitude").map(|s| s.as_str()).unwrap_or("");
+    let overlay_theme = settings
+        .get("overlay_theme")
+        .map(|s| s.as_str())
+        .unwrap_or("cyber");
+    let custom_overlay_color = settings
+        .get("custom_overlay_color")
+        .map(|s| s.as_str())
+        .unwrap_or("#1a1a2e");
+    let weather_lat = settings
+        .get("weather_latitude")
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    let weather_lon = settings
+        .get("weather_longitude")
+        .map(|s| s.as_str())
+        .unwrap_or("");
     let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
+    let pve_api_token = settings
+        .get("pve_api_token")
+        .map(|s| s.as_str())
+        .unwrap_or("");
 
     // Load Categories from DB for dropdown
     let mut db_categories = Vec::<(i64, String)>::new();
     {
         let db = state.db.lock().unwrap();
-        let mut stmt = db.prepare("SELECT id, name FROM categories ORDER BY sort_order ASC, name ASC").unwrap();
+        let mut stmt = db
+            .prepare("SELECT id, name FROM categories ORDER BY sort_order ASC, name ASC")
+            .unwrap();
         let mut rows = stmt.query([]).unwrap();
         while let Some(row) = rows.next().unwrap() {
             let id: i64 = row.get(0).unwrap();
@@ -560,7 +792,8 @@ async fn dashboard_handler(
     for (_id, cat_name) in &db_categories {
         category_options_html.push_str(&format!(
             r#"<option value="{}">{}</option>"#,
-            escape_html(cat_name), escape_html(cat_name)
+            escape_html(cat_name),
+            escape_html(cat_name)
         ));
     }
     if category_options_html.is_empty() {
@@ -598,7 +831,7 @@ async fn dashboard_handler(
         let mut cols = vec![String::new(), String::new(), String::new()];
         for (i, app) in apps.iter().enumerate() {
             let col_idx = i % 3;
-            
+
             // Resolve Built-in Brand Logo
             let lowercase_icon = app.icon.to_lowercase();
             let mut resolved_logo = String::new();
@@ -634,7 +867,9 @@ async fn dashboard_handler(
                     "jellyfin" => "/static/logos/jellyfin.svg".to_string(),
                     "proxmox" => "/static/logos/proxmox.svg".to_string(),
                     "portainer" => "/static/logos/portainer.svg".to_string(),
-                    "home-assistant" | "homeassistant" => "/static/logos/home-assistant.svg".to_string(),
+                    "home-assistant" | "homeassistant" => {
+                        "/static/logos/home-assistant.svg".to_string()
+                    }
                     "nextcloud" => "/static/logos/nextcloud.svg".to_string(),
                     "adguard" | "adguard-home" => "/static/logos/adguard-home.svg".to_string(),
                     "pihole" | "pi-hole" => "/static/logos/pi-hole.svg".to_string(),
@@ -661,7 +896,8 @@ async fn dashboard_handler(
             };
 
             // Category slug for filtering
-            let cat_slug: String = app.category
+            let cat_slug: String = app
+                .category
                 .to_lowercase()
                 .replace(' ', "-")
                 .chars()
@@ -682,7 +918,8 @@ async fn dashboard_handler(
                         <span class="metric-value">56</span>
                         <span class="metric-label">Movies</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("sonarr") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid">
@@ -694,7 +931,8 @@ async fn dashboard_handler(
                         <span class="metric-value">11</span>
                         <span class="metric-label">Series</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("overseerr") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid">
@@ -706,7 +944,8 @@ async fn dashboard_handler(
                         <span class="metric-value">22</span>
                         <span class="metric-label">Available</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("sabnzbd") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid">
@@ -718,7 +957,8 @@ async fn dashboard_handler(
                         <span class="metric-value">0</span>
                         <span class="metric-label">Queue</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("deluge") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid">
@@ -730,7 +970,8 @@ async fn dashboard_handler(
                         <span class="metric-value">211 kB/s</span>
                         <span class="metric-label">Upload</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("prowlarr") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid">
@@ -742,7 +983,8 @@ async fn dashboard_handler(
                         <span class="metric-value">890</span>
                         <span class="metric-label">Queries</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("proxmox") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid cols-3">
@@ -758,7 +1000,8 @@ async fn dashboard_handler(
                         <span class="metric-value">96%</span>
                         <span class="metric-label">Mem</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("truenas") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid cols-3">
@@ -774,7 +1017,8 @@ async fn dashboard_handler(
                         <span class="metric-value">4</span>
                         <span class="metric-label">Alerts</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("portainer") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid cols-3">
@@ -790,7 +1034,8 @@ async fn dashboard_handler(
                         <span class="metric-value">23</span>
                         <span class="metric-label">Total</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else if name_lower.contains("nextcloud") {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid cols-3">
@@ -806,7 +1051,8 @@ async fn dashboard_handler(
                         <span class="metric-value" style="font-size:0.75rem;">47,559</span>
                         <span class="metric-label">Files</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             } else {
                 sub_metrics = r#"
                 <div class="nested-metrics-grid">
@@ -818,7 +1064,8 @@ async fn dashboard_handler(
                         <span class="metric-value">Linked</span>
                         <span class="metric-label">Status</span>
                     </div>
-                </div>"#.to_string();
+                </div>"#
+                    .to_string();
             }
 
             let delete_btn = if is_admin {
@@ -846,6 +1093,23 @@ async fn dashboard_handler(
             } else {
                 "".to_string()
             };
+            let ctrl_container = if is_admin {
+                r#"
+                <div class="container-controls" style="display: none; align-items: center; gap: 0.25rem;" data-id="" data-provider="">
+                    <button type="button" class="btn-ctrl start" title="Start Container" onclick="triggerContainerAction(this, 'start')">
+                        <i data-lucide="play" style="width:0.75rem; height:0.75rem;"></i>
+                    </button>
+                    <button type="button" class="btn-ctrl stop" title="Stop Container" onclick="triggerContainerAction(this, 'stop')">
+                        <i data-lucide="square" style="width:0.75rem; height:0.75rem;"></i>
+                    </button>
+                    <button type="button" class="btn-ctrl restart" title="Restart Container" onclick="triggerContainerAction(this, 'restart')">
+                        <i data-lucide="refresh-cw" style="width:0.75rem; height:0.75rem;"></i>
+                    </button>
+                </div>
+                "#.to_string()
+            } else {
+                "".to_string()
+            };
 
             let card = format!(
                 r#"
@@ -863,15 +1127,25 @@ async fn dashboard_handler(
                         <div style="display: flex; align-items: center; gap: 0.5rem;" class="app-card-badges">
                             {}
                             {}
+                            {}
                         </div>
                     </div>
                     {}
                 </div>"#,
-                escape_html(&name_lower), escape_html(&cat_slug), escape_html(&app.url), escape_html(&brand_logo), escape_html(&app.name), escape_html(&app.description), status_badge, delete_btn, sub_metrics
+                escape_html(&name_lower),
+                escape_html(&cat_slug),
+                escape_html(&app.url),
+                escape_html(&brand_logo),
+                escape_html(&app.name),
+                escape_html(&app.description),
+                status_badge,
+                ctrl_container,
+                delete_btn,
+                sub_metrics
             );
             cols[col_idx].push_str(&card);
         }
-        
+
         apps_html = format!(
             r#"
             <div class="bento-column">{}</div>
@@ -913,9 +1187,13 @@ async fn dashboard_handler(
     };
 
     // Scan Plex / Jellyfin apps presence
-    let has_plex = apps.iter().any(|app| app.name.to_lowercase().contains("plex"));
-    let has_jellyfin = apps.iter().any(|app| app.name.to_lowercase().contains("jellyfin") || app.name.to_lowercase().contains("emby"));
-    
+    let has_plex = apps
+        .iter()
+        .any(|app| app.name.to_lowercase().contains("plex"));
+    let has_jellyfin = apps.iter().any(|app| {
+        app.name.to_lowercase().contains("jellyfin") || app.name.to_lowercase().contains("emby")
+    });
+
     let mut streams_html = String::new();
     if has_plex || has_jellyfin {
         let mut cards = String::new();
@@ -980,12 +1258,13 @@ async fn dashboard_handler(
             </div>
             "#);
         }
-        
-        let cols_class = if has_plex && has_jellyfin { "streams-row" } else { "streams-row single-col" };
-        streams_html = format!(
-            r#"<section class="{}">{}</section>"#,
-            cols_class, cards
-        );
+
+        let cols_class = if has_plex && has_jellyfin {
+            "streams-row"
+        } else {
+            "streams-row single-col"
+        };
+        streams_html = format!(r#"<section class="{}">{}</section>"#, cols_class, cards);
     }
 
     // Build category filter tabs HTML
@@ -995,7 +1274,7 @@ async fn dashboard_handler(
             categories.push(app.category.clone());
         }
     }
-    
+
     let mut category_tabs_html = format!(
         r#"<button class="filter-tab active" onclick="filterCategory('all', this)">All <span class="filter-count">{}</span></button>"#,
         apps.len()
@@ -1025,13 +1304,13 @@ async fn dashboard_handler(
     } else {
         format!("--brand-logo-url: url('{}');", app_logo)
     };
-    
+
     let opacity_f: f64 = glass_opacity.parse().unwrap_or(0.45);
     let accent_glow = if accent_color.starts_with('#') && accent_color.len() == 7 {
         if let (Ok(r), Ok(g), Ok(b)) = (
             u8::from_str_radix(&accent_color[1..3], 16),
             u8::from_str_radix(&accent_color[3..5], 16),
-            u8::from_str_radix(&accent_color[5..7], 16)
+            u8::from_str_radix(&accent_color[5..7], 16),
         ) {
             format!("rgba({}, {}, {}, 0.15)", r, g, b)
         } else {
@@ -1072,7 +1351,10 @@ async fn dashboard_handler(
 
     // Load templates
     let index_tmpl = include_str!("../../ui/templates/index.html");
-    let username = session.as_ref().map(|s| s.username.as_str()).unwrap_or("guest");
+    let username = session
+        .as_ref()
+        .map(|s| s.username.as_str())
+        .unwrap_or("guest");
     let result = index_tmpl
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", app_name)
@@ -1083,30 +1365,70 @@ async fn dashboard_handler(
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
         .replace("{{bento_radius}}", bento_radius)
-
         .replace("<!-- APPS_GRID -->", &apps_html)
         .replace("<!-- STREAMS_ROW -->", &streams_html)
         .replace("<!-- CATEGORY_TABS -->", &category_tabs_html)
         .replace("<!-- AUTH_BUTTONS -->", &auth_buttons)
         .replace("{{username}}", username)
-        .replace("{{eq_cyber}}", if overlay_theme == "cyber" { "selected" } else { "" })
-        .replace("{{eq_aurora}}", if overlay_theme == "aurora" { "selected" } else { "" })
-        .replace("{{eq_crimson}}", if overlay_theme == "crimson" { "selected" } else { "" })
-        .replace("{{eq_sunset}}", if overlay_theme == "sunset" { "selected" } else { "" })
-        .replace("{{eq_obsidian}}", if overlay_theme == "obsidian" { "selected" } else { "" })
-        .replace("{{eq_custom}}", if overlay_theme == "custom" { "selected" } else { "" })
+        .replace(
+            "{{eq_cyber}}",
+            if overlay_theme == "cyber" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_aurora}}",
+            if overlay_theme == "aurora" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_crimson}}",
+            if overlay_theme == "crimson" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_sunset}}",
+            if overlay_theme == "sunset" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_obsidian}}",
+            if overlay_theme == "obsidian" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_custom}}",
+            if overlay_theme == "custom" {
+                "selected"
+            } else {
+                ""
+            },
+        )
         .replace("{{custom_overlay_color}}", custom_overlay_color)
         .replace("{{weather_latitude}}", weather_lat)
         .replace("{{weather_longitude}}", weather_lon)
         .replace("<!-- CATEGORY_OPTIONS -->", &category_options_html)
+        .replace("{{pve_api_token}}", pve_api_token)
         .replace("{{is_admin}}", if is_admin { "true" } else { "false" });
 
     Html(result)
 }
 
-async fn login_page(
-    State(state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+async fn login_page(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     // Load Settings
     let mut settings = HashMap::new();
     {
@@ -1119,18 +1441,42 @@ async fn login_page(
             settings.insert(key, value);
         }
     }
-    
-    let mut custom_bg_url = settings.get("custom_bg_url").map(|s| s.as_str()).unwrap_or("/static/wallpaper.png");
-    if custom_bg_url.is_empty() || custom_bg_url == "https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg" {
+
+    let mut custom_bg_url = settings
+        .get("custom_bg_url")
+        .map(|s| s.as_str())
+        .unwrap_or("/static/wallpaper.png");
+    if custom_bg_url.is_empty()
+        || custom_bg_url
+            == "https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg"
+    {
         custom_bg_url = "/static/wallpaper.png";
     }
     let app_logo = settings.get("app_logo").map(|s| s.as_str()).unwrap_or("");
-    let app_name = settings.get("app_name").map(|s| s.as_str()).unwrap_or("AMUD");
-    let accent_color = settings.get("accent_color").map(|s| s.as_str()).unwrap_or("#cf6427");
-    let glass_blur = settings.get("glass_blur_intensity").map(|s| s.as_str()).unwrap_or("16");
-    let glass_opacity = settings.get("glass_opacity").map(|s| s.as_str()).unwrap_or("0.45");
-    let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
-    let overlay_theme = settings.get("overlay_theme").map(|s| s.as_str()).unwrap_or("cyber");
+    let app_name = settings
+        .get("app_name")
+        .map(|s| s.as_str())
+        .unwrap_or("AMUD");
+    let accent_color = settings
+        .get("accent_color")
+        .map(|s| s.as_str())
+        .unwrap_or("#cf6427");
+    let glass_blur = settings
+        .get("glass_blur_intensity")
+        .map(|s| s.as_str())
+        .unwrap_or("16");
+    let glass_opacity = settings
+        .get("glass_opacity")
+        .map(|s| s.as_str())
+        .unwrap_or("0.45");
+    let bento_radius = settings
+        .get("bento_radius")
+        .map(|s| s.as_str())
+        .unwrap_or("16");
+    let overlay_theme = settings
+        .get("overlay_theme")
+        .map(|s| s.as_str())
+        .unwrap_or("cyber");
 
     let bg_url_style = if custom_bg_url.is_empty() {
         "".to_string()
@@ -1142,13 +1488,13 @@ async fn login_page(
     } else {
         format!("--brand-logo-url: url('{}');", app_logo)
     };
-    
+
     let opacity_f: f64 = glass_opacity.parse().unwrap_or(0.45);
     let accent_glow = if accent_color.starts_with('#') && accent_color.len() == 7 {
         if let (Ok(r), Ok(g), Ok(b)) = (
             u8::from_str_radix(&accent_color[1..3], 16),
             u8::from_str_radix(&accent_color[3..5], 16),
-            u8::from_str_radix(&accent_color[5..7], 16)
+            u8::from_str_radix(&accent_color[5..7], 16),
         ) {
             format!("rgba({}, {}, {}, 0.15)", r, g, b)
         } else {
@@ -1158,7 +1504,10 @@ async fn login_page(
         "rgba(56, 189, 248, 0.15)".to_string()
     };
 
-    let custom_overlay_color = settings.get("custom_overlay_color").map(|s| s.as_str()).unwrap_or("#1a1a2e");
+    let custom_overlay_color = settings
+        .get("custom_overlay_color")
+        .map(|s| s.as_str())
+        .unwrap_or("#1a1a2e");
     let overlay_gradient = get_overlay_gradient(overlay_theme, Some(custom_overlay_color));
 
     let root_css = format!(
@@ -1202,7 +1551,7 @@ async fn login_handler(
     let mut stmt = db
         .prepare("SELECT password_hash, role FROM users WHERE username = ?")
         .unwrap();
-    
+
     let hashed = hash_password(&password);
     let auth_res = stmt.query_row(params![username], |row| {
         let pwhash: String = row.get(0).unwrap();
@@ -1213,22 +1562,27 @@ async fn login_handler(
     if let Ok((true, role)) = auth_res {
         let token = format!(
             "{:x}",
-            Sha256::digest(format!("{}{}", username, std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs()).as_bytes())
-        );
-        
-        state.sessions.write().unwrap().insert(
-            token.clone(),
-            Session {
-                username,
-                role,
-            },
+            Sha256::digest(
+                format!(
+                    "{}{}",
+                    username,
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs()
+                )
+                .as_bytes()
+            )
         );
 
-        let cookie = format!(
-            "amud_session={}; Path=/; Max-Age=86400; HttpOnly",
-            token
-        );
-        
+        state
+            .sessions
+            .write()
+            .unwrap()
+            .insert(token.clone(), Session { username, role });
+
+        let cookie = format!("amud_session={}; Path=/; Max-Age=86400; HttpOnly", token);
+
         Response::builder()
             .status(StatusCode::SEE_OTHER)
             .header(header::SET_COOKIE, cookie)
@@ -1264,10 +1618,7 @@ async fn logout_handler(
 }
 
 // WS upgrades handler
-async fn ws_handler(
-    ws: WebSocketUpgrade,
-    State(state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+async fn ws_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) -> impl IntoResponse {
     ws.on_upgrade(|socket| handle_ws_session(socket, state))
 }
 
@@ -1278,7 +1629,7 @@ async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>) {
     loop {
         // Stream telemetry packet every 3 seconds
         let system_metrics = rx_stream.read().unwrap().clone();
-        
+
         // Build mock network info matching image_10503b
         let network = NetworkTelemetry {
             internal_tx: "9 kbit/s".to_string(),
@@ -1313,36 +1664,72 @@ async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>) {
 
         // App nested metrics payload
         let mut apps = HashMap::new();
-        
+
         let mut radarr_metrics = HashMap::new();
         radarr_metrics.insert("WANTED".to_string(), "21".to_string());
         radarr_metrics.insert("MOVIES".to_string(), "56".to_string());
-        apps.insert("radarr".to_string(), AppMetrics { status: "RUNNING".to_string(), metrics: radarr_metrics });
+        apps.insert(
+            "radarr".to_string(),
+            AppMetrics {
+                status: "RUNNING".to_string(),
+                metrics: radarr_metrics,
+            },
+        );
 
         let mut sonarr_metrics = HashMap::new();
         sonarr_metrics.insert("WANTED".to_string(), "388".to_string());
         sonarr_metrics.insert("SERIES".to_string(), "11".to_string());
-        apps.insert("sonarr".to_string(), AppMetrics { status: "RUNNING".to_string(), metrics: sonarr_metrics });
+        apps.insert(
+            "sonarr".to_string(),
+            AppMetrics {
+                status: "RUNNING".to_string(),
+                metrics: sonarr_metrics,
+            },
+        );
 
         let mut overseerr_metrics = HashMap::new();
         overseerr_metrics.insert("PENDING".to_string(), "0".to_string());
         overseerr_metrics.insert("AVAILABLE".to_string(), "22".to_string());
-        apps.insert("overseerr".to_string(), AppMetrics { status: "RUNNING".to_string(), metrics: overseerr_metrics });
+        apps.insert(
+            "overseerr".to_string(),
+            AppMetrics {
+                status: "RUNNING".to_string(),
+                metrics: overseerr_metrics,
+            },
+        );
 
         let mut sab_metrics = HashMap::new();
         sab_metrics.insert("RATE".to_string(), "0 B/s".to_string());
         sab_metrics.insert("QUEUE".to_string(), "0".to_string());
-        apps.insert("sabnzbd".to_string(), AppMetrics { status: "RUNNING".to_string(), metrics: sab_metrics });
+        apps.insert(
+            "sabnzbd".to_string(),
+            AppMetrics {
+                status: "RUNNING".to_string(),
+                metrics: sab_metrics,
+            },
+        );
 
         let mut deluge_metrics = HashMap::new();
         deluge_metrics.insert("DOWNLOAD".to_string(), "0 B/s".to_string());
         deluge_metrics.insert("UPLOAD".to_string(), "211 kB/s".to_string());
-        apps.insert("deluge".to_string(), AppMetrics { status: "RUNNING".to_string(), metrics: deluge_metrics });
+        apps.insert(
+            "deluge".to_string(),
+            AppMetrics {
+                status: "RUNNING".to_string(),
+                metrics: deluge_metrics,
+            },
+        );
 
         let mut prowlarr_metrics = HashMap::new();
         prowlarr_metrics.insert("GRABS".to_string(), "312".to_string());
         prowlarr_metrics.insert("QUERIES".to_string(), "890".to_string());
-        apps.insert("prowlarr".to_string(), AppMetrics { status: "RUNNING".to_string(), metrics: prowlarr_metrics });
+        apps.insert(
+            "prowlarr".to_string(),
+            AppMetrics {
+                status: "RUNNING".to_string(),
+                metrics: prowlarr_metrics,
+            },
+        );
 
         let payload = FullTelemetry {
             system: system_metrics,
@@ -1370,10 +1757,18 @@ async fn settings_handler(
     let session = get_session(&headers, &state.sessions);
     if session.map(|s| s.role == "Admin").unwrap_or(false) {
         let db = state.db.lock().unwrap();
+        let mut new_token = None;
         for (key, val) in form {
             // Skip any password fields — credentials are changed via /admin/credentials
-            if key == "new_password" || key == "old_password" || key == "repeat_password" || key == "new_username" {
+            if key == "new_password"
+                || key == "old_password"
+                || key == "repeat_password"
+                || key == "new_username"
+            {
                 continue;
+            }
+            if key == "pve_api_token" {
+                new_token = Some(val.clone());
             }
             db.execute(
                 "INSERT INTO settings (key, value) VALUES (?1, ?2)
@@ -1382,8 +1777,98 @@ async fn settings_handler(
             )
             .ok();
         }
+
+        if let Some(token) = new_token {
+            let config_payload = serde_json::json!({
+                "config": {
+                    "pve_api_token": token
+                }
+            });
+            if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
+                serialized.push(b'\n');
+                if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {
+                    let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());
+                }
+            }
+        }
     }
     Redirect::to("/")
+}
+
+// Proxmox VE API Token connection tester handler
+async fn test_proxmox_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    let token = form.get("pve_api_token").cloned().unwrap_or_default();
+
+    // Clear any previous test response
+    *state.pve_test_response.write().unwrap() = None;
+
+    // Send test_pve command to the agent
+    let cmd = serde_json::json!({
+        "action": "test_pve",
+        "id": token
+    });
+
+    let mut success = false;
+    let mut error = None;
+
+    if let Ok(mut serialized) = serde_json::to_vec(&cmd) {
+        serialized.push(b'\n');
+
+        let sent = {
+            if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {
+                tx.send(String::from_utf8_lossy(&serialized).into_owned())
+                    .is_ok()
+            } else {
+                false
+            }
+        };
+
+        if sent {
+            // Wait for response up to 5 seconds
+            let start = std::time::Instant::now();
+            while start.elapsed() < std::time::Duration::from_secs(5) {
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                if let Some(res) = state.pve_test_response.read().unwrap().as_ref() {
+                    success = res.success;
+                    error = res.error.clone();
+                    break;
+                }
+            }
+            if !success && error.is_none() {
+                error = Some("Connection test timed out waiting for agent response".to_string());
+            }
+        } else {
+            error = Some("AMUD Agent is offline or not connected".to_string());
+        }
+    } else {
+        error = Some("Failed to serialize test command".to_string());
+    }
+
+    let body = serde_json::json!({
+        "success": success,
+        "error": error
+    });
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(axum::body::Body::from(
+            serde_json::to_string(&body).unwrap(),
+        ))
+        .unwrap()
 }
 
 // Secure Credentials Update Handler
@@ -1412,7 +1897,9 @@ async fn credentials_handler(
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(r#"{"error":"Old password is required"}"#))
+            .body(axum::body::Body::from(
+                r#"{"error":"Old password is required"}"#,
+            ))
             .unwrap();
     }
 
@@ -1431,7 +1918,9 @@ async fn credentials_handler(
             return Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
                 .header("Content-Type", "application/json")
-                .body(axum::body::Body::from(r#"{"error":"Old password is incorrect"}"#))
+                .body(axum::body::Body::from(
+                    r#"{"error":"Old password is incorrect"}"#,
+                ))
                 .unwrap();
         }
     }
@@ -1444,21 +1933,26 @@ async fn credentials_handler(
             .unwrap()
             .query_row(params![new_username], |row| row.get(0))
             .unwrap_or(0);
-        
+
         if count > 0 {
             return Response::builder()
                 .status(StatusCode::CONFLICT)
                 .header("Content-Type", "application/json")
-                .body(axum::body::Body::from(r#"{"error":"Username is already taken"}"#))
+                .body(axum::body::Body::from(
+                    r#"{"error":"Username is already taken"}"#,
+                ))
                 .unwrap();
         }
 
-        if db.execute(
-            "UPDATE users SET username = ? WHERE username = ?",
-            params![new_username, sess.username],
-        ).is_ok() {
+        if db
+            .execute(
+                "UPDATE users SET username = ? WHERE username = ?",
+                params![new_username, sess.username],
+            )
+            .is_ok()
+        {
             actual_username = new_username.clone();
-            
+
             // Also update the session in memory so that it matches the new username
             if let Some(cookie_header) = headers.get("cookie").and_then(|c| c.to_str().ok()) {
                 if let Some(token) = cookie_header
@@ -1493,12 +1987,12 @@ async fn credentials_handler(
 }
 
 // Categories CRUD Handlers
-async fn list_categories_handler(
-    State(state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+async fn list_categories_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let db = state.db.lock().unwrap();
     let mut stmt = db
-        .prepare("SELECT id, name, color, sort_order FROM categories ORDER BY sort_order ASC, name ASC")
+        .prepare(
+            "SELECT id, name, color, sort_order FROM categories ORDER BY sort_order ASC, name ASC",
+        )
         .unwrap();
     let mut rows = stmt.query([]).unwrap();
     let mut categories = Vec::new();
@@ -1517,7 +2011,9 @@ async fn list_categories_handler(
     Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "application/json")
-        .body(axum::body::Body::from(serde_json::to_string(&categories).unwrap()))
+        .body(axum::body::Body::from(
+            serde_json::to_string(&categories).unwrap(),
+        ))
         .unwrap()
 }
 
@@ -1536,13 +2032,18 @@ async fn add_category_handler(
     }
 
     let name = form.get("name").cloned().unwrap_or_default();
-    let color = form.get("color").cloned().unwrap_or_else(|| "#64748b".to_string());
+    let color = form
+        .get("color")
+        .cloned()
+        .unwrap_or_else(|| "#64748b".to_string());
 
     if name.is_empty() {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(r#"{"error":"Category name is required"}"#))
+            .body(axum::body::Body::from(
+                r#"{"error":"Category name is required"}"#,
+            ))
             .unwrap();
     }
 
@@ -1559,7 +2060,9 @@ async fn add_category_handler(
         Err(_) => Response::builder()
             .status(StatusCode::CONFLICT)
             .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(r#"{"error":"Category already exists"}"#))
+            .body(axum::body::Body::from(
+                r#"{"error":"Category already exists"}"#,
+            ))
             .unwrap(),
     }
 }
@@ -1581,7 +2084,8 @@ async fn delete_category_handler(
     if let Some(id_str) = form.get("id") {
         if let Ok(id) = id_str.parse::<i64>() {
             let db = state.db.lock().unwrap();
-            db.execute("DELETE FROM categories WHERE id = ?", params![id]).ok();
+            db.execute("DELETE FROM categories WHERE id = ?", params![id])
+                .ok();
         }
     }
 
@@ -1609,7 +2113,10 @@ async fn edit_category_handler(
     if let Some(id_str) = form.get("id") {
         if let Ok(id) = id_str.parse::<i64>() {
             let name = form.get("name").cloned().unwrap_or_default();
-            let color = form.get("color").cloned().unwrap_or_else(|| "#64748b".to_string());
+            let color = form
+                .get("color")
+                .cloned()
+                .unwrap_or_else(|| "#64748b".to_string());
             if !name.is_empty() {
                 let db = state.db.lock().unwrap();
                 db.execute(
@@ -1639,8 +2146,14 @@ async fn add_app_handler(
         let name = form.get("name").cloned().unwrap_or_default();
         let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
         let icon = form.get("icon").cloned().unwrap_or_default();
-        let category = form.get("category").cloned().unwrap_or_else(|| "General".to_string());
-        let node_tag = form.get("node_tag").cloned().unwrap_or_else(|| "Local".to_string());
+        let category = form
+            .get("category")
+            .cloned()
+            .unwrap_or_else(|| "General".to_string());
+        let node_tag = form
+            .get("node_tag")
+            .cloned()
+            .unwrap_or_else(|| "Local".to_string());
         let description = form.get("description").cloned().unwrap_or_default();
 
         if !name.is_empty() && !url.is_empty() {
@@ -1666,7 +2179,8 @@ async fn delete_app_handler(
         if let Some(id_str) = form.get("id") {
             if let Ok(id) = id_str.parse::<i64>() {
                 let db = state.db.lock().unwrap();
-                db.execute("DELETE FROM apps WHERE id = ?", params![id]).ok();
+                db.execute("DELETE FROM apps WHERE id = ?", params![id])
+                    .ok();
             }
         }
     }
@@ -1686,8 +2200,14 @@ async fn edit_app_handler(
                 let name = form.get("name").cloned().unwrap_or_default();
                 let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
                 let icon = form.get("icon").cloned().unwrap_or_default();
-                let category = form.get("category").cloned().unwrap_or_else(|| "General".to_string());
-                let node_tag = form.get("node_tag").cloned().unwrap_or_else(|| "Local".to_string());
+                let category = form
+                    .get("category")
+                    .cloned()
+                    .unwrap_or_else(|| "General".to_string());
+                let node_tag = form
+                    .get("node_tag")
+                    .cloned()
+                    .unwrap_or_else(|| "Local".to_string());
                 let description = form.get("description").cloned().unwrap_or_default();
 
                 if !name.is_empty() && !url.is_empty() {
@@ -1729,8 +2249,14 @@ async fn upload_handler(
                 .and_then(|e| e.to_str())
                 .unwrap_or("png")
                 .to_lowercase();
-            
-            if ext != "png" && ext != "jpg" && ext != "jpeg" && ext != "svg" && ext != "ico" && ext != "gif" {
+
+            if ext != "png"
+                && ext != "jpg"
+                && ext != "jpeg"
+                && ext != "svg"
+                && ext != "ico"
+                && ext != "gif"
+            {
                 return Response::builder()
                     .status(StatusCode::BAD_REQUEST)
                     .body(axum::body::Body::from("Invalid file extension"))
@@ -1761,7 +2287,7 @@ async fn upload_handler(
                 .as_nanos();
             let filename = format!("{}.{}", nano, ext);
             let filepath = format!("data/uploads/{}", filename);
-            
+
             if fs::write(&filepath, bytes).is_ok() {
                 url_path = format!("/uploads/{}", filename);
             }
@@ -1777,7 +2303,60 @@ async fn upload_handler(
         Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(format!(r#"{{"url":"{}"}}"#, url_path)))
+            .body(axum::body::Body::from(format!(
+                r#"{{"url":"{}"}}"#,
+                url_path
+            )))
             .unwrap()
     }
+}
+
+// Action Trigger Handler for LXC / Docker containers
+async fn app_action_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if session.is_none() || session.unwrap().role != "Admin" {
+        return Response::builder()
+            .status(StatusCode::UNAUTHORIZED)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Unauthorized"}"#))
+            .unwrap();
+    }
+
+    let provider = form.get("provider").cloned().unwrap_or_default();
+    let id = form.get("id").cloned().unwrap_or_default();
+    let action = form.get("action").cloned().unwrap_or_default();
+
+    if provider.is_empty() || id.is_empty() || action.is_empty() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Missing parameters"}"#))
+            .unwrap();
+    }
+
+    let cmd = format!(
+        "{{\"provider\":\"{}\",\"id\":\"{}\",\"action\":\"{}\"}}\n",
+        provider, id, action
+    );
+
+    let tx_guard = state.agent_command_tx.lock().unwrap();
+    if let Some(ref tx) = *tx_guard {
+        if tx.send(cmd).is_ok() {
+            return Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(r#"{"success":true}"#))
+                .unwrap();
+        }
+    }
+
+    Response::builder()
+        .status(StatusCode::SERVICE_UNAVAILABLE)
+        .header("Content-Type", "application/json")
+        .body(axum::body::Body::from(r#"{"error":"Agent not connected"}"#))
+        .unwrap()
 }
