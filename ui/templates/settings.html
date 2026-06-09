@@ -411,7 +411,7 @@
                     <!-- TAB: SUPPORT / DONATION -->
                     <div x-show="activeTab === 'donation'" x-transition.opacity style="display:none;">
                         <h1 class="settings-page-title">Support / Donation</h1>
-                        <p class="settings-page-subtitle">AMUD is free with every feature unlocked - a donation is purely optional support, not a way to buy features. After someone donates via Stripe or GitHub Sponsors, their email appears on that platform so you can thank them personally.</p>
+                        <p class="settings-page-subtitle">AMUD is free with every feature unlocked - a donation is purely optional support for the project author, not a way to buy features. You can show or hide the Support card here; the links themselves are fixed and cannot be changed.</p>
 
                         <div class="settings-block">
                             <h3><i data-lucide="heart" style="color:var(--accent-color);"></i> Visibility</h3>
@@ -422,31 +422,16 @@
                                     <option value="0" {{eq_donate_off}}>Disabled</option>
                                 </select>
                             </div>
-                            <div class="form-group" style="margin-top:1rem;">
-                                <label>Support Message</label>
-                                <textarea name="donate_message" class="form-control" rows="3" placeholder="A short note making clear this is just a donation...">{{donate_message}}</textarea>
-                            </div>
                         </div>
 
                         <div class="settings-block">
                             <h3><i data-lucide="link" style="color:var(--accent-color);"></i> Donation Links</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Paste only the links you actually use - empty fields stay hidden. You create these for free on each platform (GitHub Sponsors, Stripe Payment Link, Ko-fi, PayPal). No coding or API keys needed here.</p>
-                            <div class="form-group">
-                                <label>GitHub Sponsors URL</label>
-                                <input type="text" name="donate_github" class="form-control" value="{{donate_github}}" placeholder="https://github.com/sponsors/yourname">
-                            </div>
-                            <div class="form-group" style="margin-top:1rem;">
-                                <label>Stripe Payment Link</label>
-                                <input type="text" name="donate_stripe" class="form-control" value="{{donate_stripe}}" placeholder="https://buy.stripe.com/...">
-                            </div>
-                            <div class="form-group" style="margin-top:1rem;">
-                                <label>Ko-fi URL</label>
-                                <input type="text" name="donate_kofi" class="form-control" value="{{donate_kofi}}" placeholder="https://ko-fi.com/yourname">
-                            </div>
-                            <div class="form-group" style="margin-top:1rem;">
-                                <label>PayPal URL</label>
-                                <input type="text" name="donate_paypal" class="form-control" value="{{donate_paypal}}" placeholder="https://paypal.me/yourname">
-                            </div>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">These links support the AMUD author and are fixed in the app.</p>
+                            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.6rem;">
+                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="github" style="width:1rem; height:1rem; color:var(--text-muted);"></i> GitHub Sponsors</li>
+                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="credit-card" style="width:1rem; height:1rem; color:var(--text-muted);"></i> Donate via Card (Stripe)</li>
+                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="coffee" style="width:1rem; height:1rem; color:var(--text-muted);"></i> Ko-fi</li>
+                            </ul>
                         </div>
                     </div>
 

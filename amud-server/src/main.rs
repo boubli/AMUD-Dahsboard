@@ -141,14 +141,18 @@ fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("bento_radius", "16");
     s.insert("pve_api_token", "");
     s.insert("donate_enabled", "1");
-    s.insert("donate_message", "AMUD is completely free and you already have every feature unlocked. A donation is not required and unlocks nothing extra - it is simply a kind way to support continued development. Thank you!");
-    s.insert("donate_github", "https://github.com/sponsors/boubli");
-    s.insert("donate_stripe", "https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00");
-    s.insert("donate_kofi", "https://ko-fi.com/Youssefboubli");
-    s.insert("donate_paypal", "");
 
     s.into()
 }
+
+// Donation links are fixed to the AMUD author. Self-hosters can toggle the
+// Support card on/off in Settings, but cannot change these links.
+const DONATION_MESSAGE: &str = "AMUD is completely free and you already have every feature unlocked. A donation is not required and unlocks nothing extra - it is simply a kind way to support continued development. Thank you!";
+const DONATION_LINKS: [(&str, &str, &str); 3] = [
+    ("https://github.com/sponsors/boubli", "GitHub Sponsors", "github"),
+    ("https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00", "Donate via Card", "credit-card"),
+    ("https://ko-fi.com/Youssefboubli", "Ko-fi", "coffee"),
+];
 
 #[tokio::main]
 async fn main() {
@@ -1577,54 +1581,31 @@ async fn dashboard_handler(
         ));
     }
 
-    // Build Support / Donation card (optional, admin-configurable)
-    let donate_enabled = settings.get("donate_enabled").map(|s| s.as_str()).unwrap_or("0");
-    let donate_message = settings.get("donate_message").map(|s| s.as_str()).unwrap_or("");
-    let donate_github = settings.get("donate_github").map(|s| s.as_str()).unwrap_or("");
-    let donate_stripe = settings.get("donate_stripe").map(|s| s.as_str()).unwrap_or("");
-    let donate_kofi = settings.get("donate_kofi").map(|s| s.as_str()).unwrap_or("");
-    let donate_paypal = settings.get("donate_paypal").map(|s| s.as_str()).unwrap_or("");
-
+    // Build Support / Donation card. The links are hardcoded to the AMUD author -
+    // self-hosters can only enable or disable the card, not change the links.
+    let donate_enabled = settings.get("donate_enabled").map(|s| s.as_str()).unwrap_or("1");
     let mut support_html = String::new();
     if donate_enabled == "1" {
-        let candidates = [
-            (donate_github, "GitHub Sponsors", "github"),
-            (donate_stripe, "Donate via Card", "credit-card"),
-            (donate_kofi, "Ko-fi", "coffee"),
-            (donate_paypal, "PayPal", "wallet"),
-        ];
         let mut links = String::new();
-        for (url, label, icon) in candidates.iter() {
-            if !url.trim().is_empty() {
-                links.push_str(&format!(
-                    r#"<a href="{}" target="_blank" rel="noopener noreferrer" class="support-link"><i data-lucide="{}" style="width:1rem; height:1rem;"></i> {}</a>"#,
-                    escape_html(url.trim()),
-                    icon,
-                    label
-                ));
-            }
+        for (url, label, icon) in DONATION_LINKS.iter() {
+            links.push_str(&format!(
+                r#"<a href="{}" target="_blank" rel="noopener noreferrer" class="support-link"><i data-lucide="{}" style="width:1rem; height:1rem;"></i> {}</a>"#,
+                url, icon, label
+            ));
         }
-        if !links.is_empty() {
-            let msg = if donate_message.trim().is_empty() {
-                "AMUD is free and fully featured. If it has been useful to you, a small donation is a kind way to support development - thank you!"
-            } else {
-                donate_message
-            };
-            support_html = format!(
-                r#"<section class="support-section">
-                    <div class="glass-panel support-card">
-                        <div class="support-head">
-                            <i data-lucide="heart" style="color:var(--accent-color); width:1.2rem; height:1.2rem;"></i>
-                            <h2>Support AMUD</h2>
-                        </div>
-                        <p class="support-msg">{}</p>
-                        <div class="support-links">{}</div>
+        support_html = format!(
+            r#"<section class="support-section">
+                <div class="glass-panel support-card">
+                    <div class="support-head">
+                        <i data-lucide="heart" style="color:var(--accent-color); width:1.2rem; height:1.2rem;"></i>
+                        <h2>Support AMUD</h2>
                     </div>
-                </section>"#,
-                escape_html(msg),
-                links
-            );
-        }
+                    <p class="support-msg">{}</p>
+                    <div class="support-links">{}</div>
+                </div>
+            </section>"#,
+            DONATION_MESSAGE, links
+        );
     }
 
     // Build root_css style overrides
@@ -3080,12 +3061,7 @@ async fn settings_page_handler(
     let weather_latitude = settings.get("weather_latitude").map(|s| s.as_str()).unwrap_or("");
     let weather_longitude = settings.get("weather_longitude").map(|s| s.as_str()).unwrap_or("");
     let pve_api_token = settings.get("pve_api_token").map(|s| s.as_str()).unwrap_or("");
-    let donate_enabled = settings.get("donate_enabled").map(|s| s.as_str()).unwrap_or("0");
-    let donate_message = settings.get("donate_message").map(|s| s.as_str()).unwrap_or("");
-    let donate_github = settings.get("donate_github").map(|s| s.as_str()).unwrap_or("");
-    let donate_stripe = settings.get("donate_stripe").map(|s| s.as_str()).unwrap_or("");
-    let donate_kofi = settings.get("donate_kofi").map(|s| s.as_str()).unwrap_or("");
-    let donate_paypal = settings.get("donate_paypal").map(|s| s.as_str()).unwrap_or("");
+    let donate_enabled = settings.get("donate_enabled").map(|s| s.as_str()).unwrap_or("1");
 
     let bg_url_style = if custom_bg_url.is_empty() { "".to_string() } else { format!("--brand-bg-image: url('{}');", custom_bg_url) };
     let logo_url_style = if app_logo.is_empty() { "".to_string() } else { format!("--brand-logo-url: url('{}');", app_logo) };
@@ -3148,12 +3124,7 @@ async fn settings_page_handler(
         .replace("{{eq_custom}}", if overlay_theme == "custom" { "selected" } else { "" })
         .replace("{{custom_overlay_color}}", custom_overlay_color)
         .replace("{{eq_donate_on}}", if donate_enabled == "1" { "selected" } else { "" })
-        .replace("{{eq_donate_off}}", if donate_enabled != "1" { "selected" } else { "" })
-        .replace("{{donate_message}}", &escape_html(donate_message))
-        .replace("{{donate_github}}", &escape_html(donate_github))
-        .replace("{{donate_stripe}}", &escape_html(donate_stripe))
-        .replace("{{donate_kofi}}", &escape_html(donate_kofi))
-        .replace("{{donate_paypal}}", &escape_html(donate_paypal));
+        .replace("{{eq_donate_off}}", if donate_enabled != "1" { "selected" } else { "" });
 
     Html(result)
 }
