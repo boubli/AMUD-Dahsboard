@@ -21,7 +21,7 @@
         }
     </style>
 </head>
-<body x-data="{ drawerOpen: false, addAppModalOpen: false, editAppModalOpen: false, manageCategoriesOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '' }, categories: [] }">
+<body x-data="{ drawerOpen: false, addAppModalOpen: false, editAppModalOpen: false, manageCategoriesOpen: false, manageWebhooksOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '' }, categories: [], webhooks: [] }">
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
@@ -188,6 +188,10 @@
             <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'proxmox' }" @click="activeTab = 'proxmox'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
                 <i data-lucide="server" style="width: 0.9rem; height: 0.9rem;"></i> Proxmox
             </button>
+            <button type="button" class="tab-btn" :class="{ 'active': activeTab === 'alerts' }" @click="activeTab = 'alerts'" style="background: none; border: none; padding: 0.5rem 0.75rem; color: var(--text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s; white-space: nowrap;">
+                <i data-lucide="bell" style="width: 0.9rem; height: 0.9rem;"></i> Alerts
+            </button>
+
         </div>
 
         <form action="/admin/settings" method="POST" class="settings-form" style="display:flex; flex-direction:column; gap:0.25rem;">
@@ -356,7 +360,17 @@
                 </div>
             </div>
 
+            <!-- Tab 7: Webhook Alerts -->
+            <div class="settings-section" x-show="activeTab === 'alerts'" style="margin-bottom: 0;">
+                <h3><i data-lucide="bell" style="width:1rem; height:1rem; color:var(--accent-color);"></i> Webhook Alerts</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">Configure Discord, Telegram, or Generic webhooks to receive real-time notifications for container crashes and state changes.</p>
+                <button type="button" class="btn btn-secondary" @click="manageWebhooksOpen = true; loadWebhooks();" style="width:100%;">
+                    <i data-lucide="settings-2" style="width:0.85rem; height:0.85rem;"></i> Manage Webhooks
+                </button>
+            </div>
+
             <div class="drawer-footer" x-show="activeTab === 'branding' || activeTab === 'appearance' || activeTab === 'weather' || activeTab === 'proxmox'" style="margin-top:0.75rem; padding-top:0.75rem;">
+
                 <button type="button" class="btn btn-secondary" @click="drawerOpen = false">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Settings</button>
             </div>
@@ -531,7 +545,87 @@
         </div>
     </div>
 
+    <!-- Manage Webhooks Modal -->
+    <div class="modal-backdrop" x-show="manageWebhooksOpen" x-transition.opacity @click="manageWebhooksOpen = false" style="display: none;"></div>
+    <div class="modal" x-show="manageWebhooksOpen" x-transition style="display: none; max-width: 550px;">
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Administration</p>
+                <h2>Manage Webhooks</h2>
+            </div>
+            <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="manageWebhooksOpen = false">
+                <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
+            </button>
+        </div>
+
+        <div id="webhooks-list" style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.25rem; max-height: 250px; overflow-y: auto; padding-right: 0.25rem;">
+            <template x-for="wh in webhooks" :key="wh.id">
+                <div class="glass-panel" style="padding:0.75rem; display:flex; flex-direction:column; gap:0.5rem; border-radius:var(--radius-md);">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <i data-lucide="bell" style="width:1rem; height:1rem; color:var(--accent-color);"></i>
+                            <span style="font-size:0.88rem; font-weight:600;" x-text="wh.name"></span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <label class="switch-toggle" style="display:inline-flex; align-items:center; cursor:pointer;">
+                                <input type="checkbox" :checked="wh.is_active === 1" @change="toggleWebhookActive(wh)" style="cursor:pointer; width:1.1rem; height:1.1rem; accent-color:var(--accent-color);">
+                            </label>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.75rem;" @click="testWebhook(wh.id)">
+                                Test
+                            </button>
+                            <button type="button" class="btn-delete-app" style="padding: 0.3rem;" title="Delete webhook" @click="deleteWebhook(wh.id)">
+                                <i data-lucide="trash-2" style="width: 0.85rem; height:0.85rem;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); word-break:break-all; font-family:monospace; background:rgba(0,0,0,0.15); padding:0.25rem 0.5rem; border-radius:4px;" x-text="wh.masked_url"></div>
+                    <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+                        <template x-for="ev in wh.event_types.split(',')" :key="ev">
+                            <span style="font-size: 0.65rem; padding: 0.15rem 0.35rem; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.04); color: var(--text-secondary);" x-text="ev.trim().replace('_', ' ')"></span>
+                        </template>
+                    </div>
+                </div>
+            </template>
+            <p x-show="webhooks.length === 0" style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:1.5rem;">No webhooks configured yet.</p>
+        </div>
+
+        <div style="border-top:1px solid var(--border-card); padding-top:1rem;">
+            <h3 style="font-size:0.85rem; font-weight:700; margin-bottom:0.75rem;">Add New Webhook</h3>
+            <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size: 0.78rem; margin-bottom: 0.25rem;">Name / Label</label>
+                    <input type="text" id="new-webhook-name" class="form-control" placeholder="e.g. Discord Alerts">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size: 0.78rem; margin-bottom: 0.25rem;">Webhook URL</label>
+                    <input type="url" id="new-webhook-url" class="form-control" placeholder="https://discord.com/api/webhooks/...">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size: 0.78rem; margin-bottom: 0.35rem; display:block;">Subscribed Events</label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                        <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; cursor:pointer; color:var(--text-secondary);">
+                            <input type="checkbox" id="event-stopped" checked style="accent-color:var(--accent-color);"> Container Stopped
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; cursor:pointer; color:var(--text-secondary);">
+                            <input type="checkbox" id="event-started" checked style="accent-color:var(--accent-color);"> Container Started
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; cursor:pointer; color:var(--text-secondary);">
+                            <input type="checkbox" id="event-disconnected" checked style="accent-color:var(--accent-color);"> Agent Disconnected
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; cursor:pointer; color:var(--text-secondary);">
+                            <input type="checkbox" id="event-connected" checked style="accent-color:var(--accent-color);"> Agent Connected
+                        </label>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addWebhook()" style="width:100%; margin-top:0.5rem; padding: 0.65rem;">
+                    Add Webhook Endpoint
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+
         // Init Lucide vector icons
         lucide.createIcons();
 
@@ -851,6 +945,117 @@
             .then(() => loadCategories())
             .catch(() => alert('Network error.'));
         }
+
+        function loadWebhooks() {
+            fetch('/api/webhooks')
+                .then(res => res.json())
+                .then(data => {
+                    const el = document.querySelector('body');
+                    const alpineData = Alpine.$data(el);
+                    if (alpineData) alpineData.webhooks = data;
+                    setTimeout(() => lucide.createIcons(), 100);
+                })
+                .catch(err => console.error('Failed to load webhooks:', err));
+        }
+
+        function addWebhook() {
+            const name = document.getElementById('new-webhook-name').value.trim();
+            const url = document.getElementById('new-webhook-url').value.trim();
+            if (!name || !url) { alert('Name and URL are required.'); return; }
+
+            const eventTypes = [];
+            if (document.getElementById('event-stopped').checked) eventTypes.push('container_stopped');
+            if (document.getElementById('event-started').checked) eventTypes.push('container_started');
+            if (document.getElementById('event-disconnected').checked) eventTypes.push('agent_disconnected');
+            if (document.getElementById('event-connected').checked) eventTypes.push('agent_connected');
+
+            if (eventTypes.length === 0) { alert('Please select at least one subscribed event.'); return; }
+
+            const formData = new URLSearchParams();
+            formData.append('name', name);
+            formData.append('url', url);
+            formData.append('event_types', eventTypes.join(','));
+            formData.append('is_active', '1');
+
+            fetch('/api/webhooks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('new-webhook-name').value = '';
+                    document.getElementById('new-webhook-url').value = '';
+                    loadWebhooks();
+                } else {
+                    alert(data.error || 'Failed to add webhook.');
+                }
+            })
+            .catch(() => alert('Network error.'));
+        }
+
+        function toggleWebhookActive(wh) {
+            const newActiveState = wh.is_active === 1 ? 0 : 1;
+            const formData = new URLSearchParams();
+            formData.append('id', wh.id);
+            formData.append('name', wh.name);
+            formData.append('url', wh.url);
+            formData.append('event_types', wh.event_types);
+            formData.append('is_active', newActiveState.toString());
+
+            fetch('/api/webhooks/edit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadWebhooks();
+                } else {
+                    alert(data.error || 'Failed to update webhook status.');
+                }
+            })
+            .catch(() => alert('Network error.'));
+        }
+
+        function deleteWebhook(id) {
+            if (!confirm('Are you sure you want to delete this webhook?')) return;
+
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+
+            fetch('/api/webhooks/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(() => loadWebhooks())
+            .catch(() => alert('Network error.'));
+        }
+
+        function testWebhook(id) {
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+
+            fetch('/api/webhooks/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Test notification triggered successfully.');
+                } else {
+                    alert(data.error || 'Failed to trigger test.');
+                }
+            })
+            .catch(() => alert('Network error.'));
+        }
+
 
         // Trigger container actions (start/stop/restart) for Admin
         function triggerContainerAction(button, action) {

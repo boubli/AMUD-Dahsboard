@@ -105,6 +105,15 @@ struct PveTestResult {
     error: Option<String>,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+struct Webhook {
+    id: i64,
+    name: String,
+    url: String,
+    event_types: String,
+    is_active: i32,
+}
+
 // Global App State
 #[allow(dead_code)]
 struct AppState {
@@ -115,7 +124,9 @@ struct AppState {
     plex_progress: Arc<RwLock<f64>>,
     agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
     pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
+    alert_cooldowns: Arc<Mutex<HashMap<String, std::time::Instant>>>,
 }
+
 
 // Global default settings
 fn get_default_settings() -> HashMap<&'static str, &'static str> {
@@ -175,6 +186,20 @@ async fn main() {
         [],
     )
     .unwrap();
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS webhooks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            url TEXT NOT NULL,
+            event_types TEXT NOT NULL,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );",
+        [],
+    )
+    .unwrap();
+
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS categories (
@@ -260,16 +285,12 @@ async fn main() {
         plex_progress: plex_progress.clone(),
         agent_command_tx: agent_command_tx.clone(),
         pve_test_response: pve_test_response.clone(),
+        alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
     });
 
     // Start Host Agent listener (Background task)
-    start_agent_listener(
-        shared_db.clone(),
-        latest_telemetry,
-        agent_connected,
-        agent_command_tx,
-        pve_test_response,
-    );
+    start_agent_listener(state.clone());
+
 
     // Start Plex Playback Simulator (Background task)
     start_plex_simulator(plex_progress);
@@ -294,6 +315,14 @@ async fn main() {
         )
         .route("/api/categories/delete", post(delete_category_handler))
         .route("/api/categories/edit", post(edit_category_handler))
+        .route(
+            "/api/webhooks",
+            get(list_webhooks_handler).post(add_webhook_handler),
+        )
+        .route("/api/webhooks/edit", post(edit_webhook_handler))
+        .route("/api/webhooks/delete", post(delete_webhook_handler))
+        .route("/api/webhooks/test", post(test_webhook_handler))
+
         .nest_service(
             "/uploads",
             tower_http::services::ServeDir::new("data/uploads"),
@@ -378,14 +407,283 @@ fn start_plex_simulator(plex_progress: Arc<RwLock<f64>>) {
     });
 }
 
-// Metrics collector listener task
-fn start_agent_listener(
-    db: Arc<Mutex<Connection>>,
-    latest_telemetry: Arc<RwLock<AgentTelemetry>>,
-    agent_connected: Arc<RwLock<bool>>,
-    agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
-    pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
+async fn send_webhook_notification(
+    url: String,
+    name: String,
+    event_type: &str,
+    container_name: &str,
+    vmid: i64,
+    status: &str,
+    provider: &str,
 ) {
+    let client = reqwest::Client::new();
+    let is_discord = url.contains("discord.com/api/webhooks/");
+    let is_telegram = url.contains("api.telegram.org/bot");
+
+    let response = if is_discord {
+        let title = if event_type == "test" {
+            "🔔 AMUD Webhook Test".to_string()
+        } else if status == "running" {
+            format!("🟢 Container Started: {}", container_name)
+        } else {
+            format!("🔴 Container Stopped: {}", container_name)
+        };
+
+        let desc = if event_type == "test" {
+            "Your AMUD Webhook Alerts Engine is successfully configured and ready to notify!".to_string()
+        } else {
+            format!("Container **{}** is now **{}**.", container_name, status)
+        };
+
+        let color = if event_type == "test" {
+            0x2ecc71
+        } else if status == "running" {
+            0x10b981
+        } else {
+            0xef4444
+        };
+
+        let mut fields = vec![];
+        if event_type != "test" {
+            fields.push(serde_json::json!({
+                "name": "Provider",
+                "value": provider,
+                "inline": true
+            }));
+            fields.push(serde_json::json!({
+                "name": "VMID / ID",
+                "value": vmid.to_string(),
+                "inline": true
+            }));
+        }
+
+        let payload = serde_json::json!({
+            "username": "AMUD Alerts",
+            "embeds": [{
+                "title": title,
+                "description": desc,
+                "color": color,
+                "fields": fields,
+                "timestamp": chrono::Utc::now().to_rfc3339()
+            }]
+        });
+
+        client.post(&url).json(&payload).send().await
+    } else if is_telegram {
+        let text = if event_type == "test" {
+            "<b>🔔 AMUD Alert Test</b>\nYour Webhook Alerts Engine is successfully configured and ready to notify!".to_string()
+        } else {
+            let status_emoji = if status == "running" { "🟢" } else { "🔴" };
+            format!(
+                "{} <b>AMUD Alert: Container Status Changed</b>\n\n<b>Container:</b> <code>{}</code>\n<b>Status:</b> <code>{}</code>\n<b>Provider:</b> <code>{}</code>\n<b>VMID/ID:</b> <code>{}</code>",
+                status_emoji, container_name, status.to_uppercase(), provider, vmid
+            )
+        };
+
+        let parsed_url = reqwest::Url::parse(&url).ok();
+        let chat_id = parsed_url.and_then(|u| {
+            u.query_pairs()
+                .find(|(k, _)| k == "chat_id")
+                .map(|(_, v)| v.into_owned())
+        });
+
+        let payload = if let Some(cid) = chat_id {
+            serde_json::json!({
+                "chat_id": cid,
+                "text": text,
+                "parse_mode": "HTML"
+            })
+        } else {
+            serde_json::json!({
+                "text": text,
+                "parse_mode": "HTML"
+            })
+        };
+
+        client.post(&url).json(&payload).send().await
+    } else {
+        let payload = serde_json::json!({
+            "event": event_type,
+            "container": {
+                "name": container_name,
+                "vmid": vmid,
+                "status": status,
+                "provider": provider
+            },
+            "timestamp": chrono::Utc::now().to_rfc3339()
+        });
+
+        client.post(&url).json(&payload).send().await
+    };
+
+    match response {
+        Ok(resp) => {
+            if resp.status().is_success() {
+                println!("Webhook '{}' successfully sent notification for '{}'", name, container_name);
+            } else {
+                eprintln!(
+                    "Webhook '{}' failed with status code: {}. Body: {:?}",
+                    name,
+                    resp.status(),
+                    resp.text().await.unwrap_or_default()
+                );
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to send webhook '{}': {}", name, e);
+        }
+    }
+}
+
+fn check_container_alerts(
+    old_telemetry: &AgentTelemetry,
+    new_telemetry: &AgentTelemetry,
+    state: &Arc<AppState>,
+) {
+    let old_containers = &old_telemetry.lxc_containers;
+    let new_containers = &new_telemetry.lxc_containers;
+
+    let old_map: HashMap<i64, &LxcContainer> = old_containers
+        .iter()
+        .map(|c| (c.vmid, c))
+        .collect();
+
+    for new_c in new_containers {
+        if let Some(old_c) = old_map.get(&new_c.vmid) {
+            let old_status = &old_c.status;
+            let new_status = &new_c.status;
+
+            if old_status != new_status {
+                let is_running_now = new_status == "running";
+                let event_type = if is_running_now { "container_started" } else { "container_stopped" };
+                let cooldown_key = format!("{}:{}", if new_c.vmid < 0 { "docker" } else { "lxc" }, new_c.name);
+
+                {
+                    let mut cooldowns = state.alert_cooldowns.lock().unwrap();
+                    if let Some(&last_alert) = cooldowns.get(&cooldown_key) {
+                        if last_alert.elapsed() < Duration::from_secs(60) {
+                            println!("Alert for {} is suppressed due to cooldown", cooldown_key);
+                            continue;
+                        }
+                    }
+                    cooldowns.insert(cooldown_key.clone(), std::time::Instant::now());
+                }
+
+                let webhooks = {
+                    let db = state.db.lock().unwrap();
+                    let mut stmt = db.prepare("SELECT id, name, url, event_types, is_active FROM webhooks WHERE is_active = 1").unwrap();
+                    let mut rows = stmt.query([]).unwrap();
+                    let mut list = Vec::new();
+                    while let Some(row) = rows.next().unwrap() {
+                        let id: i64 = row.get(0).unwrap();
+                        let name: String = row.get(1).unwrap();
+                        let url: String = row.get(2).unwrap();
+                        let event_types: String = row.get(3).unwrap();
+                        let is_active: i32 = row.get(4).unwrap();
+
+                        let subscribed = event_types.split(',').any(|e| e.trim() == event_type);
+                        if subscribed {
+                            list.push(Webhook { id, name, url, event_types, is_active });
+                        }
+                    }
+                    list
+                };
+
+                let provider = if new_c.vmid < 0 { "Docker" } else { "Proxmox LXC" };
+                for wh in webhooks {
+                    let url = wh.url.clone();
+                    let name = wh.name.clone();
+                    let event = event_type.to_string();
+                    let container_name = new_c.name.clone();
+                    let vmid = new_c.vmid;
+                    let status_str = new_status.clone();
+                    let provider_str = provider.to_string();
+
+                    tokio::spawn(async move {
+                        send_webhook_notification(
+                            url,
+                            name,
+                            &event,
+                            &container_name,
+                            vmid,
+                            &status_str,
+                            &provider_str,
+                        )
+                        .await;
+                    });
+                }
+            }
+        }
+    }
+}
+
+fn handle_new_telemetry(state: &Arc<AppState>, metrics: AgentTelemetry) {
+    let old_metrics = {
+        let lock = state.latest_telemetry.read().unwrap();
+        lock.clone()
+    };
+    if !old_metrics.lxc_containers.is_empty() {
+        check_container_alerts(&old_metrics, &metrics, state);
+    }
+    *state.latest_telemetry.write().unwrap() = metrics;
+}
+
+fn handle_agent_connection_change(state: &Arc<AppState>, connected: bool) {
+    let was_connected = {
+        let mut conn_lock = state.agent_connected.write().unwrap();
+        let old = *conn_lock;
+        *conn_lock = connected;
+        old
+    };
+
+    if was_connected != connected {
+        let event_type = if connected { "agent_connected" } else { "agent_disconnected" };
+
+        let webhooks = {
+            let db = state.db.lock().unwrap();
+            let mut stmt = db.prepare("SELECT id, name, url, event_types, is_active FROM webhooks WHERE is_active = 1").unwrap();
+            let mut rows = stmt.query([]).unwrap();
+            let mut list = Vec::new();
+            while let Some(row) = rows.next().unwrap() {
+                let id: i64 = row.get(0).unwrap();
+                let name: String = row.get(1).unwrap();
+                let url: String = row.get(2).unwrap();
+                let event_types: String = row.get(3).unwrap();
+                let is_active: i32 = row.get(4).unwrap();
+
+                if event_types.split(',').any(|e| e.trim() == event_type) {
+                    list.push(Webhook { id, name, url, event_types, is_active });
+                }
+            }
+            list
+        };
+
+        let status_text = if connected { "online" } else { "offline" };
+
+        for wh in webhooks {
+            let url = wh.url.clone();
+            let name = wh.name.clone();
+            let event = event_type.to_string();
+            let status_str = status_text.to_string();
+
+            tokio::spawn(async move {
+                send_webhook_notification(
+                    url,
+                    name,
+                    &event,
+                    "AMUD-Agent Daemon",
+                    0,
+                    &status_str,
+                    "System",
+                )
+                .await;
+            });
+        }
+    }
+}
+
+// Metrics collector listener task
+fn start_agent_listener(state: Arc<AppState>) {
     tokio::spawn(async move {
         #[cfg(unix)]
         {
@@ -393,11 +691,7 @@ fn start_agent_listener(
                 .unwrap_or_else(|_| "/opt/amud/run/amud.sock".to_string());
             run_uds_listener(
                 &socket_path,
-                db.clone(),
-                latest_telemetry.clone(),
-                agent_connected.clone(),
-                agent_command_tx.clone(),
-                pve_test_response.clone(),
+                state.clone(),
             )
             .await;
         }
@@ -408,25 +702,18 @@ fn start_agent_listener(
                 std::env::var("AMUD_TCP_ADDR").unwrap_or_else(|_| "127.0.0.1:8050".to_string());
             run_tcp_listener(
                 &addr,
-                db.clone(),
-                latest_telemetry.clone(),
-                agent_connected.clone(),
-                agent_command_tx.clone(),
-                pve_test_response.clone(),
+                state.clone(),
             )
             .await;
         }
     });
 }
 
+
 #[cfg(unix)]
 async fn run_uds_listener(
     path: &str,
-    db: Arc<Mutex<Connection>>,
-    latest_telemetry: Arc<RwLock<AgentTelemetry>>,
-    agent_connected: Arc<RwLock<bool>>,
-    agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
-    pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
+    state: Arc<AppState>,
 ) {
     let uds_path = if FilePath::new(path)
         .parent()
@@ -458,18 +745,14 @@ async fn run_uds_listener(
     loop {
         if let Ok((stream, _)) = listener.accept().await {
             println!("AMUD-Agent telemetry client UDS stream accepted.");
-            *agent_connected.write().unwrap() = true;
+            handle_agent_connection_change(&state, true);
 
             let (reader, mut writer) = stream.into_split();
-            let t_clone = latest_telemetry.clone();
-            let c_clone = agent_connected.clone();
-            let tx_clone = agent_command_tx.clone();
-            let db_clone = db.clone();
-            let pve_test_response_clone = pve_test_response.clone();
+            let state_clone = state.clone();
 
             // Set up communication channel
             let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
-            *agent_command_tx.lock().unwrap() = Some(tx.clone());
+            *state.agent_command_tx.lock().unwrap() = Some(tx.clone());
 
             // Spawn writer task
             tokio::spawn(async move {
@@ -507,7 +790,7 @@ async fn run_uds_listener(
                     if let Ok(req) = serde_json::from_str::<ConfigReq>(&line) {
                         if req.request == "get_config" {
                             let token = {
-                                let db_lock = db_clone.lock().unwrap();
+                                let db_lock = state_clone.db.lock().unwrap();
                                 let mut stmt = db_lock
                                     .prepare(
                                         "SELECT value FROM settings WHERE key = 'pve_api_token'",
@@ -527,15 +810,15 @@ async fn run_uds_listener(
                             }
                         }
                     } else if let Ok(msg) = serde_json::from_str::<PveTestMsg>(&line) {
-                        *pve_test_response_clone.write().unwrap() = Some(msg.test_pve_result);
+                        *state_clone.pve_test_response.write().unwrap() = Some(msg.test_pve_result);
                     } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(&line) {
-                        *t_clone.write().unwrap() = metrics;
+                        handle_new_telemetry(&state_clone, metrics);
                     }
                     line.clear();
                 }
                 println!("AMUD-Agent telemetry client disconnected.");
-                *c_clone.write().unwrap() = false;
-                *tx_clone.lock().unwrap() = None; // clear command tx
+                handle_agent_connection_change(&state_clone, false);
+                *state_clone.agent_command_tx.lock().unwrap() = None; // clear command tx
             });
         }
     }
@@ -546,22 +829,14 @@ async fn run_uds_listener(
 #[allow(dead_code)]
 async fn run_uds_listener(
     _path: &str,
-    _db: Arc<Mutex<Connection>>,
-    _latest_telemetry: Arc<RwLock<AgentTelemetry>>,
-    _agent_connected: Arc<RwLock<bool>>,
-    _agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
-    _pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
+    _state: Arc<AppState>,
 ) {
 }
 
 #[allow(dead_code)]
 async fn run_tcp_listener(
     addr: &str,
-    db: Arc<Mutex<Connection>>,
-    latest_telemetry: Arc<RwLock<AgentTelemetry>>,
-    agent_connected: Arc<RwLock<bool>>,
-    agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
-    pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
+    state: Arc<AppState>,
 ) {
     println!("Starting agent listener via TCP loopback on {}", addr);
     let listener = match TokioTcpListener::bind(addr).await {
@@ -575,18 +850,14 @@ async fn run_tcp_listener(
     loop {
         if let Ok((stream, _)) = listener.accept().await {
             println!("AMUD-Agent telemetry client TCP stream accepted.");
-            *agent_connected.write().unwrap() = true;
+            handle_agent_connection_change(&state, true);
 
             let (reader, mut writer) = stream.into_split();
-            let t_clone = latest_telemetry.clone();
-            let c_clone = agent_connected.clone();
-            let tx_clone = agent_command_tx.clone();
-            let db_clone = db.clone();
-            let pve_test_response_clone = pve_test_response.clone();
+            let state_clone = state.clone();
 
             // Set up communication channel
             let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
-            *agent_command_tx.lock().unwrap() = Some(tx.clone());
+            *state.agent_command_tx.lock().unwrap() = Some(tx.clone());
 
             // Spawn writer task
             tokio::spawn(async move {
@@ -624,7 +895,7 @@ async fn run_tcp_listener(
                     if let Ok(req) = serde_json::from_str::<ConfigReq>(&line) {
                         if req.request == "get_config" {
                             let token = {
-                                let db_lock = db_clone.lock().unwrap();
+                                let db_lock = state_clone.db.lock().unwrap();
                                 let mut stmt = db_lock
                                     .prepare(
                                         "SELECT value FROM settings WHERE key = 'pve_api_token'",
@@ -644,19 +915,20 @@ async fn run_tcp_listener(
                             }
                         }
                     } else if let Ok(msg) = serde_json::from_str::<PveTestMsg>(&line) {
-                        *pve_test_response_clone.write().unwrap() = Some(msg.test_pve_result);
+                        *state_clone.pve_test_response.write().unwrap() = Some(msg.test_pve_result);
                     } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(&line) {
-                        *t_clone.write().unwrap() = metrics;
+                        handle_new_telemetry(&state_clone, metrics);
                     }
                     line.clear();
                 }
                 println!("AMUD-Agent telemetry client disconnected.");
-                *c_clone.write().unwrap() = false;
-                *tx_clone.lock().unwrap() = None; // clear command tx
+                handle_agent_connection_change(&state_clone, false);
+                *state_clone.agent_command_tx.lock().unwrap() = None; // clear command tx
             });
         }
     }
 }
+
 
 fn get_overlay_gradient(theme: &str, custom_color: Option<&str>) -> String {
     match theme.to_lowercase().as_str() {
@@ -2360,3 +2632,396 @@ async fn app_action_handler(
         .body(axum::body::Body::from(r#"{"error":"Agent not connected"}"#))
         .unwrap()
 }
+
+// Webhook API handlers
+async fn list_webhooks_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    let db = state.db.lock().unwrap();
+    let mut stmt = db
+        .prepare("SELECT id, name, url, event_types, is_active FROM webhooks ORDER BY id DESC")
+        .unwrap();
+    let mut rows = stmt.query([]).unwrap();
+    let mut list = Vec::new();
+    while let Some(row) = rows.next().unwrap() {
+        let id: i64 = row.get(0).unwrap();
+        let name: String = row.get(1).unwrap();
+        let url: String = row.get(2).unwrap();
+        let event_types: String = row.get(3).unwrap();
+        let is_active: i32 = row.get(4).unwrap();
+
+        let masked_url = if url.len() > 30 {
+            let parsed = reqwest::Url::parse(&url);
+            let host = parsed.as_ref().map(|u| u.host_str().unwrap_or("")).unwrap_or("");
+            format!("{}://{}/...{}", if url.starts_with("https") { "https" } else { "http" }, host, &url[url.len().saturating_sub(8)..])
+        } else {
+            url.clone()
+        };
+
+        list.push(serde_json::json!({
+            "id": id,
+            "name": name,
+            "url": url,
+            "masked_url": masked_url,
+            "event_types": event_types,
+            "is_active": is_active
+        }));
+    }
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(axum::body::Body::from(
+            serde_json::to_string(&list).unwrap(),
+        ))
+        .unwrap()
+}
+
+async fn add_webhook_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    let name = form.get("name").cloned().unwrap_or_default().trim().to_string();
+    let url = form.get("url").cloned().unwrap_or_default().trim().to_string();
+    let event_types = form.get("event_types").cloned().unwrap_or_default().trim().to_string();
+    let is_active = form.get("is_active").and_then(|v| v.parse::<i32>().ok()).unwrap_or(1);
+
+    if name.is_empty() || url.is_empty() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Name and URL are required"}"#))
+            .unwrap();
+    }
+
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"URL must start with http:// or https://"}"#))
+            .unwrap();
+    }
+
+    let db = state.db.lock().unwrap();
+    match db.execute(
+        "INSERT INTO webhooks (name, url, event_types, is_active) VALUES (?, ?, ?, ?)",
+        params![name, url, event_types, is_active],
+    ) {
+        Ok(_) => Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"success":true}"#))
+            .unwrap(),
+        Err(e) => Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(format!(r#"{{"error":"Database error: {}"}}"#, e)))
+            .unwrap(),
+    }
+}
+
+async fn edit_webhook_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    let id_str = form.get("id").cloned().unwrap_or_default();
+    let id = match id_str.parse::<i64>() {
+        Ok(v) => v,
+        Err(_) => return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Invalid Webhook ID"}"#))
+            .unwrap()
+    };
+
+    let name = form.get("name").cloned().unwrap_or_default().trim().to_string();
+    let url = form.get("url").cloned().unwrap_or_default().trim().to_string();
+    let event_types = form.get("event_types").cloned().unwrap_or_default().trim().to_string();
+    let is_active = form.get("is_active").and_then(|v| v.parse::<i32>().ok()).unwrap_or(1);
+
+    if name.is_empty() || url.is_empty() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Name and URL are required"}"#))
+            .unwrap();
+    }
+
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"URL must start with http:// or https://"}"#))
+            .unwrap();
+    }
+
+    let db = state.db.lock().unwrap();
+    match db.execute(
+        "UPDATE webhooks SET name = ?, url = ?, event_types = ?, is_active = ? WHERE id = ?",
+        params![name, url, event_types, is_active, id],
+    ) {
+        Ok(_) => Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"success":true}"#))
+            .unwrap(),
+        Err(e) => Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(format!(r#"{{"error":"Database error: {}"}}"#, e)))
+            .unwrap(),
+    }
+}
+
+async fn delete_webhook_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    let id_str = form.get("id").cloned().unwrap_or_default();
+    if let Ok(id) = id_str.parse::<i64>() {
+        let db = state.db.lock().unwrap();
+        db.execute("DELETE FROM webhooks WHERE id = ?", params![id]).ok();
+    }
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(axum::body::Body::from(r#"{"success":true}"#))
+        .unwrap()
+}
+
+async fn test_webhook_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
+    let id_str = form.get("id").cloned().unwrap_or_default();
+    let id = match id_str.parse::<i64>() {
+        Ok(v) => v,
+        Err(_) => return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Invalid ID"}"#))
+            .unwrap()
+    };
+
+    let webhook = {
+        let db = state.db.lock().unwrap();
+        let mut stmt = db.prepare("SELECT name, url FROM webhooks WHERE id = ?").unwrap();
+        stmt.query_row(params![id], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        }).ok()
+    };
+
+    if let Some((name, url)) = webhook {
+        tokio::spawn(async move {
+            send_webhook_notification(
+                url,
+                name,
+                "test",
+                "Test Container",
+                999,
+                "running",
+                "Docker",
+            )
+            .await;
+        });
+
+        Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"success":true}"#))
+            .unwrap()
+    } else {
+        Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Webhook not found"}"#))
+            .unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_check_container_alerts_transition() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS webhooks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                url TEXT NOT NULL,
+                event_types TEXT NOT NULL,
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );",
+            [],
+        )
+        .unwrap();
+
+        conn.execute(
+            "INSERT INTO webhooks (name, url, event_types, is_active) VALUES (?, ?, ?, ?)",
+            params!["Test WH", "https://discord.com/api/webhooks/test", "container_stopped", 1],
+        )
+        .unwrap();
+
+        let state = Arc::new(AppState {
+            db: Arc::new(Mutex::new(conn)),
+            sessions: Arc::new(RwLock::new(HashMap::new())),
+            latest_telemetry: Arc::new(RwLock::new(AgentTelemetry::default())),
+            agent_connected: Arc::new(RwLock::new(false)),
+            plex_progress: Arc::new(RwLock::new(0.0)),
+            agent_command_tx: Arc::new(Mutex::new(None)),
+            pve_test_response: Arc::new(RwLock::new(None)),
+            alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
+        });
+
+        let old_telemetry = AgentTelemetry {
+            cpu_usage: 0,
+            ram_usage: 0,
+            ram_used_gb: 0.0,
+            ram_total_gb: 0.0,
+            cpu_temp: 0.0,
+            disk_usage: 0,
+            disk_used_gb: 0.0,
+            disk_total_gb: 0.0,
+            lxc_containers: vec![LxcContainer {
+                vmid: 100,
+                status: "running".to_string(),
+                name: "test-lxc".to_string(),
+                ..Default::default()
+            }],
+        };
+
+        let new_telemetry = AgentTelemetry {
+            cpu_usage: 0,
+            ram_usage: 0,
+            ram_used_gb: 0.0,
+            ram_total_gb: 0.0,
+            cpu_temp: 0.0,
+            disk_usage: 0,
+            disk_used_gb: 0.0,
+            disk_total_gb: 0.0,
+            lxc_containers: vec![LxcContainer {
+                vmid: 100,
+                status: "stopped".to_string(),
+                name: "test-lxc".to_string(),
+                ..Default::default()
+            }],
+        };
+
+        // Trigger alert check
+        check_container_alerts(&old_telemetry, &new_telemetry, &state);
+
+        // Verify that it added the cooldown key (lxc:test-lxc) to alert_cooldowns map
+        let cooldowns = state.alert_cooldowns.lock().unwrap();
+        assert!(cooldowns.contains_key("lxc:test-lxc"));
+    }
+
+    #[tokio::test]
+    async fn test_check_container_alerts_no_change() {
+
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS webhooks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                url TEXT NOT NULL,
+                event_types TEXT NOT NULL,
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );",
+            [],
+        )
+        .unwrap();
+
+        let state = Arc::new(AppState {
+            db: Arc::new(Mutex::new(conn)),
+            sessions: Arc::new(RwLock::new(HashMap::new())),
+            latest_telemetry: Arc::new(RwLock::new(AgentTelemetry::default())),
+            agent_connected: Arc::new(RwLock::new(false)),
+            plex_progress: Arc::new(RwLock::new(0.0)),
+            agent_command_tx: Arc::new(Mutex::new(None)),
+            pve_test_response: Arc::new(RwLock::new(None)),
+            alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
+        });
+
+        let old_telemetry = AgentTelemetry {
+            lxc_containers: vec![LxcContainer {
+                vmid: 100,
+                status: "running".to_string(),
+                name: "test-lxc".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        let new_telemetry = AgentTelemetry {
+            lxc_containers: vec![LxcContainer {
+                vmid: 100,
+                status: "running".to_string(),
+                name: "test-lxc".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        check_container_alerts(&old_telemetry, &new_telemetry, &state);
+
+        let cooldowns = state.alert_cooldowns.lock().unwrap();
+        assert!(!cooldowns.contains_key("lxc:test-lxc"));
+    }
+}
+
+
