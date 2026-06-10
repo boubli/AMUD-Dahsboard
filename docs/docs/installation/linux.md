@@ -116,6 +116,7 @@ Environment=PORT=8000
 Environment=DB_PATH=/opt/amud/data/amud.db
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
 Environment=UI_DIR=/opt/amud/ui
+Environment=AMUD_ENABLE_PROXMOX=false # Set to true if running on Proxmox
 UMask=0002
 
 # Sandboxing and security hardening
