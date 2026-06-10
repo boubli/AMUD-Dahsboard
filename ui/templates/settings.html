@@ -19,6 +19,7 @@
     <script defer src="/static/vendor/alpine.min.js"></script>
     <!-- Lucide Vector Icons -->
     <script src="/static/vendor/lucide.min.js"></script>
+    <script src="/static/admin.js"></script>
 
     <style>
         :root {
@@ -735,8 +736,8 @@
             <input type="text" id="wh-name" class="form-control" required placeholder="e.g. Discord Alerts">
         </div>
         <div class="form-group" style="margin-top:1rem;">
-            <label>Webhook URL</label>
-            <input type="text" id="wh-url" class="form-control" required placeholder="https://discord.com/api/webhooks/...">
+            <label>Webhook URL <span x-show="whEditing" style="font-weight:normal; font-size:0.75rem;">(Leave blank to keep current)</span></label>
+            <input type="text" id="wh-url" class="form-control" placeholder="https://discord.com/api/webhooks/...">
         </div>
         <div class="form-group" style="margin-top:1rem;">
             <label>Subscribe to Events</label>
@@ -786,20 +787,7 @@
 
 
     <!-- Script logic for Settings Page -->
-    <script>
-        function amudCsrfToken() {
-            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        }
-        function amudCsrfHeaders(extra) {
-            return Object.assign({ 'X-CSRF-Token': amudCsrfToken() }, extra || {});
-        }
-
-        function escapeHtml(value) {
-            const div = document.createElement('div');
-            div.textContent = value == null ? '' : String(value);
-            return div.innerHTML;
-        }
-
+    <script nonce="{{csp_nonce}}">
         function settingsState() {
             return {
                 activeTab: localStorage.getItem('amud_settings_tab') || 'branding',
@@ -827,33 +815,13 @@
 
                 handleFileUpload(event, target) {
                     const file = event.target.files[0];
-                    if (!file) return;
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert("File too large. Max 5MB.");
-                        return;
-                    }
-                    const formData = new FormData();
-                    formData.append('image', file);
-                    fetch('/admin/upload', {
-                        method: 'POST',
-                        headers: amudCsrfHeaders(),
-                        body: formData
-                    })
-                    .then(res => {
-                        if (!res.ok) return res.text().then(text => { throw new Error(text || ('HTTP ' + res.status)) });
-                        return res.json();
-                    })
-                    .then(data => {
-                        if (target === 'bg') {
-                            this.$refs.bgInputText.value = data.url;
-                        } else if (target === 'logo') {
-                            this.$refs.logoInputText.value = data.url;
+                    amudUploadImage(file, (url) => {
+                        if (target === 'bg' && this.$refs.bgInputText) {
+                            this.$refs.bgInputText.value = url;
+                        } else if (target === 'logo' && this.$refs.logoInputText) {
+                            this.$refs.logoInputText.value = url;
                         }
                         this.unsavedChanges = true;
-                    })
-                    .catch(e => {
-                        console.error(e);
-                        alert("Upload failed: " + e.message);
                     });
                 },
 
@@ -871,6 +839,7 @@
                     document.getElementById('wh-id').value = '';
                     document.getElementById('wh-name').value = '';
                     document.getElementById('wh-url').value = '';
+                    document.getElementById('wh-url').placeholder = 'https://discord.com/api/webhooks/...';
                     const sel = document.getElementById('wh-events');
                     for (let i = 0; i < sel.options.length; i++) sel.options[i].selected = true;
                     document.getElementById('wh-active').checked = true;
@@ -981,7 +950,7 @@
                         <td>${w.is_active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--danger);">Disabled</span>'}</td>
                         <td style="text-align:right;">
                             <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="testWebhook(${Number(w.id)})">Test</button>
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editWebhook(${Number(w.id)}, ${JSON.stringify(String(w.name))}, ${JSON.stringify(String(w.url))}, ${JSON.stringify(String(w.event_types))}, ${Number(w.is_active)})">Edit</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editWebhook(${Number(w.id)}, ${JSON.stringify(String(w.name))}, ${JSON.stringify(String(w.event_types))}, ${Number(w.is_active)})">Edit</button>
                             <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteWebhook(${Number(w.id)})">Del</button>
                         </td>
                     `;
@@ -990,12 +959,13 @@
             } catch (e) { console.error(e); }
         }
 
-        function editWebhook(id, name, url, events, active) {
+        function editWebhook(id, name, events, active) {
             const state = Alpine.$data(document.body);
             state.whEditing = true;
             document.getElementById('wh-id').value = id;
             document.getElementById('wh-name').value = name;
-            document.getElementById('wh-url').value = url;
+            document.getElementById('wh-url').value = '';
+            document.getElementById('wh-url').placeholder = 'Leave blank to keep current URL';
             const evArr = events.split(',').map(e => e.trim());
             const sel = document.getElementById('wh-events');
             for(let i=0; i<sel.options.length; i++) {
@@ -1016,6 +986,9 @@
                 if(sel.options[i].selected) events.push(sel.options[i].value);
             }
             const active = document.getElementById('wh-active').checked ? 1 : 0;
+
+            if (!name.trim()) { alert('Name is required'); return; }
+            if (!state.whEditing && !url.trim()) { alert('Webhook URL is required'); return; }
 
             const formData = new URLSearchParams();
             formData.append('name', name);
@@ -1231,7 +1204,7 @@
             }
         }
     </script>
-    <script>
+    <script nonce="{{csp_nonce}}">
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/sw.js');

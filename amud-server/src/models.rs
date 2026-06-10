@@ -133,6 +133,7 @@ pub struct AppState {
     pub(crate) settings_cache: Arc<RwLock<HashMap<String, String>>>,
     pub(crate) alert_cooldowns: Arc<Mutex<HashMap<String, std::time::Instant>>>,
     pub(crate) login_attempts: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
+    pub(crate) api_rate_limits: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
     pub(crate) agent_secret: Arc<String>,
 }
 

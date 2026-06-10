@@ -27,12 +27,17 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env or environment}
+      # Set AMUD_DOCKER=0 to disable Docker socket access (SEC-008)
+      - AMUD_DOCKER=${AMUD_DOCKER:-1}
+      # Prefer agent-local PVE token — avoids plaintext over IPC (SEC-015)
+      # - PVE_API_TOKEN=PVEAPIToken=root@pam!tokenid=secret
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
     volumes:
       - amud_run:/var/run/amud
+      # :ro does not limit Docker API power — use AMUD_DOCKER=0 or a socket proxy for hardening
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: always
 

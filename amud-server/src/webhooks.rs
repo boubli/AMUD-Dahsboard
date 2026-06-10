@@ -1,6 +1,7 @@
 use crate::apps::{is_jellyfin_app, is_plex_app};
 use crate::db::load_apps_from_db;
 use crate::models::{AppState, AppStatus, AgentTelemetry, LxcContainer, Webhook};
+use crate::security::url_allowed_for_health_check;
 use rusqlite::{params, Connection};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
@@ -13,6 +14,7 @@ pub(crate) fn start_status_poller(
     tokio::spawn(async move {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(4))
+            .redirect(reqwest::redirect::Policy::none())
             .danger_accept_invalid_certs(true)
             .build()
             .unwrap_or_else(|_| reqwest::Client::new());
@@ -36,17 +38,24 @@ pub(crate) fn start_status_poller(
             let mut next = HashMap::new();
             for (name, url) in apps {
                 let started = Instant::now();
-                let status = match client.get(&url).send().await {
-                    Ok(resp) if resp.status().is_success() || resp.status().is_redirection() => {
-                        AppStatus {
-                            status: "ONLINE".to_string(),
-                            latency_ms: Some(started.elapsed().as_millis()),
-                        }
-                    }
-                    Ok(_) | Err(_) => AppStatus {
-                        status: "OFFLINE".to_string(),
+                let status = if !url_allowed_for_health_check(&url) {
+                    AppStatus {
+                        status: "BLOCKED".to_string(),
                         latency_ms: None,
-                    },
+                    }
+                } else {
+                    match client.get(&url).send().await {
+                        Ok(resp) if resp.status().is_success() || resp.status().is_redirection() => {
+                            AppStatus {
+                                status: "ONLINE".to_string(),
+                                latency_ms: Some(started.elapsed().as_millis()),
+                            }
+                        }
+                        Ok(_) | Err(_) => AppStatus {
+                            status: "OFFLINE".to_string(),
+                            latency_ms: None,
+                        },
+                    }
                 };
                 next.insert(name.to_lowercase(), status);
             }
@@ -309,6 +318,7 @@ mod tests {
             settings_cache: Arc::new(RwLock::new(HashMap::new())),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
             login_attempts: Arc::new(Mutex::new(HashMap::new())),
+            api_rate_limits: Arc::new(Mutex::new(HashMap::new())),
             agent_secret: Arc::new("test-secret".to_string()),
         });
 
@@ -386,6 +396,7 @@ mod tests {
             settings_cache: Arc::new(RwLock::new(HashMap::new())),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
             login_attempts: Arc::new(Mutex::new(HashMap::new())),
+            api_rate_limits: Arc::new(Mutex::new(HashMap::new())),
             agent_secret: Arc::new("test-secret".to_string()),
         });
 

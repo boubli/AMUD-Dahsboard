@@ -57,3 +57,11 @@ docs/NEXT_SESSION*.md
 Desktop.ini
 *.swp
 *~
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# Uploads dir
+uploads/

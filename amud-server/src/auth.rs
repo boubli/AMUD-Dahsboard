@@ -5,7 +5,7 @@ use argon2::{
 };
 use axum::{
     body::Body,
-    http::{header, HeaderMap, HeaderName, HeaderValue, Request, StatusCode},
+    http::{HeaderMap, HeaderName, HeaderValue, Request, StatusCode},
     middleware::Next,
     response::Response,
 };
@@ -39,7 +39,35 @@ pub(crate) fn generate_agent_secret() -> String {
     generate_session_token()
 }
 
-pub async fn security_headers(req: Request<axum::body::Body>, next: Next) -> Response {
+#[derive(Clone)]
+pub struct CspNonce(pub String);
+
+pub(crate) fn generate_csp_nonce() -> String {
+    generate_session_token()
+}
+
+pub(crate) fn csp_header_value(nonce: &str) -> String {
+    format!(
+        "default-src 'self'; script-src 'self' 'nonce-{nonce}' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; connect-src 'self' ws: wss: http: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        nonce = nonce
+    )
+}
+
+pub(crate) fn secure_transport_enabled() -> bool {
+    std::env::var("AMUD_SECURE_COOKIES").ok().as_deref() == Some("1")
+}
+
+pub(crate) fn rate_limit_response() -> Response {
+    Response::builder()
+        .status(StatusCode::TOO_MANY_REQUESTS)
+        .header("Content-Type", "application/json")
+        .body(Body::from(r#"{"error":"Too many requests. Try again later."}"#))
+        .unwrap()
+}
+
+pub async fn security_headers(mut req: Request<Body>, next: Next) -> Response {
+    let nonce = generate_csp_nonce();
+    req.extensions_mut().insert(CspNonce(nonce.clone()));
     let mut response = next.run(req).await;
     let headers = response.headers_mut();
     headers.insert(HeaderName::from_static("x-frame-options"), HeaderValue::from_static("DENY"));
@@ -51,12 +79,15 @@ pub async fn security_headers(req: Request<axum::body::Body>, next: Next) -> Res
         HeaderName::from_static("referrer-policy"),
         HeaderValue::from_static("same-origin"),
     );
-    headers.insert(
-        HeaderName::from_static("content-security-policy"),
-        HeaderValue::from_static(
-            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; connect-src 'self' ws: wss: http: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
-        ),
-    );
+    if let Ok(csp) = HeaderValue::from_str(&csp_header_value(&nonce)) {
+        headers.insert(HeaderName::from_static("content-security-policy"), csp);
+    }
+    if secure_transport_enabled() {
+        headers.insert(
+            HeaderName::from_static("strict-transport-security"),
+            HeaderValue::from_static("max-age=31536000; includeSubDomains"),
+        );
+    }
     response
 }
 
@@ -169,6 +200,10 @@ pub(crate) fn generate_session_token() -> String {
         let seed = format!("{}:{:?}", now_epoch_secs(), Instant::now());
         hex::encode(Sha256::digest(seed.as_bytes()))
     }
+}
+
+pub(crate) fn generate_bootstrap_password() -> String {
+    generate_session_token().chars().take(18).collect()
 }
 
 pub(crate) fn session_cookie(token: &str) -> String {
@@ -319,4 +354,22 @@ pub(crate) fn csrf_forbidden_response() -> Response {
         .header("Content-Type", "application/json")
         .body(Body::from(r#"{"error":"Invalid CSRF token"}"#))
         .unwrap()
+}
+
+pub(crate) fn forbidden_admin_json() -> Response {
+    Response::builder()
+        .status(StatusCode::FORBIDDEN)
+        .header("Content-Type", "application/json")
+        .body(Body::from(r#"{"error":"Forbidden"}"#))
+        .unwrap()
+}
+
+pub(crate) fn require_admin_session(
+    headers: &HeaderMap,
+    sessions: &RwLock<HashMap<String, Session>>,
+) -> Result<Session, Response> {
+    match get_session(headers, sessions) {
+        Some(session) if session.role == "Admin" => Ok(session),
+        _ => Err(forbidden_admin_json()),
+    }
 }

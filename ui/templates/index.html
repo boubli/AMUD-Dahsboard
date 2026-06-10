@@ -19,6 +19,7 @@
     <script defer src="/static/vendor/alpine.min.js"></script>
     <!-- Lucide Vector Icons -->
     <script src="/static/vendor/lucide.min.js"></script>
+    <script src="/static/admin.js"></script>
 
     <!-- Inline variables setup for clean database variable override -->
     <style>
@@ -288,76 +289,11 @@
     </div>
 
 
-    <script>
-
-        function amudCsrfToken() {
-            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        }
-        function amudCsrfHeaders(extra) {
-            return Object.assign({ 'X-CSRF-Token': amudCsrfToken() }, extra || {});
-        }
+    <script nonce="{{csp_nonce}}">
 
         // Init Lucide vector icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
-        }
-
-        // File upload helper handler
-        function handleFileUpload(event, type) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.size > 5 * 1024 * 1024) {
-                alert("File size exceeds 5MB limit!");
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("image", file);
-
-            fetch("/admin/upload", {
-                method: "POST",
-                headers: amudCsrfHeaders(),
-                body: formData
-            })
-            .then(res => {
-                if (!res.ok) return res.text().then(text => { throw new Error(text) });
-                return res.json();
-            })
-            .then(data => {
-                if (type === 'logo') {
-                    // Update input value directly
-                    const el = document.querySelector('input[name="app_logo"]');
-                    if (el) {
-                        el.value = data.url;
-                        el.dispatchEvent(new Event('input'));
-                    }
-                } else if (type === 'bg') {
-                    const el = document.querySelector('input[name="custom_bg_url"]');
-                    if (el) {
-                        el.value = data.url;
-                        el.dispatchEvent(new Event('input'));
-                    }
-                } else if (type === 'appIcon') {
-                    // Set Alpine binding variable
-                    const el = document.querySelector('body');
-                    const alpineData = Alpine.$data(el);
-                    if (alpineData) {
-                        alpineData.appIconUrl = data.url;
-                    }
-                } else if (type === 'editAppIcon') {
-                    // Set Alpine binding variable for edit mode
-                    const el = document.querySelector('body');
-                    const alpineData = Alpine.$data(el);
-                    if (alpineData) {
-                        alpineData.editApp.icon = data.url;
-                    }
-                }
-                console.log("Uploaded file successfully mapping to:", data.url);
-            })
-            .catch(err => {
-                alert("Upload failed: " + err.message);
-            });
         }
 
         // Clock, greeting and date updater
@@ -725,14 +661,14 @@
             setTimeout(() => { window.location.reload(); }, 5000);
         };
     </script>
-    <script>
+    <script nonce="{{csp_nonce}}">
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/sw.js');
             });
         }
     </script>
-    <script>
+    <script nonce="{{csp_nonce}}">
         // Fetch Live Weather — use manual coordinates if set, otherwise auto-detect via IP
         (function() {
             const manualLat = '{{weather_latitude}}'.trim();

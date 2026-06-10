@@ -53,10 +53,10 @@
         </form>
     </div>
 
-    <script>
+    <script nonce="{{csp_nonce}}">
         lucide.createIcons();
     </script>
-    <script>
+    <script nonce="{{csp_nonce}}">
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/sw.js');

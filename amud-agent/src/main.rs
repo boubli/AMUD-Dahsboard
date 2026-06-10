@@ -92,17 +92,7 @@ fn establish_connection() -> Result<StreamType, std::io::Error> {
         std::env::var("AMUD_SOCKET_PATH").unwrap_or_else(|_| "/opt/amud/run/amud.sock".to_string());
 
     println!("Connecting via UDS to {}", path);
-    match std::os::unix::net::UnixStream::connect(&path) {
-        Ok(s) => Ok(s),
-        Err(e) => {
-            let fallback = "/tmp/amud.sock";
-            println!(
-                "Connection to {} failed ({}). Trying fallback: {}",
-                path, e, fallback
-            );
-            std::os::unix::net::UnixStream::connect(fallback)
-        }
-    }
+    std::os::unix::net::UnixStream::connect(&path)
 }
 
 #[cfg(windows)]
@@ -169,19 +159,39 @@ fn agent_runtime() -> &'static tokio::runtime::Runtime {
     })
 }
 
+fn pve_token_from_env() -> Option<String> {
+    std::env::var("PVE_API_TOKEN")
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+fn docker_enabled() -> bool {
+    !matches!(
+        std::env::var("AMUD_DOCKER").ok().as_deref(),
+        Some("0") | Some("false") | Some("no")
+    )
+}
+
 static PVE_API_TOKEN_CACHE: OnceLock<RwLock<String>> = OnceLock::new();
 
 fn get_pve_api_token() -> String {
+    if let Some(env) = pve_token_from_env() {
+        return env;
+    }
     if let Some(lock) = PVE_API_TOKEN_CACHE.get() {
         let val = lock.read().unwrap().clone();
         if !val.is_empty() {
             return val;
         }
     }
-    std::env::var("PVE_API_TOKEN").unwrap_or_default()
+    String::new()
 }
 
 fn update_pve_api_token(token: &str) {
+    if pve_token_from_env().is_some() {
+        return;
+    }
     let lock = PVE_API_TOKEN_CACHE.get_or_init(|| RwLock::new(String::new()));
     let mut w = lock.write().unwrap();
     *w = token.to_string();
@@ -388,6 +398,9 @@ fn network_rates(previous: &NetworkSnapshot, current: &NetworkSnapshot, elapsed:
 // Returns Docker containers with real CPU and memory stats where available.
 #[cfg(unix)]
 fn fetch_docker_containers() -> Vec<LxcContainer> {
+    if !docker_enabled() {
+        return Vec::new();
+    }
     if !std::path::Path::new("/var/run/docker.sock").exists() {
         return Vec::new();
     }
@@ -754,16 +767,25 @@ fn send_action_result(
 fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
     if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
         if let Some(config) = val.get("config") {
-            if let Some(token) = config.get("pve_api_token").and_then(|t| t.as_str()) {
-                println!("Received PVE API Token update from server.");
-                update_pve_api_token(token);
+            if pve_token_from_env().is_none() {
+                if let Some(token) = config.get("pve_api_token").and_then(|t| t.as_str()) {
+                    if !token.is_empty() {
+                        println!("Received PVE API Token update from server.");
+                        update_pve_api_token(token);
+                    }
+                }
             }
         } else if let Some(action) = val.get("action").and_then(|a| a.as_str()) {
             if action == "test_pve" {
-                let token = val.get("id").and_then(|i| i.as_str()).unwrap_or_default();
+                let token = val
+                    .get("id")
+                    .and_then(|i| i.as_str())
+                    .filter(|t| !t.is_empty())
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(get_pve_api_token);
                 println!("Received test_pve action from server.");
 
-                let result = perform_pve_test(token);
+                let result = perform_pve_test(&token);
 
                 let response = serde_json::json!({
                     "test_pve_result": result
@@ -896,6 +918,9 @@ fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
 // Native Docker Engine socket status change poster
 #[cfg(unix)]
 fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<String>) {
+    if !docker_enabled() {
+        return (false, Some("Docker integration disabled (AMUD_DOCKER=0)".to_string()));
+    }
     if !std::path::Path::new("/var/run/docker.sock").exists() {
         return (false, Some("Docker Unix socket missing".to_string()));
     }

@@ -4,11 +4,11 @@ use crate::models::{
 };
 use crate::webhooks::{check_container_alerts, send_webhook_notification};
 use serde::Deserialize;
-use std::fs;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path as FilePath;
 use std::sync::Arc;
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt};
 use tokio::net::TcpListener as TokioTcpListener;
 #[cfg(unix)]
 use tokio::net::UnixListener as TokioUnixListener;
@@ -33,11 +33,19 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
     };
 
     if was_connected != connected {
-        let event_type = if connected { "agent_connected" } else { "agent_disconnected" };
+        let event_type = if connected {
+            "agent_connected"
+        } else {
+            "agent_disconnected"
+        };
 
         let webhooks = {
             let db = state.db.lock().unwrap();
-            let mut stmt = db.prepare("SELECT id, name, url, event_types, is_active FROM webhooks WHERE is_active = 1").unwrap();
+            let mut stmt = db
+                .prepare(
+                    "SELECT id, name, url, event_types, is_active FROM webhooks WHERE is_active = 1",
+                )
+                .unwrap();
             let mut rows = stmt.query([]).unwrap();
             let mut list = Vec::new();
             while let Some(row) = rows.next().unwrap() {
@@ -48,7 +56,13 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
                 let is_active: i32 = row.get(4).unwrap();
 
                 if event_types.split(',').any(|e| e.trim() == event_type) {
-                    list.push(Webhook { id, name, url, event_types, is_active });
+                    list.push(Webhook {
+                        id,
+                        name,
+                        url,
+                        event_types,
+                        is_active,
+                    });
                 }
             }
             list
@@ -78,58 +92,108 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
     }
 }
 
-// Metrics collector listener task
 pub(crate) fn start_agent_listener(state: Arc<AppState>) {
     tokio::spawn(async move {
         #[cfg(unix)]
         {
             let socket_path = std::env::var("AMUD_SOCKET_PATH")
                 .unwrap_or_else(|_| "/opt/amud/run/amud.sock".to_string());
-            run_uds_listener(
-                &socket_path,
-                state.clone(),
-            )
-            .await;
+            run_uds_listener(&socket_path, state.clone()).await;
         }
 
         #[cfg(windows)]
         {
             let addr =
                 std::env::var("AMUD_TCP_ADDR").unwrap_or_else(|_| "127.0.0.1:8050".to_string());
-            run_tcp_listener(
-                &addr,
-                state.clone(),
-            )
-            .await;
+            run_tcp_listener(&addr, state.clone()).await;
         }
     });
 }
 
-
 #[cfg(unix)]
-async fn run_uds_listener(
-    path: &str,
-    state: Arc<AppState>,
-) {
-    let uds_path = if FilePath::new(path)
+fn resolve_uds_path(path: &str) -> Option<String> {
+    let parent_ok = FilePath::new(path)
         .parent()
         .map(|p| p.exists())
-        .unwrap_or(false)
-    {
-        path
+        .unwrap_or(false);
+    if parent_ok {
+        Some(path.to_string())
     } else {
-        "/tmp/amud.sock"
+        eprintln!(
+            "AMUD socket directory missing for {} — create the bind mount path (SEC-029).",
+            path
+        );
+        None
+    }
+}
+
+async fn handle_agent_stream<R, W>(reader: R, mut writer: W, state: Arc<AppState>, label: &str)
+where
+    R: AsyncRead + Unpin + Send + 'static,
+    W: AsyncWrite + Unpin + Send + 'static,
+{
+    handle_agent_connection_change(&state, true);
+
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
+    *state.agent_command_tx.lock().unwrap() = Some(tx.clone());
+
+    tokio::spawn(async move {
+        while let Some(cmd) = rx.recv().await {
+            if writer.write_all(cmd.as_bytes()).await.is_err() {
+                break;
+            }
+            if writer.flush().await.is_err() {
+                break;
+            }
+        }
+    });
+
+    let state_clone = state.clone();
+    let label = label.to_string();
+    tokio::spawn(async move {
+        let mut reader = tokio::io::BufReader::new(reader);
+        let mut line = String::new();
+        let mut authenticated = false;
+
+        while let Ok(n) = reader.read_line(&mut line).await {
+            if n == 0 {
+                break;
+            }
+
+            if !authenticated {
+                if agent_authenticated(&state_clone.agent_secret, &line) {
+                    authenticated = true;
+                    line.clear();
+                    continue;
+                }
+                println!("AMUD-Agent rejected: invalid IPC authentication ({label}).");
+                break;
+            }
+
+            process_agent_line(&state_clone, &tx, &line);
+            line.clear();
+        }
+        println!("AMUD-Agent telemetry client disconnected ({label}).");
+        handle_agent_connection_change(&state_clone, false);
+        *state_clone.agent_command_tx.lock().unwrap() = None;
+    });
+}
+
+#[cfg(unix)]
+async fn run_uds_listener(path: &str, state: Arc<AppState>) {
+    let Some(uds_path) = resolve_uds_path(path) else {
+        return;
     };
 
     println!(
         "Starting agent listener via UNIX Domain Socket at {}",
         uds_path
     );
-    fs::remove_file(uds_path).ok();
+    std::fs::remove_file(&uds_path).ok();
 
-    let listener = match TokioUnixListener::bind(uds_path) {
+    let listener = match TokioUnixListener::bind(&uds_path) {
         Ok(l) => {
-            fs::set_permissions(uds_path, std::fs::Permissions::from_mode(0o660)).ok();
+            std::fs::set_permissions(&uds_path, std::fs::Permissions::from_mode(0o660)).ok();
             l
         }
         Err(e) => {
@@ -141,60 +205,20 @@ async fn run_uds_listener(
     loop {
         if let Ok((stream, _)) = listener.accept().await {
             println!("AMUD-Agent telemetry client UDS stream accepted.");
-            handle_agent_connection_change(&state, true);
-
-            let (reader, mut writer) = stream.into_split();
-            let state_clone = state.clone();
-
-            // Set up communication channel
-            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
-            *state.agent_command_tx.lock().unwrap() = Some(tx.clone());
-
-            // Spawn writer task
-            tokio::spawn(async move {
-                use tokio::io::AsyncWriteExt;
-                while let Some(cmd) = rx.recv().await {
-                    if let Err(e) = writer.write_all(cmd.as_bytes()).await {
-                        eprintln!("Failed to write command to UDS: {}", e);
-                        break;
-                    }
-                    if let Err(e) = writer.flush().await {
-                        eprintln!("Failed to flush command to UDS: {}", e);
-                        break;
-                    }
-                }
-            });
-
-            tokio::spawn(async move {
-                use tokio::io::AsyncBufReadExt;
-                let mut reader = tokio::io::BufReader::new(reader);
-                let mut line = String::new();
-                let mut authenticated = state_clone.agent_secret.is_empty();
-
-                while let Ok(n) = reader.read_line(&mut line).await {
-                    if n == 0 {
-                        break; // EOF
-                    }
-
-                    if !authenticated {
-                        if agent_authenticated(&state_clone.agent_secret, &line) {
-                            authenticated = true;
-                            line.clear();
-                            continue;
-                        }
-                        println!("AMUD-Agent rejected: invalid IPC authentication.");
-                        break;
-                    }
-
-                    process_agent_line(&state_clone, &tx, &line);
-                    line.clear();
-                }
-                println!("AMUD-Agent telemetry client disconnected.");
-                handle_agent_connection_change(&state_clone, false);
-                *state_clone.agent_command_tx.lock().unwrap() = None; // clear command tx
-            });
+            let (reader, writer) = stream.into_split();
+            handle_agent_stream(reader, writer, state.clone(), "UDS").await;
         }
     }
+}
+
+pub(crate) fn pve_config_payload(token: &str) -> serde_json::Value {
+    let configured = !token.trim().is_empty();
+    serde_json::json!({
+        "config": {
+            "pve_api_token_configured": configured,
+            "pve_api_token": if configured { token } else { "" }
+        }
+    })
 }
 
 pub(crate) fn process_agent_line(
@@ -221,11 +245,7 @@ pub(crate) fn process_agent_line(
                 stmt.query_row([], |row| row.get::<_, String>(0))
                     .unwrap_or_default()
             };
-            let config_payload = serde_json::json!({
-                "config": {
-                    "pve_api_token": token
-                }
-            });
+            let config_payload = pve_config_payload(&token);
             if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
                 serialized.push(b'\n');
                 let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());
@@ -250,20 +270,11 @@ pub(crate) fn process_agent_line(
     }
 }
 
-// For fallback or cross-compiles
 #[cfg(not(unix))]
 #[allow(dead_code)]
-async fn run_uds_listener(
-    _path: &str,
-    _state: Arc<AppState>,
-) {
-}
+async fn run_uds_listener(_path: &str, _state: Arc<AppState>) {}
 
-#[allow(dead_code)]
-async fn run_tcp_listener(
-    addr: &str,
-    state: Arc<AppState>,
-) {
+async fn run_tcp_listener(addr: &str, state: Arc<AppState>) {
     println!("Starting agent listener via TCP loopback on {}", addr);
     let listener = match TokioTcpListener::bind(addr).await {
         Ok(l) => l,
@@ -276,58 +287,8 @@ async fn run_tcp_listener(
     loop {
         if let Ok((stream, _)) = listener.accept().await {
             println!("AMUD-Agent telemetry client TCP stream accepted.");
-            handle_agent_connection_change(&state, true);
-
-            let (reader, mut writer) = stream.into_split();
-            let state_clone = state.clone();
-
-            // Set up communication channel
-            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
-            *state.agent_command_tx.lock().unwrap() = Some(tx.clone());
-
-            // Spawn writer task
-            tokio::spawn(async move {
-                use tokio::io::AsyncWriteExt;
-                while let Some(cmd) = rx.recv().await {
-                    if let Err(e) = writer.write_all(cmd.as_bytes()).await {
-                        eprintln!("Failed to write command to TCP: {}", e);
-                        break;
-                    }
-                    if let Err(e) = writer.flush().await {
-                        eprintln!("Failed to flush command to TCP: {}", e);
-                        break;
-                    }
-                }
-            });
-
-            tokio::spawn(async move {
-                use tokio::io::AsyncBufReadExt;
-                let mut reader = tokio::io::BufReader::new(reader);
-                let mut line = String::new();
-                let mut authenticated = state_clone.agent_secret.is_empty();
-
-                while let Ok(n) = reader.read_line(&mut line).await {
-                    if n == 0 {
-                        break; // EOF
-                    }
-
-                    if !authenticated {
-                        if agent_authenticated(&state_clone.agent_secret, &line) {
-                            authenticated = true;
-                            line.clear();
-                            continue;
-                        }
-                        println!("AMUD-Agent rejected: invalid IPC authentication.");
-                        break;
-                    }
-
-                    process_agent_line(&state_clone, &tx, &line);
-                    line.clear();
-                }
-                println!("AMUD-Agent telemetry client disconnected.");
-                handle_agent_connection_change(&state_clone, false);
-                *state_clone.agent_command_tx.lock().unwrap() = None; // clear command tx
-            });
+            let (reader, writer) = stream.into_split();
+            handle_agent_stream(reader, writer, state.clone(), "TCP").await;
         }
     }
 }

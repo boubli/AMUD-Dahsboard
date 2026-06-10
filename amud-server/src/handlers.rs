@@ -1,8 +1,11 @@
+use crate::agent::pve_config_payload;
 use crate::apps::{is_jellyfin_app, is_plex_app};
+use crate::audit::{list_recent_audit, record_audit};
 use crate::auth::{
     clear_failed_logins, csrf_forbidden_response, csrf_token_for_session, expired_session_cookie,
     generate_session_token, get_session, hash_password, login_rate_limited, now_epoch_secs,
-    record_failed_login, revoke_sessions_for_user, session_cookie, validate_csrf, verify_password,
+    rate_limit_response, record_failed_login, require_admin_session, revoke_sessions_for_user,
+    session_cookie, validate_csrf, verify_password, CspNonce,
 };
 use crate::db::{
     load_apps_from_db, refresh_settings_cache, secret_field_placeholder,
@@ -17,13 +20,18 @@ use crate::settings::{
     allowed_setting_keys, sanitize_setting_url, setting_key_allowed, DONATION_LINKS,
     DONATION_MESSAGE, EXTRA_SETTING_KEYS, SECRET_SETTING_KEYS,
 };
-use crate::templates::{escape_html, get_overlay_gradient, normalize_url};
+use crate::security::mask_webhook_url;
+use crate::security::{client_ip, enforce_rate_limit, RateLimitConfig};
+use crate::templates::{
+    apply_theme_placeholders, branding_from_settings, build_root_css, escape_html, normalize_url,
+    BrandingVars,
+};
 use crate::webhooks::send_webhook_notification;
 use axum::{
     body::Body,
     extract::{
         ws::{Message as WsMessage, WebSocket, WebSocketUpgrade},
-        Multipart, Path, State,
+        Extension, Multipart, Path, State,
     },
     http::{header, HeaderMap, StatusCode},
     response::{Html, IntoResponse, Redirect, Response},
@@ -41,8 +49,35 @@ use std::path::Path as FilePath;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
+fn apply_csp_nonce(html: String, nonce: &str) -> String {
+    html.replace("{{csp_nonce}}", nonce)
+}
+
+fn check_api_rate_limit(
+    state: &AppState,
+    headers: &HeaderMap,
+    bucket: &str,
+    max: usize,
+    window_secs: u64,
+) -> Option<Response> {
+    let key = format!("{}:{}", bucket, client_ip(headers));
+    if !enforce_rate_limit(
+        &state.api_rate_limits,
+        &key,
+        RateLimitConfig {
+            max,
+            window: Duration::from_secs(window_secs),
+        },
+    ) {
+        Some(rate_limit_response())
+    } else {
+        None
+    }
+}
+
 // Handlers
 pub async fn dashboard_handler(
+    Extension(csp): Extension<CspNonce>,
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
@@ -51,57 +86,19 @@ pub async fn dashboard_handler(
     // Load Settings from in-memory cache (refreshed on save / startup)
     let settings = state.settings_cache.read().unwrap().clone();
 
-    // Populate default placeholders if missing
-    let app_name = settings
-        .get("app_name")
-        .map(|s| s.as_str())
-        .unwrap_or("AMUD");
-    let tagline = settings
-        .get("tagline")
-        .map(|s| s.as_str())
-        .unwrap_or("Homelab Operations Cockpit");
-    let mut custom_bg_url = settings
-        .get("custom_bg_url")
-        .map(|s| s.as_str())
-        .unwrap_or("/static/wallpaper.png");
-    let sanitized_bg = sanitize_setting_url(custom_bg_url);
-    if !sanitized_bg.is_empty() {
-        custom_bg_url = sanitized_bg.as_str();
-    } else {
-        custom_bg_url = "/static/wallpaper.png";
-    }
-    let app_logo = settings.get("app_logo").map(|s| s.as_str()).unwrap_or("");
-    let accent_color = settings
-        .get("accent_color")
-        .map(|s| s.as_str())
-        .unwrap_or("#cf6427");
-    let glass_blur = settings
-        .get("glass_blur_intensity")
-        .map(|s| s.as_str())
-        .unwrap_or("16");
-    let glass_opacity = settings
-        .get("glass_opacity")
-        .map(|s| s.as_str())
-        .unwrap_or("0.45");
-    let bento_radius = settings
-        .get("bento_radius")
-        .map(|s| s.as_str())
-        .unwrap_or("16");
-    let grid_columns = settings
-        .get("grid_columns")
-        .or_else(|| settings.get("app_grid_columns"))
-        .and_then(|s| s.parse::<usize>().ok())
-        .filter(|cols| (2..=5).contains(cols))
-        .unwrap_or(3);
-
-    let overlay_theme = settings
-        .get("overlay_theme")
-        .map(|s| s.as_str())
-        .unwrap_or("cyber");
-    let custom_overlay_color = settings
-        .get("custom_overlay_color")
-        .map(|s| s.as_str())
-        .unwrap_or("#1a1a2e");
+    let branding = branding_from_settings(&settings);
+    let app_name = branding.app_name.as_str();
+    let tagline = branding.tagline.as_deref().unwrap_or("Homelab Operations Cockpit");
+    let custom_bg_url = branding.custom_bg_url.as_str();
+    let app_logo = branding.app_logo.as_str();
+    let accent_color = branding.accent_color.as_str();
+    let glass_blur = branding.glass_blur.as_str();
+    let glass_opacity = branding.glass_opacity.as_str();
+    let bento_radius = branding.bento_radius.as_str();
+    let overlay_theme = branding.overlay_theme.as_str();
+    let custom_overlay_color = branding.custom_overlay_color.as_str();
+    let grid_columns = branding.grid_columns.as_deref().unwrap_or("3");
+    let grid_columns_n: usize = grid_columns.parse().unwrap_or(3).clamp(2, 5);
     let weather_lat = settings
         .get("weather_latitude")
         .map(|s| s.as_str())
@@ -152,9 +149,9 @@ pub async fn dashboard_handler(
         </div>"#.to_string();
     } else {
         // Group cards into the configured number of dashboard columns.
-        let mut cols = vec![String::new(); grid_columns];
+        let mut cols = vec![String::new(); grid_columns_n];
         for (i, app) in apps.iter().enumerate() {
-            let col_idx = i % grid_columns;
+            let col_idx = i % grid_columns_n;
 
             // Resolve Built-in Brand Logo
             let lowercase_icon = app.icon.to_lowercase();
@@ -357,11 +354,14 @@ pub async fn dashboard_handler(
         format!(
             r#"
             {}
-            <a href="/logout" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; font-weight:600; font-size:0.82rem; text-decoration:none; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); display:inline-flex; align-items:center; gap:0.35rem; background:rgba(255,255,255,0.02);">
-                <i data-lucide="log-out" style="width:0.95rem; height:0.95rem;"></i> Sign Out ({})
-            </a>
+            <form action="/logout" method="POST" style="margin:0; display:inline-flex;">
+                <input type="hidden" name="csrf_token" value="{}">
+                <button type="submit" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; font-weight:600; font-size:0.82rem; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); display:inline-flex; align-items:center; gap:0.35rem; background:rgba(255,255,255,0.02); cursor:pointer;">
+                    <i data-lucide="log-out" style="width:0.95rem; height:0.95rem;"></i> Sign Out ({})
+                </button>
+            </form>
             "#,
-            admin_settings_btn, sess.username
+            admin_settings_btn, csrf_attr, escape_html(&sess.username)
         )
     } else {
         r#"
@@ -502,62 +502,7 @@ pub async fn dashboard_handler(
     }
 
     // Build root_css style overrides
-    let bg_url_style = if custom_bg_url.is_empty() {
-        "".to_string()
-    } else {
-        format!("--brand-bg-image: url('{}');", custom_bg_url)
-    };
-    let logo_url_style = if app_logo.is_empty() {
-        "".to_string()
-    } else {
-        format!("--brand-logo-url: url('{}');", app_logo)
-    };
-
-    let opacity_f: f64 = glass_opacity.parse().unwrap_or(0.45);
-    let accent_glow = if accent_color.starts_with('#') && accent_color.len() == 7 {
-        if let (Ok(r), Ok(g), Ok(b)) = (
-            u8::from_str_radix(&accent_color[1..3], 16),
-            u8::from_str_radix(&accent_color[3..5], 16),
-            u8::from_str_radix(&accent_color[5..7], 16),
-        ) {
-            format!("rgba({}, {}, {}, 0.15)", r, g, b)
-        } else {
-            "rgba(56, 189, 248, 0.15)".to_string()
-        }
-    } else {
-        "rgba(56, 189, 248, 0.15)".to_string()
-    };
-
-    let overlay_gradient = get_overlay_gradient(overlay_theme, Some(custom_overlay_color));
-
-    let root_css = format!(
-        r#"
-            {}
-            {}
-            --brand-title: "{}";
-            --brand-slogan: "{}";
-            --accent-color: {};
-            --accent-glow: {};
-            --glass-blur-intensity: {}px;
-            --glass-opacity: {};
-            --radius-xl: {}px;
-            --grid-cols: {};
-            --bg-card: rgba(15, 20, 25, {});
-            --brand-overlay-gradient: {};
-        "#,
-        bg_url_style,
-        logo_url_style,
-        app_name,
-        tagline,
-        accent_color,
-        accent_glow,
-        glass_blur,
-        glass_opacity,
-        bento_radius,
-        grid_columns,
-        opacity_f,
-        overlay_gradient
-    );
+    let root_css = build_root_css(&branding);
 
     // Load templates
     let index_tmpl = include_str!("../../ui/templates/index.html");
@@ -583,180 +528,45 @@ pub async fn dashboard_handler(
         .replace("<!-- SUPPORT_SECTION -->", &support_html)
         .replace("<!-- AUTH_BUTTONS -->", &auth_buttons)
         .replace("{{username}}", &escape_html(username))
-        .replace(
-            "{{eq_cyber}}",
-            if overlay_theme == "cyber" {
-                "selected"
-            } else {
-                ""
-            },
-        )
-        .replace(
-            "{{eq_aurora}}",
-            if overlay_theme == "aurora" {
-                "selected"
-            } else {
-                ""
-            },
-        )
-        .replace(
-            "{{eq_crimson}}",
-            if overlay_theme == "crimson" {
-                "selected"
-            } else {
-                ""
-            },
-        )
-        .replace(
-            "{{eq_sunset}}",
-            if overlay_theme == "sunset" {
-                "selected"
-            } else {
-                ""
-            },
-        )
-        .replace(
-            "{{eq_obsidian}}",
-            if overlay_theme == "obsidian" {
-                "selected"
-            } else {
-                ""
-            },
-        )
-        .replace(
-            "{{eq_custom}}",
-            if overlay_theme == "custom" {
-                "selected"
-            } else {
-                ""
-            },
-        )
         .replace("{{custom_overlay_color}}", custom_overlay_color)
         .replace("{{weather_latitude}}", weather_lat)
         .replace("{{weather_longitude}}", weather_lon)
         .replace("<!-- CATEGORY_OPTIONS -->", &category_options_html)
         .replace("{{csrf_token}}", &csrf_token)
-        .replace("{{is_admin}}", if is_admin { "true" } else { "false" });
+        .replace(
+            "{{is_admin}}",
+            if is_admin { "true" } else { "false" },
+        );
+    let result = apply_theme_placeholders(result, overlay_theme);
 
-    Html(result)
+    Html(apply_csp_nonce(result, &csp.0))
 }
 
-pub async fn login_page(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    // Load Settings
-    let mut settings = HashMap::new();
-    {
-        let db = state.db.lock().unwrap();
-        let mut stmt = db.prepare("SELECT key, value FROM settings").unwrap();
-        let mut rows = stmt.query([]).unwrap();
-        while let Some(row) = rows.next().unwrap() {
-            let key: String = row.get(0).unwrap();
-            let value: String = row.get(1).unwrap();
-            settings.insert(key, value);
-        }
-    }
-
-    let mut custom_bg_url = settings
-        .get("custom_bg_url")
-        .map(|s| s.as_str())
-        .unwrap_or("/static/wallpaper.png");
-    if custom_bg_url.is_empty()
-        || custom_bg_url
-            == "https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg"
-    {
-        custom_bg_url = "/static/wallpaper.png";
-    }
-    let app_logo = settings.get("app_logo").map(|s| s.as_str()).unwrap_or("");
-    let app_name = settings
-        .get("app_name")
-        .map(|s| s.as_str())
-        .unwrap_or("AMUD");
-    let accent_color = settings
-        .get("accent_color")
-        .map(|s| s.as_str())
-        .unwrap_or("#cf6427");
-    let glass_blur = settings
-        .get("glass_blur_intensity")
-        .map(|s| s.as_str())
-        .unwrap_or("16");
-    let glass_opacity = settings
-        .get("glass_opacity")
-        .map(|s| s.as_str())
-        .unwrap_or("0.45");
-    let bento_radius = settings
-        .get("bento_radius")
-        .map(|s| s.as_str())
-        .unwrap_or("16");
-    let overlay_theme = settings
-        .get("overlay_theme")
-        .map(|s| s.as_str())
-        .unwrap_or("cyber");
-
-    let bg_url_style = if custom_bg_url.is_empty() {
-        "".to_string()
-    } else {
-        format!("--brand-bg-image: url('{}');", custom_bg_url)
-    };
-    let logo_url_style = if app_logo.is_empty() {
-        "".to_string()
-    } else {
-        format!("--brand-logo-url: url('{}');", app_logo)
-    };
-
-    let opacity_f: f64 = glass_opacity.parse().unwrap_or(0.45);
-    let accent_glow = if accent_color.starts_with('#') && accent_color.len() == 7 {
-        if let (Ok(r), Ok(g), Ok(b)) = (
-            u8::from_str_radix(&accent_color[1..3], 16),
-            u8::from_str_radix(&accent_color[3..5], 16),
-            u8::from_str_radix(&accent_color[5..7], 16),
-        ) {
-            format!("rgba({}, {}, {}, 0.15)", r, g, b)
-        } else {
-            "rgba(56, 189, 248, 0.15)".to_string()
-        }
-    } else {
-        "rgba(56, 189, 248, 0.15)".to_string()
-    };
-
-    let custom_overlay_color = settings
-        .get("custom_overlay_color")
-        .map(|s| s.as_str())
-        .unwrap_or("#1a1a2e");
-    let overlay_gradient = get_overlay_gradient(overlay_theme, Some(custom_overlay_color));
-
-    let root_css = format!(
-        r#"
-            {}
-            {}
-            --brand-title: "{}";
-            --accent-color: {};
-            --accent-glow: {};
-            --glass-blur-intensity: {}px;
-            --glass-opacity: {};
-            --radius-xl: {}px;
-            --bg-card: rgba(15, 20, 25, {});
-            --brand-overlay-gradient: {};
-        "#,
-        bg_url_style,
-        logo_url_style,
-        app_name,
-        accent_color,
-        accent_glow,
-        glass_blur,
-        glass_opacity,
-        bento_radius,
-        opacity_f,
-        overlay_gradient
-    );
+pub async fn login_page(
+    Extension(csp): Extension<CspNonce>,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let settings = state.settings_cache.read().unwrap().clone();
+    let branding = branding_from_settings(&settings);
+    let root_css = build_root_css(&BrandingVars {
+        tagline: None,
+        ..branding
+    });
 
     let login_tmpl = include_str!("../../ui/templates/login.html");
     let result = login_tmpl.replace("/* ROOT_CSS */", &root_css);
-    Html(result)
+    Html(apply_csp_nonce(result, &csp.0))
 }
 
 pub async fn login_handler(
+    headers: HeaderMap,
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "login_ip", 30, 300) {
+        return resp;
+    }
+
     let username = form.get("username").cloned().unwrap_or_default().trim().to_string();
     let password = form.get("password").cloned().unwrap_or_default();
 
@@ -799,19 +609,32 @@ pub async fn login_handler(
             .insert(
                 token.clone(),
                 Session {
-                    username,
-                    role,
+                    username: username.clone(),
+                    role: role.clone(),
                     expires_at_epoch: now_epoch_secs() + 86_400,
                     csrf_token,
                 },
             );
 
         let cookie = session_cookie(&token);
+        let must_change = db
+            .query_row(
+                "SELECT value FROM settings WHERE key = 'admin_must_change_password'",
+                [],
+                |row| row.get::<_, String>(0),
+            )
+            .map(|v| v == "1")
+            .unwrap_or(false);
+        let redirect_to = if must_change && role == "Admin" {
+            "/admin/settings"
+        } else {
+            "/"
+        };
 
         Response::builder()
             .status(StatusCode::SEE_OTHER)
             .header(header::SET_COOKIE, cookie)
-            .header(header::LOCATION, "/")
+            .header(header::LOCATION, redirect_to)
             .body(axum::body::Body::empty())
             .unwrap()
     } else {
@@ -826,7 +649,13 @@ pub async fn login_handler(
 pub async fn logout_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
+    form: Option<Form<HashMap<String, String>>>,
 ) -> impl IntoResponse {
+    if let Some(Form(form)) = form {
+        if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+            return csrf_forbidden_response();
+        }
+    }
     if let Some(cookie_header) = headers.get("cookie").and_then(|c| c.to_str().ok()) {
         if let Some(token) = cookie_header
             .split(';')
@@ -903,16 +732,22 @@ pub async fn settings_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return Redirect::to("/admin/settings").into_response();
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "settings", 20, 60) {
+        return resp.into_response();
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session {
+        Some(ref s) if s.role == "Admin" => s.username.clone(),
+        _ => return Redirect::to("/admin/settings").into_response(),
+    };
     if !validate_csrf(&headers, &state.sessions, Some(&form)) {
         return csrf_forbidden_response().into_response();
     }
 
     let db = state.db.lock().unwrap();
     let mut new_token = None;
+    let mut changed_keys = 0usize;
     for (key, val) in form {
         if key == "csrf_token"
             || key == "new_password"
@@ -944,16 +779,23 @@ pub async fn settings_handler(
             params![key, value],
         )
         .ok();
+        changed_keys += 1;
     }
     refresh_settings_cache(&db, &state.settings_cache);
+    if changed_keys > 0 {
+        record_audit(
+            &db,
+            &admin_user,
+            "settings_update",
+            "settings",
+            &format!("{} keys updated", changed_keys),
+            &headers,
+        );
+    }
     drop(db);
 
     if let Some(token) = new_token {
-        let config_payload = serde_json::json!({
-            "config": {
-                "pve_api_token": token
-            }
-        });
+        let config_payload = pve_config_payload(&token);
         if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
             serialized.push(b'\n');
             if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {
@@ -970,38 +812,40 @@ pub async fn test_proxmox_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return Response::builder()
-            .status(StatusCode::FORBIDDEN)
-            .header("Content-Type", "application/json")
-            .body(Body::from(r#"{"error":"Forbidden"}"#))
-            .unwrap();
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return resp;
     }
     if !validate_csrf(&headers, &state.sessions, Some(&form)) {
         return csrf_forbidden_response();
     }
 
-    let mut token = form.get("pve_api_token").cloned().unwrap_or_default();
-    if token.trim().is_empty() {
-        let db = state.db.lock().unwrap();
-        token = db
-            .query_row(
-                "SELECT value FROM settings WHERE key = 'pve_api_token'",
-                [],
-                |row| row.get(0),
+    let form_token = form.get("pve_api_token").cloned().unwrap_or_default();
+    if !form_token.trim().is_empty() {
+        {
+            let db = state.db.lock().unwrap();
+            db.execute(
+                "INSERT INTO settings (key, value) VALUES ('pve_api_token', ?1)
+                 ON CONFLICT(key) DO UPDATE SET value = ?1",
+                params![form_token.trim()],
             )
-            .unwrap_or_default();
+            .ok();
+            refresh_settings_cache(&db, &state.settings_cache);
+        }
+        let config_payload = pve_config_payload(form_token.trim());
+        if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
+            serialized.push(b'\n');
+            if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {
+                let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());
+            }
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
     }
 
     // Clear any previous test response
     *state.pve_test_response.write().unwrap() = None;
 
-    // Send test_pve command to the agent
-    let cmd = serde_json::json!({
-        "action": "test_pve",
-        "id": token
-    });
+    // Agent tests its cached/env token — token is not sent in this command (SEC-015)
+    let cmd = serde_json::json!({ "action": "test_pve" });
 
     let mut success = false;
     let mut error = None;
@@ -1059,6 +903,10 @@ pub async fn credentials_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "credentials", 5, 900) {
+        return resp;
+    }
+
     let session = get_session(&headers, &state.sessions);
     let sess = match session {
         Some(ref s) if s.role == "Admin" => s,
@@ -1166,6 +1014,25 @@ pub async fn credentials_handler(
             params![new_hash, actual_username],
         )
         .ok();
+        db.execute(
+            "INSERT INTO settings (key, value) VALUES ('admin_must_change_password', '0')
+             ON CONFLICT(key) DO UPDATE SET value = '0'",
+            [],
+        )
+        .ok();
+        refresh_settings_cache(&db, &state.settings_cache);
+        record_audit(
+            &db,
+            &actual_username,
+            "credentials_change",
+            &actual_username,
+            if actual_username != old_username {
+                "username and/or password updated"
+            } else {
+                "password updated"
+            },
+            &headers,
+        );
     }
     drop(db);
 
@@ -1182,7 +1049,19 @@ pub async fn credentials_handler(
 }
 
 // Categories CRUD Handlers
-pub async fn list_categories_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+pub async fn list_categories_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
     let db = state.db.lock().unwrap();
     let mut stmt = db
         .prepare(
@@ -1457,7 +1336,15 @@ pub async fn upload_handler(
     State(state): State<Arc<AppState>>,
     mut multipart: Multipart,
 ) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "upload", 10, 60) {
+        return resp;
+    }
+
     let session = get_session(&headers, &state.sessions);
+    let admin_user = session
+        .as_ref()
+        .filter(|s| s.role == "Admin")
+        .map(|s| s.username.clone());
     if !session.map(|s| s.role == "Admin").unwrap_or(false) {
         return Response::builder()
             .status(StatusCode::FORBIDDEN)
@@ -1529,6 +1416,10 @@ pub async fn upload_handler(
             .body(axum::body::Body::from("No image uploaded"))
             .unwrap()
     } else {
+        if let Some(user) = admin_user {
+            let db = state.db.lock().unwrap();
+            record_audit(&db, &user, "upload", "image", &url_path, &headers);
+        }
         Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", "application/json")
@@ -1546,14 +1437,21 @@ pub async fn app_action_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if session.is_none() || session.as_ref().map(|s| s.role.as_str()) != Some("Admin") {
-        return Response::builder()
-            .status(StatusCode::UNAUTHORIZED)
-            .header("Content-Type", "application/json")
-            .body(Body::from(r#"{"error":"Unauthorized"}"#))
-            .unwrap();
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "container_action", 30, 60) {
+        return resp;
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session.as_ref() {
+        Some(s) if s.role == "Admin" => s.username.clone(),
+        _ => {
+            return Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .header("Content-Type", "application/json")
+                .body(Body::from(r#"{"error":"Unauthorized"}"#))
+                .unwrap();
+        }
+    };
     if !validate_csrf(&headers, &state.sessions, Some(&form)) {
         return csrf_forbidden_response();
     }
@@ -1625,6 +1523,18 @@ pub async fn app_action_handler(
             .header("Content-Type", "application/json")
             .body(Body::from(r#"{"error":"Agent not connected"}"#))
             .unwrap();
+    }
+
+    {
+        let db = state.db.lock().unwrap();
+        record_audit(
+            &db,
+            &admin_user,
+            "container_action",
+            &format!("{}:{}", provider, id),
+            &action,
+            &headers,
+        );
     }
 
     let start = Instant::now();
@@ -1728,19 +1638,12 @@ pub async fn list_webhooks_handler(
         let event_types: String = row.get(3).unwrap();
         let is_active: i32 = row.get(4).unwrap();
 
-        let masked_url = if url.len() > 30 {
-            let parsed = reqwest::Url::parse(&url);
-            let host = parsed.as_ref().map(|u| u.host_str().unwrap_or("")).unwrap_or("");
-            format!("{}://{}/...{}", if url.starts_with("https") { "https" } else { "http" }, host, &url[url.len().saturating_sub(8)..])
-        } else {
-            url.clone()
-        };
+        let masked_url = mask_webhook_url(&url);
 
         list.push(serde_json::json!({
             "id": id,
             "name": name,
-            "url": url,
-            "masked_url": masked_url,
+            "url": masked_url,
             "event_types": event_types,
             "is_active": is_active
         }));
@@ -1760,14 +1663,21 @@ pub async fn add_webhook_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return Response::builder()
-            .status(StatusCode::FORBIDDEN)
-            .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
-            .unwrap();
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "webhook", 20, 60) {
+        return resp;
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session {
+        Some(ref s) if s.role == "Admin" => s.username.clone(),
+        _ => {
+            return Response::builder()
+                .status(StatusCode::FORBIDDEN)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+                .unwrap();
+        }
+    };
     if !validate_csrf(&headers, &state.sessions, Some(&form)) {
         return csrf_forbidden_response();
     }
@@ -1798,11 +1708,21 @@ pub async fn add_webhook_handler(
         "INSERT INTO webhooks (name, url, event_types, is_active) VALUES (?, ?, ?, ?)",
         params![name, url, event_types, is_active],
     ) {
-        Ok(_) => Response::builder()
+        Ok(_) => {
+            record_audit(
+                &db,
+                &admin_user,
+                "webhook_create",
+                &name,
+                "webhook added",
+                &headers,
+            );
+            Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", "application/json")
             .body(axum::body::Body::from(r#"{"success":true}"#))
-            .unwrap(),
+            .unwrap()
+        }
         Err(e) => Response::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
             .header("Content-Type", "application/json")
@@ -1816,14 +1736,21 @@ pub async fn edit_webhook_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return Response::builder()
-            .status(StatusCode::FORBIDDEN)
-            .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
-            .unwrap();
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "webhook", 20, 60) {
+        return resp;
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session {
+        Some(ref s) if s.role == "Admin" => s.username.clone(),
+        _ => {
+            return Response::builder()
+                .status(StatusCode::FORBIDDEN)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+                .unwrap();
+        }
+    };
     if !validate_csrf(&headers, &state.sessions, Some(&form)) {
         return csrf_forbidden_response();
     }
@@ -1839,36 +1766,63 @@ pub async fn edit_webhook_handler(
     };
 
     let name = form.get("name").cloned().unwrap_or_default().trim().to_string();
-    let url = form.get("url").cloned().unwrap_or_default().trim().to_string();
+    let url_input = form.get("url").cloned().unwrap_or_default().trim().to_string();
     let event_types = form.get("event_types").cloned().unwrap_or_default().trim().to_string();
     let is_active = form.get("is_active").and_then(|v| v.parse::<i32>().ok()).unwrap_or(1);
 
-    if name.is_empty() || url.is_empty() {
+    if name.is_empty() {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(r#"{"error":"Name and URL are required"}"#))
+            .body(axum::body::Body::from(r#"{"error":"Name is required"}"#))
             .unwrap();
     }
 
-    if !url.starts_with("http://") && !url.starts_with("https://") {
+    let db = state.db.lock().unwrap();
+    let url = if url_input.is_empty() {
+        match db.query_row(
+            "SELECT url FROM webhooks WHERE id = ?",
+            params![id],
+            |row| row.get::<_, String>(0),
+        ) {
+            Ok(existing) => existing,
+            Err(_) => {
+                return Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .header("Content-Type", "application/json")
+                    .body(axum::body::Body::from(r#"{"error":"Webhook not found"}"#))
+                    .unwrap();
+            }
+        }
+    } else if !url_input.starts_with("http://") && !url_input.starts_with("https://") {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .header("Content-Type", "application/json")
             .body(axum::body::Body::from(r#"{"error":"URL must start with http:// or https://"}"#))
             .unwrap();
-    }
+    } else {
+        url_input
+    };
 
-    let db = state.db.lock().unwrap();
     match db.execute(
         "UPDATE webhooks SET name = ?, url = ?, event_types = ?, is_active = ? WHERE id = ?",
         params![name, url, event_types, is_active, id],
     ) {
-        Ok(_) => Response::builder()
+        Ok(_) => {
+            record_audit(
+                &db,
+                &admin_user,
+                "webhook_update",
+                &format!("id:{}", id),
+                &name,
+                &headers,
+            );
+            Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", "application/json")
             .body(axum::body::Body::from(r#"{"success":true}"#))
-            .unwrap(),
+            .unwrap()
+        }
         Err(e) => Response::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
             .header("Content-Type", "application/json")
@@ -1882,14 +1836,21 @@ pub async fn delete_webhook_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return Response::builder()
-            .status(StatusCode::FORBIDDEN)
-            .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
-            .unwrap();
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "webhook", 20, 60) {
+        return resp;
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session {
+        Some(ref s) if s.role == "Admin" => s.username.clone(),
+        _ => {
+            return Response::builder()
+                .status(StatusCode::FORBIDDEN)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+                .unwrap();
+        }
+    };
     if !validate_csrf(&headers, &state.sessions, Some(&form)) {
         return csrf_forbidden_response();
     }
@@ -1898,6 +1859,14 @@ pub async fn delete_webhook_handler(
     if let Ok(id) = id_str.parse::<i64>() {
         let db = state.db.lock().unwrap();
         db.execute("DELETE FROM webhooks WHERE id = ?", params![id]).ok();
+        record_audit(
+            &db,
+            &admin_user,
+            "webhook_delete",
+            &format!("id:{}", id),
+            "webhook removed",
+            &headers,
+        );
     }
 
     Response::builder()
@@ -1912,14 +1881,21 @@ pub async fn test_webhook_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return Response::builder()
-            .status(StatusCode::FORBIDDEN)
-            .header("Content-Type", "application/json")
-            .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
-            .unwrap();
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "webhook_test", 5, 60) {
+        return resp;
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session {
+        Some(ref s) if s.role == "Admin" => s.username.clone(),
+        _ => {
+            return Response::builder()
+                .status(StatusCode::FORBIDDEN)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(r#"{"error":"Forbidden"}"#))
+                .unwrap();
+        }
+    };
     if !validate_csrf(&headers, &state.sessions, Some(&form)) {
         return csrf_forbidden_response();
     }
@@ -1943,6 +1919,17 @@ pub async fn test_webhook_handler(
     };
 
     if let Some((name, url)) = webhook {
+        {
+            let db = state.db.lock().unwrap();
+            record_audit(
+                &db,
+                &admin_user,
+                "webhook_test",
+                &format!("id:{}", id),
+                &name,
+                &headers,
+            );
+        }
         tokio::spawn(async move {
             send_webhook_notification(
                 url,
@@ -2017,10 +2004,15 @@ pub async fn add_user_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<AddUserForm>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return (StatusCode::FORBIDDEN, "Forbidden".to_string());
+    if let Some(_resp) = check_api_rate_limit(&state, &headers, "user_mgmt", 10, 60) {
+        return (StatusCode::TOO_MANY_REQUESTS, "Too many requests".to_string());
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session {
+        Some(ref s) if s.role == "Admin" => s.username.clone(),
+        _ => return (StatusCode::FORBIDDEN, "Forbidden".to_string()),
+    };
     if !validate_csrf(&headers, &state.sessions, None) {
         return (StatusCode::FORBIDDEN, "Forbidden".to_string());
     }
@@ -2035,7 +2027,17 @@ pub async fn add_user_handler(
         "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
         params![form.username.trim(), p_hash, form.role],
     ) {
-        Ok(_) => (StatusCode::OK, "User added".to_string()),
+        Ok(_) => {
+            record_audit(
+                &db,
+                &admin_user,
+                "user_create",
+                form.username.trim(),
+                &form.role,
+                &headers,
+            );
+            (StatusCode::OK, "User added".to_string())
+        }
         Err(_) => (StatusCode::BAD_REQUEST, "Username already exists or invalid.".to_string()),
     }
 }
@@ -2053,32 +2055,50 @@ pub async fn edit_user_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<EditUserForm>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return (StatusCode::FORBIDDEN, "Forbidden".to_string());
+    if let Some(_resp) = check_api_rate_limit(&state, &headers, "user_mgmt", 10, 60) {
+        return (StatusCode::TOO_MANY_REQUESTS, "Too many requests".to_string());
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session {
+        Some(ref s) if s.role == "Admin" => s.username.clone(),
+        _ => return (StatusCode::FORBIDDEN, "Forbidden".to_string()),
+    };
     if !validate_csrf(&headers, &state.sessions, None) {
         return (StatusCode::FORBIDDEN, "Forbidden".to_string());
     }
 
     let db = state.db.lock().unwrap();
-    if let Some(pass) = form.password.filter(|p| !p.trim().is_empty()) {
+    let result = if let Some(pass) = form.password.filter(|p| !p.trim().is_empty()) {
         let p_hash = hash_password(&pass);
         match db.execute(
             "UPDATE users SET username = ?, password_hash = ?, role = ? WHERE id = ?",
             params![form.username.trim(), p_hash, form.role, form.id],
         ) {
-            Ok(_) => (StatusCode::OK, "User updated".to_string()),
-            Err(_) => (StatusCode::BAD_REQUEST, "Update failed.".to_string()),
+            Ok(_) => Ok("password and profile updated"),
+            Err(_) => Err("Update failed."),
         }
     } else {
         match db.execute(
             "UPDATE users SET username = ?, role = ? WHERE id = ?",
             params![form.username.trim(), form.role, form.id],
         ) {
-            Ok(_) => (StatusCode::OK, "User updated".to_string()),
-            Err(_) => (StatusCode::BAD_REQUEST, "Update failed.".to_string()),
+            Ok(_) => Ok("profile updated"),
+            Err(_) => Err("Update failed."),
         }
+    };
+    if let Ok(details) = result {
+        record_audit(
+            &db,
+            &admin_user,
+            "user_update",
+            form.username.trim(),
+            details,
+            &headers,
+        );
+        (StatusCode::OK, "User updated".to_string())
+    } else {
+        (StatusCode::BAD_REQUEST, "Update failed.".to_string())
     }
 }
 
@@ -2092,58 +2112,55 @@ pub async fn delete_user_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<DeleteUserForm>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return (StatusCode::FORBIDDEN, "Forbidden".to_string());
+    if let Some(_resp) = check_api_rate_limit(&state, &headers, "user_mgmt", 10, 60) {
+        return (StatusCode::TOO_MANY_REQUESTS, "Too many requests".to_string());
     }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session {
+        Some(ref s) if s.role == "Admin" => s.username.clone(),
+        _ => return (StatusCode::FORBIDDEN, "Forbidden".to_string()),
+    };
     if !validate_csrf(&headers, &state.sessions, None) {
         return (StatusCode::FORBIDDEN, "Forbidden".to_string());
     }
 
     let db = state.db.lock().unwrap();
     db.execute("DELETE FROM users WHERE id = ?", params![form.id]).ok();
+    record_audit(
+        &db,
+        &admin_user,
+        "user_delete",
+        &format!("id:{}", form.id),
+        "user removed",
+        &headers,
+    );
     (StatusCode::OK, "Deleted".to_string())
 }
 
 pub async fn settings_page_handler(
+    Extension(csp): Extension<CspNonce>,
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if session.as_ref().map(|s| s.role.as_str()) != Some("Admin") {
-        return Html("<h1>Access Denied: Admins Only</h1>".to_string());
-    }
+    let session = match require_admin_session(&headers, &state.sessions) {
+        Ok(s) => s,
+        Err(_resp) => return Html("<h1>Access Denied: Admins Only</h1>".to_string()),
+    };
 
-    let mut settings = HashMap::new();
-    {
-        let db = state.db.lock().unwrap();
-        let mut stmt = db.prepare("SELECT key, value FROM settings").unwrap();
-        let mut rows = stmt.query([]).unwrap();
-        while let Some(row) = rows.next().unwrap() {
-            let key: String = row.get(0).unwrap();
-            let value: String = row.get(1).unwrap();
-            settings.insert(key, value);
-        }
-    }
-
-    let app_name = settings.get("app_name").map(|s| s.as_str()).unwrap_or("AMUD");
-    let tagline = settings.get("tagline").map(|s| s.as_str()).unwrap_or("Homelab Operations Cockpit");
-    let mut custom_bg_url = settings.get("custom_bg_url").map(|s| s.as_str()).unwrap_or("/static/wallpaper.png");
-    if custom_bg_url.is_empty() || custom_bg_url == "https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg" {
-        custom_bg_url = "/static/wallpaper.png";
-    }
-    let app_logo = settings.get("app_logo").map(|s| s.as_str()).unwrap_or("");
-    let accent_color = settings.get("accent_color").map(|s| s.as_str()).unwrap_or("#cf6427");
-    let glass_blur = settings.get("glass_blur_intensity").map(|s| s.as_str()).unwrap_or("16");
-    let glass_opacity = settings.get("glass_opacity").map(|s| s.as_str()).unwrap_or("0.45");
-    let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
-    let grid_columns = settings
-        .get("grid_columns")
-        .or_else(|| settings.get("app_grid_columns"))
-        .map(|s| s.as_str())
-        .unwrap_or("3");
-    let overlay_theme = settings.get("overlay_theme").map(|s| s.as_str()).unwrap_or("cyber");
-    let custom_overlay_color = settings.get("custom_overlay_color").map(|s| s.as_str()).unwrap_or("#1a1a2e");
+    let settings = state.settings_cache.read().unwrap().clone();
+    let branding = branding_from_settings(&settings);
+    let app_name = branding.app_name.as_str();
+    let tagline = branding.tagline.as_deref().unwrap_or("Homelab Operations Cockpit");
+    let custom_bg_url = branding.custom_bg_url.as_str();
+    let app_logo = branding.app_logo.as_str();
+    let accent_color = branding.accent_color.as_str();
+    let glass_blur = branding.glass_blur.as_str();
+    let glass_opacity = branding.glass_opacity.as_str();
+    let bento_radius = branding.bento_radius.as_str();
+    let grid_columns = branding.grid_columns.as_deref().unwrap_or("3");
+    let overlay_theme = branding.overlay_theme.as_str();
+    let custom_overlay_color = branding.custom_overlay_color.as_str();
     let weather_latitude = settings.get("weather_latitude").map(|s| s.as_str()).unwrap_or("");
     let weather_longitude = settings.get("weather_longitude").map(|s| s.as_str()).unwrap_or("");
     let jellyfin_url = settings.get("jellyfin_url").map(|s| s.as_str()).unwrap_or("");
@@ -2162,48 +2179,11 @@ pub async fn settings_page_handler(
         "Paste Plex token",
     );
     let csrf_token = csrf_token_for_session(&headers, &state.sessions);
-
-    let bg_url_style = if custom_bg_url.is_empty() { "".to_string() } else { format!("--brand-bg-image: url('{}');", custom_bg_url) };
-    let logo_url_style = if app_logo.is_empty() { "".to_string() } else { format!("--brand-logo-url: url('{}');", app_logo) };
-    
-    let opacity_f: f64 = glass_opacity.parse().unwrap_or(0.45);
-    let accent_glow = if accent_color.starts_with('#') && accent_color.len() == 7 {
-        if let (Ok(r), Ok(g), Ok(b)) = (
-            u8::from_str_radix(&accent_color[1..3], 16),
-            u8::from_str_radix(&accent_color[3..5], 16),
-            u8::from_str_radix(&accent_color[5..7], 16),
-        ) {
-            format!("rgba({}, {}, {}, 0.15)", r, g, b)
-        } else {
-            "rgba(56, 189, 248, 0.15)".to_string()
-        }
-    } else {
-        "rgba(56, 189, 248, 0.15)".to_string()
-    };
-    
-    let overlay_gradient = get_overlay_gradient(overlay_theme, Some(custom_overlay_color));
-
-    let root_css = format!(
-        r#"
-            {}
-            {}
-            --brand-title: "{}";
-            --brand-slogan: "{}";
-            --accent-color: {};
-            --accent-glow: {};
-            --glass-blur-intensity: {}px;
-            --glass-opacity: {};
-            --radius-xl: {}px;
-            --grid-cols: {};
-            --bg-card: rgba(15, 20, 25, {});
-            --brand-overlay-gradient: {};
-        "#,
-        bg_url_style, logo_url_style, app_name, tagline, accent_color, accent_glow, glass_blur, glass_opacity, bento_radius, grid_columns, opacity_f, overlay_gradient
-    );
+    let root_css = build_root_css(&branding);
 
     let settings_tmpl = include_str!("../../ui/templates/settings.html");
-    let username = session.as_ref().map(|s| s.username.as_str()).unwrap_or("guest");
-    let result = settings_tmpl
+    let username = session.username.as_str();
+    let mut result = settings_tmpl
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", app_name)
         .replace("{{tagline}}", tagline)
@@ -2215,10 +2195,10 @@ pub async fn settings_page_handler(
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
         .replace("{{bento_radius}}", bento_radius)
-        .replace("{{eq_grid_2}}", if grid_columns == "2" { "selected" } else { "" })
-        .replace("{{eq_grid_3}}", if grid_columns == "3" { "selected" } else { "" })
-        .replace("{{eq_grid_4}}", if grid_columns == "4" { "selected" } else { "" })
-        .replace("{{eq_grid_5}}", if grid_columns == "5" { "selected" } else { "" })
+        .replace("{{eq_grid_2}}", crate::templates::theme_eq_attr(grid_columns, "2"))
+        .replace("{{eq_grid_3}}", crate::templates::theme_eq_attr(grid_columns, "3"))
+        .replace("{{eq_grid_4}}", crate::templates::theme_eq_attr(grid_columns, "4"))
+        .replace("{{eq_grid_5}}", crate::templates::theme_eq_attr(grid_columns, "5"))
         .replace("{{weather_latitude}}", weather_latitude)
         .replace("{{weather_longitude}}", weather_longitude)
         .replace("{{pve_api_token_placeholder}}", &escape_html(&pve_api_token_placeholder))
@@ -2228,15 +2208,27 @@ pub async fn settings_page_handler(
         .replace("{{plex_token_placeholder}}", &escape_html(&plex_token_placeholder))
         .replace("{{csrf_token}}", &csrf_token)
         .replace("{{username}}", &escape_html(username))
-        .replace("{{eq_cyber}}", if overlay_theme == "cyber" { "selected" } else { "" })
-        .replace("{{eq_aurora}}", if overlay_theme == "aurora" { "selected" } else { "" })
-        .replace("{{eq_crimson}}", if overlay_theme == "crimson" { "selected" } else { "" })
-        .replace("{{eq_sunset}}", if overlay_theme == "sunset" { "selected" } else { "" })
-        .replace("{{eq_obsidian}}", if overlay_theme == "obsidian" { "selected" } else { "" })
-        .replace("{{eq_custom}}", if overlay_theme == "custom" { "selected" } else { "" })
         .replace("{{custom_overlay_color}}", custom_overlay_color)
         .replace("{{eq_donate_on}}", if donate_enabled == "1" { "selected" } else { "" })
         .replace("{{eq_donate_off}}", if donate_enabled != "1" { "selected" } else { "" });
+    let result = apply_theme_placeholders(result, overlay_theme);
 
-    Html(result)
+    Html(apply_csp_nonce(result, &csp.0))
+}
+
+pub async fn list_audit_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return resp;
+    }
+
+    let db = state.db.lock().unwrap();
+    let entries = list_recent_audit(&db, 200);
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(Body::from(serde_json::to_string(&entries).unwrap_or_else(|_| "[]".to_string())))
+        .unwrap()
 }

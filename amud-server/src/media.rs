@@ -59,12 +59,13 @@ pub(crate) async fn poll_jellyfin(client: &reqwest::Client, base_url: &str, api_
         return default_media_streams().remove("jellyfin").unwrap();
     }
 
-    let url = format!(
-        "{}/Sessions?api_key={}",
-        base_url.trim_end_matches('/'),
-        api_key
-    );
-    let resp = match client.get(url).send().await {
+    let url = format!("{}/Sessions", base_url.trim_end_matches('/'));
+    let resp = match client
+        .get(url)
+        .header("X-Emby-Token", api_key)
+        .send()
+        .await
+    {
         Ok(resp) => resp,
         Err(e) => {
             return MediaStream {

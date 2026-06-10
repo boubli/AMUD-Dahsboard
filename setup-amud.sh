@@ -279,6 +279,8 @@ AMUD-Dashboard (LXC OS: Debian 12 - Native Service)
 ==============================================================
   Local IP Address: http://__IP__
   Access UI / API:   http://__IP__:8000 (Port 8000)
+  First login:       user admin — password printed once in
+                     journalctl -u amud-server (bootstrap only)
 ==============================================================
 EOF
 )

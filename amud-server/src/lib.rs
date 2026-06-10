@@ -1,16 +1,18 @@
 pub mod agent;
 pub mod apps;
+pub mod audit;
 pub mod auth;
 pub mod db;
 pub mod handlers;
 pub mod media;
 pub mod models;
+pub mod security;
 pub mod settings;
 pub mod templates;
 pub mod webhooks;
 
 use agent::start_agent_listener;
-use auth::{hash_password, resolve_agent_secret, security_headers, start_session_cleanup};
+use auth::{generate_bootstrap_password, hash_password, resolve_agent_secret, security_headers, start_session_cleanup};
 use db::refresh_settings_cache;
 use handlers::*;
 use media::start_media_poller;
@@ -92,6 +94,20 @@ conn.execute(
 )
 .unwrap();
 
+conn.execute(
+    "CREATE TABLE IF NOT EXISTS audit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        username TEXT NOT NULL,
+        action TEXT NOT NULL,
+        target TEXT NOT NULL,
+        details TEXT NOT NULL DEFAULT '',
+        client_ip TEXT NOT NULL DEFAULT ''
+    );",
+    [],
+)
+.unwrap();
+
 // Seed default categories if empty
 {
     let mut stmt_cats = conn.prepare("SELECT COUNT(*) FROM categories").unwrap();
@@ -133,19 +149,26 @@ conn.execute(
     let mut stmt_users = conn.prepare("SELECT COUNT(*) FROM users").unwrap();
     let user_count: i64 = stmt_users.query_row([], |r| r.get(0)).unwrap();
     if user_count == 0 {
-        println!("Seeding security roles...");
-        let admin_hash = hash_password("admin");
-        let guest_hash = hash_password("guest");
+        let bootstrap_password = generate_bootstrap_password();
+        println!("Seeding initial admin account...");
+        let admin_hash = hash_password(&bootstrap_password);
         conn.execute(
             "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
             params!["admin", admin_hash, "Admin"],
         )
         .ok();
         conn.execute(
-            "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-            params!["guest", guest_hash, "Guest"],
+            "INSERT INTO settings (key, value) VALUES ('admin_must_change_password', '1')
+             ON CONFLICT(key) DO UPDATE SET value = '1'",
+            [],
         )
         .ok();
+        eprintln!("================================================================");
+        eprintln!(" AMUD INITIAL ADMIN CREDENTIALS (save this now — shown once)");
+        eprintln!("   Username: admin");
+        eprintln!("   Password: {}", bootstrap_password);
+        eprintln!(" You will be prompted to change this password after first login.");
+        eprintln!("================================================================");
     }
 }
 
@@ -183,6 +206,7 @@ let state = Arc::new(AppState {
     settings_cache: settings_cache.clone(),
     alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
     login_attempts: Arc::new(Mutex::new(HashMap::new())),
+    api_rate_limits: Arc::new(Mutex::new(HashMap::new())),
     agent_secret: Arc::new(agent_secret),
 });
 
@@ -197,7 +221,7 @@ start_status_poller(shared_db.clone(), app_statuses);
 let app = Router::new()
     .route("/", get(dashboard_handler))
     .route("/login", get(login_page).post(login_handler))
-    .route("/logout", get(logout_handler))
+    .route("/logout", get(logout_handler).post(logout_handler))
     .route("/ws", get(ws_handler))
     .route("/admin/settings", get(settings_page_handler).post(settings_handler))
     .route("/admin/proxmox/test", post(test_proxmox_handler))
@@ -223,6 +247,7 @@ let app = Router::new()
     .route("/api/webhooks/edit", post(edit_webhook_handler))
     .route("/api/webhooks/delete", post(delete_webhook_handler))
     .route("/api/webhooks/test", post(test_webhook_handler))
+    .route("/api/audit", get(list_audit_handler))
     .route(
         "/api/users",
         get(list_users_handler).post(add_user_handler),

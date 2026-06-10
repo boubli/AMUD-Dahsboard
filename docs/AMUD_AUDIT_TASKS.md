@@ -329,10 +329,121 @@ Each task is self-contained. Pick by `priority` field. Reference IDs link to aud
 
 ### TASK-020 — Default credentials / first-login flow
 - **priority:** P1
+- **status:** done
 - **refs:** SEC-002, SEC-033
-- **files:** `main.rs`, `setup-amud.sh`, docs
-- **work:** Random admin password at install OR forced change flag in DB.
+- **files:** `lib.rs`, `auth.rs`, `handlers.rs`, `setup-amud.sh`
+- **work:** Random bootstrap admin password printed once to stderr; `admin_must_change_password=1` in DB; login redirects Admin to `/admin/settings`; flag cleared on password change; guest account no longer seeded.
 - **acceptance:** Fresh install cannot login with known `admin`/`admin` without reset step.
+
+---
+
+### TASK-021 — SSRF guard on app health poller
+- **priority:** P1
+- **status:** done
+- **refs:** SEC-007
+- **files:** `security.rs`, `webhooks.rs`
+- **work:** Block localhost/link-local/metadata IPs; no redirects; allow RFC1918 homelab targets.
+- **acceptance:** Poller skips blocked URLs; unit tests pass.
+
+---
+
+### TASK-022 — Auth on GET `/api/categories`
+- **priority:** P2
+- **status:** done
+- **refs:** SEC-021
+- **files:** `handlers.rs`
+- **work:** Require Admin session on `list_categories_handler`.
+- **acceptance:** Unauthenticated GET returns 403.
+
+---
+
+### TASK-023 — Mask webhook URLs in API + edit flow
+- **priority:** P2
+- **status:** done
+- **refs:** SEC-022
+- **files:** `security.rs`, `handlers.rs`, `settings.html`
+- **work:** List API returns masked URL only; edit accepts blank URL to keep existing.
+- **acceptance:** Full webhook secret never returned to browser.
+
+---
+
+### TASK-024 — Jellyfin API key via header
+- **priority:** P2
+- **status:** done
+- **refs:** SEC-027
+- **files:** `media.rs`
+- **work:** Use `X-Emby-Token` header instead of `?api_key=` query string.
+- **acceptance:** Jellyfin Sessions request has no key in URL.
+
+---
+
+### TASK-025 — POST logout with CSRF
+- **priority:** P2
+- **status:** done
+- **refs:** SEC-028
+- **files:** `lib.rs`, `handlers.rs`
+- **work:** Sign-out is POST form with CSRF token; GET logout kept for backwards compatibility.
+- **acceptance:** Logout button no longer uses GET link alone.
+
+---
+
+### TASK-026 — Extended API rate limits
+- **priority:** P2
+- **status:** done
+- **refs:** SEC-025
+- **files:** `security.rs`, `handlers.rs`, `models.rs`
+- **work:** Per-IP buckets for login, settings, credentials, uploads, container actions, webhooks, user mgmt.
+- **acceptance:** Burst abuse returns HTTP 429.
+
+---
+
+### TASK-027 — Admin audit log
+- **priority:** P2
+- **status:** done
+- **refs:** SEC-014
+- **files:** `audit.rs`, `lib.rs`, `handlers.rs`
+- **work:** SQLite `audit_log` table; records container actions, settings, credentials, uploads, webhooks, users; `GET /api/audit` for Admin.
+- **acceptance:** Destructive admin actions leave a DB + stderr trail.
+
+---
+
+### TASK-028 — CSP nonce hardening
+- **priority:** P2
+- **status:** done (partial)
+- **refs:** SEC-018
+- **files:** `auth.rs`, `handlers.rs`, `ui/templates/*.html`
+- **work:** Per-request nonce on inline scripts; removed `'unsafe-inline'` from script-src; `'unsafe-eval'` kept for Alpine.js.
+- **acceptance:** Inline scripts require matching nonce; external vendor scripts unchanged.
+
+---
+
+### TASK-029 — HSTS when TLS enabled
+- **priority:** P3
+- **status:** done
+- **refs:** SEC-019, SEC-034
+- **files:** `auth.rs`
+- **work:** `Strict-Transport-Security` header when `AMUD_SECURE_COOKIES=1` (same flag as Secure session cookies).
+- **acceptance:** HTTPS deployments get HSTS; plain HTTP unchanged.
+
+---
+
+### TASK-030 — OPT dedup (templates, agent listener, admin JS)
+- **priority:** P2
+- **status:** done
+- **refs:** OPT-009, OPT-012–013, OPT-016, OPT-017–018 (partial)
+- **files:** `templates.rs`, `agent.rs`, `auth.rs`, `handlers.rs`, `ui/static/admin.js`, templates
+- **work:** Shared `BrandingVars`/`build_root_css`/`apply_theme_placeholders`; unified UDS/TCP stream handler; `admin.js` for CSRF/upload; `require_admin_session`; settings/login use `settings_cache`.
+- **acceptance:** No duplicate root CSS blocks; one agent connection path; shared admin JS loaded once.
+
+---
+
+### TASK-031 — Docker socket + PVE token IPC hardening
+- **priority:** P1
+- **status:** done (partial)
+- **refs:** SEC-008, SEC-015, SEC-029
+- **files:** `amud-agent/src/main.rs`, `amud-server/src/agent.rs`, `handlers.rs`, `docker-compose.yml`
+- **work:** `AMUD_DOCKER=0` disables Docker API; removed `/tmp/amud.sock` fallback; PVE env token takes precedence over IPC; `test_pve` no longer sends token in command; `pve_config_payload` helper; empty-secret auth bypass removed.
+- **acceptance:** Agent with `PVE_API_TOKEN` env ignores IPC token pushes; Docker optional via env.
 
 ---
 
@@ -340,10 +451,10 @@ Each task is self-contained. Pick by `priority` field. Reference IDs link to aud
 
 | Agent type | Suggested tasks |
 |------------|-----------------|
-| Security-focused | TASK-001, 004, 005, 006, 007, 008, 009, 017, 018, 019, 020 |
-| Bugfix / traceability | TASK-002, 003, 011, 012, 016 |
-| Cleanup | TASK-010 |
-| Architecture / perf | TASK-013, 014, 015 |
+| Security-focused | Remaining SEC-008/015 (architectural), full CSP without unsafe-eval |
+| Bugfix / traceability | Remaining TRACE-* gaps |
+| Cleanup | OPT dedup (listeners, theme builders, admin JS) |
+| Architecture / perf | Remaining OPT-* medium items |
 
 ---
 
@@ -351,12 +462,14 @@ Each task is self-contained. Pick by `priority` field. Reference IDs link to aud
 
 | Route | Auth today | Should be |
 |-------|------------|-----------|
-| `GET/POST /api/users/*` | **None** | Admin |
-| `GET /ws` | None | Session or public-reduced |
-| `GET /uploads/*` | None | Session or signed URL |
-| `GET /api/categories` | None | Session (optional) |
-| `POST /admin/settings` | Admin (silent fail) | Admin + CSRF + error feedback |
-| All other admin POST | Admin | Admin + CSRF |
+| `GET/POST /api/users/*` | Admin + CSRF | Admin |
+| `GET /ws` | Session (reduced if guest) | Session |
+| `GET /uploads/*` | Session | Session |
+| `GET /api/categories` | Admin | Admin |
+| `POST /logout` | CSRF (POST) / open (GET legacy) | POST + CSRF |
+| `POST /admin/settings` | Admin + CSRF | Admin + CSRF + error feedback |
+| `GET /api/audit` | Admin | Admin |
+| All other admin POST | Admin + CSRF | Admin + CSRF |
 
 ---
 
