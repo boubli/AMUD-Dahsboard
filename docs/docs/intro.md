@@ -39,3 +39,9 @@ AMUD uses a decoupled client-server architecture:
 ### 4. Admin vs. Guest Profiles
 * **The Legacy Problem:** Sharing your landing page with family members usually means exposing your sensitive admin tools.
 * **The AMUD Solution:** Built-in cryptographic user roles. Admins see the full cluster control array; guests or family profiles get a clean, read-only dashboard layout out of the box.
+
+## Next Steps
+
+- [Dashboard Configuration](./configuration.md) — appearance, grid columns, Jellyfin/Plex integrations
+- [Security](./security.md) — Argon2id passwords, sessions, rate limits, HTTPS cookies
+- [Troubleshooting](./troubleshooting.md) — upgrades, IPC auth, PWA cache, CLI recovery

@@ -39,3 +39,21 @@ test_result.md
 # Rust
 target/
 *.log
+
+# AMUD runtime secrets (local dev)
+.env
+.env.*
+!.env.example
+
+# Cursor / agent session artifacts
+.cursor/
+agent-tools/
+
+# Local-only planning notes
+*.local.md
+docs/NEXT_SESSION*.md
+
+# OS / editor backups
+Desktop.ini
+*.swp
+*~

@@ -213,3 +213,21 @@ If the dashboard displays `0%` metrics for the host CPU/RAM/Disk, the agent and 
    echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> /etc/pve/lxc/101.conf
    pct reboot 101
    ```
+
+---
+
+## 8. Upgrading AMUD
+
+Run the updater on the **Proxmox host** as root:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/update-amud.sh)
+```
+
+After the upgrade completes:
+
+1. **Hard-refresh the browser** (`Ctrl+Shift+R`) or [clear the PWA cache](../troubleshooting#pwa--browser-cache-issues) so new JavaScript and the service worker load.
+2. **Verify agent IPC** if host metrics show `0%` — see [AMUD Agent Secret](../troubleshooting#amud-agent-secret--ipc-authentication).
+3. Review [Security](../security.md) if you serve AMUD over HTTPS (`AMUD_SECURE_COOKIES=1`).
+
+For a broken or partial update, see [Update or Release Recovery](../troubleshooting#update-or-release-recovery).

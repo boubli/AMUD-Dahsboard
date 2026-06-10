@@ -116,3 +116,15 @@ http://<YOUR_SERVER_IP>:8000/
 - **Username**: `admin`
 - **Password**: `admin` (or `password` depending on version configuration)
 :::
+
+---
+
+## 6. Upgrading
+
+In Portainer, open the AMUD stack and choose **Pull and redeploy** (or update the stack compose/image tag and redeploy).
+
+After upgrading:
+
+1. **Hard-refresh the browser** (`Ctrl+Shift+R`) or [clear the PWA cache](../troubleshooting#pwa--browser-cache-issues).
+2. Set `AMUD_SECURE_COOKIES=1` when HTTPS is terminated at your reverse proxy — see [Security](../security.md).
+3. Verify both dashboard and agent containers are running in the stack.

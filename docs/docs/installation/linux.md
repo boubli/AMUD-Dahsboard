@@ -219,3 +219,18 @@ http://<YOUR_SERVER_IP>:8000/
 - **Username**: `admin`
 - **Password**: `password` (or `admin` depending on configuration)
 :::
+
+---
+
+## 8. Upgrading
+
+Download the latest release binaries and UI bundle, then replace `/opt/amud/bin/amud-server`, `/usr/local/bin/amud-agent`, and `/opt/amud/ui` per [Download Release Assets](#3-download-release-assets). Restart both services:
+
+```bash
+sudo systemctl restart amud-server amud-agent
+```
+
+After upgrading:
+
+1. **Hard-refresh the browser** (`Ctrl+Shift+R`) or [clear the PWA cache](../troubleshooting#pwa--browser-cache-issues).
+2. Set `AMUD_SECURE_COOKIES=1` when serving over HTTPS — see [Security](../security.md).

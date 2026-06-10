@@ -204,3 +204,20 @@ http://<YOUR_SERVER_IP>:8000/
 - **Username**: `admin`
 - **Password**: `admin` (or `password` depending on version setup)
 :::
+
+---
+
+## 7. Upgrading
+
+Pull the latest image and recreate the stack:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+After upgrading:
+
+1. **Hard-refresh the browser** (`Ctrl+Shift+R`) or [clear the PWA cache](../troubleshooting#pwa--browser-cache-issues).
+2. If you use HTTPS via a reverse proxy, set `AMUD_SECURE_COOKIES=1` on the dashboard container — see [Security](../security.md).
+3. Confirm both `amud-dashboard` and `amud-agent` containers are healthy: `docker compose ps`.
