@@ -1,0 +1,23 @@
+<svg version="1.1" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="linearGradient15">
+   <stop stop-color="#6db665" offset="0"/>
+   <stop stop-color="#0583d7" offset="1"/>
+  </linearGradient>
+  <linearGradient id="linearGradient16" x1="205" x2="205" y1="5" y2="20" gradientUnits="userSpaceOnUse" xlink:href="#linearGradient15"/>
+  <linearGradient id="linearGradient17" x1="205" x2="205" y1="5" y2="20" gradientTransform="translate(-400,-130)" gradientUnits="userSpaceOnUse" xlink:href="#linearGradient15"/>
+ </defs>
+ <g>
+  <g transform="translate(-136,-1)">
+   <rect x="140" y="5" width="120" height="120" ry="10" fill="url(#linearGradient16)"/>
+   <path transform="scale(-1)" d="m-145-65c1.8239 0 3.5308-0.48383 5-1.3301v-48.67c0-5.54-4.46-10-10-10h-100c-5.54 0-10 4.46-10 10v50z" fill="url(#linearGradient17)"/>
+  </g>
+  <g transform="translate(-1)">
+   <path d="m22 20c-5.54 0-10 4.46-10 10v50c0 5.54 4.46 10 10 10h86c5.54 0 10-4.46 10-10v-50c0-5.54-4.46-10-10-10zm5 10h76c2.77 0 5 2.23 5 5v40c0 2.77-2.23 5-5 5h-76c-2.77 0-5-2.23-5-5v-40c0-2.77 2.23-5 5-5z" fill="#fff"/>
+   <rect x="30" y="100" width="70" height="10" ry="5" fill="#fff"/>
+   <rect x="35" y="50" width="10" height="10" ry="5" fill="#26e600"/>
+   <rect x="60" y="50" width="10" height="10" ry="5" fill="#ffe600"/>
+   <rect x="85" y="50" width="10" height="10" ry="5" fill="#26e600"/>
+  </g>
+ </g>
+</svg>

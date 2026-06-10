@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="128"
+   height="128"
+   viewBox="0 0 128 128"
+   sodipodi:docname="satipword.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showgrid="true"
+     inkscape:zoom="7.35"
+     inkscape:cx="67.55102"
+     inkscape:cy="76.802721"
+     inkscape:window-width="2560"
+     inkscape:window-height="1013"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g10">
+    <inkscape:grid
+       id="grid1"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="true" />
+  </sodipodi:namedview>
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g1">
+    <g
+       id="g10"
+       transform="translate(4.3069888,30.5)"
+       style="fill:#ffffff">
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#1a1a1a"
+         d="M 7,24 C 3.5666667,24 1.0801203,26.567769 0.88085938,29.357422 0.78122893,30.752248 1.2591832,32.255654 2.3671875,33.337891 3.4751918,34.420127 5.1111111,35 7,35 h 9 c 0.716667,0 1.000218,0.201043 1.275391,0.53125 C 17.550563,35.861457 17.75,36.416667 17.75,37 c 0,0.583333 -0.199437,1.138543 -0.474609,1.46875 C 17.000218,38.798957 16.716667,39 16,39 H 2 a 2,2 0 0 0 -2,2 2,2 0 0 0 2,2 h 14 c 1.783333,0 3.374782,-0.798957 4.349609,-1.96875 C 21.324437,39.861457 21.75,38.416667 21.75,37 21.75,35.583333 21.324437,34.138543 20.349609,32.96875 19.374782,31.798957 17.783333,31 16,31 H 7 C 5.8888889,31 5.3998082,30.704873 5.1640625,30.474609 4.9283168,30.244346 4.8437711,29.997752 4.8691406,29.642578 4.9198797,28.932231 5.4333333,28 7,28 h 13 a 2,2 0 0 0 2,-2 2,2 0 0 0 -2,-2 z"
+         id="path2" />
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#1a1a1a"
+         d="m 34.941406,24.234375 a 2,2 0 0 0 -2.707031,0.824219 l -8,15 a 2,2 0 0 0 0.824219,2.707031 2,2 0 0 0 2.707031,-0.824219 l 8,-15 a 2,2 0 0 0 -0.824219,-2.707031 z"
+         id="path3" />
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#1a1a1a"
+         d="m 33.058594,24.234375 a 2,2 0 0 0 -0.824219,2.707031 l 8,15 a 2,2 0 0 0 2.707031,0.824219 2,2 0 0 0 0.824219,-2.707031 l -8,-15 a 2,2 0 0 0 -2.707031,-0.824219 z"
+         id="path4" />
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#1a1a1a"
+         d="m 42,24 a 2,2 0 0 0 -2,2 2,2 0 0 0 2,2 h 20 a 2,2 0 0 0 2,-2 2,2 0 0 0 -2,-2 z"
+         id="path5" />
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#1a1a1a"
+         d="m 52.132812,24.003906 a 2,2 0 0 0 -2.128906,1.863281 l -1,15 a 2,2 0 0 0 1.863281,2.128907 2,2 0 0 0 2.128907,-1.863282 l 1,-15 a 2,2 0 0 0 -1.863282,-2.128906 z"
+         id="path6" />
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#1a1a1a"
+         d="m 74.316406,24.494141 a 2,2 0 0 0 -2.822265,0.189453 2,2 0 0 0 0.189453,2.822265 l 6.292968,5.50586 -7.304687,6.49414 a 2,2 0 0 0 -0.166016,2.822266 2,2 0 0 0 2.822266,0.166016 l 9,-8 a 2.0002,2.0002 0 0 0 -0.01172,-3 z"
+         id="path7" />
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#1a1a1a"
+         d="m 92.132812,24.003906 a 2,2 0 0 0 -2.128906,1.863281 l -1,15 a 2,2 0 0 0 1.863281,2.128907 2,2 0 0 0 2.128907,-1.863282 l 1,-15 a 2,2 0 0 0 -1.863282,-2.128906 z"
+         id="path8" />
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#1a1a1a"
+         d="m 100,24 a 2,2 0 0 0 -2,2 2,2 0 0 0 2,2 h 14 c 0.71667,0 0.85881,0.156418 1.05664,0.427734 0.19784,0.271317 0.36147,0.820079 0.32227,1.447266 -0.0392,0.627187 -0.28491,1.281506 -0.57227,1.654297 C 114.51928,31.902088 114.33333,32 114,32 h -14 a 2.0002,2.0002 0 0 0 -1.980469,1.716797 l -1,7 a 2,2 0 0 0 1.697266,2.263672 2,2 0 0 0 2.263673,-1.697266 L 101.73438,36 H 114 c 1.66667,0 3.10572,-0.902088 3.97461,-2.029297 0.86889,-1.127209 1.31068,-2.47289 1.39648,-3.845703 0.0858,-1.372813 -0.18807,-2.824051 -1.08398,-4.052734 C 117.39119,24.843582 115.78333,24 114,24 Z"
+         id="path9" />
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,30 @@
+<svg width="128" height="128" version="1.1" viewBox="-.03 0 128 128" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <style>.cls-1 {
+        fill: #fff;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        fill: url(#Unbenannter_Verlauf);
+      }
+
+      .cls-3 {
+        fill: url(#Unbenannter_Verlauf_2);
+      }</style>
+  <style class="darkreader darkreader--sync" media="screen"/>
+  <linearGradient id="Unbenannter_Verlauf" x1="-152.21" x2="-152.21" y1="439.77" y2="438.78" data-name="Unbenannter Verlauf" gradientTransform="matrix(78.033 0 0 -104.02 11920 45755)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#a0509a" style="--darkreader-inline-stopcolor:#80407b" data-darkreader-inline-stopcolor="" offset="0"/>
+   <stop stop-color="#2a91ff" style="--darkreader-inline-stopcolor:#0056b3" data-darkreader-inline-stopcolor="" offset="1"/>
+  </linearGradient>
+  <linearGradient id="Unbenannter_Verlauf_2" x1="-152.21" x2="-152.21" y1="439.77" y2="438.77" data-name="Unbenannter Verlauf 2" gradientTransform="matrix(78.033 0 0 -104.02 11962 45755)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#009652" style="--darkreader-inline-stopcolor:#007842" data-darkreader-inline-stopcolor="" offset="0"/>
+   <stop stop-color="aqua" style="--darkreader-inline-stopcolor:#00cccc" data-darkreader-inline-stopcolor="" offset="1"/>
+  </linearGradient>
+ </defs>
+ <path class="cls-2" d="m79.876 83.78c1.3847-2.8286 2.0877-5.955 2.109-9.1027v-42.004c0-3.5092-0.91603-7.0184-2.7694-10.272-2.6416-4.5514-6.7104-7.6777-11.44-9.2303q-0.12782 0-0.25564-0.12761h-0.12782c-2.0451-0.68058-4.1754-1.0209-6.3057-1.0421-3.5576 0-7.1152 0.91452-10.396 2.7223l-36.322 20.672c-3.6854 2.0843-6.4548 5.0618-8.159 8.4434v0.12761c0 0.12761-0.12782 0.12761-0.12782 0.25522-1.3847 2.8286-2.0877 5.955-2.109 9.1027v42.004c0 3.5092 0.91603 7.0184 2.7694 10.272 2.6416 4.5514 6.7104 7.6778 11.44 9.2303q0.12782 0 0.25564 0.12761h0.12782c1.9812 0.65931 4.218 1.0421 6.3057 1.0421 3.5576 0 7.1152-0.91452 10.396-2.7223l36.322-20.672c3.6854-2.0843 6.4548-5.0618 8.159-8.4434 0-0.12761 0.12782-0.25522 0.12782-0.38282z" fill="url(#Unbenannter_Verlauf)"/>
+ <path class="cls-3" d="m123.97 74.677v-42.004c0-3.5092-0.91603-7.0184-2.7694-10.272-2.6416-4.5514-6.7104-7.6777-11.44-9.2303q-0.12782 0-0.25564-0.12761c-2.109-0.65931-4.3458-1.0421-6.4548-1.0421-3.5576 0-7.0939 0.91452-10.396 2.7223l-36.322 20.672c-3.6854 2.0843-6.4548 5.0618-8.159 8.4434 0 0.25522-0.12782 0.25522-0.12782 0.38282-1.3847 2.8286-2.0877 5.955-2.109 9.1027v42.004c0 3.5092 0.91603 7.0184 2.7694 10.272 2.6416 4.5514 6.7104 7.6778 11.44 9.2303q0.12782 0 0.25564 0.12761c2.109 0.65931 4.3458 1.0421 6.4548 1.0421 3.5576 0 7.1152-0.91452 10.396-2.7223l36.322-20.672c3.6854-2.0843 6.4548-5.0618 8.159-8.4434 0-0.12761 0-0.25522 0.12782-0.38282 1.3847-2.8286 2.0877-5.955 2.109-9.1027z" fill="url(#Unbenannter_Verlauf_2)" stroke-width="2.1286"/>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="container-a" x1="4.119%" x2="102%" y1="0%" y2="101%">
+      <stop offset="0%" stop-color="#CCE2ED"/>
+      <stop offset="51.506%" stop-color="#FFF"/>
+      <stop offset="100%" stop-color="#ADC0CE"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <rect width="100" height="100" fill="url(#container-a)" fill-rule="nonzero" rx="20"/>
+    <g transform="translate(12.406 24.337)">
+      <polygon fill="#74B3F7" points="56.5 13.415 56.5 17.315 74.938 23.867 74.938 7.019"/>
+      <polygon fill="#74B3F7" points="19.156 13.415 19.156 17.289 .563 23.867 .563 7.019"/>
+      <polygon fill="#E3C0F2" points="19.156 34.632 .563 28.097 .563 23.735 19.156 17.159"/>
+      <polygon fill="#CB6DE2" points="19.156 38.231 .563 44.928 .563 28.08 19.156 34.571"/>
+      <polygon fill="#E3C0F2" points="56.5 34.633 74.938 28.097 74.938 23.735 56.5 17.315"/>
+      <polygon fill="#CB6DE2" points="56.5 38.376 74.938 44.928 74.938 28.08 56.5 34.633"/>
+      <polygon fill="#1E7DD3" points=".563 7.019 19.113 .154 37.75 6.863 19.156 13.415"/>
+      <polygon fill="#1E7DD3" points="37.75 6.863 56.456 .154 74.938 7.019 56.5 13.415"/>
+      <polygon fill="#BA3FC4" points=".563 44.928 19.22 51.48 37.75 44.928 19.156 38.222"/>
+      <polygon fill="#BA3FC4" points="37.75 44.928 56.564 51.48 74.938 44.928 56.5 38.222"/>
+      <polygon fill="#891335" points="56.5 38.222 37.75 31.669 19.156 38.222 37.75 45.084"/>
+      <polygon fill="#1643C1" points="56.5 13.415 37.75 6.707 19.156 13.415 37.75 20.279"/>
+    </g>
+  </g>
+</svg>

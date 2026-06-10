@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 102.4 102.4">
+	<defs>
+		<linearGradient id="G1" x1="18.7261" y1="18.7261" x2="83.6739" y2="83.6739" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#fdfdfe"/>
+			<stop offset="1" stop-color="#d0daf8"/>
+		</linearGradient>
+		<linearGradient id="G2" x1="22.1202" y1="22.1202" x2="80.2798" y2="80.2798" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#eef1fc"/>
+			<stop offset="1" stop-color="#4971e4"/>
+		</linearGradient>
+	</defs>
+	<circle cx="51.2" cy="51.2" r="51.2"/>
+	<circle cx="51.2" cy="51.2" r="45.925" fill="url(#G1)"/>
+	<circle cx="51.2" cy="51.2" r="41.125" fill="url(#G2)"/>
+	<path fill="none" stroke="#000" stroke-width="7.8" d="m33.825,44.85v-7.575c0-9.5959,7.7791-17.375,17.375-17.375s17.375,7.7791,17.375,17.375v7.575"/>
+	<path fill="none" stroke="#000" stroke-width="6.2" d="m26.175,49.5h50.05m-50.05,24.125h50.05m-50.05-16.0833h21.55m-21.55,8.0417h21.55m7.75-8.0417h20.75m-20.75,8.0417h20.75"/>
+</svg>

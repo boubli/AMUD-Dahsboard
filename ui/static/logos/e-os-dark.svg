@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 48 48.000001"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="eos-.svg"
+   width="48"
+   height="48"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="12.08"
+     inkscape:cx="20.612583"
+     inkscape:cy="20.653974"
+     inkscape:window-width="2560"
+     inkscape:window-height="1013"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">e-os</title>
+  <path
+     d="m 23.067555,20.288434 a 3.89985,3.89985 0 0 0 -2.75744,2.75794 l -0.0038,-0.001 a 3.81076,3.81076 0 0 0 1.00116,3.78 l -5.5e-4,5.4e-4 a 3.902,3.902 0 0 0 2.7594,1.14454 h 16.66 a 3.91473,3.91473 0 0 0 3.91389,-3.90143 20.62318,20.62318 0 0 0 -25.92536,-20.0249996 h -6e-5 a 20.64751,20.64751 0 0 0 5.44586,40.6046796 3.9148039,3.9148039 0 1 0 0.08374,-7.82916 q -0.07425,-8.2e-4 -0.14837,0.0012 a 12.79511,12.79511 0 0 1 -9.09912,-3.68488 l -6e-5,6e-5 a 12.8108,12.8108 0 1 1 18.11592,-18.11592 l -6e-5,6e-5 a 12.84865,12.84865 0 0 1 3.08624,5.1203 h -12.12164 a 3.87743,3.87743 0 0 0 -1.01007,0.14667"
+     id="path1"
+     style="fill:#f6f5f4" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>e-os</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

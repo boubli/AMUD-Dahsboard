@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="40.596607mm"
+   height="41.731415mm"
+   viewBox="0 0 40.596608 41.731415"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="openuem.svg"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="4.5015049"
+     inkscape:cx="76.752111"
+     inkscape:cy="86.415546"
+     inkscape:window-width="1920"
+     inkscape:window-height="921"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-79.727011,-90.321114)">
+    <path
+       id="path1"
+       style="fill:#8fcc8f;stroke-width:0.234584"
+       d="M 120.27064,111.18682 A 20.271814,20.865707 0 0 1 99.998825,132.05253 20.271814,20.865707 0 0 1 79.727011,111.18682 20.271814,20.865707 0 0 1 99.998825,90.321114 20.271814,20.865707 0 0 1 120.27064,111.18682 Z" />
+    <path
+       d="M 108.81459,116.77121 V 96.728323 h -7.24396 v 20.042887 h 1.87667 l -2.81501,2.66488 -2.815013,-2.66488 h 1.876675 V 96.728323 h -7.243965 v 20.042887 q 0,3.56568 2.327077,6.11796 2.289543,2.51475 5.855226,2.51475 3.56568,0 5.85523,-2.51475 2.32707,-2.55228 2.32707,-6.11796 z"
+       id="text1"
+       style="font-size:37.5335px;font-family:Direction;-inkscape-font-specification:'Direction, Normal';fill:#007500;stroke-width:0.234584"
+       transform="scale(0.99345789,1.0065852)"
+       aria-label="U" />
+  </g>
+</svg>

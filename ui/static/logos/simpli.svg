@@ -1,0 +1,15 @@
+<svg version="1.1" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="linearGradient7" x1="174" x2="345.75" y1="183.68" y2="183.68" gradientTransform="matrix(.99538 0 0 .99411 1.1962 .376)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#d55667" offset="0"/>
+   <stop stop-color="#810c65" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="matrix(.52646 0 0 .52646 -71.811 -36.329)">
+  <g stroke-linecap="round" stroke-linejoin="round">
+   <path d="m316.36 88.022c-1.6404-0.07715-3.2378 0.03757-4.7412 0.3376l-137.7 27.479c-19.982 3.9877-29.924 21.925-29.924 31.248v63.109c0 16.488 13.347 29.761 29.924 29.761h0.46745l56.984-104.47 110.17-1.8995v-15.467c0-19.732-13.7-29.558-25.183-30.098z" fill="#d55667" stroke-width="8.0133"/>
+   <path d="m341.62 133.59-91.245 106.37h-75.789v22.738c0 22.795 17.879 32.51 29.894 30.084l137.57-27.776c19.963-4.031 29.894-22.166 29.894-31.59v-69.742c0-16.667-13.333-30.084-29.894-30.084z" fill="#810c65" stroke-width="8.0527"/>
+   <rect x="174.39" y="133.59" width="167.22" height="106.37" fill="url(#linearGradient7)" stroke-width="21.582"/>
+  </g>
+ </g>
+</svg>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Sodipodi ("http://www.sodipodi.com/") -->
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" id="svg888" sodipodi:version="0.31" width="600" height="600" sodipodi:docname="gnustep-logo.svg" version="1.1" inkscape:version="0.48.3.1 r9886">
+  <metadata id="metadata10">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs id="defs890"/>
+  <sodipodi:namedview id="base" showgrid="false" inkscape:zoom="1.3666667" inkscape:cx="300" inkscape:cy="300" inkscape:window-width="1110" inkscape:window-height="999" inkscape:window-x="66" inkscape:window-y="52" inkscape:window-maximized="0" inkscape:current-layer="svg888"/>
+  <path style="font-size:12px;fill-rule:evenodd;stroke-width:1pt" d="M 298.65625,49.999996 C 161.40808,49.999996 50,161.37552 50,298.62499 c 0,63.21343 23.65869,120.92593 62.5625,164.8125 l 102.59375,-0.5625 0.46875,-166.96875 166.5,0 0.90625,-164.68749 99.59375,0.25 C 437.13239,81.437336 371.55407,49.999996 298.65625,49.999996 z M 482.625,131.46875 c 40.15917,44.16586 64.65625,102.80469 64.65625,167.15624 0,137.24504 -111.37572,248.65626 -248.625,248.65626 -74.0333,0 -140.53204,-32.44655 -186.09375,-83.84376 L 51.375,463.78124 52.28125,550 550,549.53125 l -1.8125,-417.875 -65.5625,-0.1875 z" id="path148" inkscape:connector-curvature="0"/>
+</svg>

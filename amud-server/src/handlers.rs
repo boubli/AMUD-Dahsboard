@@ -659,7 +659,7 @@ pub async fn login_handler(
         // even when no stored hash exists.
         let _ = hash_password(&password);
         record_failed_login(&state.login_attempts, &username);
-        Redirect::to("/login").into_response()
+        Redirect::to("/login?error=1").into_response()
     }
 }
 
@@ -700,33 +700,45 @@ pub async fn ws_handler(
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
     let is_guest = session.is_none();
-    if is_guest {
-        let public = {
-            let db = state.db.lock().unwrap();
-            telemetry_public_enabled(&db)
-        };
-        if !public {
-            return Response::builder()
-                .status(StatusCode::UNAUTHORIZED)
-                .body(Body::from("WebSocket requires authentication"))
-                .unwrap();
-        }
-    }
-    ws.on_upgrade(move |socket| handle_ws_session(socket, state, is_guest))
+    let public = {
+        let db = state.db.lock().unwrap();
+        telemetry_public_enabled(&db)
+    };
+    ws.on_upgrade(move |socket| handle_ws_session(socket, state, is_guest, public))
 }
 
-async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>, is_guest: bool) {
+async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>, is_guest: bool, public: bool) {
     let rx_stream = state.latest_telemetry.clone();
 
     loop {
         // Stream telemetry packet every 3 seconds
         let system_metrics = if is_guest {
-            crate::models::AgentTelemetry::default()
+            let actual = rx_stream.read().unwrap().clone();
+            let mut metrics = if public {
+                actual.clone()
+            } else {
+                crate::models::AgentTelemetry::default()
+            };
+            // For guests, only send container run states for badges
+            metrics.lxc_containers = actual.lxc_containers.into_iter().map(|mut c| {
+                c.cpu = None;
+                c.mem = None;
+                c.maxmem = None;
+                c.disk = None;
+                c.maxdisk = None;
+                c.uptime = None;
+                c
+            }).collect();
+            metrics
         } else {
             rx_stream.read().unwrap().clone()
         };
         let network = if is_guest {
-            crate::models::NetworkTelemetry::default()
+            if public {
+                system_metrics.network.clone().unwrap_or_default()
+            } else {
+                crate::models::NetworkTelemetry::default()
+            }
         } else {
             system_metrics.network.clone().unwrap_or_default()
         };

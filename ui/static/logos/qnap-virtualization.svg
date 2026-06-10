@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="vm-a" x1="4.119%" x2="102%" y1="0%" y2="101%">
+      <stop offset="0%" stop-color="#CCE2ED"/>
+      <stop offset="51.506%" stop-color="#FFF"/>
+      <stop offset="100%" stop-color="#ADC0CE"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <rect width="100" height="100" fill="url(#vm-a)" fill-rule="nonzero" rx="20"/>
+    <polygon fill="#2E603B" points="83.775 32.448 83.775 69.265 49.922 53.041"/>
+    <polygon fill="#C79BEA" points="16.381 32.448 16.537 69.265 50.234 53.041"/>
+    <polygon fill="#49AFD6" points="50.078 53.014 83.775 32.448 50.078 32.457 50.078 53.014"/>
+    <polygon fill="#B6F2FC" points="50.078 53.014 16.307 32.457 50.078 32.457"/>
+    <polyline fill="#49D9E8" points="50.078 13.37 50.078 32.448 83.775 32.448 50.078 13.37"/>
+    <polyline fill="#5DBDF9" points="50.078 13.37 50.078 32.457 16.307 32.457 50.078 13.37"/>
+    <polyline fill="#05510C" points="50.078 86.877 50.078 69.257 83.849 69.257 50.078 86.877"/>
+    <polyline fill="#B495D8" points="50.078 86.877 50.078 69.257 16.307 69.257 50.078 86.877"/>
+    <polygon fill="#013302" points="50.078 53.105 83.775 69.265 50.078 69.265"/>
+    <polygon fill="#9863BA" points="50.078 53.105 16.537 69.265 50.078 69.265"/>
+  </g>
+</svg>

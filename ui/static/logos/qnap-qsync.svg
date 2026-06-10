@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="640px" height="640px" viewBox="0 0 640 640" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 55.2 (78181) - https://sketchapp.com -->
+    <title>App Logo/qsync</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="-2.78880309%" x2="41.1488929%" y2="97.4166395%" id="linearGradient-1">
+            <stop stop-color="#006FE5" offset="0%"></stop>
+            <stop stop-color="#0440A1" offset="100%"></stop>
+        </linearGradient>
+        <filter x="-4.4%" y="-4.4%" width="108.8%" height="108.8%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="0" dy="7" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="1" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.160609149 0" type="matrix" in="shadowBlurOuter1" result="shadowMatrixOuter1"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+        <linearGradient x1="3.58787934%" y1="70.216683%" x2="100%" y2="70.216683%" id="linearGradient-3">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#D8F0FF" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="5.6288163%" y1="59.4342206%" x2="82.2193029%" y2="38.8218453%" id="linearGradient-4">
+            <stop stop-color="#97BFFF" offset="0%"></stop>
+            <stop stop-color="#1C75E9" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="27.5292569%" x2="100%" y2="27.5292569%" id="linearGradient-5">
+            <stop stop-color="#E2FFF9" offset="0%"></stop>
+            <stop stop-color="#FEFFFF" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="76.3179563%" y1="36.7312463%" x2="22.4090608%" y2="61.7410835%" id="linearGradient-6">
+            <stop stop-color="#84FAEA" offset="0%"></stop>
+            <stop stop-color="#1DABA3" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="App-Logo/qsync" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group" fill="url(#linearGradient-1)">
+            <path d="M128,0 C57.3082353,0 0,57.3082353 0,128 L0,128 L0,512.009412 C0,582.691765 57.3082353,640 128,640 L128,640 L512,640 C582.691765,640 640,582.691765 640,512.009412 L640,512.009412 L640,128 C640,57.3082353 582.691765,0 512,0 L512,0 L128,0 Z" id="Clip-2"></path>
+        </g>
+        <g id="App-Logo/element/color" transform="translate(120.000000, 120.000000)">
+            <g id="Group-12" filter="url(#filter-2)">
+                <g id="Group-3" transform="translate(0.000000, 0.225059)">
+                    <path d="M351.708979,69.8847281 C315.008741,27.5329551 260.700903,0.719716312 200.112779,0.719716312 C89.6120665,0.719716312 -0.000285035629,89.9083688 -0.000285035629,199.887565 L16.4757245,199.887565 L70.263848,199.887565 C70.263848,129.971726 128.330356,70.6525768 200.111829,70.6525768 C241.306128,70.6525768 278.025368,89.7551773 301.815392,119.542411 L270.729406,150.482364 L383.644371,150.482364 L383.644371,38.100331 L351.708979,69.8847281 Z" id="Fill-1" fill="url(#linearGradient-3)"></path>
+                    <path d="M301.785938,119.505721 C268.066223,76.8522931 223.669074,44.4655319 166.399715,44.4238843 C82.7446081,44.3624586 11.7783373,115.136927 -0.000285035629,199.887754 L16.4757245,199.887754 L70.2647981,199.887754 C70.2647981,198.996974 70.2742993,198.109031 70.2923515,197.223924 C71.744133,128.486336 129.217767,70.6792435 200.064323,70.652766 L200.111829,70.652766 C241.289026,70.652766 277.995914,89.7392908 301.785938,119.505721 L301.785938,119.505721 Z" id="Fill-4" fill="url(#linearGradient-4)"></path>
+                </g>
+                <path d="M47.9339667,330.115083 C84.6332542,372.46591 138.942043,399.280095 199.530166,399.280095 C310.030879,399.280095 399.64228,310.090496 399.64228,200.1113 L383.167221,200.1113 L329.379097,200.1113 C329.379097,270.028085 271.312589,329.347234 199.530166,329.347234 C158.336817,329.347234 121.617577,310.244634 97.8275534,280.456454 L128.914489,249.517447 L15.9985748,249.517447 L15.9985748,361.898534 L47.9339667,330.115083 Z" id="Fill-7" fill="url(#linearGradient-5)"></path>
+                <path d="M97.8565321,280.493712 C131.577197,323.147139 175.974347,355.533901 233.243705,355.575548 C316.897862,355.636974 387.864133,284.862506 399.642755,200.111678 L383.167696,200.111678 L329.378622,200.111678 C329.378622,201.002459 329.369121,201.890402 329.351069,202.776454 C327.899287,271.513097 270.425653,329.321135 199.578147,329.346667 L199.530641,329.346667 C158.353444,329.346667 121.647506,310.261087 97.8565321,280.493712 L97.8565321,280.493712 Z" id="Fill-10" fill="url(#linearGradient-6)"></path>
+            </g>
+        </g>
+    </g>
+</svg>

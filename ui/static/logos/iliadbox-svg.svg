@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="131.13939mm"
+   height="130.35179mm"
+   viewBox="0 0 131.13939 130.35179"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   sodipodi:docname="iliadbox-final.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.1426897"
+     inkscape:cx="419.18641"
+     inkscape:cy="533.8282"
+     inkscape:window-width="2000"
+     inkscape:window-height="1063"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer6">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="131.13939"
+       height="130.35179"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-39.422915,-83.34375)">
+    <g
+       inkscape:groupmode="layer"
+       id="layer6"
+       inkscape:label="White Circle"
+       style="display:inline"
+       transform="matrix(0.26458333,0,0,0.26458333,-53.910537,58.927403)">
+      <ellipse
+         style="fill:#ffffff;fill-rule:evenodd;stroke-width:1.05397"
+         id="path10"
+         cx="600.57886"
+         cy="338.61633"
+         rx="247.82249"
+         ry="246.33408"
+         inkscape:export-filename="iliadbox-final.svg"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
+    </g>
+    <g
+       inkscape:groupmode="layer"
+       id="layer7"
+       inkscape:label="Black Control Box"
+       style="display:inline"
+       transform="matrix(0.26458333,0,0,0.26458333,-53.910537,58.927403)">
+      <rect
+         style="display:inline;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.17192;stroke-opacity:1"
+         id="rect1"
+         width="246.47038"
+         height="76.790146"
+         x="561.65753"
+         y="299.69501"
+         ry="36.945206" />
+    </g>
+    <g
+       inkscape:groupmode="layer"
+       id="layer8"
+       inkscape:label="iliad font"
+       style="display:inline"
+       transform="matrix(0.26458333,0,0,0.26458333,-53.910537,58.927403)">
+      <g
+         id="g9"
+         style="display:inline"
+         inkscape:label="D"
+         transform="matrix(1,0,0,-1.0029722,37.126329,683.55123)">
+        <ellipse
+           style="display:inline;fill:#ffffff;fill-rule:evenodd"
+           id="ellipse8"
+           cx="653.91541"
+           cy="340.87012"
+           rx="17.168488"
+           ry="17.234266"
+           inkscape:label="A - Circle Outline" />
+        <ellipse
+           style="display:inline;fill:#000000;fill-rule:evenodd;stroke-width:1.0614"
+           id="ellipse9"
+           cx="653.84967"
+           cy="340.87012"
+           rx="11.314097"
+           ry="11.708776" />
+        <rect
+           style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:1.03416;stroke-opacity:1"
+           id="rect9"
+           width="4.742353"
+           height="27.107388"
+           x="665.81488"
+           y="340.27505"
+           inkscape:label="L" />
+      </g>
+      <g
+         id="g8"
+         style="display:inline"
+         inkscape:label="A">
+        <ellipse
+           style="display:inline;fill:#ffffff;fill-rule:evenodd"
+           id="path7"
+           cx="653.91541"
+           cy="340.87012"
+           rx="17.168488"
+           ry="17.234266"
+           inkscape:label="A - Circle Outline" />
+        <ellipse
+           style="display:inline;fill:#000000;fill-rule:evenodd;stroke-width:1.0614"
+           id="path8"
+           cx="653.84967"
+           cy="340.87012"
+           rx="11.314097"
+           ry="11.708776" />
+        <rect
+           style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:0.862605;stroke-opacity:1"
+           id="rect8"
+           width="4.9139071"
+           height="18.201351"
+           x="665.72913"
+           y="340.18927"
+           inkscape:label="L" />
+      </g>
+      <g
+         id="g6"
+         transform="matrix(1,0,0,1.024733,23.417552,-8.5888613)"
+         inkscape:label="I"
+         style="display:inline">
+        <rect
+           style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:1.17192;stroke-opacity:1"
+           id="rect6"
+           width="4.9992714"
+           height="33.021355"
+           x="604.64648"
+           y="324.29364" />
+        <ellipse
+           style="fill:#ffffff;fill-rule:evenodd"
+           id="ellipse6"
+           cx="607.14612"
+           cy="318.89969"
+           rx="3.4205413"
+           ry="3.5521007" />
+      </g>
+      <rect
+         style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:1.30541;stroke-opacity:1"
+         id="rect7"
+         width="4.8657756"
+         height="42.097008"
+         x="616.29041"
+         y="315.28281"
+         inkscape:label="L" />
+      <g
+         id="g5"
+         inkscape:label="I"
+         style="display:inline"
+         transform="matrix(1,0,0,1.0154582,0,-5.5324874)">
+        <rect
+           style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:1.17192;stroke-opacity:1"
+           id="rect5"
+           width="4.9992714"
+           height="33.021355"
+           x="604.64648"
+           y="324.29364" />
+        <ellipse
+           style="fill:#ffffff;fill-rule:evenodd"
+           id="path5"
+           cx="607.14612"
+           cy="318.89969"
+           rx="3.4205413"
+           ry="3.5521007" />
+      </g>
+    </g>
+    <g
+       inkscape:groupmode="layer"
+       id="layer9"
+       inkscape:label="control pad"
+       style="display:inline;fill:#000000;stroke:#ffffff;stroke-opacity:1"
+       transform="matrix(0.26458333,0,0,0.26458333,-53.910537,58.927403)">
+      <ellipse
+         style="display:inline;fill:#1a1a1a;fill-rule:evenodd;stroke-width:1.24652"
+         id="path3"
+         cx="767.78003"
+         cy="337.58115"
+         rx="33.555916"
+         ry="32.240322"
+         inkscape:label="Circle" />
+    </g>
+    <g
+       inkscape:groupmode="layer"
+       id="layer2"
+       inkscape:label="Arrows"
+       style="display:inline"
+       transform="matrix(0.26458333,0,0,0.26458333,-53.910537,58.927403)">
+      <path
+         d="m 957.06515,260.80729 7.91466,-16.87465 h 1.86666 l 8.736,16.87465 h -2.912 l -6.71999,-13.40265 -5.97333,13.40265 z"
+         id="text10-9-5"
+         style="font-size:37.3333px;white-space:pre;fill:#ffffff;stroke:#ffffff;stroke-width:1.17192"
+         inkscape:label="West Arrow"
+         transform="matrix(0,0.63345357,0.39448947,0,645.8845,-274.38247)"
+         aria-label="^&#10;" />
+      <path
+         d="m 957.06515,260.80729 7.91466,-16.87465 h 1.86666 l 8.736,16.87465 h -2.912 l -6.71999,-13.40265 -5.97333,13.40265 z"
+         id="text10-9"
+         style="font-size:37.3333px;white-space:pre;fill:#ffffff;stroke:#ffffff;stroke-width:1.17192"
+         inkscape:label="East Arrow"
+         transform="matrix(0,0.63345357,-0.39448947,0,892.23481,-274.2721)"
+         aria-label="^&#10;" />
+      <path
+         d="m 957.06515,260.80729 7.91466,-16.87465 h 1.86666 l 8.736,16.87465 h -2.912 l -6.71999,-13.40265 -5.97333,13.40265 z"
+         id="text10-9-3"
+         style="font-size:37.3333px;white-space:pre;fill:#ffffff;stroke:#ffffff;stroke-width:1.17192"
+         inkscape:label="South Arrow"
+         transform="matrix(-0.63345357,0,0,-0.39448947,1381.1847,461.46908)"
+         aria-label="^&#10;" />
+      <path
+         d="m 957.06515,260.80729 7.91466,-16.87465 h 1.86666 l 8.736,16.87465 h -2.912 l -6.71999,-13.40265 -5.97333,13.40265 z"
+         id="text10"
+         style="font-size:37.3333px;white-space:pre;fill:#ffffff;stroke:#ffffff;stroke-width:1.17192"
+         inkscape:label="North Arrow"
+         transform="matrix(0.63345357,0,0,0.39448947,157.78143,215.82157)"
+         aria-label="^&#10;" />
+    </g>
+  </g>
+</svg>

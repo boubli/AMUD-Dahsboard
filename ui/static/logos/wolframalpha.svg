@@ -1,0 +1,27 @@
+<svg version="1.1" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+ <title>Wolframalpha</title>
+ <desc>Created with Sketch.</desc>
+ <g transform="translate(5.5,5)" fill-rule="evenodd">
+  <polyline points="37 24.87 29.13 26.55 29.93 34.37 22.56 31.21 18.5 38 14.44 31.21 7.07 34.37 7.87 26.55 0 24.87 5.36 19 0 13.13 7.87 11.45 7.07 3.63 14.44 6.79 18.5 0 22.56 6.79 29.93 3.63 29.13 11.46 37 13.13 31.64 19" fill="#f16850"/>
+  <polyline points="18.5 11.86 14.44 6.79 7.07 3.63 11.46 9.41" fill="#fd694f"/>
+  <polyline points="7.87 11.45 0 13.13 5.36 19 11.66 16.71" fill="#ff3413"/>
+  <polyline points="11.46 9.41 7.07 3.63 7.87 11.45 11.66 16.71" fill="#dc1d23"/>
+  <polyline points="22.56 6.79 18.5 0 14.44 6.79 18.5 11.86" fill="#ff9281"/>
+  <polyline points="31.64 19 37 13.13 29.13 11.45 25.34 16.71" fill="#ff8b79"/>
+  <polyline points="25.34 16.71 29.13 11.45 29.94 3.63 25.54 9.41" fill="#fd694f"/>
+  <polyline points="25.54 9.41 29.94 3.63 22.56 6.79 18.5 11.86" fill="#ef5240"/>
+  <polyline points="29.9 22.5 37 24.87 31.64 19 25.34 16.71" fill="#ff482c"/>
+  <polyline points="11.66 16.71 5.36 19 0 24.87 7.1 22.5" fill="#ec2101"/>
+  <polyline points="18.5 30.59 18.5 38 22.56 31.21 22.73 24.56" fill="#d21c22"/>
+  <polyline points="29.9 22.5 22.73 24.56 29.13 26.55 37 24.87" fill="#c90901"/>
+  <polyline points="22.56 31.21 29.93 34.37 29.13 26.55 22.73 24.56" fill="#ec2101"/>
+  <polyline points="7.1 22.5 0 24.87 7.87 26.54 14.27 24.56" fill="#b6171e"/>
+  <polyline points="14.27 24.56 14.44 31.21 18.5 38 18.5 30.59" fill="#b4151b"/>
+  <polyline points="7.87 26.54 7.07 34.37 14.44 31.21 14.27 24.56" fill="#d21c22"/>
+  <polyline points="25.34 16.71 25.54 9.41 18.5 11.86 18.5 18.96" fill="#e63320"/>
+  <polyline points="18.5 11.86 11.46 9.41 11.66 16.71 18.5 18.96" fill="#ff4527"/>
+  <polyline points="14.27 24.56 18.5 30.59 22.73 24.56 18.5 18.96" fill="#ff9281"/>
+  <polyline points="18.5 18.96 22.73 24.56 29.9 22.5 25.34 16.71" fill="#fd684d"/>
+  <polyline points="11.66 16.71 7.1 22.5 14.27 24.56 18.5 18.96" fill="#fd745c"/>
+ </g>
+</svg>

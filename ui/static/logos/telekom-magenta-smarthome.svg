@@ -1,0 +1,13 @@
+<svg version="1.1" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="linearGradient3" x1="105" x2="105" y1="5" y2="235" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#fe329b" offset="0"/>
+   <stop stop-color="#e20074" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g stroke-linecap="round" stroke-linejoin="round">
+  <rect x="5" y="5" width="230" height="230" rx="20" fill="url(#linearGradient3)"/>
+  <path d="m120 59.791-70 70.209v60c0 10 5 15 15 15h110c10 0 15-5 15-15v-60zm-25 50.209c5.5228 0 10 4.4772 10 10s-4.4772 10-10 10c-5.5228 0-10-4.4772-10-10s4.4772-10 10-10zm40 5h10c5.54 0 10 0 10 5s-4.46 5-10 5h-10c-5.54 0-10 0-10-5s4.46-5 10-5zm15.803 26.268c0.34972 1e-3 0.69774 0.0487 1.0352 0.14062 2.131 0.57873 3.39 2.7749 2.8125 4.9062-8.1624 30.107-41.071 41.962-63.312 28.418-1.8876-1.149-2.4858-3.611-1.3359-5.498 1.149-1.8876 3.611-2.4858 5.498-1.3359 17.445 10.623 44.541 1.732 51.43-23.678 0.47386-1.7475 2.0624-2.9588 3.873-2.9531z" fill="#fff"/>
+  <path d="m30 140 90-90 90 90c5 5 15-5 10-10l-100-95-100 95c-5 5 5 15 10 10z" fill="#fff"/>
+ </g>
+</svg>

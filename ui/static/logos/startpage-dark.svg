@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="128"
+   height="128"
+   viewBox="0 0 128 128"
+   fill="none"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="search-icon-dark.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showgrid="true"
+     inkscape:zoom="4.61"
+     inkscape:cx="69.414317"
+     inkscape:cy="43.709328"
+     inkscape:window-width="2560"
+     inkscape:window-height="1013"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2">
+    <inkscape:grid
+       id="grid3"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="true" />
+  </sodipodi:namedview>
+  <circle
+     cx="64"
+     cy="64"
+     fill="#f2f3ff"
+     id="circle1"
+     style="stroke-width:1.36364"
+     r="60" />
+  <defs
+     id="defs2">
+    <clipPath
+       id="clip0_14_2917">
+      <rect
+         width="47"
+         height="52.222198"
+         fill="#ffffff"
+         transform="translate(20,18)"
+         id="rect2"
+         x="0"
+         y="0" />
+    </clipPath>
+  </defs>
+  <g
+     id="g10"
+     transform="matrix(1.5384864,0,0,1.5384864,-2.923511,-3.6927542)">
+    <path
+       id="path10"
+       style="opacity:1;fill:#202c46;fill-opacity:1;stroke-width:8.00277;stroke-linecap:round;stroke-linejoin:round"
+       d="m 57.822266,39.59375 c -2.730306,0.08714 -5.467633,0.186484 -8.210938,0.306641 a 11,11 0 0 0 0.0059,-0.03125 A 11,11 0 0 1 39,48 11,11 0 0 1 28.861328,41.265625 c -2.719813,0.250696 -5.441297,0.535201 -8.158203,0.857422 A 19,19 0 0 0 39,56 a 19,19 0 0 0 9.060547,-2.326172 19,19 0 0 1 -0.357422,0.216797 l 12.224609,14.669922 a 4,4 0 0 0 5.632813,0.511719 4,4 0 0 0 0.511719,-5.632813 L 53.882812,48.8125 a 19,19 0 0 1 -0.552734,0.601562 19,19 0 0 0 4.492188,-9.820312 z m -5.601563,11.033203 a 19,19 0 0 1 -0.810547,0.705078 19,19 0 0 0 0.810547,-0.705078 z m -1.978515,1.666016 a 19,19 0 0 1 -0.9375,0.623047 19,19 0 0 0 0.9375,-0.623047 z" />
+    <path
+       style="opacity:1;fill:#f6f5f4;stroke-width:8.00277;stroke-linecap:round;stroke-linejoin:round"
+       d="m 20.128906,38.884766 a 19,19 0 0 0 0.07422,0.828125 19,19 0 0 1 -0.07422,-0.828125 z"
+       id="path9" />
+    <path
+       style="opacity:1;fill:#f6f5f4;stroke-width:8.00277;stroke-linecap:round;stroke-linejoin:round"
+       d="m 49.902344,38.451172 a 11,11 0 0 1 -0.0957,0.482422 11,11 0 0 0 0.0957,-0.482422 z"
+       id="path8" />
+    <path
+       style="opacity:1;fill:#6677fb;fill-opacity:1;stroke:none;stroke-width:8.00277;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       d="m 39,18 a 19,19 0 0 0 -19,19 19,19 0 0 0 0.03711,0.539062 c 2.637708,-0.281386 5.293045,-0.526045 7.964844,-0.732421 A 11,11 0 0 1 39,26 11,11 0 0 1 49.943359,35.894531 c 2.661531,-0.02357 5.338346,-0.01889 8.025391,0.01367 A 19,19 0 0 0 39,18 Z"
+       id="path3" />
+    <g
+       id="path4"
+       style="opacity:1">
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:#f6f5f4;stroke-linecap:round;stroke-linejoin:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="M 38,36 63,66"
+         id="path5" />
+    </g>
+    <path
+       id="path7"
+       style="opacity:0;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:8;stroke-linecap:round;stroke-linejoin:round"
+       d="M 49.943359,35.894531 A 11,11 0 0 1 50,37 11,11 0 0 1 49.611328,39.900391 c 2.743352,-0.120159 5.480586,-0.219496 8.210938,-0.306641 A 19,19 0 0 0 58,37 19,19 0 0 0 57.96875,35.908203 c -2.687414,-0.03257 -5.363499,-0.03725 -8.025391,-0.01367 z m -21.941406,0.91211 c -2.68169,0.207138 -5.3468,0.451668 -7.994141,0.734375 a 19,19 0 0 0 0.695313,4.582031 c 2.717279,-0.32227 5.438016,-0.606696 8.158203,-0.857422 A 11,11 0 0 1 28,37 11,11 0 0 1 28.002,36.806641 Z" />
+  </g>
+</svg>

@@ -1,0 +1,22 @@
+<svg preserveAspectRatio="xMidYMid" version="1.0" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+ <circle cx="32" cy="32" r="30" fill="#333" stroke-linecap="round" stroke-linejoin="round" stroke-width="7.0866"/>
+ <g fill="#f9f9f9" stroke-linecap="round" stroke-linejoin="round">
+  <path d="m32 5a27 27 0 0 0-27 27 27 27 0 0 0 27 27 27 27 0 0 0 27-27 27 27 0 0 0-27-27zm0 3a24 24 0 0 1 24 24 24 24 0 0 1-24 24 24 24 0 0 1-24-24 24 24 0 0 1 24-24z" stroke-width="6.378"/>
+  <rect x="13.333" y="13.333" width="24" height="4" stroke-width="7.7782"/>
+  <rect transform="rotate(90)" x="9.3333" y="-46.667" width="16" height="4" stroke-width="6.3509"/>
+  <rect transform="scale(-1)" x="-46.667" y="-25.333" width="28.637" height="4" stroke-width="8.4964"/>
+  <rect transform="rotate(-90)" x="-32" y="17.333" width="10.667" height="4" stroke-width="5.1855"/>
+  <path transform="rotate(-90)" d="m-53.159 17.333h14.493v4h-16z" stroke-width="6.0443"/>
+  <rect x="17.333" y="37.333" width="14.667" height="4" stroke-width="6.0805"/>
+  <rect transform="rotate(90)" x="34.667" y="-40" width="22.872" height="4" stroke-width="7.5932"/>
+  <rect transform="rotate(90)" x="32.088" y="-48" width="20.681" height="4" stroke-width="7.2204"/>
+  <rect transform="scale(-1)" x="-57.333" y="-36.088" width="13.333" height="4" stroke-width="5.7975"/>
+  <g stroke-width="6.1235">
+   <ellipse cx="38" cy="33.833" rx="3.5" ry="3.5"/>
+   <ellipse cx="29.833" cy="39.333" rx="3.5" ry="3.5"/>
+   <ellipse cx="19.333" cy="31.5" rx="3.5" ry="3.5"/>
+   <ellipse cx="35.5" cy="15.333" rx="3.5" ry="3.5"/>
+  </g>
+  <path transform="rotate(90)" d="m16-13.333h33.333l-4 4h-26.667z" stroke-width="8.6291"/>
+ </g>
+</svg>

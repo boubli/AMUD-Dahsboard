@@ -661,25 +661,15 @@
             }
         };
 
-        if (isGuest && !telemetryPublic) {
-            console.log("Telemetry is private; guest WS connection skipped.");
-            document.querySelectorAll('.status-badge').forEach(badge => {
-                badge.style.display = 'none';
-            });
-            document.querySelectorAll('.stream-status-badge').forEach(badge => {
-                badge.style.display = 'none';
-            });
-        } else {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const socketUrl = `${protocol}//${window.location.host}/ws`;
-            const ws = new WebSocket(socketUrl);
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socketUrl = `${protocol}//${window.location.host}/ws`;
+        const ws = new WebSocket(socketUrl);
 
             ws.onmessage = onWsMessage;
             ws.onclose = () => {
                 console.warn("WebSocket closed. Attempting reload in 5s.");
                 setTimeout(() => { window.location.reload(); }, 5000);
             };
-        }
     </script>
     <script nonce="{{csp_nonce}}">
         if ('serviceWorker' in navigator) {
