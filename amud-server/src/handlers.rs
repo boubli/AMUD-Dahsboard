@@ -223,36 +223,40 @@ pub async fn dashboard_handler(
 
             // Build Sub-Metrics Grid
             let name_lower = app.name.to_lowercase();
-            let sub_metrics = if name_lower.contains("proxmox") {
-                r#"
-                <div class="nested-metrics-grid cols-3">
-                    <div class="metric-block">
-                        <span class="metric-value">—</span>
-                        <span class="metric-label">VMs</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">—</span>
-                        <span class="metric-label">CPU</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">—</span>
-                        <span class="metric-label">Mem</span>
-                    </div>
-                </div>"#
-                    .to_string()
+            let sub_metrics = if session.is_some() {
+                if name_lower.contains("proxmox") {
+                    r#"
+                    <div class="nested-metrics-grid cols-3">
+                        <div class="metric-block">
+                            <span class="metric-value">—</span>
+                            <span class="metric-label">VMs</span>
+                        </div>
+                        <div class="metric-block">
+                            <span class="metric-value">—</span>
+                            <span class="metric-label">CPU</span>
+                        </div>
+                        <div class="metric-block">
+                            <span class="metric-value">—</span>
+                            <span class="metric-label">Mem</span>
+                        </div>
+                    </div>"#
+                        .to_string()
+                } else {
+                    r#"
+                    <div class="nested-metrics-grid">
+                        <div class="metric-block">
+                            <span class="metric-value">Bookmark</span>
+                            <span class="metric-label">Type</span>
+                        </div>
+                        <div class="metric-block">
+                            <span class="metric-value">Linked</span>
+                            <span class="metric-label">Status</span>
+                        </div>
+                    </div>"#
+                        .to_string()
+                }
             } else {
-                r#"
-                <div class="nested-metrics-grid">
-                    <div class="metric-block">
-                        <span class="metric-value">Bookmark</span>
-                        <span class="metric-label">Type</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">Linked</span>
-                        <span class="metric-label">Status</span>
-                    </div>
-                </div>"#
-                    .to_string()
+                "".to_string()
             };
 
             let delete_btn = if is_admin {
@@ -380,7 +384,7 @@ pub async fn dashboard_handler(
     let has_jellyfin = apps.iter().any(is_jellyfin_app);
 
     let mut streams_html = String::new();
-    if has_plex || has_jellyfin {
+    if session.is_some() && (has_plex || has_jellyfin) {
         let mut cards = String::new();
         if has_plex {
             cards.push_str(r#"

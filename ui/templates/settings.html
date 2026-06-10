@@ -297,19 +297,7 @@
                 font-size: 1.55rem;
             }
 
-            .mgmt-modal {
-                width: 100%;
-                max-width: none;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                top: auto;
-                transform: none;
-                border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-                max-height: 88vh;
-                overflow-y: auto;
-                padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-            }
+            /* Removed mobile bottom-sheet style to keep mgmt-modal centered */
         }
     </style>
 </head>
@@ -882,9 +870,9 @@
                 data.forEach(c => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>\${escapeHtml(c.name)}</strong></td>
-                        <td><div style="width:20px; height:20px; border-radius:4px; background:\${escapeHtml(c.color)};" title="\${escapeHtml(c.color)}"></div></td>
-                        <td>\${Number(c.sort_order)}</td>
+                        <td><strong>${escapeHtml(c.name)}</strong></td>
+                        <td><div style="width:20px; height:20px; border-radius:4px; background:${escapeHtml(c.color)};" title="${escapeHtml(c.color)}"></div></td>
+                        <td>${Number(c.sort_order)}</td>
                         <td style="text-align:right;" class="actions-cell"></td>
                     `;
                     const cell = tr.querySelector('.actions-cell');
@@ -963,9 +951,9 @@
                 data.forEach(w => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>\${escapeHtml(w.name)}</strong></td>
-                        <td><span style="font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:0.2rem 0.4rem; border-radius:4px;">\${Number(String(w.event_types || '').split(',').filter(Boolean).length)} events</span></td>
-                        <td>\${w.is_active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--danger);">Disabled</span>'}</td>
+                        <td><strong>${escapeHtml(w.name)}</strong></td>
+                        <td><span style="font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:0.2rem 0.4rem; border-radius:4px;">${Number(String(w.event_types || '').split(',').filter(Boolean).length)} events</span></td>
+                        <td>${w.is_active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--danger);">Disabled</span>'}</td>
                         <td style="text-align:right;" class="actions-cell"></td>
                     `;
                     const cell = tr.querySelector('.actions-cell');
@@ -1078,9 +1066,9 @@
                     const tr = document.createElement('tr');
                     const roleBadge = u.role === 'Admin' ? '<span style="color:var(--accent-color); font-weight:600;">Admin</span>' : '<span style="color:var(--text-muted);">Guest</span>';
                     tr.innerHTML = `
-                        <td>\${Number(u.id)}</td>
-                        <td><strong>\${escapeHtml(u.username)}</strong></td>
-                        <td>\${roleBadge}</td>
+                        <td>${Number(u.id)}</td>
+                        <td><strong>${escapeHtml(u.username)}</strong></td>
+                        <td>${roleBadge}</td>
                         <td style="text-align:right;" class="actions-cell"></td>
                     `;
                     const cell = tr.querySelector('.actions-cell');

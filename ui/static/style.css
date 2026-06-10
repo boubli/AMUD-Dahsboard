@@ -1039,19 +1039,7 @@ input[type="color"].form-control {
         font-size: 1.15rem;
     }
 
-    .modal {
-        width: 100%;
-        max-width: none;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        top: auto;
-        transform: none;
-        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-        max-height: 88vh;
-        overflow-y: auto;
-        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-    }
+    /* Removed mobile bottom-sheet styling override to keep modal centered */
 
     .btn,
     .btn-ctrl,
