@@ -2229,9 +2229,12 @@ pub async fn settings_page_handler(
 
     let settings_tmpl = include_str!("../../ui/templates/settings.html");
     let username = session.username.as_str();
+    let app_version = option_env!("GIT_TAG").unwrap_or(env!("CARGO_PKG_VERSION"));
+    
     let mut result = settings_tmpl
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", app_name)
+        .replace("{{app_version}}", app_version)
         .replace("{{tagline}}", tagline)
         .replace("{{custom_bg_url}}", custom_bg_url);
 
