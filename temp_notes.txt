@@ -1,6 +1,0 @@
-﻿AMUD Dashboard v2.0.1 - UI & Guest View Fixes
-
-This release resolves several UI regressions and visual anomalies:
-- **Changelog & Data Table String Fixes**: Fixed literal template strings (like \) rendering inside categories, webhooks, and user management tables.
-- **Privacy Gating for Guests**: Completely removed active Plex/Jellyfin stream cards for unauthenticated guests, and hid the Bookmark/Linked/Status/Type metrics block from guest card views. Guests now only see normal app bookmarks.
-- **Normal Popup Screens (Centered Modals)**: Removed bottom-sheet responsive overrides on mobile devices. All popups (Add/Edit App, New Category, New Webhook, New User) are now centered modal popups on all screen sizes.
