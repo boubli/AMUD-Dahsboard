@@ -434,7 +434,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Wallpaper Overlay Tint Theme</label>
-                                    <select name="overlay_theme" id="overlay-theme-select" class="form-control" style="height:3rem; cursor:pointer;" onchange="toggleCustomOverlay()">
+                                    <select name="overlay_theme" id="overlay-theme-select" class="form-control" style="height:3rem; cursor:pointer;" @change="toggleCustomOverlay()">
                                         <option value="cyber" {{eq_cyber}}>Cyber (Vibrant Violet/Blue - Default)</option>
                                         <option value="aurora" {{eq_aurora}}>Aurora (Mystic Teal/Emerald)</option>
                                         <option value="crimson" {{eq_crimson}}>Crimson (Blood Red/Charcoal)</option>
@@ -510,7 +510,7 @@
                                 <input type="password" name="pve_api_token" id="pve_api_token" class="form-control" value="" placeholder="{{pve_api_token_placeholder}}" style="font-family: monospace;" @input="unsavedChanges = true">
                             </div>
                             <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                <button type="button" id="btn-test-pve" class="btn btn-secondary" onclick="testProxmoxConnection()" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: auto; max-width: 200px;">
+                                <button type="button" id="btn-test-pve" class="btn btn-secondary" @click="testProxmoxConnection()" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: auto; max-width: 200px;">
                                     <i data-lucide="refresh-cw" id="icon-test-pve" style="width: 0.95rem; height: 0.95rem;"></i> Test Connection
                                 </button>
                                 <div id="pve-test-result" style="display: none; padding: 0.6rem; border-radius: var(--bento-radius); font-size: 0.85rem; font-weight: 500; border: 1px solid transparent; transition: all 0.3s ease;"></div>
@@ -693,7 +693,7 @@
                     <p id="cred-error-msg" style="display:none; color: var(--danger); font-size: 0.85rem; margin-top: 1rem;"></p>
                     <p id="cred-success-msg" style="display:none; color: var(--success); font-size: 0.85rem; margin-top: 1rem;"></p>
 
-                    <button type="button" class="btn btn-primary" onclick="submitCredentials()" style="margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-primary" @click="submitCredentials()" style="margin-top: 1.5rem;">
                         Update Credentials
                     </button>
                 </div>
@@ -722,7 +722,7 @@
         </div>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
             <button class="btn btn-secondary" @click="catModalOpen = false">Cancel</button>
-            <button class="btn btn-primary" onclick="saveCategory()">Save</button>
+            <button class="btn btn-primary" @click="saveCategory()">Save</button>
         </div>
     </div>
 
@@ -754,7 +754,7 @@
         </div>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
             <button class="btn btn-secondary" @click="whModalOpen = false">Cancel</button>
-            <button class="btn btn-primary" onclick="saveWebhook()">Save</button>
+            <button class="btn btn-primary" @click="saveWebhook()">Save</button>
         </div>
     </div>
 
@@ -781,7 +781,7 @@
         <p id="usr-error-msg" style="display:none; color:var(--danger); font-size:0.85rem; margin-top:1rem;"></p>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
             <button class="btn btn-secondary" @click="usrModalOpen = false">Cancel</button>
-            <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+            <button class="btn btn-primary" @click="saveUser()">Save User</button>
         </div>
     </div>
 
@@ -882,14 +882,32 @@
                 data.forEach(c => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${escapeHtml(c.name)}</strong></td>
-                        <td><div style="width:20px; height:20px; border-radius:4px; background:${escapeHtml(c.color)};" title="${escapeHtml(c.color)}"></div></td>
-                        <td>${Number(c.sort_order)}</td>
-                        <td style="text-align:right;">
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editCategory(${Number(c.id)}, ${JSON.stringify(String(c.name))}, ${JSON.stringify(String(c.color))}, ${Number(c.sort_order)})">Edit</button>
-                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteCategory(${Number(c.id)})">Del</button>
-                        </td>
+                        <td><strong>\${escapeHtml(c.name)}</strong></td>
+                        <td><div style="width:20px; height:20px; border-radius:4px; background:\${escapeHtml(c.color)};" title="\${escapeHtml(c.color)}"></div></td>
+                        <td>\${Number(c.sort_order)}</td>
+                        <td style="text-align:right;" class="actions-cell"></td>
                     `;
+                    const cell = tr.querySelector('.actions-cell');
+
+                    const btnEdit = document.createElement('button');
+                    btnEdit.type = 'button';
+                    btnEdit.className = 'btn btn-secondary';
+                    btnEdit.style.padding = '0.3rem 0.6rem';
+                    btnEdit.style.fontSize = '0.75rem';
+                    btnEdit.textContent = 'Edit';
+                    btnEdit.addEventListener('click', () => editCategory(Number(c.id), c.name, c.color, Number(c.sort_order)));
+
+                    const btnDel = document.createElement('button');
+                    btnDel.type = 'button';
+                    btnDel.className = 'btn btn-danger';
+                    btnDel.style.padding = '0.3rem 0.6rem';
+                    btnDel.style.fontSize = '0.75rem';
+                    btnDel.style.marginLeft = '0.25rem';
+                    btnDel.textContent = 'Del';
+                    btnDel.addEventListener('click', () => deleteCategory(Number(c.id)));
+
+                    cell.appendChild(btnEdit);
+                    cell.appendChild(btnDel);
                     tbody.appendChild(tr);
                 });
             } catch (e) { console.error(e); }
@@ -945,15 +963,42 @@
                 data.forEach(w => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${escapeHtml(w.name)}</strong></td>
-                        <td><span style="font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:0.2rem 0.4rem; border-radius:4px;">${Number(String(w.event_types || '').split(',').filter(Boolean).length)} events</span></td>
-                        <td>${w.is_active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--danger);">Disabled</span>'}</td>
-                        <td style="text-align:right;">
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="testWebhook(${Number(w.id)})">Test</button>
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editWebhook(${Number(w.id)}, ${JSON.stringify(String(w.name))}, ${JSON.stringify(String(w.event_types))}, ${Number(w.is_active)})">Edit</button>
-                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteWebhook(${Number(w.id)})">Del</button>
-                        </td>
+                        <td><strong>\${escapeHtml(w.name)}</strong></td>
+                        <td><span style="font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:0.2rem 0.4rem; border-radius:4px;">\${Number(String(w.event_types || '').split(',').filter(Boolean).length)} events</span></td>
+                        <td>\${w.is_active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--danger);">Disabled</span>'}</td>
+                        <td style="text-align:right;" class="actions-cell"></td>
                     `;
+                    const cell = tr.querySelector('.actions-cell');
+
+                    const btnTest = document.createElement('button');
+                    btnTest.type = 'button';
+                    btnTest.className = 'btn btn-secondary';
+                    btnTest.style.padding = '0.3rem 0.6rem';
+                    btnTest.style.fontSize = '0.75rem';
+                    btnTest.textContent = 'Test';
+                    btnTest.addEventListener('click', () => testWebhook(Number(w.id)));
+
+                    const btnEdit = document.createElement('button');
+                    btnEdit.type = 'button';
+                    btnEdit.className = 'btn btn-secondary';
+                    btnEdit.style.padding = '0.3rem 0.6rem';
+                    btnEdit.style.fontSize = '0.75rem';
+                    btnEdit.style.marginLeft = '0.25rem';
+                    btnEdit.textContent = 'Edit';
+                    btnEdit.addEventListener('click', () => editWebhook(Number(w.id), w.name, w.event_types, Number(w.is_active)));
+
+                    const btnDel = document.createElement('button');
+                    btnDel.type = 'button';
+                    btnDel.className = 'btn btn-danger';
+                    btnDel.style.padding = '0.3rem 0.6rem';
+                    btnDel.style.fontSize = '0.75rem';
+                    btnDel.style.marginLeft = '0.25rem';
+                    btnDel.textContent = 'Del';
+                    btnDel.addEventListener('click', () => deleteWebhook(Number(w.id)));
+
+                    cell.appendChild(btnTest);
+                    cell.appendChild(btnEdit);
+                    cell.appendChild(btnDel);
                     tbody.appendChild(tr);
                 });
             } catch (e) { console.error(e); }
@@ -1033,14 +1078,32 @@
                     const tr = document.createElement('tr');
                     const roleBadge = u.role === 'Admin' ? '<span style="color:var(--accent-color); font-weight:600;">Admin</span>' : '<span style="color:var(--text-muted);">Guest</span>';
                     tr.innerHTML = `
-                        <td>${Number(u.id)}</td>
-                        <td><strong>${escapeHtml(u.username)}</strong></td>
-                        <td>${roleBadge}</td>
-                        <td style="text-align:right;">
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editUser(${Number(u.id)}, ${JSON.stringify(String(u.username))}, ${JSON.stringify(String(u.role))})">Edit</button>
-                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteUser(${Number(u.id)}, ${JSON.stringify(String(u.username))})">Del</button>
-                        </td>
+                        <td>\${Number(u.id)}</td>
+                        <td><strong>\${escapeHtml(u.username)}</strong></td>
+                        <td>\${roleBadge}</td>
+                        <td style="text-align:right;" class="actions-cell"></td>
                     `;
+                    const cell = tr.querySelector('.actions-cell');
+
+                    const btnEdit = document.createElement('button');
+                    btnEdit.type = 'button';
+                    btnEdit.className = 'btn btn-secondary';
+                    btnEdit.style.padding = '0.3rem 0.6rem';
+                    btnEdit.style.fontSize = '0.75rem';
+                    btnEdit.textContent = 'Edit';
+                    btnEdit.addEventListener('click', () => editUser(Number(u.id), u.username, u.role));
+
+                    const btnDel = document.createElement('button');
+                    btnDel.type = 'button';
+                    btnDel.className = 'btn btn-danger';
+                    btnDel.style.padding = '0.3rem 0.6rem';
+                    btnDel.style.fontSize = '0.75rem';
+                    btnDel.style.marginLeft = '0.25rem';
+                    btnDel.textContent = 'Del';
+                    btnDel.addEventListener('click', () => deleteUser(Number(u.id), u.username));
+
+                    cell.appendChild(btnEdit);
+                    cell.appendChild(btnDel);
                     tbody.appendChild(tr);
                 });
             } catch (e) { console.error(e); }

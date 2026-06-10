@@ -108,6 +108,10 @@ pub async fn dashboard_handler(
         .map(|s| s.as_str())
         .unwrap_or("");
     let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
+    let telemetry_public = settings
+        .get("telemetry_public")
+        .map(|s| s.as_str())
+        .unwrap_or("0");
     let csrf_token = csrf_token_for_session(&headers, &state.sessions);
     let csrf_attr = escape_html(&csrf_token);
 
@@ -280,13 +284,13 @@ pub async fn dashboard_handler(
             let ctrl_container = if is_admin {
                 r#"
                 <div class="container-controls" style="display: none; align-items: center; gap: 0.25rem;" data-id="" data-provider="">
-                    <button type="button" class="btn-ctrl start" title="Start Container" onclick="triggerContainerAction(this, 'start')">
+                    <button type="button" class="btn-ctrl start" title="Start Container" @click="triggerContainerAction($el, 'start')">
                         <i data-lucide="circle-play" style="width:0.9rem; height:0.9rem;"></i>
                     </button>
-                    <button type="button" class="btn-ctrl stop" title="Stop Container" onclick="triggerContainerAction(this, 'stop')">
+                    <button type="button" class="btn-ctrl stop" title="Stop Container" @click="triggerContainerAction($el, 'stop')">
                         <i data-lucide="circle-stop" style="width:0.9rem; height:0.9rem;"></i>
                     </button>
-                    <button type="button" class="btn-ctrl restart" title="Restart Container" onclick="triggerContainerAction(this, 'restart')">
+                    <button type="button" class="btn-ctrl restart" title="Restart Container" @click="triggerContainerAction($el, 'restart')">
                         <i data-lucide="rotate-cw" style="width:0.9rem; height:0.9rem;"></i>
                     </button>
                 </div>
@@ -344,9 +348,9 @@ pub async fn dashboard_handler(
             <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
                 <i data-lucide="plus" style="width:0.95rem; height:0.95rem;"></i> Add App
             </button>
-            <button type="button" class="glass-panel btn-admin" onclick="window.location.href='/admin/settings'" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
+            <a href="/admin/settings" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
                 <i data-lucide="sliders-horizontal" style="width:0.95rem; height:0.95rem;"></i> Settings
-            </button>
+            </a>
             "#
         } else {
             ""
@@ -457,7 +461,7 @@ pub async fn dashboard_handler(
     }
 
     let mut category_tabs_html = format!(
-        r#"<button class="filter-tab active" onclick="filterCategory('all', this)">All <span class="filter-count">{}</span></button>"#,
+        r#"<button class="filter-tab active" @click="filterCategory('all', $el)">All <span class="filter-count">{}</span></button>"#,
         apps.len()
     );
     for cat in categories.iter() {
@@ -469,7 +473,7 @@ pub async fn dashboard_handler(
             .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
             .collect();
         category_tabs_html.push_str(&format!(
-            r#"<button class="filter-tab" onclick="filterCategory('{}', this)">{} <span class="filter-count">{}</span></button>"#,
+            r#"<button class="filter-tab" @click="filterCategory('{}', $el)">{} <span class="filter-count">{}</span></button>"#,
             escape_html(&cat_slug), escape_html(cat), count
         ));
     }
@@ -533,6 +537,7 @@ pub async fn dashboard_handler(
         .replace("{{weather_longitude}}", weather_lon)
         .replace("<!-- CATEGORY_OPTIONS -->", &category_options_html)
         .replace("{{csrf_token}}", &csrf_token)
+        .replace("{{telemetry_public}}", telemetry_public)
         .replace(
             "{{is_admin}}",
             if is_admin { "true" } else { "false" },
@@ -682,7 +687,8 @@ pub async fn ws_handler(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
-    if session.is_none() {
+    let is_guest = session.is_none();
+    if is_guest {
         let public = {
             let db = state.db.lock().unwrap();
             telemetry_public_enabled(&db)
@@ -694,19 +700,35 @@ pub async fn ws_handler(
                 .unwrap();
         }
     }
-    ws.on_upgrade(|socket| handle_ws_session(socket, state))
+    ws.on_upgrade(move |socket| handle_ws_session(socket, state, is_guest))
 }
 
-async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>) {
+async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>, is_guest: bool) {
     let rx_stream = state.latest_telemetry.clone();
 
     loop {
         // Stream telemetry packet every 3 seconds
-        let system_metrics = rx_stream.read().unwrap().clone();
-        let network = system_metrics.network.clone().unwrap_or_default();
-        let streams = state.media_streams.read().unwrap().clone();
+        let system_metrics = if is_guest {
+            crate::models::AgentTelemetry::default()
+        } else {
+            rx_stream.read().unwrap().clone()
+        };
+        let network = if is_guest {
+            crate::models::NetworkTelemetry::default()
+        } else {
+            system_metrics.network.clone().unwrap_or_default()
+        };
+        let streams = if is_guest {
+            HashMap::new()
+        } else {
+            state.media_streams.read().unwrap().clone()
+        };
         let app_statuses = state.app_statuses.read().unwrap().clone();
-        let agent_connected = *state.agent_connected.read().unwrap();
+        let agent_connected = if is_guest {
+            false
+        } else {
+            *state.agent_connected.read().unwrap()
+        };
 
         let payload = FullTelemetry {
             system: system_metrics,
