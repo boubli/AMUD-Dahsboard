@@ -193,7 +193,7 @@ verify_ui_assets() {
 verify_agent_connection() {
   local ct_id="$1"
   sleep 3
-  if pct exec "$ct_id" -- journalctl -u amud --no-pager -n 20 2>/dev/null | grep -q "invalid IPC authentication"; then
+  if pct exec "$ct_id" -- journalctl -u amud --no-pager --since "2 minutes ago" 2>/dev/null | grep -q "invalid IPC authentication"; then
     msg_warn "Agent IPC authentication still failing. Check AMUD_AGENT_SECRET on server and host agent."
     return 1
   fi

@@ -325,6 +325,197 @@ WebSocket connection to 'wss://amud.yourdomain.com/ws' failed: Error during WebS
 
 ---
 
+## Reset or Change the Admin Password from CLI
+
+Use this when you cannot log in to the AMUD UI after an upgrade, browser session reset, or credential mistake.
+
+### See Existing Users
+
+Run on the Proxmox host:
+
+```bash
+pct exec 101 -- sqlite3 /opt/amud/data/amud.db "SELECT id, username, role FROM users;"
+```
+
+If `sqlite3` is missing inside the LXC:
+
+```bash
+pct exec 101 -- apt-get update
+pct exec 101 -- apt-get install -y sqlite3
+```
+
+### Reset `admin` Password to `admin`
+
+```bash
+pct exec 101 -- sqlite3 /opt/amud/data/amud.db "INSERT INTO users (username,password_hash,role) VALUES ('admin','8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918','Admin') ON CONFLICT(username) DO UPDATE SET password_hash=excluded.password_hash, role='Admin';"
+pct exec 101 -- systemctl restart amud
+```
+
+Then sign in with:
+
+```text
+username: admin
+password: admin
+```
+
+Change the password immediately in **Settings → Security**.
+
+### Change Any User Password from CLI
+
+AMUD stores new passwords as Argon2id hashes. For emergency CLI recovery, you can still write a legacy SHA-256 hash; AMUD accepts it once and transparently upgrades it to Argon2id after the next successful login.
+
+```bash
+NEW_PASSWORD='your-new-password'
+HASH=$(printf '%s' "$NEW_PASSWORD" | sha256sum | awk '{print $1}')
+pct exec 101 -- sqlite3 /opt/amud/data/amud.db "UPDATE users SET password_hash='$HASH' WHERE username='admin';"
+pct exec 101 -- systemctl restart amud
+```
+
+After signing in, use **Settings → Security** to set the password again so a fresh Argon2id hash is stored immediately.
+
+---
+
+## AMUD Agent Secret / IPC Authentication
+
+`AMUD_AGENT_SECRET` is not your Proxmox API token. It is an internal shared secret between the dashboard server inside the LXC and the host telemetry agent.
+
+### Check Both Sides Match
+
+```bash
+grep AMUD_AGENT_SECRET /etc/systemd/system/amud-agent.service
+pct exec 101 -- grep AMUD_AGENT_SECRET /etc/systemd/system/amud.service
+systemctl show amud-agent -p Environment
+```
+
+If the values differ, copy the container value to the host service:
+
+```bash
+SECRET=$(pct exec 101 -- grep AMUD_AGENT_SECRET /etc/systemd/system/amud.service | cut -d= -f2)
+sed -i "s|^Environment=AMUD_AGENT_SECRET=.*|Environment=AMUD_AGENT_SECRET=${SECRET}|" /etc/systemd/system/amud-agent.service
+systemctl daemon-reload
+systemctl restart amud-agent
+pct exec 101 -- systemctl restart amud
+```
+
+### Verify Recent Logs Only
+
+Old rejected connections can remain in `journalctl`. Check logs after restarting:
+
+```bash
+journalctl -u amud-agent --no-pager --since "2 minutes ago"
+pct exec 101 -- journalctl -u amud --no-pager --since "2 minutes ago"
+```
+
+---
+
+## Update or Release Recovery
+
+If an update stops halfway through, restart both services first:
+
+```bash
+pct exec 101 -- systemctl restart amud
+systemctl restart amud-agent
+```
+
+Then rerun the fixed updater from `main`:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/update-amud.sh)
+```
+
+Check release assets before publishing a new GitHub release:
+
+```bash
+gh release view vX.Y.Z --repo boubli/AMUD-Dashboard
+gh release download vX.Y.Z --repo boubli/AMUD-Dashboard --pattern SHA256SUMS --dir /tmp/amud-release-check
+```
+
+Required assets:
+
+- `amud-server`
+- `amud-agent`
+- `ui.tar.gz`
+- `SHA256SUMS`
+- `setup-amud.sh`
+- `update-amud.sh`
+- `uninstall-amud.sh`
+
+---
+
+## PWA / Browser Cache Issues
+
+After upgrading AMUD, stale service worker cache can make the UI look old or keep old JavaScript loaded.
+
+Try in this order:
+
+```text
+1. Hard refresh: Ctrl+Shift+R
+2. Open DevTools → Application → Service Workers → Unregister
+3. DevTools → Application → Storage → Clear site data
+4. Reload the dashboard
+```
+
+If using a reverse proxy, also verify `/static/sw.js`, `/static/manifest.json`, and `/ws` are not blocked or rewritten.
+
+---
+
+## Media Integrations Not Showing Streams
+
+Real Jellyfin and Plex playback requires API credentials in **Settings → Integrations**.
+
+### Jellyfin
+
+Set:
+
+- `Jellyfin URL`, for example `http://jellyfin.local:8096`
+- `Jellyfin API Key`
+
+AMUD polls:
+
+```text
+GET /Sessions?api_key=<key>
+```
+
+### Plex
+
+Set:
+
+- `Plex URL`, for example `http://plex.local:32400`
+- `Plex Token`
+
+AMUD polls:
+
+```text
+GET /status/sessions
+Header: X-Plex-Token: <token>
+```
+
+If no credentials are configured, the stream cards show **NOT CONFIGURED** instead of fake playback.
+
+---
+
+## Useful Service Commands
+
+Run from the Proxmox host:
+
+```bash
+# Dashboard service inside LXC
+pct exec 101 -- systemctl status amud
+pct exec 101 -- systemctl restart amud
+pct exec 101 -- journalctl -u amud --no-pager -n 50
+
+# Host telemetry agent
+systemctl status amud-agent
+systemctl restart amud-agent
+journalctl -u amud-agent --no-pager -n 50
+
+# Confirm socket mount
+grep mp0 /etc/pve/lxc/101.conf
+ls -la /opt/amud/run
+```
+
+---
+
 ## Getting Help
 
 If your issue isn't covered here:

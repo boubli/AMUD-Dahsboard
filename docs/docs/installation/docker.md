@@ -169,8 +169,8 @@ You can pass these environment variables to adjust container configurations:
 
 When running AMUD in production environments, implement these security practices:
 
-### A. Read-Only Docker Socket
-The agent volume mount is defined as `/var/run/docker.sock:/var/run/docker.sock:ro`. The `:ro` modifier is critical. It guarantees that the `amud-agent` can read container statuses, but cannot invoke write API commands (such as creating, deleting, or stopping containers). Do not remove this flag.
+### A. Docker Socket Trust Boundary
+The agent volume mount is defined as `/var/run/docker.sock:/var/run/docker.sock:ro`. The `:ro` modifier protects the socket file from being modified through the bind mount, but Docker's HTTP API can still process lifecycle requests over that socket. Treat the agent as trusted, and use a Docker socket proxy if you need method-level filtering.
 
 ### B. User Permissions (Non-Root Running)
 If your host enforces strict daemon security, configure the agent to run under the host's `docker` group ID so it does not require root privileges. 

@@ -11,6 +11,10 @@ services:
       - DB_PATH=/app/data/amud.db
       - PORT=8000
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - ./data:/app/data
       - amud_run:/var/run/amud
@@ -21,6 +25,10 @@ services:
     entrypoint: ["/app/amud-agent"]
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - amud_run:/var/run/amud
       - /var/run/docker.sock:/var/run/docker.sock:ro

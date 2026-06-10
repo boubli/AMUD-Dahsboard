@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::sync::Arc;
 use std::thread::sleep;
@@ -16,6 +16,7 @@ struct Telemetry {
     disk_used_gb: f64,
     disk_total_gb: f64,
     lxc_containers: Vec<LxcContainer>,
+    network: NetworkTelemetry,
 }
 
 #[derive(Serialize, serde::Deserialize, Clone, Default)]
@@ -29,6 +30,22 @@ struct LxcContainer {
     maxdisk: Option<i64>,
     disk: Option<i64>,
     uptime: Option<i64>,
+}
+
+#[derive(Serialize, Clone, Default)]
+struct NetworkTelemetry {
+    internal_tx: String,
+    internal_rx: String,
+    external_tx: String,
+    external_rx: String,
+}
+
+#[derive(Clone, Default)]
+struct NetworkSnapshot {
+    internal_rx: u64,
+    internal_tx: u64,
+    external_rx: u64,
+    external_tx: u64,
 }
 
 fn main() {
@@ -293,10 +310,71 @@ fn fetch_lxc_containers_with_token(token: &str) -> Result<Vec<LxcContainer>, Str
     })
 }
 
+fn format_rate(bytes_per_sec: u64) -> String {
+    let bits = bytes_per_sec as f64 * 8.0;
+    if bits >= 1_000_000.0 {
+        format!("{:.1} Mbit/s", bits / 1_000_000.0)
+    } else {
+        format!("{:.0} kbit/s", bits / 1_000.0)
+    }
+}
+
+fn read_network_snapshot() -> NetworkSnapshot {
+    let Ok(content) = std::fs::read_to_string("/proc/net/dev") else {
+        return NetworkSnapshot::default();
+    };
+    let mut snapshot = NetworkSnapshot::default();
+
+    for line in content.lines().skip(2) {
+        let Some((iface, stats)) = line.split_once(':') else {
+            continue;
+        };
+        let iface = iface.trim();
+        if iface == "lo" {
+            continue;
+        }
+        let values: Vec<u64> = stats
+            .split_whitespace()
+            .filter_map(|v| v.parse::<u64>().ok())
+            .collect();
+        if values.len() < 16 {
+            continue;
+        }
+
+        let rx = values[0];
+        let tx = values[8];
+        if iface.starts_with("vmbr") || iface.starts_with("br-") || iface.starts_with("docker") {
+            snapshot.internal_rx = snapshot.internal_rx.saturating_add(rx);
+            snapshot.internal_tx = snapshot.internal_tx.saturating_add(tx);
+        } else {
+            snapshot.external_rx = snapshot.external_rx.saturating_add(rx);
+            snapshot.external_tx = snapshot.external_tx.saturating_add(tx);
+        }
+    }
+
+    snapshot
+}
+
+fn network_rates(previous: &NetworkSnapshot, current: &NetworkSnapshot, elapsed: f64) -> NetworkTelemetry {
+    let seconds = elapsed.max(1.0);
+    let rate = |now: u64, before: u64| -> u64 {
+        now.saturating_sub(before)
+            .checked_div(seconds as u64)
+            .unwrap_or(0)
+    };
+
+    NetworkTelemetry {
+        internal_tx: format_rate(rate(current.internal_tx, previous.internal_tx)),
+        internal_rx: format_rate(rate(current.internal_rx, previous.internal_rx)),
+        external_tx: format_rate(rate(current.external_tx, previous.external_tx)),
+        external_rx: format_rate(rate(current.external_rx, previous.external_rx)),
+    }
+}
+
 // Native Docker fetch over the Engine API UNIX socket (replaces the `curl` fork).
-// Returns (name, state) pairs. Empty vec on any failure or if the socket is absent.
+// Returns Docker containers with real CPU and memory stats where available.
 #[cfg(unix)]
-fn fetch_docker_containers() -> Vec<(String, String)> {
+fn fetch_docker_containers() -> Vec<LxcContainer> {
     if !std::path::Path::new("/var/run/docker.sock").exists() {
         return Vec::new();
     }
@@ -339,34 +417,128 @@ fn fetch_docker_containers() -> Vec<(String, String)> {
             Err(_) => return Vec::new(),
         };
 
-        #[derive(serde::Deserialize)]
+        #[derive(Deserialize)]
         struct DockerContainer {
+            #[serde(rename = "Id")]
+            id: String,
             #[serde(rename = "Names")]
             names: Vec<String>,
             #[serde(rename = "State")]
             state: String,
         }
 
+        #[derive(Deserialize, Default)]
+        struct CpuUsage {
+            total_usage: Option<u64>,
+            percpu_usage: Option<Vec<u64>>,
+        }
+
+        #[derive(Deserialize, Default)]
+        struct CpuStats {
+            cpu_usage: Option<CpuUsage>,
+            system_cpu_usage: Option<u64>,
+            online_cpus: Option<u64>,
+        }
+
+        #[derive(Deserialize, Default)]
+        struct MemoryStats {
+            usage: Option<i64>,
+            limit: Option<i64>,
+        }
+
+        #[derive(Deserialize, Default)]
+        struct DockerStats {
+            cpu_stats: Option<CpuStats>,
+            precpu_stats: Option<CpuStats>,
+            memory_stats: Option<MemoryStats>,
+        }
+
+        async fn docker_stats(
+            client: &Client<UnixConnector, Empty<Bytes>>,
+            id: &str,
+        ) -> (Option<f64>, Option<i64>, Option<i64>) {
+            let path = format!("/containers/{}/stats?stream=false", id);
+            let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", &path).into();
+            let req = match hyper::Request::builder()
+                .method("GET")
+                .uri(uri)
+                .header("Host", "localhost")
+                .body(Empty::<Bytes>::new())
+            {
+                Ok(req) => req,
+                Err(_) => return (None, None, None),
+            };
+            let Ok(resp) = client.request(req).await else {
+                return (None, None, None);
+            };
+            let Ok(body) = resp.into_body().collect().await else {
+                return (None, None, None);
+            };
+            let Ok(stats) = serde_json::from_slice::<DockerStats>(&body.to_bytes()) else {
+                return (None, None, None);
+            };
+
+            let cpu = match (&stats.cpu_stats, &stats.precpu_stats) {
+                (Some(cpu), Some(pre)) => {
+                    let cpu_total = cpu.cpu_usage.as_ref().and_then(|u| u.total_usage).unwrap_or(0);
+                    let pre_total = pre.cpu_usage.as_ref().and_then(|u| u.total_usage).unwrap_or(0);
+                    let sys_total = cpu.system_cpu_usage.unwrap_or(0);
+                    let pre_sys = pre.system_cpu_usage.unwrap_or(0);
+                    let cpu_delta = cpu_total.saturating_sub(pre_total) as f64;
+                    let sys_delta = sys_total.saturating_sub(pre_sys) as f64;
+                    let cpus = cpu
+                        .online_cpus
+                        .or_else(|| cpu.cpu_usage.as_ref().and_then(|u| u.percpu_usage.as_ref().map(|p| p.len() as u64)))
+                        .unwrap_or(1) as f64;
+                    if sys_delta > 0.0 && cpu_delta > 0.0 {
+                        Some((cpu_delta / sys_delta) * cpus)
+                    } else {
+                        Some(0.0)
+                    }
+                }
+                _ => None,
+            };
+            let mem = stats.memory_stats.as_ref().and_then(|m| m.usage);
+            let maxmem = stats.memory_stats.as_ref().and_then(|m| m.limit);
+            (cpu, mem, maxmem)
+        }
+
         match serde_json::from_slice::<Vec<DockerContainer>>(&body) {
-            Ok(dockers) => dockers
-                .into_iter()
-                .map(|d| {
+            Ok(dockers) => {
+                let mut out = Vec::new();
+                for (i, d) in dockers.into_iter().enumerate() {
                     let name = d
                         .names
                         .into_iter()
                         .next()
                         .unwrap_or_default()
                         .replace('/', "");
-                    (name, d.state)
-                })
-                .collect(),
+                    let (cpu, mem, maxmem) = if d.state == "running" {
+                        docker_stats(&client, &d.id).await
+                    } else {
+                        (Some(0.0), None, None)
+                    };
+                    out.push(LxcContainer {
+                        vmid: -1000 - i as i64,
+                        status: d.state,
+                        name,
+                        cpu,
+                        maxmem,
+                        mem,
+                        maxdisk: None,
+                        disk: None,
+                        uptime: None,
+                    });
+                }
+                out
+            }
             Err(_) => Vec::new(),
         }
     })
 }
 
 #[cfg(not(unix))]
-fn fetch_docker_containers() -> Vec<(String, String)> {
+fn fetch_docker_containers() -> Vec<LxcContainer> {
     Vec::new()
 }
 
@@ -420,6 +592,8 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
     let mut last_lxc_fetch = Instant::now()
         .checked_sub(Duration::from_secs(10))
         .unwrap_or_else(Instant::now);
+    let mut last_network_snapshot = read_network_snapshot();
+    let mut last_network_sample = Instant::now();
 
     loop {
         // Refresh telemetry
@@ -511,20 +685,16 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let mut lxc_containers = cached_lxc.clone();
 
         // Fetch Docker containers natively over the UNIX socket (no curl fork) and merge.
-        for (i, (name, state)) in fetch_docker_containers().into_iter().enumerate() {
-            // Negative vmid sequence so Docker entries never collide with Proxmox LXC IDs (100+).
-            lxc_containers.push(LxcContainer {
-                vmid: -1000 - i as i64,
-                status: state,
-                name,
-                cpu: None,
-                maxmem: None,
-                mem: None,
-                maxdisk: None,
-                disk: None,
-                uptime: None,
-            });
-        }
+        lxc_containers.extend(fetch_docker_containers());
+
+        let now_network_snapshot = read_network_snapshot();
+        let network = network_rates(
+            &last_network_snapshot,
+            &now_network_snapshot,
+            last_network_sample.elapsed().as_secs_f64(),
+        );
+        last_network_snapshot = now_network_snapshot;
+        last_network_sample = Instant::now();
 
         let telemetry = Telemetry {
             cpu_usage,
@@ -536,6 +706,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             disk_used_gb,
             disk_total_gb,
             lxc_containers,
+            network,
         };
 
         // Serialize and push

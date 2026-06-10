@@ -2,17 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{{app_name}}</title>
     <link rel="icon" href="/static/AMUD-logo.png" type="image/png">
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="{{accent_color}}">
+    <meta name="description" content="AMUD Dashboard homelab operations cockpit">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="{{app_name}}">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/AMUD-logo.png">
     <link rel="stylesheet" href="/static/style.css">
     
     <!-- Alpine.js for drawer state / bindings -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="/static/vendor/alpine.min.js"></script>
     <!-- Lucide Vector Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/static/vendor/lucide.min.js"></script>
 
     <!-- Inline variables setup for clean database variable override -->
     <style>
@@ -777,6 +782,77 @@
         const socketUrl = `${protocol}//${window.location.host}/ws`;
         const ws = new WebSocket(socketUrl);
 
+        function findContainerByNames(containers, names) {
+            return containers.find(lxc => names.some(name =>
+                lxc.name.toLowerCase() === name ||
+                name.includes(lxc.name.toLowerCase()) ||
+                lxc.name.toLowerCase().includes(name)
+            ));
+        }
+
+        function updateStreamStatusBadges(containers) {
+            document.querySelectorAll('[data-stream-app]').forEach(badge => {
+                const names = badge.getAttribute('data-stream-app')
+                    .toLowerCase()
+                    .split(/\s+/)
+                    .filter(Boolean);
+                const match = findContainerByNames(containers, names);
+                if (!match) return;
+
+                const isRunning = match.status === 'running';
+                badge.innerText = match.status.toUpperCase();
+                badge.style.color = isRunning ? '#10b981' : '#ef4444';
+                badge.style.background = isRunning ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                badge.style.borderColor = isRunning ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+            });
+        }
+
+        function styleStatusBadge(badge, status, latencyMs = null) {
+            const normalized = (status || '').toLowerCase();
+            if (latencyMs !== null && normalized === 'online') {
+                badge.innerText = `${latencyMs} ms`;
+            } else {
+                badge.innerText = (status || 'UNKNOWN').toUpperCase();
+            }
+
+            const isHealthy = ['running', 'online'].includes(normalized);
+            const isWarn = ['not configured', 'checking'].includes(normalized);
+            badge.style.color = isHealthy ? '#10b981' : (isWarn ? 'var(--text-muted)' : '#ef4444');
+            badge.style.background = isHealthy
+                ? 'rgba(16, 185, 129, 0.1)'
+                : (isWarn ? 'rgba(255,255,255,0.05)' : 'rgba(239, 68, 68, 0.1)');
+            badge.style.borderColor = isHealthy
+                ? 'rgba(16, 185, 129, 0.2)'
+                : (isWarn ? 'var(--border-card)' : 'rgba(239, 68, 68, 0.2)');
+        }
+
+        function updateAppUrlStatuses(statuses) {
+            document.querySelectorAll('.app-card').forEach(card => {
+                const appName = card.getAttribute('data-app-name');
+                if (!appName || !statuses[appName]) return;
+
+                const badge = card.querySelector('.status-badge');
+                if (!badge || badge.dataset.containerManaged === 'true') return;
+
+                const status = statuses[appName];
+                styleStatusBadge(badge, status.status, status.latency_ms);
+            });
+        }
+
+        function updateMediaStream(service, stream) {
+            const track = document.getElementById(service === 'plex' ? 'plex-track' : 'emby-track');
+            const timer = document.getElementById(service === 'plex' ? 'plex-timer' : 'emby-timer');
+            const progress = document.getElementById(service === 'plex' ? 'plex-progress' : 'emby-progress');
+            const badge = document.querySelector(`[data-stream-service="${service}"]`);
+
+            if (track) track.innerText = stream.title;
+            if (timer) timer.innerText = stream.active ? `${stream.current_time} / ${stream.total_time}` : '-';
+            if (progress) progress.style.width = `${stream.progress_percent || 0}%`;
+            if (badge && stream.status === 'NOT CONFIGURED') {
+                styleStatusBadge(badge, stream.status);
+            }
+        }
+
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
@@ -794,16 +870,35 @@
 
                     // Update LXC matching custom apps
                     if (sys.lxc_containers && sys.lxc_containers.length > 0) {
+                        updateStreamStatusBadges(sys.lxc_containers);
                         const appCards = document.querySelectorAll('.app-card');
                         appCards.forEach(card => {
                             const appName = card.getAttribute('data-app-name');
                             if (!appName) return;
 
-                            const match = sys.lxc_containers.find(lxc => 
-                                lxc.name.toLowerCase() === appName || 
-                                appName.includes(lxc.name.toLowerCase()) || 
-                                lxc.name.toLowerCase().includes(appName)
-                            );
+                            if (appName.includes('proxmox')) {
+                                const metricsGrid = card.querySelector('.nested-metrics-grid');
+                                if (metricsGrid) {
+                                    const running = sys.lxc_containers.filter(lxc => lxc.status === 'running').length;
+                                    const total = sys.lxc_containers.length;
+                                    metricsGrid.innerHTML = `
+                                        <div class="metric-block">
+                                            <span class="metric-value">${running} / ${total}</span>
+                                            <span class="metric-label">Containers</span>
+                                        </div>
+                                        <div class="metric-block">
+                                            <span class="metric-value">${sys.cpu_usage}%</span>
+                                            <span class="metric-label">CPU</span>
+                                        </div>
+                                        <div class="metric-block">
+                                            <span class="metric-value">${sys.ram_usage}%</span>
+                                            <span class="metric-label">Mem</span>
+                                        </div>
+                                    `;
+                                }
+                            }
+
+                            const match = findContainerByNames(sys.lxc_containers, [appName]);
 
                             if (match) {
                                 // Update container controls if they exist (only for admin)
@@ -837,6 +932,7 @@
                                     const isRunning = match.status === 'running';
                                     
                                     if (existingBadge && !existingBadge.classList.contains('ms')) {
+                                        existingBadge.dataset.containerManaged = 'true';
                                         existingBadge.innerText = match.status.toUpperCase();
                                         if (isRunning) {
                                             existingBadge.style.color = '#10b981';
@@ -869,6 +965,10 @@
                     }
                 }
 
+                if (data.app_statuses) {
+                    updateAppUrlStatuses(data.app_statuses);
+                }
+
                 // Update network metrics
                 if (data.network) {
                     const net = data.network;
@@ -882,12 +982,7 @@
                 if (data.streams) {
                     if (data.streams.plex) {
                         const plex = data.streams.plex;
-                        const plexTrack = document.getElementById('plex-track');
-                        if (plexTrack) plexTrack.innerText = plex.title;
-                        const plexTimer = document.getElementById('plex-timer');
-                        if (plexTimer) plexTimer.innerText = plex.active ? `${plex.current_time} / ${plex.total_time}` : '-';
-                        const plexProgress = document.getElementById('plex-progress');
-                        if (plexProgress) plexProgress.style.width = `${plex.progress_percent}%`;
+                        updateMediaStream('plex', plex);
 
                         // Update status indicator dot text on Plex app card if it exists
                         const plexStatusText = document.getElementById('plex-status-text');
@@ -901,12 +996,7 @@
                     }
                     if (data.streams.emby) {
                         const emby = data.streams.emby;
-                        const embyTrack = document.getElementById('emby-track');
-                        if (embyTrack) embyTrack.innerText = emby.title;
-                        const embyTimer = document.getElementById('emby-timer');
-                        if (embyTimer) embyTimer.innerText = emby.active ? `${emby.current_time} / ${emby.total_time}` : '-';
-                        const embyProgress = document.getElementById('emby-progress');
-                        if (embyProgress) embyProgress.style.width = `${emby.progress_percent}%`;
+                        updateMediaStream('emby', emby);
 
                         // Update status indicator dot text on Jellyfin app card if it exists
                         const embyStatusText = document.getElementById('emby-status-text');

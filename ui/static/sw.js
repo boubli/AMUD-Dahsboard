@@ -1,9 +1,10 @@
-const CACHE_NAME = 'amud-dashboard-v1';
+const CACHE_NAME = 'amud-dashboard-v2';
 const ASSETS_TO_CACHE = [
-  '/',
   '/static/style.css',
   '/static/AMUD-logo.png',
-  '/static/manifest.json'
+  '/static/manifest.json',
+  '/static/vendor/alpine.min.js',
+  '/static/vendor/lucide.min.js'
 ];
 
 self.addEventListener('install', event => {
@@ -24,14 +25,40 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
-  );
+  const request = event.request;
+  const url = new URL(request.url);
+
+  if (url.pathname.startsWith('/ws') || url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request).then(cached => cached || caches.match('/')))
+    );
+    return;
+  }
+
+  if (url.pathname.startsWith('/static/')) {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        return cached || fetch(request).then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          return response;
+        });
+      })
+    );
+  }
 });

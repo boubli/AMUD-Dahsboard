@@ -50,7 +50,7 @@ body {
     color: var(--text-primary);
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
-    padding: 2rem;
+    padding: max(2rem, env(safe-area-inset-top)) max(2rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(2rem, env(safe-area-inset-left));
     overflow-x: hidden;
 }
 
@@ -233,8 +233,9 @@ body {
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.05em;
-    background: var(--success-bg);
-    color: var(--success);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border: 1px solid var(--border-card);
 }
 
 .stream-player {
@@ -282,7 +283,7 @@ body {
 /* Rows 3+: Main 3-Column Bento Grid */
 .bento-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(var(--grid-cols, 3), 1fr);
     gap: 1rem;
 }
 
@@ -993,8 +994,28 @@ input[type="color"].form-control {
     cursor: pointer;
 }
 
+@media (max-width: 1024px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .telemetry-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .topbar {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+}
+
 /* Responsive adjustments for new sections */
 @media (max-width: 768px) {
+    body {
+        padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+        background-attachment: scroll;
+    }
+
     .bento-grid {
         grid-template-columns: 1fr;
     }
@@ -1005,6 +1026,61 @@ input[type="color"].form-control {
 
     .streams-row {
         grid-template-columns: 1fr;
+    }
+
+    .topbar,
+    .hero-section,
+    .app-card-header,
+    .stream-main {
+        flex-wrap: wrap;
+    }
+
+    .brand-title {
+        font-size: 1.15rem;
+    }
+
+    .modal {
+        width: 100%;
+        max-width: none;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+        transform: none;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        max-height: 88vh;
+        overflow-y: auto;
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
+
+    .btn,
+    .btn-ctrl,
+    .nav-item,
+    .form-control {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        gap: 0.85rem;
+    }
+
+    .telemetry-row {
+        grid-template-columns: 1fr;
+    }
+
+    .clock-box,
+    .search-bar,
+    .app-card,
+    .stream-card {
+        padding: 0.9rem;
+    }
+
+    .app-card-badges {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
 }
 
@@ -1020,12 +1096,12 @@ input[type="color"].form-control {
 }
 
 .btn-ctrl {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     cursor: pointer;
     color: var(--text-secondary);
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.45rem;
+    height: 1.45rem;
     border-radius: var(--radius-sm);
     display: inline-flex;
     align-items: center;
@@ -1035,20 +1111,36 @@ input[type="color"].form-control {
 
 .btn-ctrl:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.btn-ctrl.start {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.18);
+}
+
+.btn-ctrl.stop {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.18);
+}
+
+.btn-ctrl.restart {
+    color: var(--accent-color);
+    background: var(--accent-glow);
+    border-color: color-mix(in srgb, var(--accent-color) 28%, transparent);
 }
 
 .btn-ctrl.start:hover:not(:disabled) {
-    color: var(--success);
     background: rgba(16, 185, 129, 0.15);
 }
 
 .btn-ctrl.stop:hover:not(:disabled) {
-    color: var(--danger);
     background: rgba(239, 68, 68, 0.15);
 }
 
 .btn-ctrl.restart:hover:not(:disabled) {
-    color: var(--accent-color);
     background: var(--accent-glow);
 }
 

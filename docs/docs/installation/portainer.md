@@ -100,7 +100,7 @@ To backup your dashboard configuration:
 ## 4. Security Hardening inside Portainer
 
 To secure your Portainer deployment:
-* **Read-Only Docker Socket**: Ensure `/var/run/docker.sock` in the volume mount has the Access Control flag set to Read-only (`:ro`). This prevents the telemetry agent from mutating container states on the host.
+* **Docker Socket Trust Boundary**: Keep `/var/run/docker.sock` mounted read-only (`:ro`) so the socket file cannot be modified through the bind mount. The Docker API can still process lifecycle requests over the socket, so treat the agent as trusted or place a Docker socket proxy in front of it for method-level filtering.
 * **Network Isolation**: If you deploy multiple stacks, consider placing AMUD on a isolated internal Docker bridge network, and use a reverse proxy stack (like Nginx Proxy Manager) to route traffic to `amud-dashboard` port `8000`.
 
 ---

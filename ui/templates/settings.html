@@ -2,15 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Settings - {{app_name}}</title>
     <link rel="icon" href="/static/AMUD-logo.png" type="image/png">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="{{accent_color}}">
+    <meta name="description" content="AMUD Dashboard settings">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="{{app_name}}">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/AMUD-logo.png">
     <link rel="stylesheet" href="/static/style.css">
     
     <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="/static/vendor/alpine.min.js"></script>
     <!-- Lucide Vector Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/static/vendor/lucide.min.js"></script>
 
     <style>
         :root {
@@ -215,6 +222,93 @@
             z-index: 100;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
+
+        @media (max-width: 820px) {
+            .settings-layout {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
+            }
+
+            .settings-sidebar {
+                width: 100%;
+                max-height: none;
+                padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                position: sticky;
+                top: 0;
+                overflow-x: auto;
+            }
+
+            .settings-header-brand {
+                margin-bottom: 1rem;
+                min-width: max-content;
+            }
+
+            .nav-section {
+                display: inline-flex;
+                gap: 0.5rem;
+                margin: 0 1rem 0.75rem 0;
+                vertical-align: top;
+            }
+
+            .nav-section-title {
+                display: none;
+            }
+
+            .nav-item {
+                width: auto;
+                min-width: max-content;
+                min-height: 44px;
+                margin-bottom: 0;
+            }
+
+            .settings-main {
+                padding: 1.25rem;
+            }
+
+            .settings-content-wrapper {
+                max-width: none;
+            }
+
+            .save-bar {
+                left: 1rem;
+                right: 1rem;
+                bottom: max(1rem, env(safe-area-inset-bottom));
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .settings-main {
+                padding: 1rem;
+            }
+
+            .settings-block {
+                padding: 1rem;
+            }
+
+            .settings-page-title {
+                font-size: 1.55rem;
+            }
+
+            .mgmt-modal {
+                width: 100%;
+                max-width: none;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: auto;
+                transform: none;
+                border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+                max-height: 88vh;
+                overflow-y: auto;
+                padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+            }
+        }
     </style>
 </head>
 <body x-data="settingsState()">
@@ -244,6 +338,9 @@
                 </button>
                 <button class="nav-item" :class="{ 'active': activeTab === 'proxmox' }" @click="switchTab('proxmox')">
                     <i data-lucide="server"></i> Proxmox VE
+                </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'integrations' }" @click="switchTab('integrations')">
+                    <i data-lucide="plug"></i> Integrations
                 </button>
                 <button class="nav-item" :class="{ 'active': activeTab === 'donation' }" @click="switchTab('donation')">
                     <i data-lucide="heart"></i> Support
@@ -357,6 +454,16 @@
                                 <input type="range" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
                             </div>
                             <div class="form-group" style="margin-top:1.5rem;">
+                                <label>Dashboard App Columns</label>
+                                <select name="grid_columns" class="form-control">
+                                    <option value="2" {{eq_grid_2}}>2 columns</option>
+                                    <option value="3" {{eq_grid_3}}>3 columns</option>
+                                    <option value="4" {{eq_grid_4}}>4 columns</option>
+                                    <option value="5" {{eq_grid_5}}>5 columns</option>
+                                </select>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Controls the main app card grid on desktop screens.</p>
+                            </div>
+                            <div class="form-group" style="margin-top:1.5rem;">
                                 <label>Glass Panel Opacity</label>
                                 <input type="range" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
                             </div>
@@ -404,6 +511,36 @@
                                     <i data-lucide="refresh-cw" id="icon-test-pve" style="width: 0.95rem; height: 0.95rem;"></i> Test Connection
                                 </button>
                                 <div id="pve-test-result" style="display: none; padding: 0.6rem; border-radius: var(--bento-radius); font-size: 0.85rem; font-weight: 500; border: 1px solid transparent; transition: all 0.3s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: INTEGRATIONS -->
+                    <div x-show="activeTab === 'integrations'" x-transition.opacity style="display:none;">
+                        <h1 class="settings-page-title">Integrations</h1>
+                        <p class="settings-page-subtitle">Connect media servers so AMUD can show real active playback instead of simulated stream data.</p>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="tv" style="color:var(--accent-color);"></i> Jellyfin / Emby</h3>
+                            <div class="form-group">
+                                <label>Jellyfin URL</label>
+                                <input type="url" name="jellyfin_url" class="form-control" value="{{jellyfin_url}}" placeholder="http://jellyfin.local:8096">
+                            </div>
+                            <div class="form-group" style="margin-top:1rem;">
+                                <label>Jellyfin API Key</label>
+                                <input type="password" name="jellyfin_api_key" class="form-control" value="{{jellyfin_api_key}}" placeholder="Paste API key">
+                            </div>
+                        </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="play" style="color:var(--accent-color);"></i> Plex</h3>
+                            <div class="form-group">
+                                <label>Plex URL</label>
+                                <input type="url" name="plex_url" class="form-control" value="{{plex_url}}" placeholder="http://plex.local:32400">
+                            </div>
+                            <div class="form-group" style="margin-top:1rem;">
+                                <label>Plex Token</label>
+                                <input type="password" name="plex_token" class="form-control" value="{{plex_token}}" placeholder="Paste Plex token">
                             </div>
                         </div>
                     </div>
@@ -1065,6 +1202,13 @@
                 errorMsg.textContent = "Network error occurred.";
                 errorMsg.style.display = 'block';
             }
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js');
+            });
         }
     </script>
 </body>

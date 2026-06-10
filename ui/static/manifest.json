@@ -1,11 +1,20 @@
 {
   "name": "AMUD Dashboard",
   "short_name": "AMUD",
+  "description": "AMUD Dashboard homelab operations cockpit for Proxmox, Docker, media services, and bookmarks.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#0a0b10",
   "theme_color": "#cf6427",
   "icons": [
+    {
+      "src": "/static/AMUD-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/static/AMUD-logo.png",
       "sizes": "512x512",

@@ -1,13 +1,20 @@
 use axum::{
+    middleware::{self, Next},
     extract::{
         ws::{Message as WsMessage, WebSocket, WebSocketUpgrade},
         Multipart, State,
     },
-    http::{header, HeaderMap, StatusCode},
+    http::{header, HeaderMap, HeaderName, HeaderValue, Request, StatusCode},
     response::{Html, IntoResponse, Redirect, Response},
     routing::{get, post},
     Form, Router,
 };
+use argon2::{
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
+};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+use rand_core::OsRng;
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -17,7 +24,8 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path as FilePath;
 use std::sync::{Arc, Mutex, RwLock};
-use std::time::Duration;
+use std::time::{Duration, Instant};
+use subtle::ConstantTimeEq;
 use tokio::net::TcpListener as TokioTcpListener;
 #[cfg(unix)]
 use tokio::net::UnixListener as TokioUnixListener;
@@ -38,6 +46,7 @@ struct App {
 struct Session {
     username: String,
     role: String,
+    expires_at_epoch: u64,
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
@@ -65,9 +74,11 @@ struct AgentTelemetry {
     disk_total_gb: f64,
     #[serde(default)]
     lxc_containers: Vec<LxcContainer>,
+    #[serde(default)]
+    network: Option<NetworkTelemetry>,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Clone, Serialize, Deserialize, Default)]
 struct NetworkTelemetry {
     internal_tx: String,
     internal_rx: String,
@@ -85,10 +96,10 @@ struct MediaStream {
     progress_percent: f64,
 }
 
-#[derive(Serialize, Clone)]
-struct AppMetrics {
+#[derive(Serialize, Clone, Default)]
+struct AppStatus {
     status: String,
-    metrics: HashMap<String, String>,
+    latency_ms: Option<u128>,
 }
 
 #[derive(Serialize, Clone)]
@@ -96,7 +107,7 @@ struct FullTelemetry {
     system: AgentTelemetry,
     network: NetworkTelemetry,
     streams: HashMap<String, MediaStream>,
-    apps: HashMap<String, AppMetrics>,
+    app_statuses: HashMap<String, AppStatus>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -121,10 +132,12 @@ struct AppState {
     sessions: Arc<RwLock<HashMap<String, Session>>>,
     latest_telemetry: Arc<RwLock<AgentTelemetry>>,
     agent_connected: Arc<RwLock<bool>>,
-    plex_progress: Arc<RwLock<f64>>,
+    media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
+    app_statuses: Arc<RwLock<HashMap<String, AppStatus>>>,
     agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
     pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
     alert_cooldowns: Arc<Mutex<HashMap<String, std::time::Instant>>>,
+    login_attempts: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
     agent_secret: Arc<String>,
 }
 
@@ -140,6 +153,11 @@ fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("glass_blur_intensity", "16");
     s.insert("glass_opacity", "0.45");
     s.insert("bento_radius", "16");
+    s.insert("grid_columns", "3");
+    s.insert("jellyfin_url", "");
+    s.insert("jellyfin_api_key", "");
+    s.insert("plex_url", "");
+    s.insert("plex_token", "");
     s.insert("pve_api_token", "");
     s.insert("donate_enabled", "1");
 
@@ -286,7 +304,8 @@ async fn main() {
     let sessions = Arc::new(RwLock::new(HashMap::<String, Session>::new()));
     let latest_telemetry = Arc::new(RwLock::new(AgentTelemetry::default()));
     let agent_connected = Arc::new(RwLock::new(false));
-    let plex_progress = Arc::new(RwLock::new(66.2));
+    let media_streams = Arc::new(RwLock::new(default_media_streams()));
+    let app_statuses = Arc::new(RwLock::new(HashMap::new()));
     let agent_command_tx = Arc::new(Mutex::new(None));
     let pve_test_response = Arc::new(RwLock::new(None));
 
@@ -295,19 +314,21 @@ async fn main() {
         sessions: sessions.clone(),
         latest_telemetry: latest_telemetry.clone(),
         agent_connected: agent_connected.clone(),
-        plex_progress: plex_progress.clone(),
+        media_streams: media_streams.clone(),
+        app_statuses: app_statuses.clone(),
         agent_command_tx: agent_command_tx.clone(),
         pve_test_response: pve_test_response.clone(),
         alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
+        login_attempts: Arc::new(Mutex::new(HashMap::new())),
         agent_secret: Arc::new(agent_secret),
     });
 
     // Start Host Agent listener (Background task)
     start_agent_listener(state.clone());
+    start_session_cleanup(sessions.clone());
 
-
-    // Start Plex Playback Simulator (Background task)
-    start_plex_simulator(plex_progress);
+    start_media_poller(shared_db.clone(), media_streams);
+    start_status_poller(shared_db.clone(), app_statuses);
 
     // Set up Axum Router
     let app = Router::new()
@@ -351,6 +372,7 @@ async fn main() {
             tower_http::services::ServeDir::new("data/uploads"),
         )
         .nest_service("/static", tower_http::services::ServeDir::new("ui/static"))
+        .layer(middleware::from_fn(security_headers))
         .with_state(state);
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "8000".to_string());
@@ -371,6 +393,27 @@ fn generate_agent_secret() -> String {
             .unwrap_or(0)
     );
     hex::encode(Sha256::digest(seed.as_bytes()))
+}
+
+async fn security_headers(req: Request<axum::body::Body>, next: Next) -> Response {
+    let mut response = next.run(req).await;
+    let headers = response.headers_mut();
+    headers.insert(HeaderName::from_static("x-frame-options"), HeaderValue::from_static("DENY"));
+    headers.insert(
+        HeaderName::from_static("x-content-type-options"),
+        HeaderValue::from_static("nosniff"),
+    );
+    headers.insert(
+        HeaderName::from_static("referrer-policy"),
+        HeaderValue::from_static("same-origin"),
+    );
+    headers.insert(
+        HeaderName::from_static("content-security-policy"),
+        HeaderValue::from_static(
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; connect-src 'self' ws: wss: http: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        ),
+    );
+    response
 }
 
 fn resolve_agent_secret(conn: &Connection) -> String {
@@ -422,15 +465,135 @@ fn agent_authenticated(agent_secret: &str, line: &str) -> bool {
     serde_json::from_str::<AgentAuthMsg>(line)
         .ok()
         .and_then(|msg| msg.auth)
-        .map(|token| token == agent_secret)
+        .map(|token| {
+            let expected = Sha256::digest(agent_secret.as_bytes());
+            let actual = Sha256::digest(token.as_bytes());
+            actual.as_slice().ct_eq(expected.as_slice()).into()
+        })
         .unwrap_or(false)
 }
 
 // Password hashing helper
 fn hash_password(password: &str) -> String {
+    let salt = SaltString::generate(&mut OsRng);
+    Argon2::default()
+        .hash_password(password.as_bytes(), &salt)
+        .map(|hash| hash.to_string())
+        .unwrap_or_else(|_| legacy_sha256_password(password))
+}
+
+fn legacy_sha256_password(password: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(password.as_bytes());
     hex::encode(hasher.finalize())
+}
+
+fn verify_password(stored_hash: &str, password: &str) -> (bool, bool) {
+    if stored_hash.starts_with("$argon2") {
+        let verified = PasswordHash::new(stored_hash)
+            .ok()
+            .and_then(|parsed| {
+                Argon2::default()
+                    .verify_password(password.as_bytes(), &parsed)
+                    .ok()
+            })
+            .is_some();
+        return (verified, false);
+    }
+
+    let legacy_hash = legacy_sha256_password(password);
+    let verified = stored_hash.len() == legacy_hash.len()
+        && stored_hash
+            .as_bytes()
+            .ct_eq(legacy_hash.as_bytes())
+            .into();
+    (verified, verified)
+}
+
+fn now_epoch_secs() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+fn generate_session_token() -> String {
+    let mut bytes = [0u8; 32];
+    if getrandom::getrandom(&mut bytes).is_ok() {
+        URL_SAFE_NO_PAD.encode(bytes)
+    } else {
+        let seed = format!("{}:{:?}", now_epoch_secs(), Instant::now());
+        hex::encode(Sha256::digest(seed.as_bytes()))
+    }
+}
+
+fn session_cookie(token: &str) -> String {
+    let secure = if std::env::var("AMUD_SECURE_COOKIES").ok().as_deref() == Some("1") {
+        "; Secure"
+    } else {
+        ""
+    };
+    format!(
+        "amud_session={}; Path=/; Max-Age=86400; HttpOnly; SameSite=Strict{}",
+        token, secure
+    )
+}
+
+fn expired_session_cookie() -> String {
+    let secure = if std::env::var("AMUD_SECURE_COOKIES").ok().as_deref() == Some("1") {
+        "; Secure"
+    } else {
+        ""
+    };
+    format!("amud_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict{}", secure)
+}
+
+fn login_rate_limited(login_attempts: &Mutex<HashMap<String, Vec<Instant>>>, username: &str) -> bool {
+    const MAX_ATTEMPTS: usize = 5;
+    const WINDOW: Duration = Duration::from_secs(5 * 60);
+    const MAX_KEYS: usize = 2048;
+
+    let key = username.trim().to_lowercase();
+    let now = Instant::now();
+    let mut attempts = login_attempts.lock().unwrap();
+    attempts.retain(|_, values| {
+        values.retain(|t| now.duration_since(*t) <= WINDOW);
+        !values.is_empty()
+    });
+    if !attempts.contains_key(&key) && attempts.len() >= MAX_KEYS {
+        return true;
+    }
+    attempts.get(&key).map(|v| v.len() >= MAX_ATTEMPTS).unwrap_or(false)
+}
+
+fn record_failed_login(login_attempts: &Mutex<HashMap<String, Vec<Instant>>>, username: &str) {
+    let key = username.trim().to_lowercase();
+    login_attempts
+        .lock()
+        .unwrap()
+        .entry(key)
+        .or_default()
+        .push(Instant::now());
+}
+
+fn clear_failed_logins(login_attempts: &Mutex<HashMap<String, Vec<Instant>>>, username: &str) {
+    login_attempts
+        .lock()
+        .unwrap()
+        .remove(&username.trim().to_lowercase());
+}
+
+fn start_session_cleanup(sessions: Arc<RwLock<HashMap<String, Session>>>) {
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(Duration::from_secs(60 * 60)).await;
+            let now = now_epoch_secs();
+            sessions
+                .write()
+                .unwrap()
+                .retain(|_, session| session.expires_at_epoch > now);
+        }
+    });
 }
 
 // Escape user-controlled text before injecting it into HTML.
@@ -468,7 +631,7 @@ fn get_session(
     headers: &HeaderMap,
     sessions: &RwLock<HashMap<String, Session>>,
 ) -> Option<Session> {
-    headers
+    let token = headers
         .get("cookie")
         .and_then(|c| c.to_str().ok())
         .and_then(|cookie_str| {
@@ -477,20 +640,309 @@ fn get_session(
                 .map(|s| s.trim())
                 .find(|s| s.starts_with("amud_session="))
                 .map(|s| s["amud_session=".len()..].to_string())
-        })
-        .and_then(|token| sessions.read().unwrap().get(&token).cloned())
+        })?;
+
+    let mut guard = sessions.write().unwrap();
+    let session = guard.get(&token).cloned()?;
+    if session.expires_at_epoch <= now_epoch_secs() {
+        guard.remove(&token);
+        None
+    } else {
+        Some(session)
+    }
 }
 
-// Playback Simulator task
-fn start_plex_simulator(plex_progress: Arc<RwLock<f64>>) {
-    tokio::spawn(async move {
-        loop {
-            tokio::time::sleep(Duration::from_secs(1)).await;
-            let mut val = plex_progress.write().unwrap();
-            *val += 0.05;
-            if *val >= 100.0 {
-                *val = 0.0;
+fn default_media_streams() -> HashMap<String, MediaStream> {
+    let mut streams = HashMap::new();
+    streams.insert(
+        "plex".to_string(),
+        MediaStream {
+            status: "NOT CONFIGURED".to_string(),
+            active: false,
+            title: "Add Plex URL and token in Settings".to_string(),
+            current_time: String::new(),
+            total_time: String::new(),
+            progress_percent: 0.0,
+        },
+    );
+    streams.insert(
+        "emby".to_string(),
+        MediaStream {
+            status: "NOT CONFIGURED".to_string(),
+            active: false,
+            title: "Add Jellyfin URL and API key in Settings".to_string(),
+            current_time: String::new(),
+            total_time: String::new(),
+            progress_percent: 0.0,
+        },
+    );
+    streams
+}
+
+fn format_media_time(ms: i64) -> String {
+    let total_seconds = (ms / 1000).max(0);
+    let hours = total_seconds / 3600;
+    let minutes = (total_seconds % 3600) / 60;
+    let seconds = total_seconds % 60;
+    if hours > 0 {
+        format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
+    } else {
+        format!("{:02}:{:02}", minutes, seconds)
+    }
+}
+
+fn media_summary(title: String, count: usize) -> String {
+    if count > 1 {
+        format!("{} (+{} more)", title, count - 1)
+    } else {
+        title
+    }
+}
+
+fn load_settings_snapshot(db: &Arc<Mutex<Connection>>) -> HashMap<String, String> {
+    let mut settings = HashMap::new();
+    let db = db.lock().unwrap();
+    if let Ok(mut stmt) = db.prepare("SELECT key, value FROM settings") {
+        if let Ok(mut rows) = stmt.query([]) {
+            while let Ok(Some(row)) = rows.next() {
+                if let (Ok(key), Ok(value)) = (row.get::<_, String>(0), row.get::<_, String>(1)) {
+                    settings.insert(key, value);
+                }
             }
+        }
+    }
+    settings
+}
+
+async fn poll_jellyfin(client: &reqwest::Client, base_url: &str, api_key: &str) -> MediaStream {
+    if base_url.trim().is_empty() || api_key.trim().is_empty() {
+        return default_media_streams().remove("emby").unwrap();
+    }
+
+    let url = format!(
+        "{}/Sessions?api_key={}",
+        base_url.trim_end_matches('/'),
+        api_key
+    );
+    let resp = match client.get(url).send().await {
+        Ok(resp) => resp,
+        Err(e) => {
+            return MediaStream {
+                status: "ERROR".to_string(),
+                active: false,
+                title: format!("Jellyfin unreachable: {}", e),
+                current_time: String::new(),
+                total_time: String::new(),
+                progress_percent: 0.0,
+            }
+        }
+    };
+
+    let sessions: Vec<serde_json::Value> = resp.json().await.unwrap_or_default();
+    let active: Vec<&serde_json::Value> = sessions
+        .iter()
+        .filter(|session| session.get("NowPlayingItem").is_some())
+        .collect();
+
+    if active.is_empty() {
+        return MediaStream {
+            status: "RUNNING".to_string(),
+            active: false,
+            title: "No Active Streams".to_string(),
+            current_time: String::new(),
+            total_time: String::new(),
+            progress_percent: 0.0,
+        };
+    }
+
+    let first = active[0];
+    let item = &first["NowPlayingItem"];
+    let title = item
+        .get("Name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("Unknown Title")
+        .to_string();
+    let runtime_ticks = item
+        .get("RunTimeTicks")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(0);
+    let position_ticks = first
+        .get("PlayState")
+        .and_then(|v| v.get("PositionTicks"))
+        .and_then(|v| v.as_i64())
+        .unwrap_or(0);
+    let total_ms = runtime_ticks / 10_000;
+    let current_ms = position_ticks / 10_000;
+    let progress_percent = if total_ms > 0 {
+        (current_ms as f64 / total_ms as f64 * 100.0).clamp(0.0, 100.0)
+    } else {
+        0.0
+    };
+
+    MediaStream {
+        status: "RUNNING".to_string(),
+        active: true,
+        title: media_summary(title, active.len()),
+        current_time: format_media_time(current_ms),
+        total_time: format_media_time(total_ms),
+        progress_percent,
+    }
+}
+
+async fn poll_plex(client: &reqwest::Client, base_url: &str, token: &str) -> MediaStream {
+    if base_url.trim().is_empty() || token.trim().is_empty() {
+        return default_media_streams().remove("plex").unwrap();
+    }
+
+    let url = format!("{}/status/sessions", base_url.trim_end_matches('/'));
+    let resp = match client
+        .get(url)
+        .header("X-Plex-Token", token)
+        .header("Accept", "application/json")
+        .send()
+        .await
+    {
+        Ok(resp) => resp,
+        Err(e) => {
+            return MediaStream {
+                status: "ERROR".to_string(),
+                active: false,
+                title: format!("Plex unreachable: {}", e),
+                current_time: String::new(),
+                total_time: String::new(),
+                progress_percent: 0.0,
+            }
+        }
+    };
+
+    let body: serde_json::Value = resp.json().await.unwrap_or_default();
+    let sessions = body
+        .pointer("/MediaContainer/Metadata")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    if sessions.is_empty() {
+        return MediaStream {
+            status: "RUNNING".to_string(),
+            active: false,
+            title: "No Active Streams".to_string(),
+            current_time: String::new(),
+            total_time: String::new(),
+            progress_percent: 0.0,
+        };
+    }
+
+    let first = &sessions[0];
+    let title = first
+        .get("title")
+        .and_then(|v| v.as_str())
+        .unwrap_or("Unknown Title")
+        .to_string();
+    let duration_ms = first.get("duration").and_then(|v| v.as_i64()).unwrap_or(0);
+    let view_offset_ms = first.get("viewOffset").and_then(|v| v.as_i64()).unwrap_or(0);
+    let progress_percent = if duration_ms > 0 {
+        (view_offset_ms as f64 / duration_ms as f64 * 100.0).clamp(0.0, 100.0)
+    } else {
+        0.0
+    };
+
+    MediaStream {
+        status: "RUNNING".to_string(),
+        active: true,
+        title: media_summary(title, sessions.len()),
+        current_time: format_media_time(view_offset_ms),
+        total_time: format_media_time(duration_ms),
+        progress_percent,
+    }
+}
+
+fn start_media_poller(
+    db: Arc<Mutex<Connection>>,
+    media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
+) {
+    tokio::spawn(async move {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(4))
+            .danger_accept_invalid_certs(true)
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new());
+
+        loop {
+            let settings = load_settings_snapshot(&db);
+            let jellyfin = poll_jellyfin(
+                &client,
+                settings.get("jellyfin_url").map(|s| s.as_str()).unwrap_or(""),
+                settings
+                    .get("jellyfin_api_key")
+                    .map(|s| s.as_str())
+                    .unwrap_or(""),
+            );
+            let plex = poll_plex(
+                &client,
+                settings.get("plex_url").map(|s| s.as_str()).unwrap_or(""),
+                settings.get("plex_token").map(|s| s.as_str()).unwrap_or(""),
+            );
+            let (jellyfin, plex) = tokio::join!(jellyfin, plex);
+
+            {
+                let mut streams = media_streams.write().unwrap();
+                streams.insert("emby".to_string(), jellyfin);
+                streams.insert("plex".to_string(), plex);
+            }
+
+            tokio::time::sleep(Duration::from_secs(5)).await;
+        }
+    });
+}
+
+fn start_status_poller(
+    db: Arc<Mutex<Connection>>,
+    app_statuses: Arc<RwLock<HashMap<String, AppStatus>>>,
+) {
+    tokio::spawn(async move {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(4))
+            .danger_accept_invalid_certs(true)
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new());
+
+        loop {
+            let apps = {
+                let db = db.lock().unwrap();
+                let mut apps = Vec::<(String, String)>::new();
+                if let Ok(mut stmt) = db.prepare("SELECT name, url FROM apps") {
+                    if let Ok(rows) = stmt.query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+                    }) {
+                        for app in rows.flatten() {
+                            apps.push(app);
+                        }
+                    }
+                }
+                apps
+            };
+
+            let mut next = HashMap::new();
+            for (name, url) in apps {
+                let started = Instant::now();
+                let status = match client.get(&url).send().await {
+                    Ok(resp) if resp.status().is_success() || resp.status().is_redirection() => {
+                        AppStatus {
+                            status: "ONLINE".to_string(),
+                            latency_ms: Some(started.elapsed().as_millis()),
+                        }
+                    }
+                    Ok(_) | Err(_) => AppStatus {
+                        status: "OFFLINE".to_string(),
+                        latency_ms: None,
+                    },
+                };
+                next.insert(name.to_lowercase(), status);
+            }
+
+            *app_statuses.write().unwrap() = next;
+            tokio::time::sleep(Duration::from_secs(15)).await;
         }
     });
 }
@@ -1106,6 +1558,12 @@ async fn dashboard_handler(
         .get("bento_radius")
         .map(|s| s.as_str())
         .unwrap_or("16");
+    let grid_columns = settings
+        .get("grid_columns")
+        .or_else(|| settings.get("app_grid_columns"))
+        .and_then(|s| s.parse::<usize>().ok())
+        .filter(|cols| (2..=5).contains(cols))
+        .unwrap_or(3);
 
     let overlay_theme = settings
         .get("overlay_theme")
@@ -1182,10 +1640,10 @@ async fn dashboard_handler(
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Log in as Admin and click "Add App" to register your infrastructure.</p>
         </div>"#.to_string();
     } else {
-        // Group by columns or render in a beautiful 3-column grid
-        let mut cols = vec![String::new(), String::new(), String::new()];
+        // Group cards into the configured number of dashboard columns.
+        let mut cols = vec![String::new(); grid_columns];
         for (i, app) in apps.iter().enumerate() {
-            let col_idx = i % 3;
+            let col_idx = i % grid_columns;
 
             // Resolve Built-in Brand Logo
             let lowercase_icon = app.icon.to_lowercase();
@@ -1260,88 +1718,9 @@ async fn dashboard_handler(
                 .collect();
 
             // Build Sub-Metrics Grid
-            let sub_metrics;
             let name_lower = app.name.to_lowercase();
-            if name_lower.contains("radarr") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid">
-                    <div class="metric-block">
-                        <span class="metric-value">21</span>
-                        <span class="metric-label">Wanted</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">56</span>
-                        <span class="metric-label">Movies</span>
-                    </div>
-                </div>"#
-                    .to_string();
-            } else if name_lower.contains("sonarr") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid">
-                    <div class="metric-block">
-                        <span class="metric-value">388</span>
-                        <span class="metric-label">Wanted</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">11</span>
-                        <span class="metric-label">Series</span>
-                    </div>
-                </div>"#
-                    .to_string();
-            } else if name_lower.contains("overseerr") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid">
-                    <div class="metric-block">
-                        <span class="metric-value">0</span>
-                        <span class="metric-label">Pending</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">22</span>
-                        <span class="metric-label">Available</span>
-                    </div>
-                </div>"#
-                    .to_string();
-            } else if name_lower.contains("sabnzbd") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid">
-                    <div class="metric-block">
-                        <span class="metric-value">0 B/s</span>
-                        <span class="metric-label">Rate</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">0</span>
-                        <span class="metric-label">Queue</span>
-                    </div>
-                </div>"#
-                    .to_string();
-            } else if name_lower.contains("deluge") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid">
-                    <div class="metric-block">
-                        <span class="metric-value">0 B/s</span>
-                        <span class="metric-label">Download</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">211 kB/s</span>
-                        <span class="metric-label">Upload</span>
-                    </div>
-                </div>"#
-                    .to_string();
-            } else if name_lower.contains("prowlarr") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid">
-                    <div class="metric-block">
-                        <span class="metric-value">312</span>
-                        <span class="metric-label">Grabs</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">890</span>
-                        <span class="metric-label">Queries</span>
-                    </div>
-                </div>"#
-                    .to_string();
-            } else if name_lower.contains("proxmox") {
-                sub_metrics = r#"
+            let sub_metrics = if name_lower.contains("proxmox") {
+                r#"
                 <div class="nested-metrics-grid cols-3">
                     <div class="metric-block">
                         <span class="metric-value">4 / 5</span>
@@ -1356,60 +1735,9 @@ async fn dashboard_handler(
                         <span class="metric-label">Mem</span>
                     </div>
                 </div>"#
-                    .to_string();
-            } else if name_lower.contains("truenas") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid cols-3">
-                    <div class="metric-block">
-                        <span class="metric-value">0.21</span>
-                        <span class="metric-label">Load</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">7 days</span>
-                        <span class="metric-label">Uptime</span>
-                    </div>
-                    <div class="metric-block" style="color: #ef4444;">
-                        <span class="metric-value">4</span>
-                        <span class="metric-label">Alerts</span>
-                    </div>
-                </div>"#
-                    .to_string();
-            } else if name_lower.contains("portainer") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid cols-3">
-                    <div class="metric-block">
-                        <span class="metric-value">23</span>
-                        <span class="metric-label">Running</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">0</span>
-                        <span class="metric-label">Stopped</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">23</span>
-                        <span class="metric-label">Total</span>
-                    </div>
-                </div>"#
-                    .to_string();
-            } else if name_lower.contains("nextcloud") {
-                sub_metrics = r#"
-                <div class="nested-metrics-grid cols-3">
-                    <div class="metric-block">
-                        <span class="metric-value" style="font-size:0.75rem;">69.6 TB</span>
-                        <span class="metric-label">Free</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">1</span>
-                        <span class="metric-label">Users</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value" style="font-size:0.75rem;">47,559</span>
-                        <span class="metric-label">Files</span>
-                    </div>
-                </div>"#
-                    .to_string();
+                    .to_string()
             } else {
-                sub_metrics = r#"
+                r#"
                 <div class="nested-metrics-grid">
                     <div class="metric-block">
                         <span class="metric-value">Bookmark</span>
@@ -1420,8 +1748,8 @@ async fn dashboard_handler(
                         <span class="metric-label">Status</span>
                     </div>
                 </div>"#
-                    .to_string();
-            }
+                    .to_string()
+            };
 
             let delete_btn = if is_admin {
                 let app_json = serde_json::to_string(&app).unwrap_or_default();
@@ -1452,13 +1780,13 @@ async fn dashboard_handler(
                 r#"
                 <div class="container-controls" style="display: none; align-items: center; gap: 0.25rem;" data-id="" data-provider="">
                     <button type="button" class="btn-ctrl start" title="Start Container" onclick="triggerContainerAction(this, 'start')">
-                        <i data-lucide="play" style="width:0.75rem; height:0.75rem;"></i>
+                        <i data-lucide="circle-play" style="width:0.9rem; height:0.9rem;"></i>
                     </button>
                     <button type="button" class="btn-ctrl stop" title="Stop Container" onclick="triggerContainerAction(this, 'stop')">
-                        <i data-lucide="square" style="width:0.75rem; height:0.75rem;"></i>
+                        <i data-lucide="circle-stop" style="width:0.9rem; height:0.9rem;"></i>
                     </button>
                     <button type="button" class="btn-ctrl restart" title="Restart Container" onclick="triggerContainerAction(this, 'restart')">
-                        <i data-lucide="refresh-cw" style="width:0.75rem; height:0.75rem;"></i>
+                        <i data-lucide="rotate-cw" style="width:0.9rem; height:0.9rem;"></i>
                     </button>
                 </div>
                 "#.to_string()
@@ -1501,13 +1829,11 @@ async fn dashboard_handler(
             cols[col_idx].push_str(&card);
         }
 
-        apps_html = format!(
-            r#"
-            <div class="bento-column">{}</div>
-            <div class="bento-column">{}</div>
-            <div class="bento-column">{}</div>"#,
-            cols[0], cols[1], cols[2]
-        );
+        apps_html = cols
+            .into_iter()
+            .map(|col| format!(r#"<div class="bento-column">{}</div>"#, col))
+            .collect::<Vec<_>>()
+            .join("");
     }
 
     // Auth actions buttons in topbar
@@ -1566,7 +1892,7 @@ async fn dashboard_handler(
                             <p class="stream-text-desc">Watch movies and TV shows.</p>
                         </div>
                     </div>
-                    <span class="stream-status-badge">RUNNING</span>
+                    <span class="stream-status-badge" data-stream-app="plex" data-stream-service="plex">CHECKING...</span>
                 </div>
                 
                 <div class="stream-player">
@@ -1598,7 +1924,7 @@ async fn dashboard_handler(
                             <p class="stream-text-desc">Watch movies and TV shows.</p>
                         </div>
                     </div>
-                    <span class="stream-status-badge">RUNNING</span>
+                    <span class="stream-status-badge" data-stream-app="jellyfin emby media" data-stream-service="emby">CHECKING...</span>
                 </div>
                 
                 <div class="stream-player">
@@ -1715,6 +2041,7 @@ async fn dashboard_handler(
             --glass-blur-intensity: {}px;
             --glass-opacity: {};
             --radius-xl: {}px;
+            --grid-cols: {};
             --bg-card: rgba(15, 20, 25, {});
             --brand-overlay-gradient: {};
         "#,
@@ -1727,6 +2054,7 @@ async fn dashboard_handler(
         glass_blur,
         glass_opacity,
         bento_radius,
+        grid_columns,
         opacity_f,
         overlay_gradient
     );
@@ -1743,6 +2071,8 @@ async fn dashboard_handler(
         .replace("{{tagline}}", tagline)
         .replace("{{custom_bg_url}}", custom_bg_url)
         .replace("{{app_logo}}", app_logo)
+        .replace("{{if app_logo}}", if app_logo.is_empty() { "" } else { "" })
+        .replace("{{end}}", "")
         .replace("{{accent_color}}", accent_color)
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
@@ -1927,44 +2257,54 @@ async fn login_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    let username = form.get("username").cloned().unwrap_or_default();
+    let username = form.get("username").cloned().unwrap_or_default().trim().to_string();
     let password = form.get("password").cloned().unwrap_or_default();
+
+    if login_rate_limited(&state.login_attempts, &username) {
+        return Response::builder()
+            .status(StatusCode::TOO_MANY_REQUESTS)
+            .body(axum::body::Body::from("Too many failed login attempts. Try again later."))
+            .unwrap();
+    }
 
     let db = state.db.lock().unwrap();
     let mut stmt = db
         .prepare("SELECT password_hash, role FROM users WHERE username = ?")
         .unwrap();
 
-    let hashed = hash_password(&password);
-    let auth_res = stmt.query_row(params![username], |row| {
+    let auth_res = stmt.query_row(params![username.clone()], |row| {
         let pwhash: String = row.get(0).unwrap();
         let role: String = row.get(1).unwrap();
-        Ok((pwhash == hashed, role))
+        let (verified, needs_rehash) = verify_password(&pwhash, &password);
+        Ok((verified, needs_rehash, role))
     });
 
-    if let Ok((true, role)) = auth_res {
-        let token = format!(
-            "{:x}",
-            Sha256::digest(
-                format!(
-                    "{}{}",
-                    username,
-                    std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .unwrap()
-                        .as_secs()
-                )
-                .as_bytes()
+    if let Ok((true, needs_rehash, role)) = auth_res {
+        if needs_rehash {
+            let upgraded = hash_password(&password);
+            db.execute(
+                "UPDATE users SET password_hash = ? WHERE username = ?",
+                params![upgraded, username],
             )
-        );
+            .ok();
+        }
+        clear_failed_logins(&state.login_attempts, &username);
+        let token = generate_session_token();
 
         state
             .sessions
             .write()
             .unwrap()
-            .insert(token.clone(), Session { username, role });
+            .insert(
+                token.clone(),
+                Session {
+                    username,
+                    role,
+                    expires_at_epoch: now_epoch_secs() + 86_400,
+                },
+            );
 
-        let cookie = format!("amud_session={}; Path=/; Max-Age=86400; HttpOnly", token);
+        let cookie = session_cookie(&token);
 
         Response::builder()
             .status(StatusCode::SEE_OTHER)
@@ -1973,6 +2313,10 @@ async fn login_handler(
             .body(axum::body::Body::empty())
             .unwrap()
     } else {
+        // Keep missing-user and wrong-password timing closer by doing an Argon2id hash
+        // even when no stored hash exists.
+        let _ = hash_password(&password);
+        record_failed_login(&state.login_attempts, &username);
         Redirect::to("/login").into_response()
     }
 }
@@ -1994,7 +2338,7 @@ async fn logout_handler(
 
     Response::builder()
         .status(StatusCode::SEE_OTHER)
-        .header(header::SET_COOKIE, "amud_session=; Path=/; Max-Age=0")
+        .header(header::SET_COOKIE, expired_session_cookie())
         .header(header::LOCATION, "/")
         .body(axum::body::Body::empty())
         .unwrap()
@@ -2007,118 +2351,19 @@ async fn ws_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) ->
 
 async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>) {
     let rx_stream = state.latest_telemetry.clone();
-    let p_progress = state.plex_progress.clone();
 
     loop {
         // Stream telemetry packet every 3 seconds
         let system_metrics = rx_stream.read().unwrap().clone();
-
-        // Build mock network info matching image_10503b
-        let network = NetworkTelemetry {
-            internal_tx: "9 kbit/s".to_string(),
-            internal_rx: "2 kbit/s".to_string(),
-            external_tx: "540 kbit/s".to_string(),
-            external_rx: "50 kbit/s".to_string(),
-        };
-
-        // Media simulations
-        let progress = *p_progress.read().unwrap();
-        let plex = MediaStream {
-            status: "RUNNING".to_string(),
-            active: true,
-            title: "Suits - Pilot".to_string(),
-            current_time: "47:59".to_string(),
-            total_time: "01:12:23".to_string(),
-            progress_percent: progress,
-        };
-
-        let emby = MediaStream {
-            status: "RUNNING".to_string(),
-            active: false,
-            title: "No Active Streams".to_string(),
-            current_time: "".to_string(),
-            total_time: "".to_string(),
-            progress_percent: 0.0,
-        };
-
-        let mut streams = HashMap::new();
-        streams.insert("plex".to_string(), plex);
-        streams.insert("emby".to_string(), emby);
-
-        // App nested metrics payload
-        let mut apps = HashMap::new();
-
-        let mut radarr_metrics = HashMap::new();
-        radarr_metrics.insert("WANTED".to_string(), "21".to_string());
-        radarr_metrics.insert("MOVIES".to_string(), "56".to_string());
-        apps.insert(
-            "radarr".to_string(),
-            AppMetrics {
-                status: "RUNNING".to_string(),
-                metrics: radarr_metrics,
-            },
-        );
-
-        let mut sonarr_metrics = HashMap::new();
-        sonarr_metrics.insert("WANTED".to_string(), "388".to_string());
-        sonarr_metrics.insert("SERIES".to_string(), "11".to_string());
-        apps.insert(
-            "sonarr".to_string(),
-            AppMetrics {
-                status: "RUNNING".to_string(),
-                metrics: sonarr_metrics,
-            },
-        );
-
-        let mut overseerr_metrics = HashMap::new();
-        overseerr_metrics.insert("PENDING".to_string(), "0".to_string());
-        overseerr_metrics.insert("AVAILABLE".to_string(), "22".to_string());
-        apps.insert(
-            "overseerr".to_string(),
-            AppMetrics {
-                status: "RUNNING".to_string(),
-                metrics: overseerr_metrics,
-            },
-        );
-
-        let mut sab_metrics = HashMap::new();
-        sab_metrics.insert("RATE".to_string(), "0 B/s".to_string());
-        sab_metrics.insert("QUEUE".to_string(), "0".to_string());
-        apps.insert(
-            "sabnzbd".to_string(),
-            AppMetrics {
-                status: "RUNNING".to_string(),
-                metrics: sab_metrics,
-            },
-        );
-
-        let mut deluge_metrics = HashMap::new();
-        deluge_metrics.insert("DOWNLOAD".to_string(), "0 B/s".to_string());
-        deluge_metrics.insert("UPLOAD".to_string(), "211 kB/s".to_string());
-        apps.insert(
-            "deluge".to_string(),
-            AppMetrics {
-                status: "RUNNING".to_string(),
-                metrics: deluge_metrics,
-            },
-        );
-
-        let mut prowlarr_metrics = HashMap::new();
-        prowlarr_metrics.insert("GRABS".to_string(), "312".to_string());
-        prowlarr_metrics.insert("QUERIES".to_string(), "890".to_string());
-        apps.insert(
-            "prowlarr".to_string(),
-            AppMetrics {
-                status: "RUNNING".to_string(),
-                metrics: prowlarr_metrics,
-            },
-        );
+        let network = system_metrics.network.clone().unwrap_or_default();
+        let streams = state.media_streams.read().unwrap().clone();
+        let app_statuses = state.app_statuses.read().unwrap().clone();
 
         let payload = FullTelemetry {
             system: system_metrics,
             network,
             streams,
-            apps,
+            app_statuses,
         };
 
         if let Ok(msg) = serde_json::to_string(&payload) {
@@ -2286,7 +2531,6 @@ async fn credentials_handler(
             .unwrap();
     }
 
-    let old_hash = hash_password(&old_password);
     let db = state.db.lock().unwrap();
 
     // Verify old password matches the current user's password
@@ -2295,8 +2539,21 @@ async fn credentials_handler(
         .unwrap()
         .query_row(params![sess.username], |row| row.get(0));
 
-    match stored_hash {
-        Ok(ref h) if h == &old_hash => {}
+    let old_needs_rehash = match stored_hash {
+        Ok(ref h) => {
+            let (verified, needs_rehash) = verify_password(h, &old_password);
+            if verified {
+                needs_rehash
+            } else {
+                return Response::builder()
+                    .status(StatusCode::UNAUTHORIZED)
+                    .header("Content-Type", "application/json")
+                    .body(axum::body::Body::from(
+                        r#"{"error":"Old password is incorrect"}"#,
+                    ))
+                    .unwrap();
+            }
+        }
         _ => {
             return Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
@@ -2306,7 +2563,7 @@ async fn credentials_handler(
                 ))
                 .unwrap();
         }
-    }
+    };
 
     // Update username if provided (check uniqueness first)
     let mut actual_username = sess.username.clone();
@@ -2353,8 +2610,12 @@ async fn credentials_handler(
     }
 
     // Update password if provided
-    if !new_password.is_empty() {
-        let new_hash = hash_password(&new_password);
+    if !new_password.is_empty() || old_needs_rehash {
+        let new_hash = hash_password(if new_password.is_empty() {
+            &old_password
+        } else {
+            &new_password
+        });
         db.execute(
             "UPDATE users SET password_hash = ? WHERE username = ?",
             params![new_hash, actual_username],
@@ -3123,11 +3384,20 @@ async fn settings_page_handler(
     let glass_blur = settings.get("glass_blur_intensity").map(|s| s.as_str()).unwrap_or("16");
     let glass_opacity = settings.get("glass_opacity").map(|s| s.as_str()).unwrap_or("0.45");
     let bento_radius = settings.get("bento_radius").map(|s| s.as_str()).unwrap_or("16");
+    let grid_columns = settings
+        .get("grid_columns")
+        .or_else(|| settings.get("app_grid_columns"))
+        .map(|s| s.as_str())
+        .unwrap_or("3");
     let overlay_theme = settings.get("overlay_theme").map(|s| s.as_str()).unwrap_or("cyber");
     let custom_overlay_color = settings.get("custom_overlay_color").map(|s| s.as_str()).unwrap_or("#1a1a2e");
     let weather_latitude = settings.get("weather_latitude").map(|s| s.as_str()).unwrap_or("");
     let weather_longitude = settings.get("weather_longitude").map(|s| s.as_str()).unwrap_or("");
     let pve_api_token = settings.get("pve_api_token").map(|s| s.as_str()).unwrap_or("");
+    let jellyfin_url = settings.get("jellyfin_url").map(|s| s.as_str()).unwrap_or("");
+    let jellyfin_api_key = settings.get("jellyfin_api_key").map(|s| s.as_str()).unwrap_or("");
+    let plex_url = settings.get("plex_url").map(|s| s.as_str()).unwrap_or("");
+    let plex_token = settings.get("plex_token").map(|s| s.as_str()).unwrap_or("");
     let donate_enabled = settings.get("donate_enabled").map(|s| s.as_str()).unwrap_or("1");
 
     let bg_url_style = if custom_bg_url.is_empty() { "".to_string() } else { format!("--brand-bg-image: url('{}');", custom_bg_url) };
@@ -3161,10 +3431,11 @@ async fn settings_page_handler(
             --glass-blur-intensity: {}px;
             --glass-opacity: {};
             --radius-xl: {}px;
+            --grid-cols: {};
             --bg-card: rgba(15, 20, 25, {});
             --brand-overlay-gradient: {};
         "#,
-        bg_url_style, logo_url_style, app_name, tagline, accent_color, accent_glow, glass_blur, glass_opacity, bento_radius, opacity_f, overlay_gradient
+        bg_url_style, logo_url_style, app_name, tagline, accent_color, accent_glow, glass_blur, glass_opacity, bento_radius, grid_columns, opacity_f, overlay_gradient
     );
 
     let settings_tmpl = include_str!("../../ui/templates/settings.html");
@@ -3175,13 +3446,23 @@ async fn settings_page_handler(
         .replace("{{tagline}}", tagline)
         .replace("{{custom_bg_url}}", custom_bg_url)
         .replace("{{app_logo}}", app_logo)
+        .replace("{{if app_logo}}", if app_logo.is_empty() { "" } else { "" })
+        .replace("{{end}}", "")
         .replace("{{accent_color}}", accent_color)
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
         .replace("{{bento_radius}}", bento_radius)
+        .replace("{{eq_grid_2}}", if grid_columns == "2" { "selected" } else { "" })
+        .replace("{{eq_grid_3}}", if grid_columns == "3" { "selected" } else { "" })
+        .replace("{{eq_grid_4}}", if grid_columns == "4" { "selected" } else { "" })
+        .replace("{{eq_grid_5}}", if grid_columns == "5" { "selected" } else { "" })
         .replace("{{weather_latitude}}", weather_latitude)
         .replace("{{weather_longitude}}", weather_longitude)
         .replace("{{pve_api_token}}", pve_api_token)
+        .replace("{{jellyfin_url}}", jellyfin_url)
+        .replace("{{jellyfin_api_key}}", jellyfin_api_key)
+        .replace("{{plex_url}}", plex_url)
+        .replace("{{plex_token}}", plex_token)
         .replace("{{username}}", username)
         .replace("{{eq_cyber}}", if overlay_theme == "cyber" { "selected" } else { "" })
         .replace("{{eq_aurora}}", if overlay_theme == "aurora" { "selected" } else { "" })
@@ -3227,10 +3508,12 @@ mod tests {
             sessions: Arc::new(RwLock::new(HashMap::new())),
             latest_telemetry: Arc::new(RwLock::new(AgentTelemetry::default())),
             agent_connected: Arc::new(RwLock::new(false)),
-            plex_progress: Arc::new(RwLock::new(0.0)),
+            media_streams: Arc::new(RwLock::new(default_media_streams())),
+            app_statuses: Arc::new(RwLock::new(HashMap::new())),
             agent_command_tx: Arc::new(Mutex::new(None)),
             pve_test_response: Arc::new(RwLock::new(None)),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
+            login_attempts: Arc::new(Mutex::new(HashMap::new())),
             agent_secret: Arc::new("test-secret".to_string()),
         });
 
@@ -3243,6 +3526,7 @@ mod tests {
             disk_usage: 0,
             disk_used_gb: 0.0,
             disk_total_gb: 0.0,
+            network: None,
             lxc_containers: vec![LxcContainer {
                 vmid: 100,
                 status: "running".to_string(),
@@ -3260,6 +3544,7 @@ mod tests {
             disk_usage: 0,
             disk_used_gb: 0.0,
             disk_total_gb: 0.0,
+            network: None,
             lxc_containers: vec![LxcContainer {
                 vmid: 100,
                 status: "stopped".to_string(),
@@ -3298,10 +3583,12 @@ mod tests {
             sessions: Arc::new(RwLock::new(HashMap::new())),
             latest_telemetry: Arc::new(RwLock::new(AgentTelemetry::default())),
             agent_connected: Arc::new(RwLock::new(false)),
-            plex_progress: Arc::new(RwLock::new(0.0)),
+            media_streams: Arc::new(RwLock::new(default_media_streams())),
+            app_statuses: Arc::new(RwLock::new(HashMap::new())),
             agent_command_tx: Arc::new(Mutex::new(None)),
             pve_test_response: Arc::new(RwLock::new(None)),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
+            login_attempts: Arc::new(Mutex::new(HashMap::new())),
             agent_secret: Arc::new("test-secret".to_string()),
         });
 

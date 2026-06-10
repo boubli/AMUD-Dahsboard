@@ -2,11 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>AMUD - Administrative Sign In</title>
     <link rel="icon" href="/static/AMUD-logo.png" type="image/png">
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="var(--accent-color)">
+    <meta name="description" content="AMUD Dashboard administrative sign in">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AMUD">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/AMUD-logo.png">
     <link rel="stylesheet" href="/static/style.css">
     
     <!-- Inline variables setup for clean database variable override -->
@@ -16,7 +21,7 @@
         }
     </style>
     
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/static/vendor/lucide.min.js"></script>
 </head>
 <body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1.5rem;">
     <div class="glass-panel" style="max-width: 400px; width: 100%; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
