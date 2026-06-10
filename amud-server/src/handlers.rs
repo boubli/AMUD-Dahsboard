@@ -518,10 +518,13 @@ pub async fn dashboard_handler(
         .as_ref()
         .map(|s| s.username.as_str())
         .unwrap_or("guest");
+    let proxmox_enabled = std::env::var("AMUD_ENABLE_PROXMOX").unwrap_or_else(|_| "true".to_string()) != "false";
+
     let mut result = index_tmpl
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", app_name)
         .replace("{{tagline}}", tagline)
+        .replace("{{proxmox_enabled}}", if proxmox_enabled { "true" } else { "false" })
         .replace("{{custom_bg_url}}", custom_bg_url);
 
     if app_logo.is_empty() {
@@ -2230,11 +2233,13 @@ pub async fn settings_page_handler(
     let settings_tmpl = include_str!("../../ui/templates/settings.html");
     let username = session.username.as_str();
     let app_version = option_env!("GIT_TAG").unwrap_or(env!("CARGO_PKG_VERSION"));
-    
+    let proxmox_enabled = std::env::var("AMUD_ENABLE_PROXMOX").unwrap_or_else(|_| "true".to_string()) != "false";
+
     let mut result = settings_tmpl
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", app_name)
         .replace("{{app_version}}", app_version)
+        .replace("{{proxmox_enabled}}", if proxmox_enabled { "true" } else { "false" })
         .replace("{{tagline}}", tagline)
         .replace("{{custom_bg_url}}", custom_bg_url);
 

@@ -326,7 +326,7 @@
                 <button class="nav-item" :class="{ 'active': activeTab === 'weather' }" @click="switchTab('weather')">
                     <i data-lucide="cloud-sun"></i> Weather
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'proxmox' }" @click="switchTab('proxmox')">
+                <button x-show="proxmoxEnabled" class="nav-item" :class="{ 'active': activeTab === 'proxmox' }" @click="switchTab('proxmox')">
                     <i data-lucide="server"></i> Proxmox VE
                 </button>
                 <button class="nav-item" :class="{ 'active': activeTab === 'integrations' }" @click="switchTab('integrations')">
@@ -487,7 +487,7 @@
                     </div>
 
                     <!-- TAB: PROXMOX -->
-                    <div x-show="activeTab === 'proxmox'" x-transition.opacity style="display:none;">
+                    <div x-show="activeTab === 'proxmox' && proxmoxEnabled" x-transition.opacity style="display:none;">
                         <h1 class="settings-page-title">Proxmox Integration</h1>
                         <p class="settings-page-subtitle">Connect AMUD to your Proxmox VE hypervisor API.</p>
                         
@@ -778,6 +778,7 @@
     <script nonce="{{csp_nonce}}">
         function settingsState() {
             return {
+                proxmoxEnabled: {{proxmox_enabled}},
                 activeTab: localStorage.getItem('amud_settings_tab') || 'branding',
                 unsavedChanges: false,
                 catModalOpen: false,
@@ -788,6 +789,10 @@
                 usrEditing: false,
 
                 init() {
+                    if (!this.proxmoxEnabled && this.activeTab === 'proxmox') {
+                        this.activeTab = 'branding';
+                        localStorage.setItem('amud_settings_tab', 'branding');
+                    }
                     if (this.activeTab === 'categories') loadCategories();
                     else if (this.activeTab === 'webhooks') loadWebhooks();
                     else if (this.activeTab === 'users') loadUsers();
