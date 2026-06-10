@@ -518,14 +518,22 @@ pub async fn dashboard_handler(
         .as_ref()
         .map(|s| s.username.as_str())
         .unwrap_or("guest");
-    let result = index_tmpl
+    let mut result = index_tmpl
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", app_name)
         .replace("{{tagline}}", tagline)
-        .replace("{{custom_bg_url}}", custom_bg_url)
-        .replace("{{app_logo}}", app_logo)
-        .replace("{{if app_logo}}", if app_logo.is_empty() { "" } else { "" })
-        .replace("{{end}}", "")
+        .replace("{{custom_bg_url}}", custom_bg_url);
+
+    if app_logo.is_empty() {
+        result = result.replace("{{if app_logo}}style=\"background-image: url('{{app_logo}}');\"{{end}}", "");
+    } else {
+        result = result
+            .replace("{{if app_logo}}", "")
+            .replace("{{app_logo}}", app_logo)
+            .replace("{{end}}", "");
+    }
+
+    let result = result
         .replace("{{accent_color}}", accent_color)
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
@@ -2213,10 +2221,18 @@ pub async fn settings_page_handler(
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", app_name)
         .replace("{{tagline}}", tagline)
-        .replace("{{custom_bg_url}}", custom_bg_url)
-        .replace("{{app_logo}}", app_logo)
-        .replace("{{if app_logo}}", if app_logo.is_empty() { "" } else { "" })
-        .replace("{{end}}", "")
+        .replace("{{custom_bg_url}}", custom_bg_url);
+
+    if app_logo.is_empty() {
+        result = result.replace("{{if app_logo}}style=\"background-image: url('{{app_logo}}');\"{{end}}", "");
+    } else {
+        result = result
+            .replace("{{if app_logo}}", "")
+            .replace("{{app_logo}}", app_logo)
+            .replace("{{end}}", "");
+    }
+
+    let result = result
         .replace("{{accent_color}}", accent_color)
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
