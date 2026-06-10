@@ -8,6 +8,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="{{accent_color}}">
     <meta name="description" content="AMUD Dashboard homelab operations cockpit">
+    <meta name="csrf-token" content="{{csrf_token}}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{app_name}}">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,7 +27,7 @@
         }
     </style>
 </head>
-<body x-data="{ drawerOpen: false, addAppModalOpen: false, editAppModalOpen: false, manageCategoriesOpen: false, manageWebhooksOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '' }, categories: [], webhooks: [] }">
+<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '' } }">
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
@@ -51,7 +52,7 @@
         <!-- Hero Greeting & Clock Widget -->
         <section class="hero-section">
             <div class="greeting-box">
-                <h2 class="greeting-title" id="greeting-content">Working late, <span class="username-highlight">{{username}}</span></h2>
+                <h2 class="greeting-title"><span id="greeting-text">Working late</span>, <span class="username-highlight" id="username-display">{{username}}</span></h2>
                 <p class="greeting-subtitle" id="live-date">Monday · June 1, 2026</p>
             </div>
             <div class="clock-box glass-panel">
@@ -124,14 +125,14 @@
             <div class="glass-panel telemetry-card">
                 <div class="telemetry-header">
                     <span class="telemetry-title">Internal</span>
-                    <span class="telemetry-value" id="val-net-int-tx">9 kbit/s TX</span>
+                    <span class="telemetry-value" id="val-net-int-tx">— TX</span>
                 </div>
                 <div class="telemetry-bar-container">
-                    <div class="telemetry-bar-fill" id="bar-net-int" style="width: 4%;"></div>
+                    <div class="telemetry-bar-fill" id="bar-net-int" style="width: 0%;"></div>
                 </div>
                 <div class="telemetry-subinfo">
                     <span>vmbr1</span>
-                    <span id="val-net-int-rx">2 kbit/s RX</span>
+                    <span id="val-net-int-rx">— RX</span>
                 </div>
             </div>
 
@@ -139,14 +140,14 @@
             <div class="glass-panel telemetry-card">
                 <div class="telemetry-header">
                     <span class="telemetry-title">External</span>
-                    <span class="telemetry-value" id="val-net-ext-tx">540 kbit/s TX</span>
+                    <span class="telemetry-value" id="val-net-ext-tx">— TX</span>
                 </div>
                 <div class="telemetry-bar-container">
-                    <div class="telemetry-bar-fill" id="bar-net-ext" style="width: 18%;"></div>
+                    <div class="telemetry-bar-fill" id="bar-net-ext" style="width: 0%;"></div>
                 </div>
                 <div class="telemetry-subinfo">
                     <span>enp5s0</span>
-                    <span id="val-net-ext-rx">50 kbit/s RX</span>
+                    <span id="val-net-ext-rx">— RX</span>
                 </div>
             </div>
         </section>
@@ -178,6 +179,7 @@
         </div>
 
         <form action="/apps" method="POST" class="settings-form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <div class="form-group">
                 <label>Application Name</label>
                 <input type="text" name="name" class="form-control" required placeholder="e.g. Radarr">
@@ -237,6 +239,7 @@
         </div>
 
         <form action="/apps/edit" method="POST" class="settings-form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <input type="hidden" name="id" x-model="editApp.id">
 
             <div class="form-group">
@@ -287,6 +290,13 @@
 
     <script>
 
+        function amudCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+        function amudCsrfHeaders(extra) {
+            return Object.assign({ 'X-CSRF-Token': amudCsrfToken() }, extra || {});
+        }
+
         // Init Lucide vector icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -307,6 +317,7 @@
 
             fetch("/admin/upload", {
                 method: "POST",
+                headers: amudCsrfHeaders(),
                 body: formData
             })
             .then(res => {
@@ -384,11 +395,9 @@
             } else {
                 greeting = "Working late";
             }
-            const greetingEl = document.getElementById('greeting-content');
-            if (greetingEl) {
-                const usernameEl = greetingEl.querySelector('.username-highlight');
-                const username = usernameEl ? usernameEl.innerText : 'guest';
-                greetingEl.innerHTML = `${greeting}, <span class="username-highlight">${username}</span>`;
+            const greetingTextEl = document.getElementById('greeting-text');
+            if (greetingTextEl) {
+                greetingTextEl.textContent = greeting;
             }
         }
         setInterval(updateClock, 1000);
@@ -434,292 +443,6 @@
             });
         }
 
-        // Custom overlay tint toggle
-        function toggleCustomOverlay() {
-            const select = document.getElementById('overlay-theme-select');
-            const group = document.getElementById('custom-overlay-group');
-            if (select && group) {
-                group.style.display = select.value === 'custom' ? 'block' : 'none';
-            }
-        }
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', toggleCustomOverlay);
-
-        // Secure credential update
-        function submitCredentials() {
-            const errEl = document.getElementById('cred-error-msg');
-            const sucEl = document.getElementById('cred-success-msg');
-            errEl.style.display = 'none';
-            sucEl.style.display = 'none';
-
-            const oldPw = document.getElementById('cred-old-password').value;
-            const newPw = document.getElementById('cred-new-password').value;
-            const repeatPw = document.getElementById('cred-repeat-password').value;
-            const newUser = document.getElementById('cred-new-username').value;
-
-            if (!oldPw) {
-                errEl.textContent = 'Old password is required.';
-                errEl.style.display = 'block';
-                return;
-            }
-
-            if (newPw && newPw !== repeatPw) {
-                errEl.textContent = 'New passwords do not match.';
-                errEl.style.display = 'block';
-                return;
-            }
-
-            const formData = new URLSearchParams();
-            formData.append('old_password', oldPw);
-            if (newPw) formData.append('new_password', newPw);
-            if (newUser) formData.append('new_username', newUser);
-
-            fetch('/admin/credentials', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json().then(data => ({ ok: res.ok, data })))
-            .then(({ ok, data }) => {
-                if (ok && data.success) {
-                    sucEl.textContent = 'Credentials updated successfully! Please sign in again.';
-                    sucEl.style.display = 'block';
-                    document.getElementById('cred-old-password').value = '';
-                    document.getElementById('cred-new-password').value = '';
-                    document.getElementById('cred-repeat-password').value = '';
-                    document.getElementById('cred-new-username').value = '';
-                    setTimeout(() => { window.location.href = '/logout'; }, 1500);
-                } else {
-                    errEl.textContent = data.error || 'Failed to update credentials.';
-                    errEl.style.display = 'block';
-                }
-            })
-            .catch(() => {
-                errEl.textContent = 'Network error. Please try again.';
-                errEl.style.display = 'block';
-            });
-        }
-
-        function testProxmoxConnection() {
-            const btn = document.getElementById('btn-test-pve');
-            const icon = document.getElementById('icon-test-pve');
-            const resultEl = document.getElementById('pve-test-result');
-            const token = document.getElementById('pve_api_token').value;
-
-            if (!btn || !resultEl) return;
-
-            // Visual feedback - Loading state
-            btn.disabled = true;
-            icon.classList.add('animate-spin');
-            resultEl.style.display = 'none';
-            resultEl.style.backgroundColor = 'transparent';
-            resultEl.style.borderColor = 'transparent';
-            resultEl.style.color = 'var(--text-secondary)';
-
-            const formData = new URLSearchParams();
-            formData.append('pve_api_token', token);
-
-            fetch('/admin/proxmox/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                btn.disabled = false;
-                icon.classList.remove('animate-spin');
-                resultEl.style.display = 'block';
-
-                if (data.success) {
-                    resultEl.textContent = 'Connection Tested Successfully! Proxmox is reachable.';
-                    resultEl.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-                    resultEl.style.borderColor = 'rgba(16, 185, 129, 0.2)';
-                    resultEl.style.color = '#10b981';
-                } else {
-                    resultEl.textContent = 'Connection Failed: ' + (data.error || 'Unknown Error');
-                    resultEl.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                    resultEl.style.borderColor = 'rgba(239, 68, 68, 0.2)';
-                    resultEl.style.color = '#ef4444';
-                }
-            })
-            .catch(err => {
-                btn.disabled = false;
-                icon.classList.remove('animate-spin');
-                resultEl.style.display = 'block';
-                resultEl.textContent = 'Network error testing connection: ' + err;
-                resultEl.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                resultEl.style.borderColor = 'rgba(239, 68, 68, 0.2)';
-                resultEl.style.color = '#ef4444';
-            });
-        }
-
-        // Category management functions
-        function loadCategories() {
-            fetch('/api/categories')
-                .then(res => res.json())
-                .then(data => {
-                    const el = document.querySelector('body');
-                    const alpineData = Alpine.$data(el);
-                    if (alpineData) alpineData.categories = data;
-                    // Re-init lucide icons for newly added template elements
-                    setTimeout(() => lucide.createIcons(), 100);
-                })
-                .catch(err => console.error('Failed to load categories:', err));
-        }
-
-        function addCategory() {
-            const name = document.getElementById('new-cat-name').value.trim();
-            const color = document.getElementById('new-cat-color').value;
-            if (!name) { alert('Category name is required.'); return; }
-
-            const formData = new URLSearchParams();
-            formData.append('name', name);
-            formData.append('color', color);
-
-            fetch('/api/categories', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('new-cat-name').value = '';
-                    loadCategories();
-                } else {
-                    alert(data.error || 'Failed to add category.');
-                }
-            })
-            .catch(() => alert('Network error.'));
-        }
-
-        function deleteCategory(id) {
-            if (!confirm('Are you sure you want to delete this category?')) return;
-
-            const formData = new URLSearchParams();
-            formData.append('id', id);
-
-            fetch('/api/categories/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(() => loadCategories())
-            .catch(() => alert('Network error.'));
-        }
-
-        function loadWebhooks() {
-            fetch('/api/webhooks')
-                .then(res => res.json())
-                .then(data => {
-                    const el = document.querySelector('body');
-                    const alpineData = Alpine.$data(el);
-                    if (alpineData) alpineData.webhooks = data;
-                    setTimeout(() => lucide.createIcons(), 100);
-                })
-                .catch(err => console.error('Failed to load webhooks:', err));
-        }
-
-        function addWebhook() {
-            const name = document.getElementById('new-webhook-name').value.trim();
-            const url = document.getElementById('new-webhook-url').value.trim();
-            if (!name || !url) { alert('Name and URL are required.'); return; }
-
-            const eventTypes = [];
-            if (document.getElementById('event-stopped').checked) eventTypes.push('container_stopped');
-            if (document.getElementById('event-started').checked) eventTypes.push('container_started');
-            if (document.getElementById('event-disconnected').checked) eventTypes.push('agent_disconnected');
-            if (document.getElementById('event-connected').checked) eventTypes.push('agent_connected');
-
-            if (eventTypes.length === 0) { alert('Please select at least one subscribed event.'); return; }
-
-            const formData = new URLSearchParams();
-            formData.append('name', name);
-            formData.append('url', url);
-            formData.append('event_types', eventTypes.join(','));
-            formData.append('is_active', '1');
-
-            fetch('/api/webhooks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('new-webhook-name').value = '';
-                    document.getElementById('new-webhook-url').value = '';
-                    loadWebhooks();
-                } else {
-                    alert(data.error || 'Failed to add webhook.');
-                }
-            })
-            .catch(() => alert('Network error.'));
-        }
-
-        function toggleWebhookActive(wh) {
-            const newActiveState = wh.is_active === 1 ? 0 : 1;
-            const formData = new URLSearchParams();
-            formData.append('id', wh.id);
-            formData.append('name', wh.name);
-            formData.append('url', wh.url);
-            formData.append('event_types', wh.event_types);
-            formData.append('is_active', newActiveState.toString());
-
-            fetch('/api/webhooks/edit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    loadWebhooks();
-                } else {
-                    alert(data.error || 'Failed to update webhook status.');
-                }
-            })
-            .catch(() => alert('Network error.'));
-        }
-
-        function deleteWebhook(id) {
-            if (!confirm('Are you sure you want to delete this webhook?')) return;
-
-            const formData = new URLSearchParams();
-            formData.append('id', id);
-
-            fetch('/api/webhooks/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(() => loadWebhooks())
-            .catch(() => alert('Network error.'));
-        }
-
-        function testWebhook(id) {
-            const formData = new URLSearchParams();
-            formData.append('id', id);
-
-            fetch('/api/webhooks/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Test notification triggered successfully.');
-                } else {
-                    alert(data.error || 'Failed to trigger test.');
-                }
-            })
-            .catch(() => alert('Network error.'));
-        }
-
-
         // Trigger container actions (start/stop/restart) for Admin
         function triggerContainerAction(button, action) {
             const ctrlContainer = button.closest('.container-controls');
@@ -743,29 +466,23 @@
             formData.append('provider', provider);
             formData.append('id', id);
             formData.append('action', action);
+            formData.append('csrf_token', amudCsrfToken());
             
             fetch('/apps/action', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                headers: amudCsrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
                 body: formData.toString()
             })
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {
+                ctrlContainer.classList.remove('loading');
+                btns.forEach(btn => btn.disabled = false);
+                button.innerHTML = origIcon;
+                lucide.createIcons();
                 if (ok && data.success) {
-                    console.log(`Successfully triggered action ${action} on ${provider} container ${id}`);
-                    // Keep loading state until telemetry loop updates the status to verify execution success
-                    setTimeout(() => {
-                        ctrlContainer.classList.remove('loading');
-                        btns.forEach(btn => btn.disabled = false);
-                        button.innerHTML = origIcon;
-                        lucide.createIcons();
-                    }, 5000);
+                    console.log(`Action ${action} confirmed for ${provider} container ${id}`);
                 } else {
                     alert(data.error || 'Failed to trigger action.');
-                    ctrlContainer.classList.remove('loading');
-                    btns.forEach(btn => btn.disabled = false);
-                    button.innerHTML = origIcon;
-                    lucide.createIcons();
                 }
             })
             .catch(() => {
@@ -840,15 +557,17 @@
         }
 
         function updateMediaStream(service, stream) {
-            const track = document.getElementById(service === 'plex' ? 'plex-track' : 'emby-track');
-            const timer = document.getElementById(service === 'plex' ? 'plex-timer' : 'emby-timer');
-            const progress = document.getElementById(service === 'plex' ? 'plex-progress' : 'emby-progress');
-            const badge = document.querySelector(`[data-stream-service="${service}"]`);
+            const normalized = service === 'plex' ? 'plex' : 'jellyfin';
+            const track = document.getElementById(`${normalized}-track`);
+            const timer = document.getElementById(`${normalized}-timer`);
+            const progress = document.getElementById(`${normalized}-progress`);
+            const badge = document.querySelector(`[data-stream-service="${normalized}"]`)
+                || document.querySelector(`[data-stream-service="emby"]`);
 
             if (track) track.innerText = stream.title;
             if (timer) timer.innerText = stream.active ? `${stream.current_time} / ${stream.total_time}` : '-';
             if (progress) progress.style.width = `${stream.progress_percent || 0}%`;
-            if (badge && stream.status === 'NOT CONFIGURED') {
+            if (badge && stream.status) {
                 styleStatusBadge(badge, stream.status);
             }
         }
@@ -978,35 +697,21 @@
                     document.getElementById('val-net-ext-rx').innerText = `${net.external_rx} RX`;
                 }
 
+                // Agent connectivity indicator
+                if (typeof data.agent_connected === 'boolean') {
+                    document.querySelectorAll('.telemetry-card').forEach(card => {
+                        card.classList.toggle('agent-offline', !data.agent_connected);
+                    });
+                }
+
                 // Update active media playbacks
                 if (data.streams) {
                     if (data.streams.plex) {
-                        const plex = data.streams.plex;
-                        updateMediaStream('plex', plex);
-
-                        // Update status indicator dot text on Plex app card if it exists
-                        const plexStatusText = document.getElementById('plex-status-text');
-                        if (plexStatusText) {
-                            plexStatusText.innerText = plex.active ? '1 Streaming' : '0 Streaming';
-                            const dot = plexStatusText.previousElementSibling;
-                            if (dot) {
-                                dot.className = plex.active ? 'status-dot orange' : 'status-dot blue';
-                            }
-                        }
+                        updateMediaStream('plex', data.streams.plex);
                     }
-                    if (data.streams.emby) {
-                        const emby = data.streams.emby;
-                        updateMediaStream('emby', emby);
-
-                        // Update status indicator dot text on Jellyfin app card if it exists
-                        const embyStatusText = document.getElementById('emby-status-text');
-                        if (embyStatusText) {
-                            embyStatusText.innerText = emby.active ? '1 Watching' : '0 Watching';
-                            const dot = embyStatusText.previousElementSibling;
-                            if (dot) {
-                                dot.className = emby.active ? 'status-dot green' : 'status-dot blue';
-                            }
-                        }
+                    const jellyfinStream = data.streams.jellyfin || data.streams.emby;
+                    if (jellyfinStream) {
+                        updateMediaStream('jellyfin', jellyfinStream);
                     }
                 }
 

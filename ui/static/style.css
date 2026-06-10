@@ -1229,3 +1229,13 @@ input[type="color"].form-control {
     transform: translateY(-1px);
 }
 
+.telemetry-card.agent-offline {
+    opacity: 0.55;
+}
+
+.telemetry-card.agent-offline .telemetry-title::after {
+    content: ' · Agent offline';
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+}

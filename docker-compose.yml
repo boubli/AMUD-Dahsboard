@@ -11,6 +11,7 @@ services:
       - DB_PATH=/app/data/amud.db
       - PORT=8000
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env or environment}
     cap_drop:
       - ALL
     security_opt:
@@ -25,6 +26,7 @@ services:
     entrypoint: ["/app/amud-agent"]
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env or environment}
     cap_drop:
       - ALL
     security_opt:

@@ -51,6 +51,15 @@ struct NetworkSnapshot {
 fn main() {
     println!("AMUD-Agent telemetry client starting up...");
 
+    if std::env::var("AMUD_AGENT_SECRET")
+        .unwrap_or_default()
+        .trim()
+        .is_empty()
+    {
+        eprintln!("FATAL: AMUD_AGENT_SECRET is not set.");
+        std::process::exit(1);
+    }
+
     loop {
         println!("Attempting to connect to AMUD dashboard daemon...");
         match establish_connection() {
@@ -149,6 +158,17 @@ impl rustls::client::danger::ServerCertVerifier for NoVerifier {
 
 use std::sync::{OnceLock, RwLock};
 
+static AGENT_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+
+fn agent_runtime() -> &'static tokio::runtime::Runtime {
+    AGENT_RT.get_or_init(|| {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("failed to build agent tokio runtime")
+    })
+}
+
 static PVE_API_TOKEN_CACHE: OnceLock<RwLock<String>> = OnceLock::new();
 
 fn get_pve_api_token() -> String {
@@ -211,14 +231,7 @@ fn fetch_lxc_containers() -> Vec<LxcContainer> {
 }
 
 fn fetch_lxc_containers_with_token(token: &str) -> Result<Vec<LxcContainer>, String> {
-    // Drive the async hyper client on a lightweight current-thread runtime so the
-    // rest of the agent stays synchronous.
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .map_err(|e| format!("Failed to build tokio runtime: {}", e))?;
-
-    rt.block_on(async move {
+    agent_runtime().block_on(async move {
         use http_body_util::{BodyExt, Empty};
         use hyper::body::Bytes;
         use hyper_util::client::legacy::Client;
@@ -379,13 +392,7 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
         return Vec::new();
     }
 
-    let rt = match tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-    {
-        Ok(rt) => rt,
-        Err(_) => return Vec::new(),
-    };
+    let rt = agent_runtime();
 
     rt.block_on(async move {
         use http_body_util::{BodyExt, Empty};
@@ -547,16 +554,16 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
     let agent_secret = std::env::var("AMUD_AGENT_SECRET").unwrap_or_default();
     if agent_secret.is_empty() {
-        eprintln!(
-            "AMUD SECURITY WARNING: AMUD_AGENT_SECRET is not set. Server may reject the connection when agent IPC auth is enabled."
-        );
-    } else {
-        let auth = serde_json::json!({ "auth": agent_secret });
-        if let Ok(mut serialized) = serde_json::to_vec(&auth) {
-            serialized.push(b'\n');
-            stream.write_all(&serialized)?;
-            stream.flush()?;
-        }
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::PermissionDenied,
+            "AMUD_AGENT_SECRET is not set",
+        ));
+    }
+    let auth = serde_json::json!({ "auth": agent_secret });
+    if let Ok(mut serialized) = serde_json::to_vec(&auth) {
+        serialized.push(b'\n');
+        stream.write_all(&serialized)?;
+        stream.flush()?;
     }
 
     // Request configuration from server on startup
@@ -721,6 +728,29 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 }
 
 // Parse and dispatch command received from Dashboard Server
+fn send_action_result(
+    response_stream: &mut StreamType,
+    request_id: &str,
+    success: bool,
+    error: Option<String>,
+) {
+    let response = serde_json::json!({
+        "action_result": {
+            "request_id": request_id,
+            "success": success,
+            "error": error
+        }
+    });
+    if let Ok(mut serialized) = serde_json::to_vec(&response) {
+        serialized.push(b'\n');
+        use std::io::Write;
+        if let Err(e) = response_stream.write_all(&serialized) {
+            eprintln!("Failed to write action result back to server: {}", e);
+        }
+        let _ = response_stream.flush();
+    }
+}
+
 fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
     if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
         if let Some(config) = val.get("config") {
@@ -733,10 +763,8 @@ fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
                 let token = val.get("id").and_then(|i| i.as_str()).unwrap_or_default();
                 println!("Received test_pve action from server.");
 
-                // Perform the test
                 let result = perform_pve_test(token);
 
-                // Write the test result back
                 let response = serde_json::json!({
                     "test_pve_result": result
                 });
@@ -749,30 +777,31 @@ fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
                     let _ = response_stream.flush();
                 }
             } else {
-                // It's a standard control action command
                 #[derive(serde::Deserialize)]
                 struct ServerCommand {
                     provider: String,
                     id: String,
                     action: String,
+                    request_id: Option<String>,
                 }
                 if let Ok(cmd) = serde_json::from_value::<ServerCommand>(val) {
                     println!(
                         "Received control action: action='{}' provider='{}' id='{}'",
                         cmd.action, cmd.provider, cmd.id
                     );
-                    match cmd.provider.as_str() {
+                    let (success, error) = match cmd.provider.as_str() {
                         "lxc" => {
                             if let Ok(vmid) = cmd.id.parse::<i64>() {
-                                execute_lxc_action(vmid, &cmd.action);
+                                execute_lxc_action(vmid, &cmd.action)
                             } else {
-                                eprintln!("Invalid LXC VMID received: {}", cmd.id);
+                                (false, Some(format!("Invalid LXC VMID: {}", cmd.id)))
                             }
                         }
-                        "docker" => {
-                            execute_docker_action(&cmd.id, &cmd.action);
-                        }
-                        _ => eprintln!("Unknown telemetry provider type: {}", cmd.provider),
+                        "docker" => execute_docker_action(&cmd.id, &cmd.action),
+                        _ => (false, Some(format!("Unknown provider: {}", cmd.provider))),
+                    };
+                    if let Some(request_id) = cmd.request_id {
+                        send_action_result(response_stream, &request_id, success, error);
                     }
                 }
             }
@@ -783,34 +812,19 @@ fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
 }
 
 // Native Proxmox LXC status change poster
-fn execute_lxc_action(vmid: i64, action: &str) {
+fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
     let token = get_pve_api_token();
     if token.is_empty() {
-        eprintln!("[LXC Action] PVE_API_TOKEN not set, skipping action.");
-        return;
+        return (false, Some("PVE API token is not configured".to_string()));
     }
 
     let action_str = match action {
         "start" | "stop" | "reboot" | "shutdown" => action,
         "restart" => "reboot",
-        _ => {
-            eprintln!("[LXC Action] Unsupported action: {}", action);
-            return;
-        }
+        _ => return (false, Some(format!("Unsupported LXC action: {}", action))),
     };
 
-    let rt = match tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-    {
-        Ok(rt) => rt,
-        Err(e) => {
-            eprintln!("[LXC Action] Failed to start tokio runtime: {}", e);
-            return;
-        }
-    };
-
-    rt.block_on(async move {
+    agent_runtime().block_on(async move {
         use http_body_util::Empty;
         use hyper::body::Bytes;
         use hyper_util::client::legacy::Client;
@@ -826,8 +840,7 @@ fn execute_lxc_action(vmid: i64, action: &str) {
                 .with_custom_certificate_verifier(Arc::new(NoVerifier))
                 .with_no_client_auth(),
             Err(e) => {
-                eprintln!("[LXC Action] Failed to build TLS config: {}", e);
-                return;
+                return (false, Some(format!("Failed to build TLS config: {}", e)));
             }
         };
 
@@ -858,8 +871,7 @@ fn execute_lxc_action(vmid: i64, action: &str) {
         {
             Ok(r) => r,
             Err(e) => {
-                eprintln!("[LXC Action] Failed to build request: {}", e);
-                return;
+                return (false, Some(format!("Failed to build request: {}", e)));
             }
         };
 
@@ -867,41 +879,35 @@ fn execute_lxc_action(vmid: i64, action: &str) {
             Ok(resp) => {
                 let status = resp.status();
                 println!("[LXC Action] PVE API response status: {}", status);
+                if status.is_success() {
+                    (true, None)
+                } else {
+                    (
+                        false,
+                        Some(format!("PVE API returned HTTP {}", status)),
+                    )
+                }
             }
-            Err(e) => {
-                eprintln!("[LXC Action] HTTP request failed: {}", e);
-            }
+            Err(e) => (false, Some(format!("HTTP request failed: {}", e))),
         }
-    });
+    })
 }
 
 // Native Docker Engine socket status change poster
 #[cfg(unix)]
-fn execute_docker_action(container_name: &str, action: &str) {
+fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<String>) {
     if !std::path::Path::new("/var/run/docker.sock").exists() {
-        eprintln!("[Docker Action] Docker Unix socket missing.");
-        return;
+        return (false, Some("Docker Unix socket missing".to_string()));
     }
 
     let action_str = match action {
         "start" | "stop" | "restart" => action,
-        _ => {
-            eprintln!("[Docker Action] Unsupported action: {}", action);
-            return;
-        }
-    };
-
-    let rt = match tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-    {
-        Ok(rt) => rt,
-        Err(_) => return,
+        _ => return (false, Some(format!("Unsupported Docker action: {}", action))),
     };
 
     let c_name = container_name.to_string();
 
-    rt.block_on(async move {
+    agent_runtime().block_on(async move {
         use http_body_util::Empty;
         use hyper::body::Bytes;
         use hyper_util::client::legacy::Client;
@@ -920,20 +926,28 @@ fn execute_docker_action(container_name: &str, action: &str) {
             .body(Empty::<Bytes>::new())
         {
             Ok(r) => r,
-            Err(_) => return,
+            Err(e) => return (false, Some(format!("Failed to build request: {}", e))),
         };
 
         match client.request(req).await {
             Ok(resp) => {
                 let status = resp.status();
                 println!("[Docker Action] Docker API response status: {}", status);
+                if status.is_success() || status.as_u16() == 304 {
+                    (true, None)
+                } else {
+                    (
+                        false,
+                        Some(format!("Docker API returned HTTP {}", status)),
+                    )
+                }
             }
-            Err(e) => {
-                eprintln!("[Docker Action] HTTP request failed: {}", e);
-            }
+            Err(e) => (false, Some(format!("HTTP request failed: {}", e))),
         }
-    });
+    })
 }
 
 #[cfg(not(unix))]
-fn execute_docker_action(_container_name: &str, _action: &str) {}
+fn execute_docker_action(_container_name: &str, _action: &str) -> (bool, Option<String>) {
+    (false, Some("Docker actions are unavailable on this platform".to_string()))
+}

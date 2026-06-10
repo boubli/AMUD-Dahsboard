@@ -8,6 +8,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="{{accent_color}}">
     <meta name="description" content="AMUD Dashboard settings">
+    <meta name="csrf-token" content="{{csrf_token}}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{app_name}}">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -375,6 +376,7 @@
         <!-- Main Content Area -->
         <main class="settings-main">
             <form action="/admin/settings" method="POST" id="mainSettingsForm" @input="unsavedChanges = true">
+                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                 <div class="settings-content-wrapper">
                     
                     <!-- TAB: BRANDING -->
@@ -504,7 +506,7 @@
                             <h3><i data-lucide="server" style="color:var(--accent-color);"></i> API Configuration</h3>
                             <div class="form-group">
                                 <label>PVE API Token</label>
-                                <input type="password" name="pve_api_token" id="pve_api_token" class="form-control" value="{{pve_api_token}}" placeholder="PVEAPIToken=root@pam!tokenid=xxxx-xxxx-xxxx-xxxx" style="font-family: monospace;" @input="unsavedChanges = true">
+                                <input type="password" name="pve_api_token" id="pve_api_token" class="form-control" value="" placeholder="{{pve_api_token_placeholder}}" style="font-family: monospace;" @input="unsavedChanges = true">
                             </div>
                             <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
                                 <button type="button" id="btn-test-pve" class="btn btn-secondary" onclick="testProxmoxConnection()" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: auto; max-width: 200px;">
@@ -528,7 +530,7 @@
                             </div>
                             <div class="form-group" style="margin-top:1rem;">
                                 <label>Jellyfin API Key</label>
-                                <input type="password" name="jellyfin_api_key" class="form-control" value="{{jellyfin_api_key}}" placeholder="Paste API key">
+                                <input type="password" name="jellyfin_api_key" class="form-control" value="" placeholder="{{jellyfin_api_key_placeholder}}">
                             </div>
                         </div>
 
@@ -540,7 +542,7 @@
                             </div>
                             <div class="form-group" style="margin-top:1rem;">
                                 <label>Plex Token</label>
-                                <input type="password" name="plex_token" class="form-control" value="{{plex_token}}" placeholder="Paste Plex token">
+                                <input type="password" name="plex_token" class="form-control" value="" placeholder="{{plex_token_placeholder}}">
                             </div>
                         </div>
                     </div>
@@ -785,6 +787,19 @@
 
     <!-- Script logic for Settings Page -->
     <script>
+        function amudCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+        function amudCsrfHeaders(extra) {
+            return Object.assign({ 'X-CSRF-Token': amudCsrfToken() }, extra || {});
+        }
+
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value == null ? '' : String(value);
+            return div.innerHTML;
+        }
+
         function settingsState() {
             return {
                 activeTab: localStorage.getItem('amud_settings_tab') || 'branding',
@@ -821,6 +836,7 @@
                     formData.append('image', file);
                     fetch('/admin/upload', {
                         method: 'POST',
+                        headers: amudCsrfHeaders(),
                         body: formData
                     })
                     .then(res => {
@@ -897,12 +913,12 @@
                 data.forEach(c => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${c.name}</strong></td>
-                        <td><div style="width:20px; height:20px; border-radius:4px; background:${c.color};" title="${c.color}"></div></td>
-                        <td>${c.sort_order}</td>
+                        <td><strong>${escapeHtml(c.name)}</strong></td>
+                        <td><div style="width:20px; height:20px; border-radius:4px; background:${escapeHtml(c.color)};" title="${escapeHtml(c.color)}"></div></td>
+                        <td>${Number(c.sort_order)}</td>
                         <td style="text-align:right;">
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editCategory(${c.id}, '${c.name}', '${c.color}', ${c.sort_order})">Edit</button>
-                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteCategory(${c.id})">Del</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editCategory(${Number(c.id)}, ${JSON.stringify(String(c.name))}, ${JSON.stringify(String(c.color))}, ${Number(c.sort_order)})">Edit</button>
+                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteCategory(${Number(c.id)})">Del</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -934,8 +950,9 @@
 
             const url = state.catEditing ? '/api/categories/edit' : '/api/categories';
             if (state.catEditing) formData.append('id', id);
+            formData.append('csrf_token', amudCsrfToken());
 
-            await fetch(url, { method: 'POST', body: formData });
+            await fetch(url, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
             state.catModalOpen = false;
             loadCategories();
         }
@@ -944,7 +961,8 @@
             if(!confirm("Are you sure you want to delete this category? Apps in this category will keep their text tag.")) return;
             const formData = new URLSearchParams();
             formData.append('id', id);
-            await fetch('/api/categories/delete', { method: 'POST', body: formData });
+            formData.append('csrf_token', amudCsrfToken());
+            await fetch('/api/categories/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
             loadCategories();
         }
 
@@ -958,13 +976,13 @@
                 data.forEach(w => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${w.name}</strong></td>
-                        <td><span style="font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:0.2rem 0.4rem; border-radius:4px;">${w.event_types.split(',').length} events</span></td>
+                        <td><strong>${escapeHtml(w.name)}</strong></td>
+                        <td><span style="font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:0.2rem 0.4rem; border-radius:4px;">${Number(String(w.event_types || '').split(',').filter(Boolean).length)} events</span></td>
                         <td>${w.is_active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--danger);">Disabled</span>'}</td>
                         <td style="text-align:right;">
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="testWebhook(${w.id})">Test</button>
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editWebhook(${w.id}, '${w.name.replace(/'/g, "\\'")}', '${w.url.replace(/'/g, "\\'")}', '${w.event_types}', ${w.is_active})">Edit</button>
-                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteWebhook(${w.id})">Del</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="testWebhook(${Number(w.id)})">Test</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editWebhook(${Number(w.id)}, ${JSON.stringify(String(w.name))}, ${JSON.stringify(String(w.url))}, ${JSON.stringify(String(w.event_types))}, ${Number(w.is_active)})">Edit</button>
+                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteWebhook(${Number(w.id)})">Del</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -1007,8 +1025,9 @@
 
             const endpoint = state.whEditing ? '/api/webhooks/edit' : '/api/webhooks';
             if(state.whEditing) formData.append('id', id);
+            formData.append('csrf_token', amudCsrfToken());
 
-            await fetch(endpoint, { method: 'POST', body: formData });
+            await fetch(endpoint, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
             state.whModalOpen = false;
             loadWebhooks();
         }
@@ -1017,7 +1036,8 @@
             if(!confirm("Are you sure you want to delete this webhook?")) return;
             const formData = new URLSearchParams();
             formData.append('id', id);
-            await fetch('/api/webhooks/delete', { method: 'POST', body: formData });
+            formData.append('csrf_token', amudCsrfToken());
+            await fetch('/api/webhooks/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
             loadWebhooks();
         }
 
@@ -1025,7 +1045,8 @@
             alert("Test payload triggered! Check your webhook destination.");
             const formData = new URLSearchParams();
             formData.append('id', id);
-            await fetch('/api/webhooks/test', { method: 'POST', body: formData });
+            formData.append('csrf_token', amudCsrfToken());
+            await fetch('/api/webhooks/test', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
         }
 
         // Users Logic
@@ -1039,12 +1060,12 @@
                     const tr = document.createElement('tr');
                     const roleBadge = u.role === 'Admin' ? '<span style="color:var(--accent-color); font-weight:600;">Admin</span>' : '<span style="color:var(--text-muted);">Guest</span>';
                     tr.innerHTML = `
-                        <td>${u.id}</td>
-                        <td><strong>${u.username}</strong></td>
+                        <td>${Number(u.id)}</td>
+                        <td><strong>${escapeHtml(u.username)}</strong></td>
                         <td>${roleBadge}</td>
                         <td style="text-align:right;">
-                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editUser(${u.id}, '${u.username}', '${u.role}')">Edit</button>
-                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteUser(${u.id}, '${u.username}')">Del</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="editUser(${Number(u.id)}, ${JSON.stringify(String(u.username))}, ${JSON.stringify(String(u.role))})">Edit</button>
+                            <button type="button" class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteUser(${Number(u.id)}, ${JSON.stringify(String(u.username))})">Del</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -1081,8 +1102,9 @@
 
             const endpoint = state.usrEditing ? '/api/users/edit' : '/api/users';
             if(state.usrEditing) formData.append('id', id);
+            formData.append('csrf_token', amudCsrfToken());
 
-            const res = await fetch(endpoint, { method: 'POST', body: formData });
+            const res = await fetch(endpoint, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
             if (res.ok) {
                 state.usrModalOpen = false;
                 loadUsers();
@@ -1101,7 +1123,8 @@
             if(!confirm("Are you sure you want to delete user '" + username + "'?")) return;
             const formData = new URLSearchParams();
             formData.append('id', id);
-            await fetch('/api/users/delete', { method: 'POST', body: formData });
+            formData.append('csrf_token', amudCsrfToken());
+            await fetch('/api/users/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
             loadUsers();
         }
 
@@ -1118,9 +1141,11 @@
             
             try {
                 const formData = new URLSearchParams();
-                formData.append('token', document.getElementById('pve_api_token').value);
+                formData.append('pve_api_token', document.getElementById('pve_api_token').value);
+                formData.append('csrf_token', amudCsrfToken());
                 const response = await fetch('/admin/proxmox/test', {
                     method: 'POST',
+                    headers: amudCsrfHeaders(),
                     body: formData
                 });
                 
@@ -1131,12 +1156,12 @@
                     resultBox.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
                     resultBox.style.borderColor = 'rgba(16, 185, 129, 0.2)';
                     resultBox.style.color = '#10b981';
-                    resultBox.innerHTML = '<i data-lucide="check-circle" style="width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem;"></i> Successfully connected to Proxmox VE API';
+                    resultBox.textContent = 'Successfully connected to Proxmox VE API';
                 } else {
                     resultBox.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
                     resultBox.style.borderColor = 'rgba(239, 68, 68, 0.2)';
                     resultBox.style.color = '#ef4444';
-                    resultBox.innerHTML = '<i data-lucide="x-circle" style="width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem;"></i> Error: ' + (data.error || 'Connection failed');
+                    resultBox.textContent = 'Error: ' + (data.error || 'Connection failed');
                 }
                 lucide.createIcons();
             } catch (err) {
@@ -1144,7 +1169,7 @@
                 resultBox.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
                 resultBox.style.borderColor = 'rgba(239, 68, 68, 0.2)';
                 resultBox.style.color = '#ef4444';
-                resultBox.innerHTML = '<i data-lucide="x-circle" style="width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem;"></i> Network error communicating with AMUD server.';
+                resultBox.textContent = 'Network error communicating with AMUD server.';
                 lucide.createIcons();
             } finally {
                 icon.classList.remove('lucide-spin');
@@ -1180,10 +1205,12 @@
             if (newUsername) formData.append('new_username', newUsername);
             formData.append('old_password', oldPass);
             if (newPass) formData.append('new_password', newPass);
+            formData.append('csrf_token', amudCsrfToken());
 
             try {
                 const response = await fetch('/admin/credentials', {
                     method: 'POST',
+                    headers: amudCsrfHeaders(),
                     body: formData
                 });
                 
