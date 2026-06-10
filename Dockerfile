@@ -16,6 +16,10 @@ WORKDIR /usr/src/amud
 # Copy workspace source files
 COPY . .
 
+# Pass the git tag to cargo
+ARG GIT_TAG
+ENV GIT_TAG=$GIT_TAG
+
 # Compile statically-linked release binaries.
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
