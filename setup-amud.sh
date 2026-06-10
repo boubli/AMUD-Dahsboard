@@ -225,6 +225,7 @@ Environment=PORT=8000
 Environment=DB_PATH=/opt/amud/data/amud.db
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
 Environment=AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET}
+Environment=AMUD_ENABLE_PROXMOX=true
 
 [Install]
 WantedBy=multi-user.target

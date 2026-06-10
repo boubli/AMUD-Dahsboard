@@ -164,10 +164,10 @@ You can pass these environment variables to adjust container configurations:
 | `DB_PATH` | `amud-dashboard` | `/app/data/amud.db` | Directory path pointing to the SQLite database file. |
 | `AMUD_SOCKET_PATH` | Both | `/var/run/amud/amud.sock` | File path pointing to the Unix socket for agent-server IPC. |
 | `PVE_API_TOKEN` | `amud-agent` | *(None)* | Proxmox API token (if using agent on a PVE host; not needed for Docker monitoring). |
-| `AMUD_ENABLE_PROXMOX` | `amud-dashboard` | `true` | Set to `false` if installing on a non-Proxmox OS (e.g. Arch, Fedora, Alpine) to hide Proxmox settings from the UI. |
+| `AMUD_ENABLE_PROXMOX` | `amud-dashboard` | `false` | Set to `true` if installing on a Proxmox LXC to show the Proxmox settings tab in the UI. |
 
 :::info For Non-Proxmox Users (Other OS)
-If you are deploying AMUD via Docker on a standard Linux distribution (like Ubuntu, Fedora, Arch Linux, or Alpine) instead of Proxmox VE, you will likely not need the Proxmox Integration tab in the settings menu. You can pass `-e AMUD_ENABLE_PROXMOX=false` to your dashboard container to completely hide the Proxmox VE tab. Your host's CPU and Memory will still display perfectly fine on the dashboard under the "System" widget!
+If you are deploying AMUD via Docker on a standard Linux distribution (like Ubuntu, Fedora, Arch Linux, or Alpine) instead of Proxmox VE, the Proxmox Integration tab is hidden by default. If you do want to enable it, you can pass `-e AMUD_ENABLE_PROXMOX=true` to your dashboard container. Your host's CPU and Memory will still display perfectly fine on the dashboard under the "System" widget!
 :::
 
 ---
