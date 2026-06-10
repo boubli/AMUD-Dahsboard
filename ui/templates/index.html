@@ -283,7 +283,9 @@
     <script>
 
         // Init Lucide vector icons
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
 
         // File upload helper handler
         function handleFileUpload(event, type) {

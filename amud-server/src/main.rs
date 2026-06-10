@@ -125,6 +125,7 @@ struct AppState {
     agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
     pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
     alert_cooldowns: Arc<Mutex<HashMap<String, std::time::Instant>>>,
+    agent_secret: Arc<String>,
 }
 
 
@@ -279,6 +280,8 @@ async fn main() {
         }
     }
 
+    let agent_secret = resolve_agent_secret(&conn);
+
     let shared_db = Arc::new(Mutex::new(conn));
     let sessions = Arc::new(RwLock::new(HashMap::<String, Session>::new()));
     let latest_telemetry = Arc::new(RwLock::new(AgentTelemetry::default()));
@@ -296,6 +299,7 @@ async fn main() {
         agent_command_tx: agent_command_tx.clone(),
         pve_test_response: pve_test_response.clone(),
         alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
+        agent_secret: Arc::new(agent_secret),
     });
 
     // Start Host Agent listener (Background task)
@@ -355,6 +359,71 @@ async fn main() {
 
     let listener = TokioTcpListener::bind(&addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
+}
+
+fn generate_agent_secret() -> String {
+    let seed = format!(
+        "amud-agent-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0)
+    );
+    hex::encode(Sha256::digest(seed.as_bytes()))
+}
+
+fn resolve_agent_secret(conn: &Connection) -> String {
+    if let Ok(from_env) = std::env::var("AMUD_AGENT_SECRET") {
+        if !from_env.is_empty() {
+            conn.execute(
+                "INSERT INTO settings (key, value) VALUES ('agent_shared_secret', ?)
+                 ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                params![from_env],
+            )
+            .ok();
+            return from_env;
+        }
+    }
+
+    let existing: String = conn
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'agent_shared_secret'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or_default();
+
+    if !existing.is_empty() {
+        return existing;
+    }
+
+    let secret = generate_agent_secret();
+    conn.execute(
+        "INSERT INTO settings (key, value) VALUES ('agent_shared_secret', ?)",
+        params![secret],
+    )
+    .ok();
+    eprintln!(
+        "AMUD SECURITY: Generated agent IPC secret. Set AMUD_AGENT_SECRET in the server and host agent systemd units."
+    );
+    secret
+}
+
+#[derive(Deserialize)]
+struct AgentAuthMsg {
+    auth: Option<String>,
+}
+
+fn agent_authenticated(agent_secret: &str, line: &str) -> bool {
+    if agent_secret.is_empty() {
+        return true;
+    }
+    serde_json::from_str::<AgentAuthMsg>(line)
+        .ok()
+        .and_then(|msg| msg.auth)
+        .map(|token| token == agent_secret)
+        .unwrap_or(false)
 }
 
 // Password hashing helper
@@ -752,7 +821,7 @@ async fn run_uds_listener(
 
     let listener = match TokioUnixListener::bind(uds_path) {
         Ok(l) => {
-            fs::set_permissions(uds_path, std::fs::Permissions::from_mode(0o666)).ok();
+            fs::set_permissions(uds_path, std::fs::Permissions::from_mode(0o660)).ok();
             l
         }
         Err(e) => {
@@ -792,47 +861,24 @@ async fn run_uds_listener(
                 use tokio::io::AsyncBufReadExt;
                 let mut reader = tokio::io::BufReader::new(reader);
                 let mut line = String::new();
+                let mut authenticated = state_clone.agent_secret.is_empty();
+
                 while let Ok(n) = reader.read_line(&mut line).await {
                     if n == 0 {
                         break; // EOF
                     }
 
-                    #[derive(Deserialize)]
-                    struct ConfigReq {
-                        request: String,
-                    }
-                    #[derive(Deserialize)]
-                    struct PveTestMsg {
-                        test_pve_result: PveTestResult,
+                    if !authenticated {
+                        if agent_authenticated(&state_clone.agent_secret, &line) {
+                            authenticated = true;
+                            line.clear();
+                            continue;
+                        }
+                        println!("AMUD-Agent rejected: invalid IPC authentication.");
+                        break;
                     }
 
-                    if let Ok(req) = serde_json::from_str::<ConfigReq>(&line) {
-                        if req.request == "get_config" {
-                            let token = {
-                                let db_lock = state_clone.db.lock().unwrap();
-                                let mut stmt = db_lock
-                                    .prepare(
-                                        "SELECT value FROM settings WHERE key = 'pve_api_token'",
-                                    )
-                                    .unwrap();
-                                stmt.query_row([], |row| row.get::<_, String>(0))
-                                    .unwrap_or_default()
-                            };
-                            let config_payload = serde_json::json!({
-                                "config": {
-                                    "pve_api_token": token
-                                }
-                            });
-                            if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
-                                serialized.push(b'\n');
-                                let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());
-                            }
-                        }
-                    } else if let Ok(msg) = serde_json::from_str::<PveTestMsg>(&line) {
-                        *state_clone.pve_test_response.write().unwrap() = Some(msg.test_pve_result);
-                    } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(&line) {
-                        handle_new_telemetry(&state_clone, metrics);
-                    }
+                    process_agent_line(&state_clone, &tx, &line);
                     line.clear();
                 }
                 println!("AMUD-Agent telemetry client disconnected.");
@@ -840,6 +886,47 @@ async fn run_uds_listener(
                 *state_clone.agent_command_tx.lock().unwrap() = None; // clear command tx
             });
         }
+    }
+}
+
+fn process_agent_line(
+    state: &Arc<AppState>,
+    tx: &tokio::sync::mpsc::UnboundedSender<String>,
+    line: &str,
+) {
+    #[derive(Deserialize)]
+    struct ConfigReq {
+        request: String,
+    }
+    #[derive(Deserialize)]
+    struct PveTestMsg {
+        test_pve_result: PveTestResult,
+    }
+
+    if let Ok(req) = serde_json::from_str::<ConfigReq>(line) {
+        if req.request == "get_config" {
+            let token = {
+                let db_lock = state.db.lock().unwrap();
+                let mut stmt = db_lock
+                    .prepare("SELECT value FROM settings WHERE key = 'pve_api_token'")
+                    .unwrap();
+                stmt.query_row([], |row| row.get::<_, String>(0))
+                    .unwrap_or_default()
+            };
+            let config_payload = serde_json::json!({
+                "config": {
+                    "pve_api_token": token
+                }
+            });
+            if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
+                serialized.push(b'\n');
+                let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());
+            }
+        }
+    } else if let Ok(msg) = serde_json::from_str::<PveTestMsg>(line) {
+        *state.pve_test_response.write().unwrap() = Some(msg.test_pve_result);
+    } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(line) {
+        handle_new_telemetry(state, metrics);
     }
 }
 
@@ -897,47 +984,24 @@ async fn run_tcp_listener(
                 use tokio::io::AsyncBufReadExt;
                 let mut reader = tokio::io::BufReader::new(reader);
                 let mut line = String::new();
+                let mut authenticated = state_clone.agent_secret.is_empty();
+
                 while let Ok(n) = reader.read_line(&mut line).await {
                     if n == 0 {
                         break; // EOF
                     }
 
-                    #[derive(Deserialize)]
-                    struct ConfigReq {
-                        request: String,
-                    }
-                    #[derive(Deserialize)]
-                    struct PveTestMsg {
-                        test_pve_result: PveTestResult,
+                    if !authenticated {
+                        if agent_authenticated(&state_clone.agent_secret, &line) {
+                            authenticated = true;
+                            line.clear();
+                            continue;
+                        }
+                        println!("AMUD-Agent rejected: invalid IPC authentication.");
+                        break;
                     }
 
-                    if let Ok(req) = serde_json::from_str::<ConfigReq>(&line) {
-                        if req.request == "get_config" {
-                            let token = {
-                                let db_lock = state_clone.db.lock().unwrap();
-                                let mut stmt = db_lock
-                                    .prepare(
-                                        "SELECT value FROM settings WHERE key = 'pve_api_token'",
-                                    )
-                                    .unwrap();
-                                stmt.query_row([], |row| row.get::<_, String>(0))
-                                    .unwrap_or_default()
-                            };
-                            let config_payload = serde_json::json!({
-                                "config": {
-                                    "pve_api_token": token
-                                }
-                            });
-                            if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
-                                serialized.push(b'\n');
-                                let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());
-                            }
-                        }
-                    } else if let Ok(msg) = serde_json::from_str::<PveTestMsg>(&line) {
-                        *state_clone.pve_test_response.write().unwrap() = Some(msg.test_pve_result);
-                    } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(&line) {
-                        handle_new_telemetry(&state_clone, metrics);
-                    }
+                    process_agent_line(&state_clone, &tx, &line);
                     line.clear();
                 }
                 println!("AMUD-Agent telemetry client disconnected.");
@@ -3167,6 +3231,7 @@ mod tests {
             agent_command_tx: Arc::new(Mutex::new(None)),
             pve_test_response: Arc::new(RwLock::new(None)),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
+            agent_secret: Arc::new("test-secret".to_string()),
         });
 
         let old_telemetry = AgentTelemetry {
@@ -3237,6 +3302,7 @@ mod tests {
             agent_command_tx: Arc::new(Mutex::new(None)),
             pve_test_response: Arc::new(RwLock::new(None)),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
+            agent_secret: Arc::new("test-secret".to_string()),
         });
 
         let old_telemetry = AgentTelemetry {

@@ -373,6 +373,20 @@ fn fetch_docker_containers() -> Vec<(String, String)> {
 fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
     let mut sys = System::new_all();
 
+    let agent_secret = std::env::var("AMUD_AGENT_SECRET").unwrap_or_default();
+    if agent_secret.is_empty() {
+        eprintln!(
+            "AMUD SECURITY WARNING: AMUD_AGENT_SECRET is not set. Server may reject the connection when agent IPC auth is enabled."
+        );
+    } else {
+        let auth = serde_json::json!({ "auth": agent_secret });
+        if let Ok(mut serialized) = serde_json::to_vec(&auth) {
+            serialized.push(b'\n');
+            stream.write_all(&serialized)?;
+            stream.flush()?;
+        }
+    }
+
     // Request configuration from server on startup
     let req = serde_json::json!({
         "request": "get_config"

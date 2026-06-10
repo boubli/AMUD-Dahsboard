@@ -40,6 +40,10 @@ jobs:
         run: |
           tar -czf ui.tar.gz ui/
 
+      - name: Generate SHA256 Checksums
+        run: |
+          sha256sum target/release/amud-server target/release/amud-agent ui.tar.gz > SHA256SUMS
+
       - name: Create GitHub Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
@@ -47,6 +51,7 @@ jobs:
             target/release/amud-server
             target/release/amud-agent
             ui.tar.gz
+            SHA256SUMS
             setup-amud.sh
             update-amud.sh
             uninstall-amud.sh

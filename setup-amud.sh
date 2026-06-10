@@ -140,7 +140,7 @@ msg_ok "LXC Container $CT_ID was successfully created"
 
 msg_info "Creating host socket directory and configuring bind-mount"
 mkdir -p /opt/amud/run
-chmod 777 /opt/amud/run
+chmod 770 /opt/amud/run
 # Append bind mount mapping to LXC config
 echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> "/etc/pve/lxc/${CT_ID}.conf"
 msg_ok "Host socket directory and bind-mount configured"
@@ -168,15 +168,44 @@ if [ -z "$LATEST_RELEASE" ]; then
 fi
 msg_ok "Targeting release: $LATEST_RELEASE"
 
+AMUD_AGENT_SECRET=$(openssl rand -base64 32 | tr -d '/+=' | head -c 43)
+
+msg_info "Downloading release checksum manifest"
+curl -L -sS -f -o /tmp/amud-SHA256SUMS "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/SHA256SUMS"
+msg_ok "Release checksum manifest downloaded"
+
+verify_release_asset() {
+  local file="$1"
+  local name="$2"
+  local expected actual
+  expected=$(grep -E "[[:space:]/]${name}$" /tmp/amud-SHA256SUMS | awk '{print $1}' || true)
+  if [ -z "$expected" ]; then
+    msg_error "Checksum for ${name} not found in SHA256SUMS"
+    exit 1
+  fi
+  actual=$(sha256sum "$file" | awk '{print $1}' || true)
+  if [ "$actual" != "$expected" ]; then
+    msg_error "Checksum verification failed for ${name}"
+    exit 1
+  fi
+}
+
 # 7. Create Directories and Download Server inside Guest
 msg_info "Provisioning server binary and assets inside LXC guest"
 pct exec "$CT_ID" -- mkdir -p /opt/amud/data
-pct exec "$CT_ID" -- curl -L -s -o /opt/amud/amud-server "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-server"
+curl -L -sS -f -o /tmp/amud-server "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-server"
+verify_release_asset /tmp/amud-server amud-server
+pct push "$CT_ID" /tmp/amud-server /opt/amud/amud-server >/dev/null
 pct exec "$CT_ID" -- chmod +x /opt/amud/amud-server
 
-pct exec "$CT_ID" -- curl -L -s -o /tmp/ui.tar.gz "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/ui.tar.gz"
+curl -L -sS -f -o /tmp/ui.tar.gz "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/ui.tar.gz"
+verify_release_asset /tmp/ui.tar.gz ui.tar.gz
+pct push "$CT_ID" /tmp/ui.tar.gz /tmp/ui.tar.gz >/dev/null
 pct exec "$CT_ID" -- tar -xzf /tmp/ui.tar.gz -C /opt/amud/
 pct exec "$CT_ID" -- rm -f /tmp/ui.tar.gz
+rm -f /tmp/amud-server /tmp/ui.tar.gz
+pct exec "$CT_ID" -- test -f /opt/amud/ui/static/vendor/alpine.min.js
+pct exec "$CT_ID" -- test -f /opt/amud/ui/static/vendor/lucide.min.js
 msg_ok "AMUD server binary and UI files provisioned inside guest"
 
 # 8. Configure Systemd Service inside Guest
@@ -195,6 +224,7 @@ RestartSec=5
 Environment=PORT=8000
 Environment=DB_PATH=/opt/amud/data/amud.db
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
+Environment=AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET}
 
 [Install]
 WantedBy=multi-user.target
@@ -206,12 +236,14 @@ msg_ok "Systemd daemon enabled and running inside guest"
 
 # 9. Download and Install Host Telemetry Agent on Proxmox Host
 msg_info "Installing amud-agent on Proxmox host"
-curl -L -s -o /usr/local/bin/amud-agent "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent"
-chmod +x /usr/local/bin/amud-agent
+curl -L -sS -f -o /tmp/amud-agent "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent"
+verify_release_asset /tmp/amud-agent amud-agent
+install -m 755 /tmp/amud-agent /usr/local/bin/amud-agent
+rm -f /tmp/amud-agent /tmp/amud-SHA256SUMS
 msg_ok "amud-agent binary installed on host"
 
 msg_info "Installing amud-agent systemd service on Proxmox host"
-cat << 'EOF' > /etc/systemd/system/amud-agent.service
+cat << EOF > /etc/systemd/system/amud-agent.service
 [Unit]
 Description=AMUD Host Telemetry Agent
 After=network.target
@@ -222,6 +254,7 @@ ExecStart=/usr/local/bin/amud-agent
 Restart=always
 RestartSec=5
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
+Environment=AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET}
 
 [Install]
 WantedBy=multi-user.target

@@ -23,6 +23,7 @@ cargo build --release
 # 2. Start Rust web server
 echo "Starting AMUD Rust web server on port 8000..."
 export AMUD_SOCKET_PATH="/tmp/amud.sock"
+export AMUD_AGENT_SECRET="test-local-secret"
 export PORT="8000"
 ./target/release/amud-server > server.log 2>&1 &
 SERVER_PID=$!
@@ -37,6 +38,7 @@ fi
 
 # 3. Start Rust telemetry agent
 echo "Starting Rust telemetry agent..."
+export AMUD_AGENT_SECRET="test-local-secret"
 ./target/release/amud-agent > agent.log 2>&1 &
 AGENT_PID=$!
 sleep 3
