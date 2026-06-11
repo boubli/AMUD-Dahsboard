@@ -13,6 +13,8 @@ pub struct App {
     pub(crate) description: String,
     pub(crate) category: String,
     pub(crate) node_tag: String,
+    #[serde(default)]
+    pub(crate) mac_address: String,
 }
 
 #[derive(Clone, Serialize)]
@@ -83,6 +85,8 @@ pub struct FullTelemetry {
     pub(crate) streams: HashMap<String, MediaStream>,
     pub(crate) app_statuses: HashMap<String, AppStatus>,
     pub(crate) agent_connected: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) smart_home: Option<crate::smart_home::SmartHomeTelemetry>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -135,6 +139,7 @@ pub struct AppState {
     pub(crate) login_attempts: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
     pub(crate) api_rate_limits: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
     pub(crate) agent_secret: Arc<String>,
+    pub(crate) smart_home_telemetry: Arc<RwLock<crate::smart_home::SmartHomeTelemetry>>,
 }
 
 

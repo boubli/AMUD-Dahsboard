@@ -112,6 +112,10 @@ pub async fn dashboard_handler(
         .get("telemetry_public")
         .map(|s| s.as_str())
         .unwrap_or("0");
+    let custom_css = settings
+        .get("custom_css")
+        .map(|s| s.as_str())
+        .unwrap_or("");
     let csrf_token = csrf_token_for_session(&headers, &state.sessions);
     let csrf_attr = escape_html(&csrf_token);
 
@@ -241,6 +245,23 @@ pub async fn dashboard_handler(
                         </div>
                     </div>"#
                         .to_string()
+                } else if name_lower.contains("home") && name_lower.contains("assistant") {
+                    r#"
+                    <div class="nested-metrics-grid cols-3" id="ha-metrics-grid">
+                        <div class="metric-block">
+                            <span class="metric-value" id="ha-lights">—</span>
+                            <span class="metric-label">Lights</span>
+                        </div>
+                        <div class="metric-block">
+                            <span class="metric-value" id="ha-switches">—</span>
+                            <span class="metric-label">Switches</span>
+                        </div>
+                        <div class="metric-block">
+                            <span class="metric-value" id="ha-temp">—</span>
+                            <span class="metric-label">Avg Temp</span>
+                        </div>
+                    </div>"#
+                        .to_string()
                 } else {
                     r#"
                     <div class="nested-metrics-grid">
@@ -268,6 +289,9 @@ pub async fn dashboard_handler(
                 format!(
                     r#"
                     <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                        <button type="button" class="btn-wake-app" title="Wake-on-LAN" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:0.4rem; display:inline-flex; align-items:center;" @click="triggerWakeAction($el, {})" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'">
+                            <i data-lucide="power" style="width:1.1rem; height:1.1rem;"></i>
+                        </button>
                         <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); editAppModalOpen = true;">
                             <i data-lucide="edit-2"></i>
                         </button>
@@ -280,7 +304,7 @@ pub async fn dashboard_handler(
                         </form>
                     </div>
                     "#,
-                    escaped_json, app.id, csrf_attr
+                    app.id, escaped_json, app.id, csrf_attr
                 )
             } else {
                 "".to_string()
@@ -553,6 +577,7 @@ pub async fn dashboard_handler(
         .replace("<!-- CATEGORY_OPTIONS -->", &category_options_html)
         .replace("{{csrf_token}}", &csrf_token)
         .replace("{{telemetry_public}}", telemetry_public)
+        .replace("{{custom_css}}", custom_css)
         .replace(
             "{{is_admin}}",
             if is_admin { "true" } else { "false" },
@@ -756,6 +781,12 @@ async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>, is_guest
         } else {
             *state.agent_connected.read().unwrap()
         };
+        let smart_home = if is_guest {
+            None
+        } else {
+            let sh = state.smart_home_telemetry.read().unwrap().clone();
+            Some(sh)
+        };
 
         let payload = FullTelemetry {
             system: system_metrics,
@@ -763,6 +794,7 @@ async fn handle_ws_session(mut socket: WebSocket, state: Arc<AppState>, is_guest
             streams,
             app_statuses,
             agent_connected,
+            smart_home,
         };
 
         if let Ok(msg) = serde_json::to_string(&payload) {
@@ -1301,12 +1333,13 @@ pub async fn add_app_handler(
         .cloned()
         .unwrap_or_else(|| "Local".to_string());
     let description = form.get("description").cloned().unwrap_or_default();
+    let mac_address = form.get("mac_address").cloned().unwrap_or_default();
 
     if !name.is_empty() && !url.is_empty() {
         let db = state.db.lock().unwrap();
         db.execute(
-            "INSERT INTO apps (name, url, icon, description, category, node_tag) VALUES (?, ?, ?, ?, ?, ?)",
-            params![name, url, icon, description, category, node_tag],
+            "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            params![name, url, icon, description, category, node_tag, mac_address],
         )
         .ok();
     }
@@ -1354,29 +1387,96 @@ pub async fn edit_app_handler(
     if let Some(id_str) = form.get("id") {
         if let Ok(id) = id_str.parse::<i64>() {
             let name = form.get("name").cloned().unwrap_or_default();
-                let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
-                let icon = form.get("icon").cloned().unwrap_or_default();
-                let category = form
-                    .get("category")
-                    .cloned()
-                    .unwrap_or_else(|| "General".to_string());
-                let node_tag = form
-                    .get("node_tag")
-                    .cloned()
-                    .unwrap_or_else(|| "Local".to_string());
-                let description = form.get("description").cloned().unwrap_or_default();
+            let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
+            let icon = form.get("icon").cloned().unwrap_or_default();
+            let category = form
+                .get("category")
+                .cloned()
+                .unwrap_or_else(|| "General".to_string());
+            let node_tag = form
+                .get("node_tag")
+                .cloned()
+                .unwrap_or_else(|| "Local".to_string());
+            let description = form.get("description").cloned().unwrap_or_default();
+            let mac_address = form.get("mac_address").cloned().unwrap_or_default();
 
-                if !name.is_empty() && !url.is_empty() {
-                    let db = state.db.lock().unwrap();
-                    db.execute(
-                        "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ? WHERE id = ?",
-                        params![name, url, icon, description, category, node_tag, id],
-                    )
-                    .ok();
+            if !name.is_empty() && !url.is_empty() {
+                let db = state.db.lock().unwrap();
+                db.execute(
+                    "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ? WHERE id = ?",
+                    params![name, url, icon, description, category, node_tag, mac_address, id],
+                )
+                .ok();
+            }
+        }
+    }
+    Redirect::to("/").into_response()
+}
+
+fn parse_mac(mac: &str) -> Option<Vec<u8>> {
+    let mut bytes = Vec::new();
+    let parts: Vec<&str> = mac.split(&[':', '-'][..]).collect();
+    if parts.len() == 6 {
+        for p in parts {
+            if let Ok(b) = u8::from_str_radix(p, 16) {
+                bytes.push(b);
+            } else {
+                return None;
+            }
+        }
+        return Some(bytes);
+    }
+    None
+}
+
+pub async fn wake_app_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::UNAUTHORIZED)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Unauthorized"}"#))
+            .unwrap();
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    if let Some(id_str) = form.get("id") {
+        if let Ok(id) = id_str.parse::<i64>() {
+            let db = state.db.lock().unwrap();
+            if let Ok(mac_str) = db.query_row(
+                "SELECT mac_address FROM apps WHERE id = ?",
+                rusqlite::params![id],
+                |row| row.get::<_, String>(0)
+            ) {
+                if let Some(mac_bytes) = parse_mac(&mac_str) {
+                    let mut magic_packet = vec![0xFF; 6];
+                    for _ in 0..16 {
+                        magic_packet.extend(&mac_bytes);
+                    }
+                    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+                        let _ = socket.set_broadcast(true);
+                        let _ = socket.send_to(&magic_packet, "255.255.255.255:9");
+                        return Response::builder()
+                            .status(StatusCode::OK)
+                            .header("Content-Type", "application/json")
+                            .body(Body::from(r#"{"success":true}"#))
+                            .unwrap();
+                    }
                 }
             }
         }
-    Redirect::to("/").into_response()
+    }
+    Response::builder()
+        .status(StatusCode::BAD_REQUEST)
+        .header("Content-Type", "application/json")
+        .body(Body::from(r#"{"error":"Failed to send magic packet"}"#))
+        .unwrap()
 }
 
 // Multipart File Uploader
@@ -2215,6 +2315,12 @@ pub async fn settings_page_handler(
     let jellyfin_url = settings.get("jellyfin_url").map(|s| s.as_str()).unwrap_or("");
     let plex_url = settings.get("plex_url").map(|s| s.as_str()).unwrap_or("");
     let donate_enabled = settings.get("donate_enabled").map(|s| s.as_str()).unwrap_or("1");
+    let custom_css = settings.get("custom_css").map(|s| s.as_str()).unwrap_or("");
+    let ha_url = settings.get("ha_url").map(|s| s.as_str()).unwrap_or("");
+    let ha_token_placeholder = secret_field_placeholder(
+        secret_setting_configured(&settings, "ha_token"),
+        "Paste Home Assistant long-lived token",
+    );
     let pve_api_token_placeholder = secret_field_placeholder(
         secret_setting_configured(&settings, "pve_api_token"),
         "PVEAPIToken=root@pam!tokenid=xxxx-xxxx-xxxx-xxxx",
@@ -2268,6 +2374,9 @@ pub async fn settings_page_handler(
         .replace("{{jellyfin_api_key_placeholder}}", &escape_html(&jellyfin_api_key_placeholder))
         .replace("{{plex_url}}", plex_url)
         .replace("{{plex_token_placeholder}}", &escape_html(&plex_token_placeholder))
+        .replace("{{ha_url}}", ha_url)
+        .replace("{{ha_token_placeholder}}", &escape_html(&ha_token_placeholder))
+        .replace("{{custom_css}}", custom_css)
         .replace("{{csrf_token}}", &csrf_token)
         .replace("{{username}}", &escape_html(username))
         .replace("{{custom_overlay_color}}", custom_overlay_color)
@@ -2293,4 +2402,63 @@ pub async fn list_audit_handler(
         .header("Content-Type", "application/json")
         .body(Body::from(serde_json::to_string(&entries).unwrap_or_else(|_| "[]".to_string())))
         .unwrap()
+}
+
+pub async fn export_backup_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return resp;
+    }
+    let _lock = state.db.lock().unwrap();
+    let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "data/amud.db".to_string());
+    let data = std::fs::read(&db_path).unwrap_or_default();
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "application/octet-stream")
+        .header(header::CONTENT_DISPOSITION, "attachment; filename=\"amud.db\"")
+        .body(Body::from(data))
+        .unwrap()
+}
+
+pub async fn import_backup_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return resp.into_response();
+    }
+    
+    let mut db_data = None;
+    let mut csrf = String::new();
+    while let Ok(Some(field)) = multipart.next_field().await {
+        let name = field.name().unwrap_or("").to_string();
+        if name == "csrf_token" {
+            if let Ok(text) = field.text().await {
+                csrf = text;
+            }
+        } else if name == "db_file" {
+            if let Ok(bytes) = field.bytes().await {
+                db_data = Some(bytes);
+            }
+        }
+    }
+    
+    let mut form_map = HashMap::new();
+    form_map.insert("csrf_token".to_string(), csrf);
+    if !validate_csrf(&headers, &state.sessions, Some(&Form(form_map))) {
+        return csrf_forbidden_response().into_response();
+    }
+    
+    if let Some(bytes) = db_data {
+        let _lock = state.db.lock().unwrap();
+        let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "data/amud.db".to_string());
+        std::fs::write(&db_path, bytes).unwrap();
+        // Exit process safely to trigger restart and pick up new DB
+        std::process::exit(0);
+    }
+    
+    Redirect::to("/admin/settings").into_response()
 }

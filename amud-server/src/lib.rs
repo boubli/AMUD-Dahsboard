@@ -10,6 +10,7 @@ pub mod security;
 pub mod settings;
 pub mod templates;
 pub mod webhooks;
+pub mod smart_home;
 
 use agent::start_agent_listener;
 use auth::{generate_bootstrap_password, hash_password, resolve_agent_secret, security_headers, start_session_cleanup};
@@ -18,6 +19,7 @@ use handlers::*;
 use media::start_media_poller;
 use models::{AgentTelemetry, AppState, Session};
 use settings::get_default_settings;
+use smart_home::start_ha_polling;
 use webhooks::start_status_poller;
 
 use axum::{middleware, routing::{get, post}, Router};
@@ -48,6 +50,8 @@ conn.execute(
     [],
 )
 .unwrap();
+
+let _ = conn.execute("ALTER TABLE apps ADD COLUMN mac_address TEXT DEFAULT ''", []);
 
 conn.execute(
     "CREATE TABLE IF NOT EXISTS users (
@@ -208,11 +212,13 @@ let state = Arc::new(AppState {
     login_attempts: Arc::new(Mutex::new(HashMap::new())),
     api_rate_limits: Arc::new(Mutex::new(HashMap::new())),
     agent_secret: Arc::new(agent_secret),
+    smart_home_telemetry: Arc::new(RwLock::new(Default::default())),
 });
 
-// Start Host Agent listener (Background task)
+// Start background tasks
 start_agent_listener(state.clone());
 start_session_cleanup(sessions.clone());
+tokio::spawn(start_ha_polling(state.clone()));
 
 start_media_poller(shared_db.clone(), media_streams);
 start_status_poller(shared_db.clone(), app_statuses);
@@ -230,9 +236,12 @@ let app = Router::new()
         post(upload_handler).layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024)),
     )
     .route("/admin/credentials", post(credentials_handler))
+    .route("/admin/backup/export", get(export_backup_handler))
+    .route("/admin/backup/import", post(import_backup_handler).layer(axum::extract::DefaultBodyLimit::max(50 * 1024 * 1024)))
     .route("/apps", post(add_app_handler))
     .route("/apps/delete", post(delete_app_handler))
     .route("/apps/edit", post(edit_app_handler))
+    .route("/apps/wake", post(wake_app_handler))
     .route("/apps/action", post(app_action_handler))
     .route(
         "/api/categories",

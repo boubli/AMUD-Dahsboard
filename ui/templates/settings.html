@@ -300,6 +300,7 @@
             /* Removed mobile bottom-sheet style to keep mgmt-modal centered */
         }
     </style>
+    <style id="amud-custom-css">{{custom_css}}</style>
 </head>
 <body x-data="settingsState()">
     <!-- Ambient Wallpaper Background identical to dashboard -->
@@ -332,6 +333,9 @@
                 <button class="nav-item" :class="{ 'active': activeTab === 'integrations' }" @click="switchTab('integrations')">
                     <i data-lucide="plug"></i> Integrations
                 </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'smarthome' }" @click="switchTab('smarthome')">
+                    <i data-lucide="home"></i> Smart Home
+                </button>
                 <button class="nav-item" :class="{ 'active': activeTab === 'donation' }" @click="switchTab('donation')">
                     <i data-lucide="heart"></i> Support
                 </button>
@@ -354,6 +358,9 @@
                 <div class="nav-section-title">Account</div>
                 <button class="nav-item" :class="{ 'active': activeTab === 'security' }" @click="switchTab('security')">
                     <i data-lucide="shield-check"></i> Security
+                </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'backup' }" @click="switchTab('backup')">
+                    <i data-lucide="database"></i> Data & Backup
                 </button>
             </div>
             
@@ -463,6 +470,14 @@
                                 <input type="range" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
                             </div>
                         </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="code" style="color:var(--accent-color);"></i> Custom CSS</h3>
+                            <div class="form-group">
+                                <label>CSS Overrides</label>
+                                <textarea name="custom_css" class="form-control" rows="6" placeholder="body { ... }" style="font-family:monospace; resize:vertical;" @input="unsavedChanges = true">{{custom_css}}</textarea>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- TAB: WEATHER -->
@@ -532,6 +547,24 @@
                             <div class="form-group" style="margin-top:1rem;">
                                 <label>Plex Token</label>
                                 <input type="password" name="plex_token" class="form-control" value="" placeholder="{{plex_token_placeholder}}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: SMART HOME -->
+                    <div x-show="activeTab === 'smarthome'" x-transition.opacity style="display:none;">
+                        <h1 class="settings-page-title">Smart Home</h1>
+                        <p class="settings-page-subtitle">Connect AMUD to Home Assistant to show live sensors and states on the dashboard.</p>
+                        
+                        <div class="settings-block">
+                            <h3><i data-lucide="home" style="color:var(--accent-color);"></i> Home Assistant Config</h3>
+                            <div class="form-group">
+                                <label>Home Assistant URL</label>
+                                <input type="url" name="ha_url" class="form-control" value="{{ha_url}}" placeholder="http://homeassistant.local:8123">
+                            </div>
+                            <div class="form-group" style="margin-top:1rem;">
+                                <label>Long-Lived Access Token</label>
+                                <input type="password" name="ha_token" class="form-control" value="" placeholder="{{ha_token_placeholder}}">
                             </div>
                         </div>
                     </div>
@@ -684,6 +717,30 @@
                     <button type="button" class="btn btn-primary" @click="submitCredentials()" style="margin-top: 1.5rem;">
                         Update Credentials
                     </button>
+                </div>
+            </div>
+
+            <!-- TAB: BACKUP -->
+            <div x-show="activeTab === 'backup'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
+                <h1 class="settings-page-title">Data & Backup</h1>
+                <p class="settings-page-subtitle">Export or restore your entire AMUD database (apps, categories, settings, users).</p>
+                
+                <div class="settings-block">
+                    <h3><i data-lucide="download" style="color:var(--accent-color);"></i> Export Database</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Download a full backup of your current configuration.</p>
+                    <a href="/admin/backup/export" class="btn btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem; width:fit-content;"><i data-lucide="download-cloud"></i> Download amud.db</a>
+                </div>
+
+                <div class="settings-block">
+                    <h3><i data-lucide="upload" style="color:var(--accent-color);"></i> Restore Database</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Upload a previously exported <code>amud.db</code> file. <strong style="color:var(--danger);">Warning: This will overwrite your current configuration and instantly restart the dashboard.</strong></p>
+                    <form action="/admin/backup/import" method="POST" enctype="multipart/form-data" style="margin:0; display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                        <div class="form-group">
+                            <input type="file" name="db_file" accept=".db,.sqlite" required class="form-control" style="padding:0.5rem; background:rgba(255,255,255,0.05);">
+                        </div>
+                        <button type="submit" class="btn btn-danger" style="display:inline-flex; align-items:center; gap:0.5rem; width:fit-content;" onclick="return confirm('Are you sure you want to overwrite your database and restart AMUD?');"><i data-lucide="alert-triangle"></i> Overwrite & Restore</button>
+                    </form>
                 </div>
             </div>
 

@@ -27,8 +27,9 @@
             /* ROOT_CSS */
         }
     </style>
+    <style id="amud-custom-css">{{custom_css}}</style>
 </head>
-<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '' } }">
+<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '' } }">
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
@@ -215,6 +216,11 @@
             </div>
 
             <div class="form-group">
+                <label>MAC Address (Optional)</label>
+                <input type="text" name="mac_address" class="form-control" placeholder="e.g. 00:11:22:33:44:55 (For Wake-on-LAN)">
+            </div>
+
+            <div class="form-group">
                 <label>Description</label>
                 <textarea name="description" class="form-control" rows="2" placeholder="Brief description of the app service"></textarea>
             </div>
@@ -274,6 +280,11 @@
             <div class="form-group">
                 <label>Node Tag</label>
                 <input type="text" name="node_tag" x-model="editApp.node_tag" class="form-control" placeholder="e.g. Local, PVE-1 (Defaults to Local)">
+            </div>
+
+            <div class="form-group">
+                <label>MAC Address (Optional)</label>
+                <input type="text" name="mac_address" x-model="editApp.mac_address" class="form-control" placeholder="e.g. 00:11:22:33:44:55 (For Wake-on-LAN)">
             </div>
 
             <div class="form-group">
@@ -427,6 +438,44 @@
                 btns.forEach(btn => btn.disabled = false);
                 button.innerHTML = origIcon;
                 lucide.createIcons();
+            });
+        }
+
+        // Trigger Wake-on-LAN
+        function triggerWakeAction(button, id) {
+            const origIcon = button.innerHTML;
+            button.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width:1.1rem; height:1.1rem;"></i>';
+            lucide.createIcons();
+            
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            formData.append('csrf_token', amudCsrfToken());
+            
+            fetch('/apps/wake', {
+                method: 'POST',
+                headers: amudCsrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                body: formData.toString()
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                button.innerHTML = origIcon;
+                lucide.createIcons();
+                if (ok && data.success) {
+                    console.log(`Wake packet sent for app ${id}`);
+                    // Flash success
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.style.color = 'var(--success)';
+                        setTimeout(() => { icon.style.color = ''; }, 1500);
+                    }
+                } else {
+                    alert(data.error || 'Failed to send Wake packet.');
+                }
+            })
+            .catch(() => {
+                button.innerHTML = origIcon;
+                lucide.createIcons();
+                alert('Network error.');
             });
         }
 
@@ -654,6 +703,17 @@
                     if (jellyfinStream) {
                         updateMediaStream('jellyfin', jellyfinStream);
                     }
+                }
+
+                // Update smart home stats
+                if (data.smart_home) {
+                    const sh = data.smart_home;
+                    const haLights = document.getElementById('ha-lights');
+                    if (haLights) haLights.innerText = sh.lights_on;
+                    const haSwitches = document.getElementById('ha-switches');
+                    if (haSwitches) haSwitches.innerText = sh.switches_on;
+                    const haTemp = document.getElementById('ha-temp');
+                    if (haTemp) haTemp.innerText = sh.avg_temp !== null ? sh.avg_temp + '°' : '—';
                 }
 
             } catch (err) {

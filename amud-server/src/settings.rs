@@ -19,11 +19,14 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("pve_api_token", "");
     s.insert("donate_enabled", "1");
     s.insert("telemetry_public", "0");
+    s.insert("ha_url", "");
+    s.insert("ha_token", "");
+    s.insert("custom_css", "");
 
     s.into()
 }
 
-pub(crate) const SECRET_SETTING_KEYS: &[&str] = &["pve_api_token", "jellyfin_api_key", "plex_token"];
+pub(crate) const SECRET_SETTING_KEYS: &[&str] = &["pve_api_token", "jellyfin_api_key", "plex_token", "ha_token"];
 
 pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "overlay_theme",

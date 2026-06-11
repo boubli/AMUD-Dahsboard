@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex, RwLock};
 pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
     let mut apps = Vec::new();
     let Ok(mut stmt) = db.prepare(
-        "SELECT id, name, url, icon, description, category, node_tag FROM apps ORDER BY id DESC",
+        "SELECT id, name, url, icon, description, category, node_tag, mac_address FROM apps ORDER BY id DESC",
     ) else {
         return apps;
     };
@@ -24,6 +24,7 @@ pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
                 description: row.get(4)?,
                 category: row.get(5)?,
                 node_tag: row.get(6)?,
+                mac_address: row.get(7).unwrap_or_else(|_| "".to_string()),
             })
         })() {
             apps.push(app);

@@ -320,6 +320,7 @@ mod tests {
             login_attempts: Arc::new(Mutex::new(HashMap::new())),
             api_rate_limits: Arc::new(Mutex::new(HashMap::new())),
             agent_secret: Arc::new("test-secret".to_string()),
+            smart_home_telemetry: Arc::new(RwLock::new(Default::default())),
         });
 
         let old_telemetry = AgentTelemetry {
@@ -398,6 +399,7 @@ mod tests {
             login_attempts: Arc::new(Mutex::new(HashMap::new())),
             api_rate_limits: Arc::new(Mutex::new(HashMap::new())),
             agent_secret: Arc::new("test-secret".to_string()),
+            smart_home_telemetry: Arc::new(RwLock::new(Default::default())),
         });
 
         let old_telemetry = AgentTelemetry {
@@ -435,6 +437,7 @@ mod tests {
             description: String::new(),
             category: String::new(),
             node_tag: String::new(),
+            mac_address: String::new(),
         }
     }
 
