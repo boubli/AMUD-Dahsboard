@@ -40,8 +40,16 @@ AMUD uses a decoupled client-server architecture:
 * **The Legacy Problem:** Sharing your landing page with family members usually means exposing your sensitive admin tools.
 * **The AMUD Solution:** Built-in cryptographic user roles. Admins see the full cluster control array; guests or family profiles get a clean, read-only dashboard layout out of the box.
 
+### 5. Smart Home Integration & Wake-on-LAN
+* **Smart Home:** Directly hook into your Home Assistant to display your active lights, switches, and home temperature right from your AMUD dashboard without opening a new tab.
+* **Wake-on-LAN:** Boot up your sleeping servers or nodes seamlessly with the click of a button right next to your apps.
+
+### 6. Fully Portable & Customizable
+* **Database Backups:** Use the built-in backup tools to export your entire SQLite configuration and restore it on any new server instantly.
+* **Custom CSS Injection:** Fully theme the dashboard exactly how you want it by injecting custom CSS directly from the UI.
+
 ## Next Steps
 
-- [Dashboard Configuration](./configuration.md) — appearance, grid columns, Jellyfin/Plex integrations
+- [Dashboard Configuration](./configuration.md) — appearance, custom CSS, smart home, and media integrations
 - [Security](./security.md) — Argon2id passwords, sessions, rate limits, HTTPS cookies
-- [Troubleshooting](./troubleshooting.md) — upgrades, IPC auth, PWA cache, CLI recovery
+- [Troubleshooting](./troubleshooting.md) — upgrades, IPC auth, database backups, and CSS resets

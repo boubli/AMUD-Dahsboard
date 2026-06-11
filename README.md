@@ -3,6 +3,7 @@
 </div>
 
 # AMUD Dashboard
+> **Unify Your Homelab: The Zero-YAML, UI-Driven Cockpit.**
 
 [![GitHub Release](https://img.shields.io/github/v/release/boubli/AMUD-Dashboard?style=flat-square)](https://github.com/boubli/AMUD-Dashboard/releases/latest)
 

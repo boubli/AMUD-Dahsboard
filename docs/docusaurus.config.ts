@@ -4,8 +4,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'AMUD Dashboard',
-  tagline: 'Zero-YAML, UI-Driven Homelab Cockpit',
-  favicon: 'img/favicon.ico',
+  tagline: 'Unify Your Homelab: The Zero-YAML, UI-Driven Cockpit.',
+  favicon: 'img/AMUD-logo.png',
 
   // Set the production url of your site here
   url: 'https://boubli.github.io',
@@ -77,6 +77,13 @@ const config: Config = {
     },
     footer: {
       style: 'dark',
+      logo: {
+        alt: 'AMUD Dashboard Logo',
+        src: 'img/AMUD-logo.png',
+        href: 'https://github.com/boubli/AMUD-Dashboard',
+        width: 60,
+        height: 60,
+      },
       links: [
         {
           title: 'Documentation',
@@ -86,37 +93,65 @@ const config: Config = {
               to: '/docs/intro',
             },
             {
+              label: 'Configuration',
+              to: '/docs/configuration',
+            },
+            {
               label: 'Troubleshooting',
               to: '/docs/troubleshooting',
             },
           ],
         },
         {
-          title: 'Community',
+          title: 'Support & Community',
           items: [
             {
-              label: 'GitHub Repository',
-              href: 'https://github.com/boubli/AMUD-Dashboard',
+              label: 'GitHub Discussions',
+              href: 'https://github.com/boubli/AMUD-Dashboard/discussions',
+            },
+            {
+              label: 'Report an Issue',
+              href: 'https://github.com/boubli/AMUD-Dashboard/issues',
+            },
+            {
+              label: 'Releases & Changelogs',
+              href: 'https://github.com/boubli/AMUD-Dashboard/releases',
             },
           ],
         },
         {
-          title: 'Support',
+          title: '💖 Donate',
           items: [
             {
-              label: 'Donate',
-              to: '/docs/donate',
+              label: 'GitHub Sponsors',
+              href: 'https://github.com/sponsors/boubli',
+            },
+            {
+              label: 'Stripe (Card)',
+              href: 'https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00',
+            },
+            {
+              label: 'Ko-fi',
+              href: 'https://ko-fi.com/Youssefboubli',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} AMUD Dashboard. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} <strong>AMUD Dashboard</strong>.<br/><span style="color: #ff6b2b; font-size: 0.9em;">Unify Your Homelab: The Zero-YAML, UI-Driven Cockpit.</span>`,
     },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
+  themes: [
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        hashed: true,
+      },
+    ],
+  ],
 };
 
 export default config;

@@ -79,6 +79,30 @@ When multiple clients are streaming, the badge may show the primary title plus `
 
 ---
 
+## Smart Home Integration (Home Assistant)
+
+Connect your dashboard to Home Assistant to view live sensor telemetry directly inside the Home Assistant app card.
+
+1. Open **Settings → Smart Home**.
+2. Enter your **Home Assistant URL** (e.g. `http://homeassistant.local:8123`).
+3. Enter your **Long-Lived Access Token** (created from your user profile in HA).
+
+If you have an application named exactly `Home Assistant` on your dashboard, its telemetry will now include the number of active lights, switches, and average home temperature.
+
+---
+
+## Custom CSS Injection
+
+Make the dashboard truly yours by overriding the default styling. 
+
+1. Open **Settings → Customization**.
+2. Enter any valid CSS. 
+3. Click Save. The CSS will be injected into the `<head>` of the dashboard for all users immediately.
+
+*(Note: If you write invalid CSS that breaks the layout entirely, refer to [Troubleshooting](./troubleshooting.md) for recovery).*
+
+---
+
 ## Proxmox and container control
 
 Live **RUNNING** / **STOPPED** badges and start/stop controls require:
@@ -98,4 +122,4 @@ See [Proxmox VE Installation](./installation/proxmox.md#4-proxmox-api-token-conf
 | Streams show NOT CONFIGURED | [Media Integrations](./troubleshooting.md#media-integrations-not-showing-streams) |
 | Apps stuck on CHECKING... | [Troubleshooting](./troubleshooting.md) — Proxmox token and agent IPC |
 | Old UI after upgrade | [PWA / Browser Cache](./troubleshooting.md#pwa--browser-cache-issues) |
-| Grid setting not visible | Hard-refresh the browser; clear PWA cache after upgrades |
+| Dashboard UI is broken | [Custom CSS Recovery](./troubleshooting.md#recovering-from-broken-custom-css) |

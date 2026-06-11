@@ -516,6 +516,32 @@ ls -la /opt/amud/run
 
 ---
 
+## Recovering from Broken Custom CSS
+
+**Symptom:** You entered custom CSS into the Settings menu that caused the dashboard to become entirely unusable (e.g., hiding the body, breaking the grid, making buttons unclickable), and now you cannot reach the Settings menu to fix it.
+
+**Fix:** You can reset the custom CSS directly from the SQLite database via the CLI:
+
+```bash
+pct exec 101 -- sqlite3 /opt/amud/data/amud.db "UPDATE settings SET value='' WHERE key='custom_css';"
+pct exec 101 -- systemctl restart amud
+```
+
+---
+
+## Database Restore Failure
+
+**Symptom:** You attempted to upload an `amud.db` backup file via the UI, but the UI crashed, or the server failed to restart correctly with the new database.
+
+**Fix:** When uploading a database, AMUD automatically saves your original database as `amud.db.bak` before applying the new one. You can easily revert from the CLI:
+
+```bash
+pct exec 101 -- mv /opt/amud/data/amud.db.bak /opt/amud/data/amud.db
+pct exec 101 -- systemctl restart amud
+```
+
+---
+
 ## Getting Help
 
 If your issue isn't covered here:
