@@ -693,7 +693,7 @@
     <!-- Modals for Management -->
     <!-- Category Modal -->
     <div class="drawer-backdrop" x-show="catModalOpen" x-transition.opacity @click="catModalOpen = false" style="display: none; z-index:90;"></div>
-    <div class="mgmt-modal" x-show="catModalOpen" x-transition style="display: none;">
+    <div class="mgmt-modal" x-show="catModalOpen" x-transition.opacity style="display: none;">
         <h3 style="margin-bottom:1.5rem;" x-text="catEditing ? 'Edit Category' : 'Add Category'"></h3>
         <input type="hidden" id="cat-id">
         <div class="form-group">
@@ -716,7 +716,7 @@
 
     <!-- Webhook Modal -->
     <div class="drawer-backdrop" x-show="whModalOpen" x-transition.opacity @click="whModalOpen = false" style="display: none; z-index:90;"></div>
-    <div class="mgmt-modal" x-show="whModalOpen" x-transition style="display: none;">
+    <div class="mgmt-modal" x-show="whModalOpen" x-transition.opacity style="display: none;">
         <h3 style="margin-bottom:1.5rem;" x-text="whEditing ? 'Edit Webhook' : 'Add Webhook'"></h3>
         <input type="hidden" id="wh-id">
         <div class="form-group">
@@ -748,7 +748,7 @@
 
     <!-- User Modal -->
     <div class="drawer-backdrop" x-show="usrModalOpen" x-transition.opacity @click="usrModalOpen = false" style="display: none; z-index:90;"></div>
-    <div class="mgmt-modal" x-show="usrModalOpen" x-transition style="display: none;">
+    <div class="mgmt-modal" x-show="usrModalOpen" x-transition.opacity style="display: none;">
         <h3 style="margin-bottom:1.5rem;" x-text="usrEditing ? 'Edit User' : 'Add User'"></h3>
         <input type="hidden" id="usr-id">
         <div class="form-group">

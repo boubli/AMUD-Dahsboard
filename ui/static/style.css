@@ -553,6 +553,10 @@ body {
     cursor: pointer;
     border: 1px solid transparent;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .btn-primary {
