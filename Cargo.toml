@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "amud-agent",
-    "amud-server"
+    "amud-protocol",
+    "amud-server",
 ]
 resolver = "2"

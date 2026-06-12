@@ -51,6 +51,7 @@ agent-tools/
 
 # Local-only planning notes
 *.local.md
+docs/AMUD_AUDIT_TASKS.md
 docs/NEXT_SESSION*.md
 
 # OS / editor backups

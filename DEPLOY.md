@@ -77,7 +77,7 @@ journalctl -u amud-agent --no-pager -n 10
 
 You should see: `[LXC] Successfully fetched XX containers from PVE.`
 
-> For detailed troubleshooting, see the full [Troubleshooting Guide](https://tradmss.me/AMUD-Dashboard/docs/troubleshooting).
+> For detailed troubleshooting, see the full [Troubleshooting Guide](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting).
 
 ---
 
@@ -126,6 +126,12 @@ For standard containerized host management panels (when running as a standalone 
 1. Open your Portainer Web UI.
 2. Select **Stacks** -> **Add Stack**.
 3. Under the Web Editor panel, paste the following single-service definition:
+Use the full `docker-compose.yml` from this repository (dashboard **and** agent). Create a `.env` file with a shared secret:
+
+```bash
+AMUD_AGENT_SECRET=change-me-to-a-long-random-string
+```
+
 ```yaml
 version: '3.8'
 
@@ -135,23 +141,41 @@ services:
     container_name: amud_app
     restart: always
     ports:
-      - "80:8000"
+      - "8000:8000"
     environment:
       - DB_PATH=/app/data/amud.db
       - PORT=8000
-      - AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
+      - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
     volumes:
       - ./data:/app/data
-      - /opt/amud/run:/opt/amud/run
+      - amud_run:/var/run/amud
+
+  agent:
+    image: tradmss/amud-dashboard:latest
+    container_name: amud_agent
+    entrypoint: ["/app/amud-agent"]
+    environment:
+      - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
+    volumes:
+      - amud_run:/var/run/amud
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
+
+volumes:
+  amud_run:
+    name: amud_run
 ```
 
 **Environment Variables:**
 
-| Variable | Default | Description |
+| Variable | Required | Description |
 |---|---|---|
-| `DB_PATH` | `/app/data/amud.db` | SQLite database file path |
-| `PORT` | `8000` | HTTP server listen port |
-| `AMUD_SOCKET_PATH` | `/opt/amud/run/amud.sock` | Unix domain socket path for agent IPC |
+| `AMUD_AGENT_SECRET` | **Yes** | Shared secret between dashboard and agent (must match on both containers) |
+| `DB_PATH` | No | SQLite database file path (default `/app/data/amud.db`) |
+| `PORT` | No | HTTP server listen port (default `8000`) |
+| `AMUD_SOCKET_PATH` | No | Unix domain socket path for agent IPC |
 
 4. Click **Deploy the stack**.
 

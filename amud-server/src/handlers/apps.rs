@@ -1,0 +1,521 @@
+use super::imports::*;
+
+pub async fn add_app_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return csrf_forbidden_response().into_response();
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    let name = form.get("name").cloned().unwrap_or_default();
+    let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
+    let icon = form.get("icon").cloned().unwrap_or_default();
+    let category_input = form
+        .get("category")
+        .cloned()
+        .unwrap_or_else(|| "General".to_string());
+    let node_tag = form
+        .get("node_tag")
+        .cloned()
+        .unwrap_or_else(|| "Local".to_string());
+    let description = form.get("description").cloned().unwrap_or_default();
+    let mac_address = form.get("mac_address").cloned().unwrap_or_default();
+
+    if !name.is_empty() && !url.is_empty() {
+        let admin_user = session
+            .as_ref()
+            .map(|s| s.username.clone())
+            .unwrap_or_default();
+        let headers = headers.clone();
+        with_db(state.db.clone(), move |db| {
+            let category = crate::db::resolve_app_category(db, &category_input);
+            if db
+                .execute(
+                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    params![name, url, icon, description, category, node_tag, mac_address],
+                )
+                .is_ok()
+            {
+                record_audit_blocking(db, &headers, &admin_user, "app_create", &name, &url);
+            }
+        })
+        .await;
+    }
+    Redirect::to("/").into_response()
+}
+
+// Delete App Handler
+pub async fn delete_app_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return csrf_forbidden_response().into_response();
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    if let Some(id_str) = form.get("id") {
+        if let Ok(id) = id_str.parse::<i64>() {
+            let admin_user = session
+                .as_ref()
+                .map(|s| s.username.clone())
+                .unwrap_or_default();
+            let headers = headers.clone();
+            with_db(state.db.clone(), move |db| {
+                let app_name: String = db
+                    .query_row("SELECT name FROM apps WHERE id = ?", params![id], |row| {
+                        row.get(0)
+                    })
+                    .unwrap_or_else(|_| format!("id:{id}"));
+                if db
+                    .execute("DELETE FROM apps WHERE id = ?", params![id])
+                    .is_ok()
+                {
+                    record_audit_blocking(
+                        db,
+                        &headers,
+                        &admin_user,
+                        "app_delete",
+                        &app_name,
+                        "removed",
+                    );
+                }
+            })
+            .await;
+        }
+    }
+    Redirect::to("/").into_response()
+}
+
+// Edit App Handler
+pub async fn edit_app_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return csrf_forbidden_response().into_response();
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    if let Some(id_str) = form.get("id") {
+        if let Ok(id) = id_str.parse::<i64>() {
+            let name = form.get("name").cloned().unwrap_or_default();
+            let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
+            let icon = form.get("icon").cloned().unwrap_or_default();
+            let category_input = form
+                .get("category")
+                .cloned()
+                .unwrap_or_else(|| "General".to_string());
+            let node_tag = form
+                .get("node_tag")
+                .cloned()
+                .unwrap_or_else(|| "Local".to_string());
+            let description = form.get("description").cloned().unwrap_or_default();
+            let mac_address = form.get("mac_address").cloned().unwrap_or_default();
+
+            if !name.is_empty() && !url.is_empty() {
+                let admin_user = session
+                    .as_ref()
+                    .map(|s| s.username.clone())
+                    .unwrap_or_default();
+                let headers = headers.clone();
+                with_db(state.db.clone(), move |db| {
+                    let category = crate::db::resolve_app_category(db, &category_input);
+                    if db
+                        .execute(
+                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ? WHERE id = ?",
+                            params![name, url, icon, description, category, node_tag, mac_address, id],
+                        )
+                        .is_ok()
+                    {
+                        record_audit_blocking(
+                            db,
+                            &headers,
+                            &admin_user,
+                            "app_update",
+                            &name,
+                            &url,
+                        );
+                    }
+                })
+                .await;
+            }
+        }
+    }
+    Redirect::to("/").into_response()
+}
+
+fn parse_mac(mac: &str) -> Option<Vec<u8>> {
+    let mut bytes = Vec::new();
+    let parts: Vec<&str> = mac.split(&[':', '-'][..]).collect();
+    if parts.len() == 6 {
+        for p in parts {
+            if let Ok(b) = u8::from_str_radix(p, 16) {
+                bytes.push(b);
+            } else {
+                return None;
+            }
+        }
+        return Some(bytes);
+    }
+    None
+}
+
+pub async fn wake_app_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::UNAUTHORIZED)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Unauthorized"}"#))
+            .unwrap();
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    if let Some(id_str) = form.get("id") {
+        if let Ok(id) = id_str.parse::<i64>() {
+            let mac_str = with_db(state.db.clone(), move |db| fetch_app_mac_address(db, id)).await;
+            if let Some(mac_str) = mac_str {
+                if let Some(mac_bytes) = parse_mac(&mac_str) {
+                    let mut magic_packet = vec![0xFF; 6];
+                    for _ in 0..16 {
+                        magic_packet.extend(&mac_bytes);
+                    }
+                    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+                        let _ = socket.set_broadcast(true);
+                        let _ = socket.send_to(&magic_packet, "255.255.255.255:9");
+                        return Response::builder()
+                            .status(StatusCode::OK)
+                            .header("Content-Type", "application/json")
+                            .body(Body::from(r#"{"success":true}"#))
+                            .unwrap();
+                    }
+                }
+            }
+        }
+    }
+    Response::builder()
+        .status(StatusCode::BAD_REQUEST)
+        .header("Content-Type", "application/json")
+        .body(Body::from(r#"{"error":"Failed to send magic packet"}"#))
+        .unwrap()
+}
+
+// Multipart File Uploader
+pub async fn upload_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "upload", 10, 60) {
+        return resp;
+    }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = session
+        .as_ref()
+        .filter(|s| s.role == "Admin")
+        .map(|s| s.username.clone());
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .body(Body::from("Forbidden"))
+            .unwrap();
+    }
+    if !validate_csrf(&headers, &state.sessions, None) {
+        return csrf_forbidden_response();
+    }
+
+    let mut url_path = String::new();
+
+    while let Ok(Some(field)) = multipart.next_field().await {
+        let name = field.name().unwrap_or("").to_string();
+        if name == "image" {
+            let filename_orig = field.file_name().unwrap_or("image.png").to_string();
+            let ext = FilePath::new(&filename_orig)
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("png")
+                .to_lowercase();
+
+            if ext != "png" && ext != "jpg" && ext != "jpeg" && ext != "ico" && ext != "gif" {
+                return Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .body(axum::body::Body::from("Invalid file extension"))
+                    .unwrap();
+            }
+
+            let bytes = match field.bytes().await {
+                Ok(b) => b,
+                Err(_) => {
+                    return Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(axum::body::Body::from("Failed reading image bytes"))
+                        .unwrap();
+                }
+            };
+
+            if bytes.len() > 5 * 1024 * 1024 {
+                return Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .body(axum::body::Body::from("File size exceeds 5MB limit"))
+                    .unwrap();
+            }
+
+            fs::create_dir_all("data/uploads").ok();
+            let nano = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos();
+            let filename = format!("{}.{}", nano, ext);
+            let filepath = format!("data/uploads/{}", filename);
+
+            if fs::write(&filepath, bytes).is_ok() {
+                url_path = format!("/uploads/{}", filename);
+            }
+        }
+    }
+
+    if url_path.is_empty() {
+        Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(axum::body::Body::from("No image uploaded"))
+            .unwrap()
+    } else {
+        if let Some(user) = admin_user {
+            let headers = headers.clone();
+            let url_path_audit = url_path.clone();
+            with_db(state.db.clone(), move |db| {
+                record_audit_blocking(db, &headers, &user, "upload", "image", &url_path_audit);
+            })
+            .await;
+        }
+        Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "application/json")
+            .body(axum::body::Body::from(format!(
+                r#"{{"url":"{}"}}"#,
+                url_path
+            )))
+            .unwrap()
+    }
+}
+
+// Action Trigger Handler for LXC / Docker containers
+pub async fn app_action_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "container_action", 30, 60) {
+        return resp;
+    }
+
+    let session = get_session(&headers, &state.sessions);
+    let admin_user = match session.as_ref() {
+        Some(s) if s.role == "Admin" => s.username.clone(),
+        _ => {
+            return Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .header("Content-Type", "application/json")
+                .body(Body::from(r#"{"error":"Unauthorized"}"#))
+                .unwrap();
+        }
+    };
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response();
+    }
+
+    let provider = form.get("provider").cloned().unwrap_or_default();
+    let id = form.get("id").cloned().unwrap_or_default();
+    let action = form.get("action").cloned().unwrap_or_default();
+
+    if provider.is_empty() || id.is_empty() || action.is_empty() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Missing parameters"}"#))
+            .unwrap();
+    }
+
+    let action_ok = match provider.as_str() {
+        "lxc" => matches!(
+            action.as_str(),
+            "start" | "stop" | "restart" | "reboot" | "shutdown"
+        ),
+        "docker" => matches!(action.as_str(), "start" | "stop" | "restart"),
+        _ => false,
+    };
+    if !action_ok {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Invalid provider or action"}"#))
+            .unwrap();
+    }
+
+    let request_id = generate_session_token();
+    let cmd_value = serde_json::json!({
+        "provider": provider,
+        "id": id,
+        "action": action,
+        "request_id": request_id
+    });
+    let mut cmd = match serde_json::to_vec(&cmd_value) {
+        Ok(v) => v,
+        Err(_) => {
+            return Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .header("Content-Type", "application/json")
+                .body(Body::from(r#"{"error":"Failed to encode command"}"#))
+                .unwrap();
+        }
+    };
+    cmd.push(b'\n');
+
+    let agent_connected = *state.agent_connected.read().unwrap();
+    let command_tx = state.agent_command_tx.lock().unwrap().clone();
+
+    if !agent_connected {
+        return Response::builder()
+            .status(StatusCode::SERVICE_UNAVAILABLE)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Agent not connected"}"#))
+            .unwrap();
+    }
+
+    let sent = if let Some(handle) = command_tx {
+        handle
+            .tx
+            .send(String::from_utf8_lossy(&cmd).into_owned())
+            .is_ok()
+    } else {
+        false
+    };
+
+    if !sent {
+        return Response::builder()
+            .status(StatusCode::SERVICE_UNAVAILABLE)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Agent not connected"}"#))
+            .unwrap();
+    }
+
+    {
+        let headers = headers.clone();
+        let target = format!("{provider}:{id}");
+        with_db(state.db.clone(), move |db| {
+            record_audit_blocking(
+                db,
+                &headers,
+                &admin_user,
+                "container_action",
+                &target,
+                &action,
+            );
+        })
+        .await;
+    }
+
+    let start = Instant::now();
+    while start.elapsed() < Duration::from_secs(12) {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let result = {
+            let mut results = state.action_results.write().unwrap();
+            results.remove(&request_id)
+        };
+        if let Some(result) = result {
+            if result.success {
+                return Response::builder()
+                    .status(StatusCode::OK)
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(r#"{"success":true}"#))
+                    .unwrap();
+            }
+            let error = result.error.unwrap_or_else(|| "Action failed".to_string());
+            let body = serde_json::json!({ "error": error });
+            return Response::builder()
+                .status(StatusCode::BAD_GATEWAY)
+                .header("Content-Type", "application/json")
+                .body(Body::from(serde_json::to_string(&body).unwrap()))
+                .unwrap();
+        }
+    }
+
+    state.action_results.write().unwrap().remove(&request_id);
+
+    Response::builder()
+        .status(StatusCode::GATEWAY_TIMEOUT)
+        .header("Content-Type", "application/json")
+        .body(Body::from(
+            r#"{"error":"Timed out waiting for agent to confirm action"}"#,
+        ))
+        .unwrap()
+}
+
+pub async fn serve_upload_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Path(filename): Path<String>,
+) -> impl IntoResponse {
+    if get_session(&headers, &state.sessions).is_none() {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .body(Body::from("Forbidden"))
+            .unwrap();
+    }
+    if filename.contains("..") || filename.contains('/') || filename.contains('\\') {
+        return Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(Body::from("Not found"))
+            .unwrap();
+    }
+    let path = format!("data/uploads/{}", filename);
+    match fs::read(&path) {
+        Ok(bytes) => {
+            let content_type = match filename
+                .rsplit('.')
+                .next()
+                .unwrap_or("")
+                .to_lowercase()
+                .as_str()
+            {
+                "jpg" | "jpeg" => "image/jpeg",
+                "png" => "image/png",
+                "gif" => "image/gif",
+                "ico" => "image/x-icon",
+                "svg" => "image/svg+xml",
+                _ => "application/octet-stream",
+            };
+            Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", content_type)
+                .body(Body::from(bytes))
+                .unwrap()
+        }
+        Err(_) => Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(Body::from("Not found"))
+            .unwrap(),
+    }
+}

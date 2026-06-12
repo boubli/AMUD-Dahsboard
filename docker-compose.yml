@@ -9,9 +9,12 @@ services:
       - "8000:8000"
     environment:
       - DB_PATH=/app/data/amud.db
+      # Optional: set AMUD_SECRETS_KEY to a 32-byte base64url/hex key (otherwise data/.amud-secrets-key is created)
+      # - AMUD_SECRETS_KEY=${AMUD_SECRETS_KEY}
       - PORT=8000
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env or environment}
+      - BIND_ADDR=0.0.0.0
     cap_drop:
       - ALL
     security_opt:
@@ -27,8 +30,8 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env or environment}
-      # Set AMUD_DOCKER=0 to disable Docker socket access (SEC-008)
-      - AMUD_DOCKER=${AMUD_DOCKER:-1}
+      # Set AMUD_DOCKER=1 to enable Docker container monitoring (disabled by default)
+      - AMUD_DOCKER=${AMUD_DOCKER:-0}
       # Prefer agent-local PVE token — avoids plaintext over IPC (SEC-015)
       # - PVE_API_TOKEN=PVEAPIToken=root@pam!tokenid=secret
     cap_drop:

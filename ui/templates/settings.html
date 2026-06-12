@@ -362,6 +362,9 @@
                 <button class="nav-item" :class="{ 'active': activeTab === 'backup' }" @click="switchTab('backup')">
                     <i data-lucide="database"></i> Data & Backup
                 </button>
+                <button class="nav-item" :class="{ 'active': activeTab === 'audit' }" @click="switchTab('audit')">
+                    <i data-lucide="scroll-text"></i> Audit Log
+                </button>
             </div>
             
             <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.75rem; color: var(--text-muted); text-align: center;">
@@ -583,6 +586,14 @@
                                     <option value="0" {{eq_donate_off}}>Disabled</option>
                                 </select>
                             </div>
+                            <div class="form-group" style="margin-top:1.5rem;">
+                                <label>Guest telemetry visibility</label>
+                                <select name="telemetry_public" class="form-control" style="height:3rem; cursor:pointer;">
+                                    <option value="0" {{eq_telemetry_off}}>Hidden from anonymous guests</option>
+                                    <option value="1" {{eq_telemetry_on}}>Public (basic CPU/RAM/network for guests)</option>
+                                </select>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Controls what unauthenticated visitors see via the live WebSocket feed. Container names and app statuses stay hidden.</p>
+                            </div>
                         </div>
 
                         <div class="settings-block">
@@ -720,6 +731,28 @@
                 </div>
             </div>
 
+            <!-- TAB: AUDIT LOG -->
+            <div x-show="activeTab === 'audit'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
+                <h1 class="settings-page-title">Audit Log</h1>
+                <p class="settings-page-subtitle">Recent administrative actions recorded by the server (last 200 entries).</p>
+                <div class="settings-block" style="padding: 0;">
+                    <table class="mgmt-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Target</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-table-body">
+                            <tr><td colspan="5" style="color:var(--text-muted);">Loading audit log…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- TAB: BACKUP -->
             <div x-show="activeTab === 'backup'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <h1 class="settings-page-title">Data & Backup</h1>
@@ -728,7 +761,10 @@
                 <div class="settings-block">
                     <h3><i data-lucide="download" style="color:var(--accent-color);"></i> Export Database</h3>
                     <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Download a full backup of your current configuration.</p>
-                    <a href="/admin/backup/export" class="btn btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem; width:fit-content;"><i data-lucide="download-cloud"></i> Download amud.db</a>
+                    <form action="/admin/backup/export" method="POST" style="margin:0;">
+                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                        <button type="submit" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; width:fit-content;"><i data-lucide="download-cloud"></i> Download amud.db</button>
+                    </form>
                 </div>
 
                 <div class="settings-block">
@@ -853,6 +889,7 @@
                     if (this.activeTab === 'categories') loadCategories();
                     else if (this.activeTab === 'webhooks') loadWebhooks();
                     else if (this.activeTab === 'users') loadUsers();
+                    else if (this.activeTab === 'audit') loadAuditLog();
                 },
 
                 switchTab(tab) {
@@ -861,6 +898,7 @@
                     if (tab === 'categories') loadCategories();
                     if (tab === 'webhooks') loadWebhooks();
                     if (tab === 'users') loadUsers();
+                    if (tab === 'audit') loadAuditLog();
                 },
 
                 handleFileUpload(event, target) {
@@ -922,11 +960,54 @@
             toggleCustomOverlay();
         });
 
+        async function parseApiResponse(res) {
+            const text = await res.text();
+            try {
+                return { ok: res.ok, data: JSON.parse(text) };
+            } catch {
+                return { ok: res.ok, data: { error: text || 'Request failed' } };
+            }
+        }
+
+        function showApiError(message) {
+            alert(message || 'Request failed');
+        }
+
+        // Audit log
+        async function loadAuditLog() {
+            const tbody = document.getElementById('audit-table-body');
+            try {
+                const res = await fetch('/api/audit');
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) throw new Error(data.error || 'Failed to load audit log');
+                tbody.innerHTML = '';
+                if (!data.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);">No audit entries yet.</td></tr>';
+                    return;
+                }
+                data.forEach(entry => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-size:0.8rem; white-space:nowrap;">${escapeHtml(entry.created_at || '')}</td>
+                        <td>${escapeHtml(entry.username || '')}</td>
+                        <td><code style="font-size:0.75rem;">${escapeHtml(entry.action || '')}</code></td>
+                        <td>${escapeHtml(entry.target || '')}</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(entry.details || '')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger);">${escapeHtml(e.message)}</td></tr>`;
+            }
+        }
+
         // Categories Logic
         async function loadCategories() {
             try {
                 const res = await fetch('/api/categories');
-                const data = await res.json();
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) throw new Error(data.error || 'Failed to load categories');
                 const tbody = document.getElementById('categories-table-body');
                 tbody.innerHTML = '';
                 data.forEach(c => {
@@ -960,7 +1041,10 @@
                     cell.appendChild(btnDel);
                     tbody.appendChild(tr);
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+                showApiError(e.message);
+            }
         }
 
         function editCategory(id, name, color, order) {
@@ -989,7 +1073,12 @@
             if (state.catEditing) formData.append('id', id);
             formData.append('csrf_token', amudCsrfToken());
 
-            await fetch(url, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const res = await fetch(url, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const { ok, data } = await parseApiResponse(res);
+            if (!ok) {
+                showApiError(data.error || 'Failed to save category');
+                return;
+            }
             state.catModalOpen = false;
             loadCategories();
         }
@@ -999,7 +1088,12 @@
             const formData = new URLSearchParams();
             formData.append('id', id);
             formData.append('csrf_token', amudCsrfToken());
-            await fetch('/api/categories/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const res = await fetch('/api/categories/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const { ok, data } = await parseApiResponse(res);
+            if (!ok) {
+                showApiError(data.error || 'Failed to delete category');
+                return;
+            }
             loadCategories();
         }
 
@@ -1007,7 +1101,8 @@
         async function loadWebhooks() {
             try {
                 const res = await fetch('/api/webhooks');
-                const data = await res.json();
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) throw new Error(data.error || 'Failed to load webhooks');
                 const tbody = document.getElementById('webhooks-table-body');
                 tbody.innerHTML = '';
                 data.forEach(w => {
@@ -1051,7 +1146,10 @@
                     cell.appendChild(btnDel);
                     tbody.appendChild(tr);
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+                showApiError(e.message);
+            }
         }
 
         function editWebhook(id, name, events, active) {
@@ -1095,7 +1193,12 @@
             if(state.whEditing) formData.append('id', id);
             formData.append('csrf_token', amudCsrfToken());
 
-            await fetch(endpoint, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const res = await fetch(endpoint, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const { ok, data } = await parseApiResponse(res);
+            if (!ok) {
+                showApiError(data.error || 'Failed to save webhook');
+                return;
+            }
             state.whModalOpen = false;
             loadWebhooks();
         }
@@ -1105,16 +1208,26 @@
             const formData = new URLSearchParams();
             formData.append('id', id);
             formData.append('csrf_token', amudCsrfToken());
-            await fetch('/api/webhooks/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const res = await fetch('/api/webhooks/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const { ok, data } = await parseApiResponse(res);
+            if (!ok) {
+                showApiError(data.error || 'Failed to delete webhook');
+                return;
+            }
             loadWebhooks();
         }
 
         async function testWebhook(id) {
-            alert("Test payload triggered! Check your webhook destination.");
             const formData = new URLSearchParams();
             formData.append('id', id);
             formData.append('csrf_token', amudCsrfToken());
-            await fetch('/api/webhooks/test', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const res = await fetch('/api/webhooks/test', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const { ok, data } = await parseApiResponse(res);
+            if (ok && data.success) {
+                alert('Webhook test delivered successfully.');
+            } else {
+                alert('Webhook test failed: ' + (data.error || 'Delivery error'));
+            }
         }
 
         // Users Logic
@@ -1191,12 +1304,12 @@
             formData.append('csrf_token', amudCsrfToken());
 
             const res = await fetch(endpoint, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
-            if (res.ok) {
+            const { ok, data } = await parseApiResponse(res);
+            if (ok && data.success) {
                 state.usrModalOpen = false;
                 loadUsers();
             } else {
-                const txt = await res.text();
-                err.textContent = txt;
+                err.textContent = data.error || 'Save failed';
                 err.style.display = "block";
             }
         }
@@ -1210,7 +1323,12 @@
             const formData = new URLSearchParams();
             formData.append('id', id);
             formData.append('csrf_token', amudCsrfToken());
-            await fetch('/api/users/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const res = await fetch('/api/users/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+            const { ok, data } = await parseApiResponse(res);
+            if (!ok) {
+                showApiError(data.error || 'Failed to delete user');
+                return;
+            }
             loadUsers();
         }
 
@@ -1307,8 +1425,8 @@
                     document.getElementById('cred-new-password').value = '';
                     document.getElementById('cred-repeat-password').value = '';
                 } else {
-                    const text = await response.text();
-                    errorMsg.textContent = "Error: " + text;
+                    const { data } = await parseApiResponse(response);
+                    errorMsg.textContent = data.error || 'Update failed';
                     errorMsg.style.display = 'block';
                 }
             } catch (err) {

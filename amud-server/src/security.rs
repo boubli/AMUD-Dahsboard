@@ -27,6 +27,42 @@ pub(crate) fn mask_webhook_url(url: &str) -> String {
     format!("{}…{}", &trimmed[..4], &trimmed[trimmed.len() - 4..])
 }
 
+/// Block outbound webhook targets to localhost/metadata/link-local (SSRF mitigation).
+pub(crate) fn url_allowed_for_webhook(raw: &str) -> bool {
+    let Ok(parsed) = reqwest::Url::parse(raw.trim()) else {
+        return false;
+    };
+    let scheme = parsed.scheme();
+    if scheme != "http" && scheme != "https" {
+        return false;
+    }
+    let Some(host) = parsed.host_str() else {
+        return false;
+    };
+    let host_lower = host.to_lowercase();
+    if host_lower == "localhost" || host_lower.ends_with(".localhost") {
+        return false;
+    }
+    if let Ok(ip) = host.parse::<std::net::IpAddr>() {
+        return !is_blocked_webhook_target(ip);
+    }
+    !host_lower.contains("metadata.google")
+}
+
+fn is_blocked_webhook_target(ip: std::net::IpAddr) -> bool {
+    match ip {
+        std::net::IpAddr::V4(v4) => {
+            v4.is_loopback()
+                || v4.is_unspecified()
+                || v4.is_link_local()
+                || v4.is_private()
+                || v4.octets() == [169, 254, 169, 254]
+                || v4.octets()[0] == 0
+        }
+        std::net::IpAddr::V6(v6) => v6.is_loopback() || v6.is_unspecified() || v6.is_unique_local(),
+    }
+}
+
 /// Block health-check requests to localhost/metadata; allow RFC1918 homelab targets (SEC-007).
 pub(crate) fn url_allowed_for_health_check(raw: &str) -> bool {
     let Ok(parsed) = reqwest::Url::parse(raw.trim()) else {
@@ -103,10 +139,7 @@ pub(crate) fn rate_limit_exceeded(
     if !attempts.contains_key(key) && attempts.len() >= MAX_RATE_KEYS {
         return true;
     }
-    attempts
-        .get(key)
-        .map(|v| v.len() >= max)
-        .unwrap_or(false)
+    attempts.get(key).map(|v| v.len() >= max).unwrap_or(false)
 }
 
 pub(crate) fn record_rate_attempt(store: &Mutex<HashMap<String, Vec<Instant>>>, key: &str) {
@@ -139,7 +172,9 @@ mod tests {
     fn blocks_localhost_health_checks() {
         assert!(!url_allowed_for_health_check("http://127.0.0.1:8080"));
         assert!(!url_allowed_for_health_check("http://localhost/admin"));
-        assert!(!url_allowed_for_health_check("http://169.254.169.254/latest/meta-data"));
+        assert!(!url_allowed_for_health_check(
+            "http://169.254.169.254/latest/meta-data"
+        ));
     }
 
     #[test]
@@ -150,7 +185,8 @@ mod tests {
 
     #[test]
     fn masks_webhook_urls() {
-        let masked = mask_webhook_url("https://discord.com/api/webhooks/123456789/abcdefghijklmnop");
+        let masked =
+            mask_webhook_url("https://discord.com/api/webhooks/123456789/abcdefghijklmnop");
         assert!(!masked.contains("abcdefghijklmnop"));
         assert!(masked.contains("discord.com"));
     }

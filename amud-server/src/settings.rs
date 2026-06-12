@@ -23,10 +23,15 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("ha_token", "");
     s.insert("custom_css", "");
 
-    s.into()
+    s
 }
 
-pub(crate) const SECRET_SETTING_KEYS: &[&str] = &["pve_api_token", "jellyfin_api_key", "plex_token", "ha_token"];
+pub(crate) const SECRET_SETTING_KEYS: &[&str] = &[
+    "pve_api_token",
+    "jellyfin_api_key",
+    "plex_token",
+    "ha_token",
+];
 
 pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "overlay_theme",
@@ -50,6 +55,26 @@ pub(crate) fn setting_key_allowed(key: &str) -> bool {
     allowed_setting_keys().contains(key)
 }
 
+pub(crate) fn sanitize_custom_css(value: &str) -> String {
+    value
+        .replace("</style", "")
+        .replace("</STYLE", "")
+        .replace("<script", "")
+        .replace("<SCRIPT", "")
+}
+
+/// Integration base URLs must be empty or absolute http(s).
+pub(crate) fn sanitize_integration_url(value: &str) -> String {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+    if trimmed.starts_with("http://") || trimmed.starts_with("https://") {
+        return trimmed.to_string();
+    }
+    String::new()
+}
+
 pub(crate) fn sanitize_setting_url(value: &str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
@@ -64,14 +89,19 @@ pub(crate) fn sanitize_setting_url(value: &str) -> String {
     String::new()
 }
 
-
-
-
 // Donation links are fixed to the AMUD author. Self-hosters can toggle the
 // Support card on/off in Settings, but cannot change these links.
 pub(crate) const DONATION_MESSAGE: &str = "AMUD is completely free and you already have every feature unlocked. A donation is not required and unlocks nothing extra - it is simply a kind way to support continued development. Thank you!";
 pub(crate) const DONATION_LINKS: [(&str, &str, &str); 3] = [
-    ("https://github.com/sponsors/boubli", "GitHub Sponsors", "github"),
-    ("https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00", "Donate via Card", "credit-card"),
+    (
+        "https://github.com/sponsors/boubli",
+        "GitHub Sponsors",
+        "github",
+    ),
+    (
+        "https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00",
+        "Donate via Card",
+        "credit-card",
+    ),
     ("https://ko-fi.com/Youssefboubli", "Ko-fi", "coffee"),
 ];

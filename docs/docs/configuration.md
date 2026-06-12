@@ -52,8 +52,11 @@ When credentials are missing, stream badges show **NOT CONFIGURED**. When config
 AMUD polls:
 
 ```http
-GET /Sessions?api_key=<your-key>
+GET /Sessions
+X-Emby-Token: <your-api-key>
 ```
+
+The API key is sent in the `X-Emby-Token` header (Emby/Jellyfin convention), not as a query parameter.
 
 ### Plex
 
@@ -89,6 +92,8 @@ Connect your dashboard to Home Assistant to view live sensor telemetry directly 
 
 If you have an application named exactly `Home Assistant` on your dashboard, its telemetry will now include the number of active lights, switches, and average home temperature.
 
+AMUD polls Home Assistant using the lightweight **Template API** (`POST /api/template`) to compute those counts on the HA host, falling back to the full `/api/states` dump only when template rendering is unavailable.
+
 ---
 
 ## Custom CSS Injection
@@ -112,6 +117,29 @@ Live **RUNNING** / **STOPPED** badges and start/stop controls require:
 3. A working **amud-agent** on the hypervisor host
 
 See [Proxmox VE Installation](./installation/proxmox.md#4-proxmox-api-token-configuration) for token setup.
+
+---
+
+## Environment variables
+
+These are set on the **server** or **agent** process (Docker `environment:`, systemd unit, or shell). Most day-to-day options live in the SQLite settings table via the UI.
+
+| Variable | Component | Default | Description |
+|----------|-----------|---------|-------------|
+| `PORT` | Server | `8000` | HTTP listen port |
+| `BIND_ADDR` | Server | `127.0.0.1` | Bind address. Use `0.0.0.0` in Docker so the container accepts external traffic. |
+| `DB_PATH` | Server | `data/amud.db` | SQLite database file path |
+| `AMUD_SECRETS_KEY` | Server | auto-generated file | 32-byte key (base64url or 64-char hex) for encrypting integration tokens at rest in SQLite. If unset, AMUD writes `data/.amud-secrets-key` on first boot — back it up with `amud.db`. |
+| `AMUD_AGENT_SECRET` | Both | *(required)* | Shared secret for agent ↔ server IPC authentication |
+| `AMUD_SOCKET_PATH` | Both | `/var/run/amud/amud.sock` | Unix socket path for agent IPC |
+| `AMUD_ENABLE_PROXMOX` | Server | `false` | Set `true` on a Proxmox LXC host to show the Proxmox settings tab |
+| `AMUD_DOCKER` | Agent | `0` | Set `1` to enable Docker socket monitoring (requires socket mount) |
+| `PVE_NODE` | Agent | hostname | Proxmox node name for LXC API calls when it differs from `/etc/hostname` |
+| `PVE_API_TOKEN` | Agent | *(none)* | Proxmox API token; prefer setting on the agent host instead of over IPC |
+
+### Public telemetry
+
+In **Settings → Donation**, the **Public telemetry** toggle stores `telemetry_public` in SQLite. When enabled, anonymous visitors and Guest-role users see host metrics on the dashboard (container names and app health remain hidden).
 
 ---
 

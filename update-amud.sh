@@ -179,6 +179,12 @@ sync_agent_ipc_secret() {
   pct exec "$ct_id" -- systemctl daemon-reload
   if [ -f "/etc/systemd/system/amud-agent.service" ]; then
     ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "AMUD_AGENT_SECRET" "$secret"
+    local pve_node
+    pve_node=$(read_local_systemd_env "/etc/systemd/system/amud-agent.service" "PVE_NODE")
+    if [ -z "$pve_node" ]; then
+      pve_node=$(hostname)
+      ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "PVE_NODE" "$pve_node"
+    fi
     systemctl daemon-reload
   fi
   msg_ok "Agent IPC secret synchronized"
@@ -324,4 +330,5 @@ echo -e "\n=============================================================="
 echo -e "  ${CM}  ${BGN}AMUD ecosystem update completed successfully!${CL}"
 echo -e "=============================================================="
 echo -e "  ${INFO}  Hard-refresh your browser (Ctrl+Shift+R) after updating."
+echo -e "  ${INFO}  If AMUD is served over HTTPS, set AMUD_SECURE_COOKIES=1 on the dashboard service."
 echo

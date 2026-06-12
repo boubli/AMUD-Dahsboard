@@ -1,5 +1,38 @@
 use std::collections::HashMap;
 
+fn escape_css_string(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    for c in input.chars() {
+        match c {
+            '\\' | '"' | '\'' => {
+                out.push('\\');
+                out.push(c);
+            }
+            '\n' | '\r' => {}
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+fn safe_css_url(raw: &str) -> String {
+    let sanitized = crate::settings::sanitize_setting_url(raw);
+    if sanitized.is_empty() {
+        return String::new();
+    }
+    escape_css_string(&sanitized)
+}
+
+fn safe_accent_hex(raw: &str) -> String {
+    if raw.starts_with('#')
+        && raw.len() == 7
+        && (1..7).all(|i| raw.as_bytes()[i].is_ascii_hexdigit())
+    {
+        return raw.to_string();
+    }
+    "#cf6427".to_string()
+}
+
 // Escape user-controlled text before injecting it into HTML.
 pub(crate) fn escape_html(input: &str) -> String {
     let mut out = String::with_capacity(input.len());
@@ -132,11 +165,17 @@ pub(crate) fn branding_from_settings(settings: &HashMap<String, String>) -> Bran
             .unwrap_or_else(|| "AMUD".to_string()),
         tagline: settings.get("tagline").cloned(),
         custom_bg_url,
-        app_logo: settings.get("app_logo").cloned().unwrap_or_default(),
-        accent_color: settings
-            .get("accent_color")
-            .cloned()
-            .unwrap_or_else(|| "#cf6427".to_string()),
+        app_logo: settings
+            .get("app_logo")
+            .map(|s| crate::settings::sanitize_setting_url(s))
+            .filter(|s| !s.is_empty())
+            .unwrap_or_default(),
+        accent_color: safe_accent_hex(
+            settings
+                .get("accent_color")
+                .map(|s| s.as_str())
+                .unwrap_or("#cf6427"),
+        ),
         glass_blur: settings
             .get("glass_blur_intensity")
             .cloned()
@@ -162,15 +201,17 @@ pub(crate) fn branding_from_settings(settings: &HashMap<String, String>) -> Bran
 }
 
 pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
-    let bg_url_style = if vars.custom_bg_url.is_empty() {
+    let bg_url = safe_css_url(&vars.custom_bg_url);
+    let bg_url_style = if bg_url.is_empty() {
         String::new()
     } else {
-        format!("--brand-bg-image: url('{}');", vars.custom_bg_url)
+        format!("--brand-bg-image: url('{}');", bg_url)
     };
-    let logo_url_style = if vars.app_logo.is_empty() {
+    let logo_url = safe_css_url(&vars.app_logo);
+    let logo_url_style = if logo_url.is_empty() {
         String::new()
     } else {
-        format!("--brand-logo-url: url('{}');", vars.app_logo)
+        format!("--brand-logo-url: url('{}');", logo_url)
     };
     let opacity_f: f64 = vars.glass_opacity.parse().unwrap_or(0.45);
     let accent_glow = accent_glow_from_hex(&vars.accent_color);
@@ -196,9 +237,9 @@ pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
         "#,
         bg_url_style,
         logo_url_style,
-        vars.app_name,
-        tagline,
-        vars.accent_color,
+        escape_css_string(&vars.app_name),
+        escape_css_string(tagline),
+        safe_accent_hex(&vars.accent_color),
         accent_glow,
         vars.glass_blur,
         vars.glass_opacity,

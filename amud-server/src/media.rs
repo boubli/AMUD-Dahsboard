@@ -53,19 +53,17 @@ fn media_summary(title: String, count: usize) -> String {
     }
 }
 
-
-pub(crate) async fn poll_jellyfin(client: &reqwest::Client, base_url: &str, api_key: &str) -> MediaStream {
+pub(crate) async fn poll_jellyfin(
+    client: &reqwest::Client,
+    base_url: &str,
+    api_key: &str,
+) -> MediaStream {
     if base_url.trim().is_empty() || api_key.trim().is_empty() {
         return default_media_streams().remove("jellyfin").unwrap();
     }
 
     let url = format!("{}/Sessions", base_url.trim_end_matches('/'));
-    let resp = match client
-        .get(url)
-        .header("X-Emby-Token", api_key)
-        .send()
-        .await
-    {
+    let resp = match client.get(url).header("X-Emby-Token", api_key).send().await {
         Ok(resp) => resp,
         Err(e) => {
             return MediaStream {
@@ -130,7 +128,11 @@ pub(crate) async fn poll_jellyfin(client: &reqwest::Client, base_url: &str, api_
     }
 }
 
-pub(crate) async fn poll_plex(client: &reqwest::Client, base_url: &str, token: &str) -> MediaStream {
+pub(crate) async fn poll_plex(
+    client: &reqwest::Client,
+    base_url: &str,
+    token: &str,
+) -> MediaStream {
     if base_url.trim().is_empty() || token.trim().is_empty() {
         return default_media_streams().remove("plex").unwrap();
     }
@@ -181,7 +183,10 @@ pub(crate) async fn poll_plex(client: &reqwest::Client, base_url: &str, token: &
         .unwrap_or("Unknown Title")
         .to_string();
     let duration_ms = first.get("duration").and_then(|v| v.as_i64()).unwrap_or(0);
-    let view_offset_ms = first.get("viewOffset").and_then(|v| v.as_i64()).unwrap_or(0);
+    let view_offset_ms = first
+        .get("viewOffset")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(0);
     let progress_percent = if duration_ms > 0 {
         (view_offset_ms as f64 / duration_ms as f64 * 100.0).clamp(0.0, 100.0)
     } else {
@@ -200,6 +205,7 @@ pub(crate) async fn poll_plex(client: &reqwest::Client, base_url: &str, token: &
 
 pub(crate) fn start_media_poller(
     db: Arc<Mutex<Connection>>,
+    settings_cache: Arc<RwLock<HashMap<String, String>>>,
     media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
 ) {
     tokio::spawn(async move {
@@ -210,11 +216,19 @@ pub(crate) fn start_media_poller(
             .unwrap_or_else(|_| reqwest::Client::new());
 
         loop {
-            let settings = load_settings_snapshot(&db);
-            let apps = {
-                let db = db.lock().unwrap();
-                load_apps_from_db(&db)
+            let cached = settings_cache.read().unwrap().clone();
+            let settings = if cached.is_empty() {
+                load_settings_snapshot(&db)
+            } else {
+                cached
             };
+            let db_for_blocking = db.clone();
+            let apps = tokio::task::spawn_blocking(move || {
+                let db = db_for_blocking.lock().unwrap();
+                load_apps_from_db(&db)
+            })
+            .await
+            .unwrap_or_default();
             let has_jellyfin = apps.iter().any(is_jellyfin_app);
             let has_plex = apps.iter().any(is_plex_app);
 
@@ -223,7 +237,10 @@ pub(crate) fn start_media_poller(
                     Some(
                         poll_jellyfin(
                             &client,
-                            settings.get("jellyfin_url").map(|s| s.as_str()).unwrap_or(""),
+                            settings
+                                .get("jellyfin_url")
+                                .map(|s| s.as_str())
+                                .unwrap_or(""),
                             settings
                                 .get("jellyfin_api_key")
                                 .map(|s| s.as_str())

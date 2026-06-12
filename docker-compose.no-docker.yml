@@ -1,0 +1,8 @@
+# Optional override: run the agent without mounting the Docker socket.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.no-docker.yml up -d
+# Keep AMUD_DOCKER=0 (default) on the agent when using this file.
+
+services:
+  agent:
+    volumes:
+      - amud_run:/var/run/amud

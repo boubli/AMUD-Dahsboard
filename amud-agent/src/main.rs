@@ -1,43 +1,23 @@
-use serde::{Deserialize, Serialize};
+use amud_protocol::{
+    agent_auth_proof, AgentTelemetry, AuthProofMessage, ChallengeMessage, ConfigRequest,
+    LxcContainer, NetworkTelemetry,
+};
+use serde::Serialize;
 use std::io::Write;
 use std::sync::Arc;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 use sysinfo::System;
 
-#[derive(Serialize)]
-struct Telemetry {
-    cpu_usage: i32,
-    ram_usage: i32,
-    ram_used_gb: f64,
-    ram_total_gb: f64,
-    cpu_temp: f64,
-    disk_usage: i32,
-    disk_used_gb: f64,
-    disk_total_gb: f64,
-    lxc_containers: Vec<LxcContainer>,
-    network: NetworkTelemetry,
-}
+const HTTP_TIMEOUT: Duration = Duration::from_secs(10);
 
-#[derive(Serialize, serde::Deserialize, Clone, Default)]
-struct LxcContainer {
-    vmid: i64,
-    status: String,
-    name: String,
-    cpu: Option<f64>,
-    maxmem: Option<i64>,
-    mem: Option<i64>,
-    maxdisk: Option<i64>,
-    disk: Option<i64>,
-    uptime: Option<i64>,
-}
-
-#[derive(Serialize, Clone, Default)]
-struct NetworkTelemetry {
-    internal_tx: String,
-    internal_rx: String,
-    external_tx: String,
-    external_rx: String,
+async fn with_http_timeout<T, F>(future: F) -> Result<T, String>
+where
+    F: std::future::Future<Output = Result<T, String>>,
+{
+    tokio::time::timeout(HTTP_TIMEOUT, future)
+        .await
+        .map_err(|_| "Request timed out".to_string())?
 }
 
 #[derive(Clone, Default)]
@@ -166,11 +146,25 @@ fn pve_token_from_env() -> Option<String> {
         .filter(|s| !s.is_empty())
 }
 
+#[cfg(unix)]
 fn docker_enabled() -> bool {
-    !matches!(
+    matches!(
         std::env::var("AMUD_DOCKER").ok().as_deref(),
-        Some("0") | Some("false") | Some("no")
+        Some("1") | Some("true") | Some("yes")
     )
+}
+
+fn pve_node_name() -> String {
+    std::env::var("PVE_NODE")
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| {
+            std::fs::read_to_string("/etc/hostname")
+                .unwrap_or_else(|_| "localhost".to_string())
+                .trim()
+                .to_string()
+        })
 }
 
 static PVE_API_TOKEN_CACHE: OnceLock<RwLock<String>> = OnceLock::new();
@@ -241,95 +235,96 @@ fn fetch_lxc_containers() -> Vec<LxcContainer> {
 }
 
 fn fetch_lxc_containers_with_token(token: &str) -> Result<Vec<LxcContainer>, String> {
+    let token = token.to_string();
     agent_runtime().block_on(async move {
-        use http_body_util::{BodyExt, Empty};
-        use hyper::body::Bytes;
-        use hyper_util::client::legacy::Client;
-        use hyper_util::rt::TokioExecutor;
+        with_http_timeout(async move {
+            use http_body_util::{BodyExt, Empty};
+            use hyper::body::Bytes;
+            use hyper_util::client::legacy::Client;
+            use hyper_util::rt::TokioExecutor;
 
-        // Build a rustls client config that trusts the Proxmox self-signed cert.
-        let tls = rustls::ClientConfig::builder_with_provider(Arc::new(
-            rustls::crypto::ring::default_provider(),
-        ))
-        .with_safe_default_protocol_versions();
-        let tls = match tls {
-            Ok(b) => b
-                .dangerous()
-                .with_custom_certificate_verifier(Arc::new(NoVerifier))
-                .with_no_client_auth(),
-            Err(e) => {
-                return Err(format!("Failed to build TLS config: {}", e));
-            }
-        };
+            // Build a rustls client config that trusts the Proxmox self-signed cert.
+            let tls = rustls::ClientConfig::builder_with_provider(Arc::new(
+                rustls::crypto::ring::default_provider(),
+            ))
+            .with_safe_default_protocol_versions();
+            let tls = match tls {
+                Ok(b) => b
+                    .dangerous()
+                    .with_custom_certificate_verifier(Arc::new(NoVerifier))
+                    .with_no_client_auth(),
+                Err(e) => {
+                    return Err(format!("Failed to build TLS config: {}", e));
+                }
+            };
 
-        let https = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_tls_config(tls)
-            .https_or_http()
-            .enable_http1()
-            .build();
+            let https = hyper_rustls::HttpsConnectorBuilder::new()
+                .with_tls_config(tls)
+                .https_or_http()
+                .enable_http1()
+                .build();
 
-        // legacy::Client handles connection setup/pooling, so no manual handshake.
-        let client: Client<_, Empty<Bytes>> = Client::builder(TokioExecutor::new()).build(https);
+            // legacy::Client handles connection setup/pooling, so no manual handshake.
+            let client: Client<_, Empty<Bytes>> =
+                Client::builder(TokioExecutor::new()).build(https);
 
-        // Proxmox node names match the system hostname
-        let node_name = std::fs::read_to_string("/etc/hostname")
-            .unwrap_or_else(|_| "localhost".to_string())
-            .trim()
-            .to_string();
+            let node_name = pve_node_name();
 
-        let api_url = format!("https://localhost:8006/api2/json/nodes/{}/lxc", node_name);
-        eprintln!("[LXC] Fetching containers from: {}...", api_url);
+            let api_url = format!("https://localhost:8006/api2/json/nodes/{}/lxc", node_name);
+            eprintln!("[LXC] Fetching containers from: {}...", api_url);
 
-        let req = hyper::Request::builder()
-            .method("GET")
-            .uri(&api_url)
-            .header("Authorization", token)
-            .body(Empty::<Bytes>::new())
-            .map_err(|e| format!("Failed to build HTTP request: {}", e))?;
+            let req = hyper::Request::builder()
+                .method("GET")
+                .uri(&api_url)
+                .header("Authorization", token)
+                .body(Empty::<Bytes>::new())
+                .map_err(|e| format!("Failed to build HTTP request: {}", e))?;
 
-        let resp = client
-            .request(req)
-            .await
-            .map_err(|e| format!("HTTP request to PVE API failed: {}", e))?;
+            let resp = client
+                .request(req)
+                .await
+                .map_err(|e| format!("HTTP request to PVE API failed: {}", e))?;
 
-        let status = resp.status();
-        let body = resp
-            .into_body()
-            .collect()
-            .await
-            .map_err(|e| format!("Failed to read response body: {}", e))?
-            .to_bytes();
+            let status = resp.status();
+            let body = resp
+                .into_body()
+                .collect()
+                .await
+                .map_err(|e| format!("Failed to read response body: {}", e))?
+                .to_bytes();
 
-        if !status.is_success() {
-            let body_str = String::from_utf8_lossy(&body);
-            let snippet = body_str.chars().take(200).collect::<String>();
-            return Err(format!("PVE API returned HTTP {}: {}", status, snippet));
-        }
-
-        // The PVE REST API wraps the array in a `{ "data": [...] }` envelope,
-        // unlike the bare array that `pvesh --output-format json` returned.
-        #[derive(serde::Deserialize)]
-        struct PveResponse {
-            data: Vec<LxcContainer>,
-        }
-
-        match serde_json::from_slice::<PveResponse>(&body) {
-            Ok(parsed) => {
-                eprintln!(
-                    "[LXC] Successfully fetched {} containers from PVE.",
-                    parsed.data.len()
-                );
-                Ok(parsed.data)
-            }
-            Err(e) => {
+            if !status.is_success() {
                 let body_str = String::from_utf8_lossy(&body);
                 let snippet = body_str.chars().take(200).collect::<String>();
-                Err(format!(
-                    "Failed to parse PVE response: {}. Body snippet: {}",
-                    e, snippet
-                ))
+                return Err(format!("PVE API returned HTTP {}: {}", status, snippet));
             }
-        }
+
+            // The PVE REST API wraps the array in a `{ "data": [...] }` envelope,
+            // unlike the bare array that `pvesh --output-format json` returned.
+            #[derive(serde::Deserialize)]
+            struct PveResponse {
+                data: Vec<LxcContainer>,
+            }
+
+            match serde_json::from_slice::<PveResponse>(&body) {
+                Ok(parsed) => {
+                    eprintln!(
+                        "[LXC] Successfully fetched {} containers from PVE.",
+                        parsed.data.len()
+                    );
+                    Ok(parsed.data)
+                }
+                Err(e) => {
+                    let body_str = String::from_utf8_lossy(&body);
+                    let snippet = body_str.chars().take(200).collect::<String>();
+                    Err(format!(
+                        "Failed to parse PVE response: {}. Body snippet: {}",
+                        e, snippet
+                    ))
+                }
+            }
+        })
+        .await
     })
 }
 
@@ -378,7 +373,11 @@ fn read_network_snapshot() -> NetworkSnapshot {
     snapshot
 }
 
-fn network_rates(previous: &NetworkSnapshot, current: &NetworkSnapshot, elapsed: f64) -> NetworkTelemetry {
+fn network_rates(
+    previous: &NetworkSnapshot,
+    current: &NetworkSnapshot,
+    elapsed: f64,
+) -> NetworkTelemetry {
     let seconds = elapsed.max(1.0);
     let rate = |now: u64, before: u64| -> u64 {
         now.saturating_sub(before)
@@ -437,7 +436,7 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
             Err(_) => return Vec::new(),
         };
 
-        #[derive(Deserialize)]
+        #[derive(serde::Deserialize)]
         struct DockerContainer {
             #[serde(rename = "Id")]
             id: String,
@@ -447,26 +446,26 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
             state: String,
         }
 
-        #[derive(Deserialize, Default)]
+        #[derive(serde::Deserialize, Default)]
         struct CpuUsage {
             total_usage: Option<u64>,
             percpu_usage: Option<Vec<u64>>,
         }
 
-        #[derive(Deserialize, Default)]
+        #[derive(serde::Deserialize, Default)]
         struct CpuStats {
             cpu_usage: Option<CpuUsage>,
             system_cpu_usage: Option<u64>,
             online_cpus: Option<u64>,
         }
 
-        #[derive(Deserialize, Default)]
+        #[derive(serde::Deserialize, Default)]
         struct MemoryStats {
             usage: Option<i64>,
             limit: Option<i64>,
         }
 
-        #[derive(Deserialize, Default)]
+        #[derive(serde::Deserialize, Default)]
         struct DockerStats {
             cpu_stats: Option<CpuStats>,
             precpu_stats: Option<CpuStats>,
@@ -500,15 +499,27 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
 
             let cpu = match (&stats.cpu_stats, &stats.precpu_stats) {
                 (Some(cpu), Some(pre)) => {
-                    let cpu_total = cpu.cpu_usage.as_ref().and_then(|u| u.total_usage).unwrap_or(0);
-                    let pre_total = pre.cpu_usage.as_ref().and_then(|u| u.total_usage).unwrap_or(0);
+                    let cpu_total = cpu
+                        .cpu_usage
+                        .as_ref()
+                        .and_then(|u| u.total_usage)
+                        .unwrap_or(0);
+                    let pre_total = pre
+                        .cpu_usage
+                        .as_ref()
+                        .and_then(|u| u.total_usage)
+                        .unwrap_or(0);
                     let sys_total = cpu.system_cpu_usage.unwrap_or(0);
                     let pre_sys = pre.system_cpu_usage.unwrap_or(0);
                     let cpu_delta = cpu_total.saturating_sub(pre_total) as f64;
                     let sys_delta = sys_total.saturating_sub(pre_sys) as f64;
                     let cpus = cpu
                         .online_cpus
-                        .or_else(|| cpu.cpu_usage.as_ref().and_then(|u| u.percpu_usage.as_ref().map(|p| p.len() as u64)))
+                        .or_else(|| {
+                            cpu.cpu_usage
+                                .as_ref()
+                                .and_then(|u| u.percpu_usage.as_ref().map(|p| p.len() as u64))
+                        })
                         .unwrap_or(1) as f64;
                     if sys_delta > 0.0 && cpu_delta > 0.0 {
                         Some((cpu_delta / sys_delta) * cpus)
@@ -572,17 +583,36 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             "AMUD_AGENT_SECRET is not set",
         ));
     }
-    let auth = serde_json::json!({ "auth": agent_secret });
-    if let Ok(mut serialized) = serde_json::to_vec(&auth) {
-        serialized.push(b'\n');
-        stream.write_all(&serialized)?;
-        stream.flush()?;
+
+    // Server sends a challenge first; respond with SHA-256(secret || nonce) — secret never on the wire.
+    {
+        use std::io::{BufRead, BufReader, Write};
+        let mut reader = BufReader::new(stream.try_clone()?);
+        let mut challenge_line = String::new();
+        reader.read_line(&mut challenge_line)?;
+        let nonce = serde_json::from_str::<ChallengeMessage>(&challenge_line)
+            .ok()
+            .and_then(|m| m.challenge)
+            .filter(|n| !n.is_empty())
+            .ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Missing IPC auth challenge from server",
+                )
+            })?;
+        let proof = agent_auth_proof(&agent_secret, &nonce);
+        let auth = AuthProofMessage { auth: proof };
+        if let Ok(mut serialized) = serde_json::to_vec(&auth) {
+            serialized.push(b'\n');
+            stream.write_all(&serialized)?;
+            stream.flush()?;
+        }
     }
 
     // Request configuration from server on startup
-    let req = serde_json::json!({
-        "request": "get_config"
-    });
+    let req = ConfigRequest {
+        request: "get_config".to_string(),
+    };
     if let Ok(mut serialized) = serde_json::to_vec(&req) {
         serialized.push(b'\n');
         stream.write_all(&serialized)?;
@@ -716,7 +746,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         last_network_snapshot = now_network_snapshot;
         last_network_sample = Instant::now();
 
-        let telemetry = Telemetry {
+        let telemetry = AgentTelemetry {
             cpu_usage,
             ram_usage,
             ram_used_gb,
@@ -726,7 +756,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             disk_used_gb,
             disk_total_gb,
             lxc_containers,
-            network,
+            network: Some(network),
         };
 
         // Serialize and push
@@ -847,70 +877,72 @@ fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
     };
 
     agent_runtime().block_on(async move {
-        use http_body_util::Empty;
-        use hyper::body::Bytes;
-        use hyper_util::client::legacy::Client;
-        use hyper_util::rt::TokioExecutor;
+        match tokio::time::timeout(HTTP_TIMEOUT, async move {
+            use http_body_util::Empty;
+            use hyper::body::Bytes;
+            use hyper_util::client::legacy::Client;
+            use hyper_util::rt::TokioExecutor;
 
-        let tls = rustls::ClientConfig::builder_with_provider(Arc::new(
-            rustls::crypto::ring::default_provider(),
-        ))
-        .with_safe_default_protocol_versions();
-        let tls = match tls {
-            Ok(b) => b
-                .dangerous()
-                .with_custom_certificate_verifier(Arc::new(NoVerifier))
-                .with_no_client_auth(),
-            Err(e) => {
-                return (false, Some(format!("Failed to build TLS config: {}", e)));
-            }
-        };
-
-        let https = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_tls_config(tls)
-            .https_or_http()
-            .enable_http1()
-            .build();
-
-        let client: Client<_, Empty<Bytes>> = Client::builder(TokioExecutor::new()).build(https);
-
-        let node_name = std::fs::read_to_string("/etc/hostname")
-            .unwrap_or_else(|_| "localhost".to_string())
-            .trim()
-            .to_string();
-
-        let api_url = format!(
-            "https://localhost:8006/api2/json/nodes/{}/lxc/{}/status/{}",
-            node_name, vmid, action_str
-        );
-        println!("[LXC Action] POSTing: {}", api_url);
-
-        let req = match hyper::Request::builder()
-            .method("POST")
-            .uri(&api_url)
-            .header("Authorization", &token)
-            .body(Empty::<Bytes>::new())
-        {
-            Ok(r) => r,
-            Err(e) => {
-                return (false, Some(format!("Failed to build request: {}", e)));
-            }
-        };
-
-        match client.request(req).await {
-            Ok(resp) => {
-                let status = resp.status();
-                println!("[LXC Action] PVE API response status: {}", status);
-                if status.is_success() {
-                    (true, None)
-                } else {
-                    (
-                        false,
-                        Some(format!("PVE API returned HTTP {}", status)),
-                    )
+            let tls = rustls::ClientConfig::builder_with_provider(Arc::new(
+                rustls::crypto::ring::default_provider(),
+            ))
+            .with_safe_default_protocol_versions();
+            let tls = match tls {
+                Ok(b) => b
+                    .dangerous()
+                    .with_custom_certificate_verifier(Arc::new(NoVerifier))
+                    .with_no_client_auth(),
+                Err(e) => {
+                    return (false, Some(format!("Failed to build TLS config: {}", e)));
                 }
+            };
+
+            let https = hyper_rustls::HttpsConnectorBuilder::new()
+                .with_tls_config(tls)
+                .https_or_http()
+                .enable_http1()
+                .build();
+
+            let client: Client<_, Empty<Bytes>> =
+                Client::builder(TokioExecutor::new()).build(https);
+
+            let node_name = pve_node_name();
+
+            let api_url = format!(
+                "https://localhost:8006/api2/json/nodes/{}/lxc/{}/status/{}",
+                node_name, vmid, action_str
+            );
+            println!("[LXC Action] POSTing: {}", api_url);
+
+            let req = match hyper::Request::builder()
+                .method("POST")
+                .uri(&api_url)
+                .header("Authorization", &token)
+                .body(Empty::<Bytes>::new())
+            {
+                Ok(r) => r,
+                Err(e) => {
+                    return (false, Some(format!("Failed to build request: {}", e)));
+                }
+            };
+
+            match client.request(req).await {
+                Ok(resp) => {
+                    let status = resp.status();
+                    println!("[LXC Action] PVE API response status: {}", status);
+                    if status.is_success() {
+                        (true, None)
+                    } else {
+                        (false, Some(format!("PVE API returned HTTP {}", status)))
+                    }
+                }
+                Err(e) => (false, Some(format!("HTTP request failed: {}", e))),
             }
-            Err(e) => (false, Some(format!("HTTP request failed: {}", e))),
+        })
+        .await
+        {
+            Ok(result) => result,
+            Err(_) => (false, Some("LXC action timed out".to_string())),
         }
     })
 }
@@ -919,7 +951,10 @@ fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
 #[cfg(unix)]
 fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<String>) {
     if !docker_enabled() {
-        return (false, Some("Docker integration disabled (AMUD_DOCKER=0)".to_string()));
+        return (
+            false,
+            Some("Docker integration disabled (set AMUD_DOCKER=1 to enable)".to_string()),
+        );
     }
     if !std::path::Path::new("/var/run/docker.sock").exists() {
         return (false, Some("Docker Unix socket missing".to_string()));
@@ -927,52 +962,64 @@ fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<St
 
     let action_str = match action {
         "start" | "stop" | "restart" => action,
-        _ => return (false, Some(format!("Unsupported Docker action: {}", action))),
+        _ => {
+            return (
+                false,
+                Some(format!("Unsupported Docker action: {}", action)),
+            )
+        }
     };
 
     let c_name = container_name.to_string();
 
     agent_runtime().block_on(async move {
-        use http_body_util::Empty;
-        use hyper::body::Bytes;
-        use hyper_util::client::legacy::Client;
-        use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
+        match tokio::time::timeout(HTTP_TIMEOUT, async move {
+            use http_body_util::Empty;
+            use hyper::body::Bytes;
+            use hyper_util::client::legacy::Client;
+            use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
 
-        let client: Client<UnixConnector, Empty<Bytes>> = Client::unix();
-        let api_path = format!("/containers/{}/{}", c_name, action_str);
-        let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", &api_path).into();
+            let client: Client<UnixConnector, Empty<Bytes>> = Client::unix();
+            let api_path = format!("/containers/{}/{}", c_name, action_str);
+            let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", &api_path).into();
 
-        println!("[Docker Action] POSTing: {}", api_path);
+            println!("[Docker Action] POSTing: {}", api_path);
 
-        let req = match hyper::Request::builder()
-            .method("POST")
-            .uri(uri)
-            .header("Host", "localhost")
-            .body(Empty::<Bytes>::new())
-        {
-            Ok(r) => r,
-            Err(e) => return (false, Some(format!("Failed to build request: {}", e))),
-        };
+            let req = match hyper::Request::builder()
+                .method("POST")
+                .uri(uri)
+                .header("Host", "localhost")
+                .body(Empty::<Bytes>::new())
+            {
+                Ok(r) => r,
+                Err(e) => return (false, Some(format!("Failed to build request: {}", e))),
+            };
 
-        match client.request(req).await {
-            Ok(resp) => {
-                let status = resp.status();
-                println!("[Docker Action] Docker API response status: {}", status);
-                if status.is_success() || status.as_u16() == 304 {
-                    (true, None)
-                } else {
-                    (
-                        false,
-                        Some(format!("Docker API returned HTTP {}", status)),
-                    )
+            match client.request(req).await {
+                Ok(resp) => {
+                    let status = resp.status();
+                    println!("[Docker Action] Docker API response status: {}", status);
+                    if status.is_success() || status.as_u16() == 304 {
+                        (true, None)
+                    } else {
+                        (false, Some(format!("Docker API returned HTTP {}", status)))
+                    }
                 }
+                Err(e) => (false, Some(format!("HTTP request failed: {}", e))),
             }
-            Err(e) => (false, Some(format!("HTTP request failed: {}", e))),
+        })
+        .await
+        {
+            Ok(result) => result,
+            Err(_) => (false, Some("Docker action timed out".to_string())),
         }
     })
 }
 
 #[cfg(not(unix))]
 fn execute_docker_action(_container_name: &str, _action: &str) -> (bool, Option<String>) {
-    (false, Some("Docker actions are unavailable on this platform".to_string()))
+    (
+        false,
+        Some("Docker actions are unavailable on this platform".to_string()),
+    )
 }

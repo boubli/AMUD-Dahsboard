@@ -67,6 +67,7 @@ services:
       - PORT=8000
       - DB_PATH=/app/data/amud.db
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
       - AMUD_ENABLE_PROXMOX=false # Set to true if running on Proxmox
     volumes:
       - amud_data:/app/data
@@ -86,6 +87,7 @@ services:
     restart: unless-stopped
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
     volumes:
       - amud_run:/var/run/amud
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -103,6 +105,16 @@ volumes:
   amud_run:
     name: amud_run
 ```
+
+### Required secret
+
+Create a `.env` file next to `docker-compose.yml` (or export the variable in your shell):
+
+```bash
+AMUD_AGENT_SECRET=change-me-to-a-long-random-string
+```
+
+Both `amud-dashboard` and `amud-agent` **must** use the same value. The server and agent refuse to start without it.
 
 ### Deploying the Stack
 To start the services in detached background mode:
@@ -137,6 +149,7 @@ docker run -d \
   -e PORT=8000 \
   -e DB_PATH=/app/data/amud.db \
   -e AMUD_SOCKET_PATH=/var/run/amud/amud.sock \
+  -e AMUD_AGENT_SECRET=change-me-to-a-long-random-string \
   -e AMUD_ENABLE_PROXMOX=false \
   --restart unless-stopped \
   tradmss/amud-dashboard:latest
@@ -147,6 +160,7 @@ docker run -d \
   -v amud_run:/var/run/amud \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -e AMUD_SOCKET_PATH=/var/run/amud/amud.sock \
+  -e AMUD_AGENT_SECRET=change-me-to-a-long-random-string \
   --entrypoint "/app/amud-agent" \
   --restart unless-stopped \
   tradmss/amud-dashboard:latest
@@ -163,6 +177,10 @@ You can pass these environment variables to adjust container configurations:
 | `PORT` | `amud-dashboard` | `8000` | Port on which the Axum web server listens. |
 | `DB_PATH` | `amud-dashboard` | `/app/data/amud.db` | Directory path pointing to the SQLite database file. |
 | `AMUD_SOCKET_PATH` | Both | `/var/run/amud/amud.sock` | File path pointing to the Unix socket for agent-server IPC. |
+| `AMUD_AGENT_SECRET` | Both | *(Required)* | Shared authentication secret between dashboard and agent. |
+| `BIND_ADDR` | `amud-dashboard` | `127.0.0.1` | Set to `0.0.0.0` inside Docker so the container accepts external connections. |
+| `AMUD_DOCKER` | `amud-agent` | `0` | Set to `1` to enable Docker container monitoring (requires the socket mount below). |
+| `PVE_NODE` | `amud-agent` | hostname | Proxmox node name when it differs from the container/host hostname. |
 | `PVE_API_TOKEN` | `amud-agent` | *(None)* | Proxmox API token (if using agent on a PVE host; not needed for Docker monitoring). |
 | `AMUD_ENABLE_PROXMOX` | `amud-dashboard` | `false` | Set to `true` if installing on a Proxmox LXC to show the Proxmox settings tab in the UI. |
 
@@ -177,7 +195,7 @@ If you are deploying AMUD via Docker on a standard Linux distribution (like Ubun
 When running AMUD in production environments, implement these security practices:
 
 ### A. Docker Socket Trust Boundary
-The agent volume mount is defined as `/var/run/docker.sock:/var/run/docker.sock:ro`. The `:ro` modifier protects the socket file from being modified through the bind mount, but Docker's HTTP API can still process lifecycle requests over that socket. Treat the agent as trusted, and use a Docker socket proxy if you need method-level filtering.
+Docker monitoring is **off by default** (`AMUD_DOCKER=0`). Only set `AMUD_DOCKER=1` when you need container status badges and mount `/var/run/docker.sock:/var/run/docker.sock:ro`. The `:ro` modifier protects the socket file from being modified through the bind mount, but Docker's HTTP API can still process lifecycle requests over that socket. Treat the agent as trusted, and use a Docker socket proxy if you need method-level filtering.
 
 ### B. User Permissions (Non-Root Running)
 If your host enforces strict daemon security, configure the agent to run under the host's `docker` group ID so it does not require root privileges. 

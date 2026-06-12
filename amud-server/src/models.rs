@@ -1,8 +1,15 @@
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex, RwLock};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::atomic::AtomicU64;
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::Instant;
+
+#[derive(Clone)]
+pub(crate) struct AgentCommandHandle {
+    pub(crate) id: u64,
+    pub(crate) tx: tokio::sync::mpsc::UnboundedSender<String>,
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct App {
@@ -25,42 +32,7 @@ pub struct Session {
     pub(crate) csrf_token: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Default)]
-pub struct LxcContainer {
-    pub(crate) vmid: i64,
-    pub(crate) status: String,
-    pub(crate) name: String,
-    pub(crate) cpu: Option<f64>,
-    pub(crate) maxmem: Option<i64>,
-    pub(crate) mem: Option<i64>,
-    pub(crate) maxdisk: Option<i64>,
-    pub(crate) disk: Option<i64>,
-    pub(crate) uptime: Option<i64>,
-}
-
-#[derive(Clone, Serialize, Deserialize, Default)]
-pub struct AgentTelemetry {
-    pub(crate) cpu_usage: i32,
-    pub(crate) ram_usage: i32,
-    pub(crate) ram_used_gb: f64,
-    pub(crate) ram_total_gb: f64,
-    pub(crate) cpu_temp: f64,
-    pub(crate) disk_usage: i32,
-    pub(crate) disk_used_gb: f64,
-    pub(crate) disk_total_gb: f64,
-    #[serde(default)]
-    pub(crate) lxc_containers: Vec<LxcContainer>,
-    #[serde(default)]
-    pub(crate) network: Option<NetworkTelemetry>,
-}
-
-#[derive(Clone, Serialize, Deserialize, Default)]
-pub struct NetworkTelemetry {
-    pub(crate) internal_tx: String,
-    pub(crate) internal_rx: String,
-    pub(crate) external_tx: String,
-    pub(crate) external_rx: String,
-}
+pub(crate) use amud_protocol::{AgentTelemetry, LxcContainer, NetworkTelemetry};
 
 #[derive(Serialize, Clone)]
 pub struct MediaStream {
@@ -95,10 +67,11 @@ pub struct PveTestResult {
     pub(crate) error: Option<String>,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone)]
 pub struct ActionResult {
     pub(crate) success: bool,
     pub(crate) error: Option<String>,
+    pub(crate) at: Instant,
 }
 
 #[derive(Deserialize)]
@@ -131,7 +104,8 @@ pub struct AppState {
     pub(crate) agent_connected: Arc<RwLock<bool>>,
     pub(crate) media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
     pub(crate) app_statuses: Arc<RwLock<HashMap<String, AppStatus>>>,
-    pub(crate) agent_command_tx: Arc<Mutex<Option<tokio::sync::mpsc::UnboundedSender<String>>>>,
+    pub(crate) agent_command_tx: Arc<Mutex<Option<AgentCommandHandle>>>,
+    pub(crate) next_agent_conn_id: Arc<AtomicU64>,
     pub(crate) pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
     pub(crate) action_results: Arc<RwLock<HashMap<String, ActionResult>>>,
     pub(crate) settings_cache: Arc<RwLock<HashMap<String, String>>>,
@@ -140,6 +114,7 @@ pub struct AppState {
     pub(crate) api_rate_limits: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
     pub(crate) agent_secret: Arc<String>,
     pub(crate) smart_home_telemetry: Arc<RwLock<crate::smart_home::SmartHomeTelemetry>>,
+    pub(crate) logo_manifest: Arc<HashMap<String, String>>,
+    pub(crate) telemetry_broadcast:
+        tokio::sync::watch::Sender<Arc<crate::telemetry_broadcast::WsTelemetryBundle>>,
 }
-
-

@@ -1,0 +1,207 @@
+use super::imports::*;
+
+pub async fn login_page(
+    Extension(csp): Extension<CspNonce>,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let settings = state.settings_cache.read().unwrap().clone();
+    let branding = branding_from_settings(&settings);
+    let root_css = build_root_css(&BrandingVars {
+        tagline: None,
+        ..branding
+    });
+
+    let login_tmpl = include_str!("../../../ui/templates/login.html");
+    let result = login_tmpl.replace("/* ROOT_CSS */", &root_css);
+    Html(apply_csp_nonce(result, &csp.0))
+}
+
+pub async fn login_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "login_ip", 30, 300) {
+        return resp;
+    }
+
+    let username = form
+        .get("username")
+        .cloned()
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+    let password = form.get("password").cloned().unwrap_or_default();
+
+    if login_rate_limited(&state.login_attempts, &username) {
+        return Response::builder()
+            .status(StatusCode::TOO_MANY_REQUESTS)
+            .body(axum::body::Body::from(
+                "Too many failed login attempts. Try again later.",
+            ))
+            .unwrap();
+    }
+
+    let username_db = username.clone();
+    let password_db = password.clone();
+    let login = with_db(state.db.clone(), move |db| {
+        process_login(db, &username_db, &password_db)
+    })
+    .await;
+
+    if login.success {
+        clear_failed_logins(&state.login_attempts, &username);
+        let headers = headers.clone();
+        let username_audit = username.clone();
+        let role_audit = login.role.clone();
+        with_db(state.db.clone(), move |db| {
+            record_audit_blocking(
+                db,
+                &headers,
+                &username_audit,
+                "login",
+                &username_audit,
+                &role_audit,
+            );
+        })
+        .await;
+        let role = login.role;
+        let token = generate_session_token();
+        let csrf_token = generate_session_token();
+
+        state.sessions.write().unwrap().insert(
+            token.clone(),
+            Session {
+                username: username.clone(),
+                role: role.clone(),
+                expires_at_epoch: now_epoch_secs() + 86_400,
+                csrf_token,
+            },
+        );
+
+        let cookie = session_cookie(&token);
+        let redirect_to = if login.must_change_password && role == "Admin" {
+            "/admin/settings"
+        } else {
+            "/"
+        };
+
+        Response::builder()
+            .status(StatusCode::SEE_OTHER)
+            .header(header::SET_COOKIE, cookie)
+            .header(header::LOCATION, redirect_to)
+            .body(axum::body::Body::empty())
+            .unwrap()
+    } else {
+        // Keep missing-user and wrong-password timing closer by doing an Argon2id hash
+        // even when no stored hash exists.
+        let _ = hash_password(&password);
+        record_failed_login(&state.login_attempts, &username);
+        Redirect::to("/login?error=1").into_response()
+    }
+}
+
+pub async fn logout_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    form: Option<Form<HashMap<String, String>>>,
+) -> impl IntoResponse {
+    if let Some(Form(form)) = &form {
+        if !validate_csrf(&headers, &state.sessions, Some(form)) {
+            return csrf_forbidden_response();
+        }
+    }
+    let session = get_session(&headers, &state.sessions);
+    let username = session
+        .as_ref()
+        .map(|s| s.username.as_str())
+        .unwrap_or("unknown");
+    if let Some(cookie_header) = headers.get("cookie").and_then(|c| c.to_str().ok()) {
+        if let Some(token) = cookie_header
+            .split(';')
+            .map(|s| s.trim())
+            .find(|s| s.starts_with("amud_session="))
+            .map(|s| s["amud_session=".len()..].to_string())
+        {
+            state.sessions.write().unwrap().remove(&token);
+        }
+    }
+    if username != "unknown" {
+        let headers = headers.clone();
+        let username = username.to_string();
+        with_db(state.db.clone(), move |db| {
+            record_audit_blocking(db, &headers, &username, "logout", &username, "");
+        })
+        .await;
+    }
+
+    Response::builder()
+        .status(StatusCode::SEE_OTHER)
+        .header(header::SET_COOKIE, expired_session_cookie())
+        .header(header::LOCATION, "/")
+        .body(axum::body::Body::empty())
+        .unwrap()
+}
+
+// WS upgrades handler
+pub async fn ws_handler(
+    ws: WebSocketUpgrade,
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    let limited_telemetry = match &session {
+        None => true,
+        Some(s) => s.role == "Guest",
+    };
+    let public = if limited_telemetry {
+        let settings = state.settings_cache.read().unwrap();
+        telemetry_public_from_cache(&settings)
+    } else {
+        false
+    };
+    ws.on_upgrade(move |socket| handle_ws_session(socket, state, limited_telemetry, public))
+    // public re-checked each tick
+}
+
+async fn handle_ws_session(
+    mut socket: WebSocket,
+    state: Arc<AppState>,
+    limited_telemetry: bool,
+    _public_at_connect: bool,
+) {
+    let mut rx = state.telemetry_broadcast.subscribe();
+
+    loop {
+        let bundle = rx.borrow().clone();
+        let public = if limited_telemetry {
+            let settings = state.settings_cache.read().unwrap();
+            telemetry_public_from_cache(&settings)
+        } else {
+            false
+        };
+        let frame = if limited_telemetry {
+            if public {
+                bundle.guest_public.clone()
+            } else {
+                bundle.guest_redacted.clone()
+            }
+        } else {
+            bundle.full.clone()
+        };
+
+        if socket
+            .send(WsMessage::Text(frame.to_string()))
+            .await
+            .is_err()
+        {
+            break;
+        }
+
+        if rx.changed().await.is_err() {
+            break;
+        }
+    }
+}
+
+// Settings Handler

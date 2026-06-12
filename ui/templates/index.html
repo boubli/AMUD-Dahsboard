@@ -442,7 +442,12 @@
         }
 
         // Trigger Wake-on-LAN
-        function triggerWakeAction(button, id) {
+        function triggerWakeAction(button) {
+            const id = button.getAttribute('data-wake-id');
+            if (!id) {
+                alert('Wake-on-LAN is not configured for this app.');
+                return;
+            }
             const origIcon = button.innerHTML;
             button.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width:1.1rem; height:1.1rem;"></i>';
             lucide.createIcons();
@@ -479,10 +484,9 @@
             });
         }
 
-        const isGuest = "{{username}}" === "guest";
-        const telemetryPublic = "{{telemetry_public}}" === "1";
+        const hideTelemetry = "{{hide_telemetry}}" === "true";
 
-        if (isGuest) {
+        if (hideTelemetry) {
             const telemetrySection = document.getElementById('telemetry-section');
             if (telemetrySection) {
                 telemetrySection.style.display = 'none';

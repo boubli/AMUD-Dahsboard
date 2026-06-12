@@ -473,7 +473,8 @@ Set:
 AMUD polls:
 
 ```text
-GET /Sessions?api_key=<key>
+GET /Sessions
+X-Emby-Token: <api-key>
 ```
 
 ### Plex

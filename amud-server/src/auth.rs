@@ -13,8 +13,7 @@ use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use getrandom;
 use hex;
 use rand_core::OsRng;
-use rusqlite::{params, Connection};
-use serde::Deserialize;
+use rusqlite::Connection;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
@@ -61,7 +60,9 @@ pub(crate) fn rate_limit_response() -> Response {
     Response::builder()
         .status(StatusCode::TOO_MANY_REQUESTS)
         .header("Content-Type", "application/json")
-        .body(Body::from(r#"{"error":"Too many requests. Try again later."}"#))
+        .body(Body::from(
+            r#"{"error":"Too many requests. Try again later."}"#,
+        ))
         .unwrap()
 }
 
@@ -70,7 +71,10 @@ pub async fn security_headers(mut req: Request<Body>, next: Next) -> Response {
     req.extensions_mut().insert(CspNonce(nonce.clone()));
     let mut response = next.run(req).await;
     let headers = response.headers_mut();
-    headers.insert(HeaderName::from_static("x-frame-options"), HeaderValue::from_static("DENY"));
+    headers.insert(
+        HeaderName::from_static("x-frame-options"),
+        HeaderValue::from_static("DENY"),
+    );
     headers.insert(
         HeaderName::from_static("x-content-type-options"),
         HeaderValue::from_static("nosniff"),
@@ -94,12 +98,7 @@ pub async fn security_headers(mut req: Request<Body>, next: Next) -> Response {
 pub(crate) fn resolve_agent_secret(conn: &Connection) -> String {
     if let Ok(from_env) = std::env::var("AMUD_AGENT_SECRET") {
         if !from_env.is_empty() {
-            conn.execute(
-                "INSERT INTO settings (key, value) VALUES ('agent_shared_secret', ?)
-                 ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-                params![from_env],
-            )
-            .ok();
+            crate::db::upsert_setting(conn, "agent_shared_secret", &from_env);
             return from_env;
         }
     }
@@ -112,40 +111,36 @@ pub(crate) fn resolve_agent_secret(conn: &Connection) -> String {
         )
         .unwrap_or_default();
 
+    let existing = crate::secrets::decrypt_setting_from_db("agent_shared_secret", &existing);
     if !existing.is_empty() {
         return existing;
     }
 
     let secret = generate_agent_secret();
-    conn.execute(
-        "INSERT INTO settings (key, value) VALUES ('agent_shared_secret', ?)",
-        params![secret],
-    )
-    .ok();
+    crate::db::upsert_setting(conn, "agent_shared_secret", &secret);
     eprintln!(
         "AMUD SECURITY: Generated agent IPC secret. Set AMUD_AGENT_SECRET in the server and host agent systemd units."
     );
     secret
 }
 
-#[derive(Deserialize)]
-pub(crate) struct AgentAuthMsg {
-    auth: Option<String>,
+pub(crate) fn agent_challenge_nonce() -> String {
+    generate_session_token()
 }
 
-pub(crate) fn agent_authenticated(agent_secret: &str, line: &str) -> bool {
-    if agent_secret.is_empty() {
+pub(crate) fn verify_agent_auth(secret: &str, nonce: &str, proof: &str) -> bool {
+    if secret.is_empty() || nonce.is_empty() || proof.is_empty() {
         return false;
     }
-    serde_json::from_str::<AgentAuthMsg>(line)
+    let expected = amud_protocol::agent_auth_proof(secret, nonce);
+    expected.as_bytes().ct_eq(proof.as_bytes()).into()
+}
+
+pub(crate) fn parse_agent_auth_proof(line: &str) -> Option<String> {
+    serde_json::from_str::<amud_protocol::AgentAuthMessage>(line)
         .ok()
         .and_then(|msg| msg.auth)
-        .map(|token| {
-            let expected = Sha256::digest(agent_secret.as_bytes());
-            let actual = Sha256::digest(token.as_bytes());
-            actual.as_slice().ct_eq(expected.as_slice()).into()
-        })
-        .unwrap_or(false)
+        .filter(|proof| !proof.is_empty())
 }
 
 // Password hashing helper
@@ -178,10 +173,7 @@ pub(crate) fn verify_password(stored_hash: &str, password: &str) -> (bool, bool)
 
     let legacy_hash = legacy_sha256_password(password);
     let verified = stored_hash.len() == legacy_hash.len()
-        && stored_hash
-            .as_bytes()
-            .ct_eq(legacy_hash.as_bytes())
-            .into();
+        && stored_hash.as_bytes().ct_eq(legacy_hash.as_bytes()).into();
     (verified, verified)
 }
 
@@ -224,10 +216,16 @@ pub(crate) fn expired_session_cookie() -> String {
     } else {
         ""
     };
-    format!("amud_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict{}", secure)
+    format!(
+        "amud_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict{}",
+        secure
+    )
 }
 
-pub(crate) fn login_rate_limited(login_attempts: &Mutex<HashMap<String, Vec<Instant>>>, username: &str) -> bool {
+pub(crate) fn login_rate_limited(
+    login_attempts: &Mutex<HashMap<String, Vec<Instant>>>,
+    username: &str,
+) -> bool {
     const MAX_ATTEMPTS: usize = 5;
     const WINDOW: Duration = Duration::from_secs(5 * 60);
     const MAX_KEYS: usize = 2048;
@@ -242,10 +240,16 @@ pub(crate) fn login_rate_limited(login_attempts: &Mutex<HashMap<String, Vec<Inst
     if !attempts.contains_key(&key) && attempts.len() >= MAX_KEYS {
         return true;
     }
-    attempts.get(&key).map(|v| v.len() >= MAX_ATTEMPTS).unwrap_or(false)
+    attempts
+        .get(&key)
+        .map(|v| v.len() >= MAX_ATTEMPTS)
+        .unwrap_or(false)
 }
 
-pub(crate) fn record_failed_login(login_attempts: &Mutex<HashMap<String, Vec<Instant>>>, username: &str) {
+pub(crate) fn record_failed_login(
+    login_attempts: &Mutex<HashMap<String, Vec<Instant>>>,
+    username: &str,
+) {
     let key = username.trim().to_lowercase();
     login_attempts
         .lock()
@@ -255,7 +259,10 @@ pub(crate) fn record_failed_login(login_attempts: &Mutex<HashMap<String, Vec<Ins
         .push(Instant::now());
 }
 
-pub(crate) fn clear_failed_logins(login_attempts: &Mutex<HashMap<String, Vec<Instant>>>, username: &str) {
+pub(crate) fn clear_failed_logins(
+    login_attempts: &Mutex<HashMap<String, Vec<Instant>>>,
+    username: &str,
+) {
     login_attempts
         .lock()
         .unwrap()
@@ -313,7 +320,10 @@ pub(crate) fn session_cookie_token(headers: &HeaderMap) -> Option<String> {
         })
 }
 
-pub(crate) fn csrf_token_for_session(headers: &HeaderMap, sessions: &RwLock<HashMap<String, Session>>) -> String {
+pub(crate) fn csrf_token_for_session(
+    headers: &HeaderMap,
+    sessions: &RwLock<HashMap<String, Session>>,
+) -> String {
     let Some(cookie_token) = session_cookie_token(headers) else {
         return String::new();
     };
@@ -367,9 +377,26 @@ pub(crate) fn forbidden_admin_json() -> Response {
 pub(crate) fn require_admin_session(
     headers: &HeaderMap,
     sessions: &RwLock<HashMap<String, Session>>,
-) -> Result<Session, Response> {
+) -> Result<Session, Box<Response>> {
     match get_session(headers, sessions) {
         Some(session) if session.role == "Admin" => Ok(session),
-        _ => Err(forbidden_admin_json()),
+        _ => Err(Box::new(forbidden_admin_json())),
+    }
+}
+
+pub(crate) fn valid_user_role(role: &str) -> bool {
+    role == "Admin" || role == "Guest"
+}
+
+#[cfg(test)]
+mod agent_auth_tests {
+    use super::*;
+
+    #[test]
+    fn challenge_response_roundtrip() {
+        let proof = amud_protocol::agent_auth_proof("shared-secret", "nonce-abc");
+        assert!(verify_agent_auth("shared-secret", "nonce-abc", &proof));
+        assert!(!verify_agent_auth("shared-secret", "wrong-nonce", &proof));
+        assert!(!verify_agent_auth("wrong-secret", "nonce-abc", &proof));
     }
 }

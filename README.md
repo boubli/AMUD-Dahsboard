@@ -54,8 +54,10 @@ PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```yaml
 services:
   amud-agent:
-    image: boubli/amud-agent:latest
+    image: tradmss/amud-dashboard:latest
+    entrypoint: ["/app/amud-agent"]
     environment:
+      - AMUD_AGENT_SECRET=change-me-to-a-long-random-string
       - PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     volumes:
       - /opt/amud/run:/opt/amud/run

@@ -1,8 +1,45 @@
 # AMUD Dashboard — Full Audit Report & Task Backlog
 
 **Generated:** 2026-06-10  
+**Last remediation pass:** 2026-06-12  
 **Scope:** Security, optimization, UI→DB traceability (4 layers)  
-**Codebase:** `amud-server` (~3.6k LOC monolith), `amud-agent` (~940 LOC), `ui/templates/*`
+**Codebase:** `amud-server` (split handlers), `amud-agent` (~1k LOC), `ui/templates/*`
+
+---
+
+## Remediation log (2026-06-12)
+
+| Area | Status |
+|------|--------|
+| SEC-001 `/api/users` auth | **Fixed** — Admin session + CSRF + rate limit on all user routes |
+| SEC-003/011 Agent IPC secret | **Fixed** — `AMUD_AGENT_SECRET` required in compose; empty secret fails closed |
+| SEC-004 CSRF | **Fixed** — tokens on POST forms and API mutations |
+| SEC-005 WebSocket | **Fixed** — Guest/anonymous get redacted telemetry |
+| SEC-007 SSRF (webhooks/health) | **Fixed** — `url_allowed_for_webhook`, parallel health checks |
+| SEC-012/013 CSS & XSS | **Fixed** — `escape_html`, `sanitize_custom_css`, sanitized URLs |
+| SEC-014 Container audit | **Fixed** — `container_action` audit log |
+| SEC-015 PVE token over IPC | **Mitigated** — agent uses `PVE_API_TOKEN` env; test command does not send token |
+| SEC-019 Secure cookies | **Documented** — `AMUD_SECURE_COOKIES=1`; updater reminds on HTTPS |
+| SEC-020 bind address | **Fixed** — default `127.0.0.1`; compose sets `BIND_ADDR=0.0.0.0` |
+| SEC-028 GET logout | **Fixed** — POST-only logout |
+| OPT-008 monolithic main | **Partial** — `handlers/` split into 11 modules; `main.rs` slimmed |
+| OPT-019 blocking SQLite | **Partial** — all HTTP handlers use `with_db`/`spawn_blocking`; background tasks in `agent.rs`/`webhooks.rs` still lock inline |
+| Category FK integrity | **Fixed** — `resolve_app_category`, delete/rename cascade |
+| CI | **Added** — `.github/workflows/ci.yml` (fmt, clippy, test) |
+| TRACE-UI-002 sort_order | **Fixed** — persisted on category add/edit |
+
+**Encrypted secrets at rest:** integration tokens and `agent_shared_secret` are encrypted in SQLite with ChaCha20-Poly1305 (`enc:v1:` prefix). Key from `AMUD_SECRETS_KEY` or `data/.amud-secrets-key`. Legacy plaintext values migrate on startup.
+
+| Area | Status (2026-06-12 cont.) |
+|------|---------------------------|
+| WebSocket broadcast refactor | **Fixed** — `telemetry_broadcast` task serializes once per tick; clients use `watch` channel |
+| Shared agent protocol crate | **Added** — `amud-protocol` (telemetry + IPC auth/config types) |
+
+| Area | Status (2026-06-12 cont.) |
+|------|---------------------------|
+| Agent challenge-response IPC | **Fixed** — server sends nonce; agent proves `SHA-256(secret‖nonce)` |
+| Background DB locks | **Fixed** — `agent.rs` / `webhooks.rs` use `with_db`; `get_config` reads `settings_cache` |
+| Docker socket profile | **Added** — `docker-compose.no-docker.yml` override |
 
 ---
 
