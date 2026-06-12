@@ -13,6 +13,7 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt};
+#[cfg(not(unix))]
 use tokio::net::TcpListener as TokioTcpListener;
 #[cfg(unix)]
 use tokio::net::UnixListener as TokioUnixListener;
