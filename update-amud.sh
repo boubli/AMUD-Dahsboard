@@ -176,6 +176,7 @@ sync_agent_ipc_secret() {
   msg_info "Synchronizing AMUD_AGENT_SECRET between server and host agent"
   ensure_container_systemd_env "$ct_id" "/etc/systemd/system/amud.service" "AMUD_AGENT_SECRET" "$secret"
   ensure_container_systemd_env "$ct_id" "/etc/systemd/system/amud.service" "AMUD_ENABLE_PROXMOX" "true"
+  ensure_container_systemd_env "$ct_id" "/etc/systemd/system/amud.service" "BIND_ADDR" "0.0.0.0"
   pct exec "$ct_id" -- systemctl daemon-reload
   if [ -f "/etc/systemd/system/amud-agent.service" ]; then
     ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "AMUD_AGENT_SECRET" "$secret"

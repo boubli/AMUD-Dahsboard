@@ -195,6 +195,48 @@ AMUD uses fuzzy matching — the app name and LXC name only need to **partially 
 
 ---
 
+## Dashboard Refuses Connection After Update
+
+**Symptom:** After running `update-amud.sh`, the updater reports success, but opening `http://<LXC_IP>:8000` shows **ERR_CONNECTION_REFUSED** or **This site can't be reached**.
+
+**Most likely cause:** The AMUD server is running inside the LXC, but it is listening only on `127.0.0.1:8000` inside the container instead of the LXC network interface. This can happen after upgrading to a release where the secure default bind address changed to `127.0.0.1`.
+
+### Diagnostic Steps
+
+Run these commands from the Proxmox host:
+
+```bash
+pct exec 101 -- systemctl status amud
+pct exec 101 -- ss -tlnp | grep 8000
+```
+
+If the `ss` output shows `127.0.0.1:8000`, the dashboard is only reachable from inside the LXC. Set the LXC service bind address to all interfaces:
+
+```bash
+pct exec 101 -- bash -c "grep -q '^Environment=BIND_ADDR=' /etc/systemd/system/amud.service && sed -i 's|^Environment=BIND_ADDR=.*|Environment=BIND_ADDR=0.0.0.0|' /etc/systemd/system/amud.service || sed -i '/^\[Service\]/a Environment=BIND_ADDR=0.0.0.0' /etc/systemd/system/amud.service"
+pct exec 101 -- systemctl daemon-reload
+pct exec 101 -- systemctl restart amud
+pct exec 101 -- ss -tlnp | grep 8000
+```
+
+The final command should show `0.0.0.0:8000`. Then open:
+
+```text
+http://<LXC_IP>:8000
+```
+
+If nothing is listening on port `8000`, check the server logs instead:
+
+```bash
+pct exec 101 -- journalctl -u amud -n 80 --no-pager
+```
+
+:::info Fixed in newer updater scripts
+Recent versions of `setup-amud.sh` and `update-amud.sh` set `BIND_ADDR=0.0.0.0` automatically for Proxmox LXC deployments.
+:::
+
+---
+
 ## Agent Keeps Disconnecting (Broken Pipe)
 
 **Symptom:** You see repeated `Broken pipe (os error 32)` errors in the agent logs.

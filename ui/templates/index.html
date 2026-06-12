@@ -540,12 +540,14 @@
         function updateAppUrlStatuses(statuses) {
             document.querySelectorAll('.app-card').forEach(card => {
                 const appName = card.getAttribute('data-app-name');
-                if (!appName || !statuses[appName]) return;
+                if (!appName) return;
+
+                const status = statuses[appName] || statuses[appName.toLowerCase()];
+                if (!status) return;
 
                 const badge = card.querySelector('.status-badge');
                 if (!badge || badge.dataset.containerManaged === 'true') return;
 
-                const status = statuses[appName];
                 styleStatusBadge(badge, status.status, status.latency_ms);
             });
         }

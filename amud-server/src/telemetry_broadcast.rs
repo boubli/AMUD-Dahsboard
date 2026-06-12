@@ -1,4 +1,4 @@
-use crate::models::{AppState, FullTelemetry};
+use crate::models::{AppState, AppStatus, FullTelemetry};
 use amud_protocol::{AgentTelemetry, NetworkTelemetry};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -57,18 +57,35 @@ impl WsTelemetryBundle {
             system: system.clone(),
             network: system.network.clone().unwrap_or_default(),
             streams,
-            app_statuses,
+            app_statuses: app_statuses.clone(),
             agent_connected,
             smart_home: Some(smart_home),
         };
 
         let mut guest_system = system.clone();
         guest_system.lxc_containers.clear();
+        let guest_app_statuses = app_statuses
+            .into_iter()
+            .map(|(name, status)| {
+                let public_status = if status.status.eq_ignore_ascii_case("ONLINE") {
+                    "ONLINE"
+                } else {
+                    "OFFLINE"
+                };
+                (
+                    name,
+                    AppStatus {
+                        status: public_status.to_string(),
+                        latency_ms: None,
+                    },
+                )
+            })
+            .collect();
         let guest_public = FullTelemetry {
             system: guest_system,
             network: system.network.clone().unwrap_or_default(),
             streams: HashMap::new(),
-            app_statuses: HashMap::new(),
+            app_statuses: guest_app_statuses,
             agent_connected: false,
             smart_home: None,
         };

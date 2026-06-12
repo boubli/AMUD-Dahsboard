@@ -222,6 +222,7 @@ ExecStart=/opt/amud/amud-server
 Restart=always
 RestartSec=5
 Environment=PORT=8000
+Environment=BIND_ADDR=0.0.0.0
 Environment=DB_PATH=/opt/amud/data/amud.db
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
 Environment=AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET}
