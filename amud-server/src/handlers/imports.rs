@@ -41,8 +41,6 @@ pub(crate) use rusqlite::params;
 pub(crate) use serde::Deserialize;
 pub(crate) use std::collections::HashMap;
 pub(crate) use std::fs;
-#[cfg(unix)]
-pub(crate) use std::os::unix::fs::PermissionsExt;
 pub(crate) use std::path::Path as FilePath;
 pub(crate) use std::sync::Arc;
 pub(crate) use std::time::{Duration, Instant};

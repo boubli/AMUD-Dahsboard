@@ -266,6 +266,7 @@ pub(crate) fn process_agent_line(
 #[allow(dead_code)]
 async fn run_uds_listener(_path: &str, _state: Arc<AppState>) {}
 
+#[cfg(not(unix))]
 async fn run_tcp_listener(addr: &str, state: Arc<AppState>) {
     println!("Starting agent listener via TCP loopback on {}", addr);
     let listener = match TokioTcpListener::bind(addr).await {
