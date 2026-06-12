@@ -29,7 +29,7 @@ To understand the installation steps, it is helpful to visualize how AMUD achiev
 |                                               +--------------+---------------+  |
 |                                                              ^                  |
 |  +-----------------------------------------------------------+---------------+  |
-|  |  AMUD LXC CONTAINER (ID: 101)                             | Bind Mount    |  |
+|  |  AMUD LXC CONTAINER (amud-dashboard)                      | Bind Mount    |  |
 |  |                                                           v                  |
 |  |  +--------------------------------------------------------+-----------+  |  |
 |  |  |  amud-server (Rust Server)                                         |  |  |
@@ -61,7 +61,7 @@ curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amu
    - Initializes `/opt/amud/run` for runtime IPC socket files.
 2. **LXC Container Provisioning**:
    - Downloads the official Debian 12 template if it is not already present in your local storage.
-   - Spins up container ID `101` named `amud-dashboard` (1 CPU Core, 512MB RAM, 4GB Disk).
+   - Spins up an LXC named `amud-dashboard` using the next available cluster ID from Proxmox (1 CPU Core, 512MB RAM, 4GB Disk). The installer prints the assigned ID at the end.
    - Establishes a secure bind-mount mapping `/opt/amud/run` on the host to `/opt/amud/run` in the container.
 3. **Server Deployment**:
    - Sets up `/opt/amud/data` inside the container for the SQLite database.
@@ -206,12 +206,13 @@ If the dashboard displays `0%` metrics for the host CPU/RAM/Disk, the agent and 
    You should see a socket file owned by root (or your runtime user) with permissions `srwxrwxrwx`.
 2. **Verify mount mapping inside LXC**:
    ```bash
-   pct config 101 | grep mp0
+   CT_ID=$(pct list | awk '$3 == "amud-dashboard" {print $1}' | head -n1)
+   pct config "$CT_ID" | grep mp0
    ```
-   It should return: `mp0: /opt/amud/run,mp=/opt/amud/run`. If missing, append it to `/etc/pve/lxc/101.conf` and reboot the container:
+   It should return: `mp0: /opt/amud/run,mp=/opt/amud/run`. If missing, append it to `/etc/pve/lxc/<CT_ID>.conf` and reboot the container:
    ```bash
-   echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> /etc/pve/lxc/101.conf
-   pct reboot 101
+   echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> "/etc/pve/lxc/${CT_ID}.conf"
+   pct reboot "$CT_ID"
    ```
 
 ---

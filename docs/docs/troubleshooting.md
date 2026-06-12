@@ -8,6 +8,24 @@ This guide covers the most common issues users encounter when deploying AMUD on 
 
 ---
 
+## Find Your AMUD Container ID
+
+The autopilot installer creates an LXC named `amud-dashboard`, but the numeric ID depends on your cluster (it is **not always `101`**). Before running any `pct exec` command below, look up your container ID on the Proxmox host:
+
+```bash
+pct list | awk '$3 == "amud-dashboard" {print $1}' | head -n1
+```
+
+Or list all containers and pick the ID for `amud-dashboard`:
+
+```bash
+pct list
+```
+
+In the examples below, replace `<CT_ID>` with that number (for example `102`, `111`, etc.).
+
+---
+
 ## Apps Stuck on "CHECKING..."
 
 **Symptom:** Your dashboard loads correctly and shows live CPU, RAM, and Disk metrics in the top bar, but individual application cards display a grey **"CHECKING..."** badge instead of **RUNNING** or **STOPPED**.
@@ -206,17 +224,17 @@ AMUD uses fuzzy matching — the app name and LXC name only need to **partially 
 Run these commands from the Proxmox host:
 
 ```bash
-pct exec 101 -- systemctl status amud
-pct exec 101 -- ss -tlnp | grep 8000
+pct exec <CT_ID> -- systemctl status amud
+pct exec <CT_ID> -- ss -tlnp | grep 8000
 ```
 
 If the `ss` output shows `127.0.0.1:8000`, the dashboard is only reachable from inside the LXC. Set the LXC service bind address to all interfaces:
 
 ```bash
-pct exec 101 -- bash -c "grep -q '^Environment=BIND_ADDR=' /etc/systemd/system/amud.service && sed -i 's|^Environment=BIND_ADDR=.*|Environment=BIND_ADDR=0.0.0.0|' /etc/systemd/system/amud.service || sed -i '/^\[Service\]/a Environment=BIND_ADDR=0.0.0.0' /etc/systemd/system/amud.service"
-pct exec 101 -- systemctl daemon-reload
-pct exec 101 -- systemctl restart amud
-pct exec 101 -- ss -tlnp | grep 8000
+pct exec <CT_ID> -- bash -c "grep -q '^Environment=BIND_ADDR=' /etc/systemd/system/amud.service && sed -i 's|^Environment=BIND_ADDR=.*|Environment=BIND_ADDR=0.0.0.0|' /etc/systemd/system/amud.service || sed -i '/^\[Service\]/a Environment=BIND_ADDR=0.0.0.0' /etc/systemd/system/amud.service"
+pct exec <CT_ID> -- systemctl daemon-reload
+pct exec <CT_ID> -- systemctl restart amud
+pct exec <CT_ID> -- ss -tlnp | grep 8000
 ```
 
 The final command should show `0.0.0.0:8000`. Then open:
@@ -228,7 +246,7 @@ http://<LXC_IP>:8000
 If nothing is listening on port `8000`, check the server logs instead:
 
 ```bash
-pct exec 101 -- journalctl -u amud -n 80 --no-pager
+pct exec <CT_ID> -- journalctl -u amud -n 80 --no-pager
 ```
 
 :::info Fixed in newer updater scripts
@@ -248,7 +266,7 @@ Recent versions of `setup-amud.sh` and `update-amud.sh` set `BIND_ADDR=0.0.0.0` 
 1. Check the server is running inside the LXC:
 
 ```bash
-pct exec 101 -- systemctl status amud
+pct exec <CT_ID> -- systemctl status amud
 ```
 
 2. Check the socket file exists and is writable:
@@ -260,7 +278,7 @@ ls -la /opt/amud/run/amud.sock
 3. Restart both services:
 
 ```bash
-pct exec 101 -- systemctl restart amud
+pct exec <CT_ID> -- systemctl restart amud
 systemctl restart amud-agent
 ```
 
@@ -281,7 +299,7 @@ systemctl status amud-agent
 2. Check the socket bind-mount is configured:
 
 ```bash
-grep mp0 /etc/pve/lxc/101.conf
+grep mp0 /etc/pve/lxc/<CT_ID>.conf
 ```
 
 You should see: `mp0: /opt/amud/run,mp=/opt/amud/run`
@@ -289,8 +307,8 @@ You should see: `mp0: /opt/amud/run,mp=/opt/amud/run`
 3. If missing, add it manually and restart:
 
 ```bash
-echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> /etc/pve/lxc/101.conf
-pct reboot 101
+echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> /etc/pve/lxc/<CT_ID>.conf
+pct reboot <CT_ID>
 systemctl restart amud-agent
 ```
 
@@ -376,21 +394,21 @@ Use this when you cannot log in to the AMUD UI after an upgrade, browser session
 Run on the Proxmox host:
 
 ```bash
-pct exec 101 -- sqlite3 /opt/amud/data/amud.db "SELECT id, username, role FROM users;"
+pct exec <CT_ID> -- sqlite3 /opt/amud/data/amud.db "SELECT id, username, role FROM users;"
 ```
 
 If `sqlite3` is missing inside the LXC:
 
 ```bash
-pct exec 101 -- apt-get update
-pct exec 101 -- apt-get install -y sqlite3
+pct exec <CT_ID> -- apt-get update
+pct exec <CT_ID> -- apt-get install -y sqlite3
 ```
 
 ### Reset `admin` Password to `admin`
 
 ```bash
-pct exec 101 -- sqlite3 /opt/amud/data/amud.db "INSERT INTO users (username,password_hash,role) VALUES ('admin','8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918','Admin') ON CONFLICT(username) DO UPDATE SET password_hash=excluded.password_hash, role='Admin';"
-pct exec 101 -- systemctl restart amud
+pct exec <CT_ID> -- sqlite3 /opt/amud/data/amud.db "INSERT INTO users (username,password_hash,role) VALUES ('admin','8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918','Admin') ON CONFLICT(username) DO UPDATE SET password_hash=excluded.password_hash, role='Admin';"
+pct exec <CT_ID> -- systemctl restart amud
 ```
 
 Then sign in with:
@@ -409,8 +427,8 @@ AMUD stores new passwords as Argon2id hashes. For emergency CLI recovery, you ca
 ```bash
 NEW_PASSWORD='your-new-password'
 HASH=$(printf '%s' "$NEW_PASSWORD" | sha256sum | awk '{print $1}')
-pct exec 101 -- sqlite3 /opt/amud/data/amud.db "UPDATE users SET password_hash='$HASH' WHERE username='admin';"
-pct exec 101 -- systemctl restart amud
+pct exec <CT_ID> -- sqlite3 /opt/amud/data/amud.db "UPDATE users SET password_hash='$HASH' WHERE username='admin';"
+pct exec <CT_ID> -- systemctl restart amud
 ```
 
 After signing in, use **Settings → Security** to set the password again so a fresh Argon2id hash is stored immediately.
@@ -425,18 +443,18 @@ After signing in, use **Settings → Security** to set the password again so a f
 
 ```bash
 grep AMUD_AGENT_SECRET /etc/systemd/system/amud-agent.service
-pct exec 101 -- grep AMUD_AGENT_SECRET /etc/systemd/system/amud.service
+pct exec <CT_ID> -- grep AMUD_AGENT_SECRET /etc/systemd/system/amud.service
 systemctl show amud-agent -p Environment
 ```
 
 If the values differ, copy the container value to the host service:
 
 ```bash
-SECRET=$(pct exec 101 -- grep AMUD_AGENT_SECRET /etc/systemd/system/amud.service | cut -d= -f2)
+SECRET=$(pct exec <CT_ID> -- grep AMUD_AGENT_SECRET /etc/systemd/system/amud.service | cut -d= -f2)
 sed -i "s|^Environment=AMUD_AGENT_SECRET=.*|Environment=AMUD_AGENT_SECRET=${SECRET}|" /etc/systemd/system/amud-agent.service
 systemctl daemon-reload
 systemctl restart amud-agent
-pct exec 101 -- systemctl restart amud
+pct exec <CT_ID> -- systemctl restart amud
 ```
 
 ### Verify Recent Logs Only
@@ -445,7 +463,7 @@ Old rejected connections can remain in `journalctl`. Check logs after restarting
 
 ```bash
 journalctl -u amud-agent --no-pager --since "2 minutes ago"
-pct exec 101 -- journalctl -u amud --no-pager --since "2 minutes ago"
+pct exec <CT_ID> -- journalctl -u amud --no-pager --since "2 minutes ago"
 ```
 
 ---
@@ -455,7 +473,7 @@ pct exec 101 -- journalctl -u amud --no-pager --since "2 minutes ago"
 If an update stops halfway through, restart both services first:
 
 ```bash
-pct exec 101 -- systemctl restart amud
+pct exec <CT_ID> -- systemctl restart amud
 systemctl restart amud-agent
 ```
 
@@ -539,13 +557,13 @@ If no credentials are configured, the stream cards show **NOT CONFIGURED** inste
 
 ## Useful Service Commands
 
-Run from the Proxmox host:
+Run from the Proxmox host. Replace `<CT_ID>` with your `amud-dashboard` container ID (see [Find Your AMUD Container ID](#find-your-amud-container-id)):
 
 ```bash
 # Dashboard service inside LXC
-pct exec 101 -- systemctl status amud
-pct exec 101 -- systemctl restart amud
-pct exec 101 -- journalctl -u amud --no-pager -n 50
+pct exec <CT_ID> -- systemctl status amud
+pct exec <CT_ID> -- systemctl restart amud
+pct exec <CT_ID> -- journalctl -u amud --no-pager -n 50
 
 # Host telemetry agent
 systemctl status amud-agent
@@ -553,7 +571,7 @@ systemctl restart amud-agent
 journalctl -u amud-agent --no-pager -n 50
 
 # Confirm socket mount
-grep mp0 /etc/pve/lxc/101.conf
+grep mp0 /etc/pve/lxc/<CT_ID>.conf
 ls -la /opt/amud/run
 ```
 
@@ -566,8 +584,8 @@ ls -la /opt/amud/run
 **Fix:** You can reset the custom CSS directly from the SQLite database via the CLI:
 
 ```bash
-pct exec 101 -- sqlite3 /opt/amud/data/amud.db "UPDATE settings SET value='' WHERE key='custom_css';"
-pct exec 101 -- systemctl restart amud
+pct exec <CT_ID> -- sqlite3 /opt/amud/data/amud.db "UPDATE settings SET value='' WHERE key='custom_css';"
+pct exec <CT_ID> -- systemctl restart amud
 ```
 
 ---
@@ -579,8 +597,8 @@ pct exec 101 -- systemctl restart amud
 **Fix:** When uploading a database, AMUD automatically saves your original database as `amud.db.bak` before applying the new one. You can easily revert from the CLI:
 
 ```bash
-pct exec 101 -- mv /opt/amud/data/amud.db.bak /opt/amud/data/amud.db
-pct exec 101 -- systemctl restart amud
+pct exec <CT_ID> -- mv /opt/amud/data/amud.db.bak /opt/amud/data/amud.db
+pct exec <CT_ID> -- systemctl restart amud
 ```
 
 ---
@@ -593,7 +611,7 @@ If your issue isn't covered here:
 
 ```bash
 journalctl -u amud-agent --no-pager -n 50 > /tmp/amud-debug.log
-pct exec 101 -- journalctl -u amud --no-pager -n 50 >> /tmp/amud-debug.log
+pct exec <CT_ID> -- journalctl -u amud --no-pager -n 50 >> /tmp/amud-debug.log
 cat /tmp/amud-debug.log
 ```
 

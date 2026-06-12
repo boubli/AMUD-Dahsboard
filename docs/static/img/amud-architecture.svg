@@ -62,7 +62,7 @@
 
   <!-- ==================== LXC CONTAINER BOUNDARY ==================== -->
   <rect x="320" y="70" width="230" height="360" rx="10" fill="#16161e" fill-opacity="0.8" stroke="#3b4261" stroke-width="2" />
-  <text x="335" y="95" fill="#c0caf5" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">LXC Container (ID: 101)</text>
+  <text x="335" y="95" fill="#c0caf5" font-family="system-ui, sans-serif" font-size="13" font-weight="bold">LXC Container (amud-dashboard)</text>
   <text x="335" y="112" fill="#565f89" font-family="system-ui, sans-serif" font-size="10">amud-dashboard</text>
 
   <!-- ==================== CLIENT BROWSER ==================== -->
