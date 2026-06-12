@@ -40,6 +40,10 @@
             </div>
             
             <div style="display: flex; align-items: center; gap: 1rem;">
+                <div id="ws-status-pill" class="ws-status-pill ws-connecting" title="Live dashboard connection">
+                    <span class="ws-status-dot"></span>
+                    <span id="ws-status-text">Connecting</span>
+                </div>
                 <!-- Weather Widget -->
                 <div class="weather-widget">
                     <i data-lucide="sun"></i>
@@ -88,6 +92,12 @@
         <div class="category-filters-wrapper">
             <div class="category-filters" id="category-tabs-container">
                 <!-- CATEGORY_TABS -->
+            </div>
+            <div class="status-legend" aria-label="Status legend">
+                <span><strong>ONLINE</strong> URL reachable</span>
+                <span><strong>OFFLINE</strong> URL unreachable</span>
+                <span class="admin-only-legend"><strong>RUNNING</strong> container running</span>
+                <span class="admin-only-legend"><strong>STOPPED</strong> container stopped</span>
             </div>
         </div>
 
@@ -161,6 +171,9 @@
         <main class="bento-grid">
             <!-- APPS_GRID -->
         </main>
+        <div id="health-status-hint" class="health-status-hint" style="display:none;">
+            Some app health checks have not returned yet. Check the app URLs or the AMUD server logs if this persists.
+        </div>
 
         <!-- Support / Donation Card (optional) -->
         <!-- SUPPORT_SECTION -->
@@ -184,12 +197,14 @@
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <div class="form-group">
                 <label>Application Name</label>
-                <input type="text" name="name" class="form-control" required placeholder="e.g. Radarr">
+                <input type="text" name="name" class="form-control" required placeholder="e.g. Radarr" oninput="checkDuplicateAppName()">
+                <p class="form-help duplicate-warning" data-duplicate-warning style="display:none;">An app with this name already exists. Use a unique name for accurate health badges.</p>
             </div>
 
             <div class="form-group">
-                <label>Application URL</label>
+                <label>Application URL / Health Check Target</label>
                 <input type="url" name="url" class="form-control" required placeholder="e.g. http://192.168.1.50:7878">
+                <p class="form-help">AMUD uses this URL for public ONLINE/OFFLINE checks. Guests only see the coarse result.</p>
             </div>
 
             <div class="form-group">
@@ -251,12 +266,14 @@
 
             <div class="form-group">
                 <label>Application Name</label>
-                <input type="text" name="name" class="form-control" required x-model="editApp.name" placeholder="e.g. Radarr">
+                <input type="text" name="name" class="form-control" required x-model="editApp.name" placeholder="e.g. Radarr" oninput="checkDuplicateAppName()">
+                <p class="form-help duplicate-warning" data-duplicate-warning style="display:none;">Another app already uses this name. Use a unique name for accurate health badges.</p>
             </div>
 
             <div class="form-group">
-                <label>Application URL</label>
+                <label>Application URL / Health Check Target</label>
                 <input type="url" name="url" class="form-control" required x-model="editApp.url" placeholder="e.g. http://192.168.1.50:7878">
+                <p class="form-help">AMUD uses this URL for public ONLINE/OFFLINE checks. Guests only see the coarse result.</p>
             </div>
 
             <div class="form-group">
@@ -306,6 +323,52 @@
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+
+        const isAdmin = "{{is_admin}}" === "true";
+        const knownAppNames = new Set({{app_names_json}});
+        let latestAppStatuses = {};
+        if (!isAdmin) {
+            document.body.classList.add('public-view');
+        }
+
+        function amudSafeLower(value) {
+            return (value || '').trim().toLowerCase();
+        }
+
+        function setWsStatus(state) {
+            const pill = document.getElementById('ws-status-pill');
+            const text = document.getElementById('ws-status-text');
+            if (!pill || !text) return;
+            pill.classList.remove('ws-live', 'ws-connecting', 'ws-offline');
+            pill.classList.add(`ws-${state}`);
+            text.innerText = state === 'live' ? 'Live' : (state === 'offline' ? 'Offline' : 'Reconnecting');
+        }
+
+        function checkDuplicateAppName() {
+            document.querySelectorAll('.modal form').forEach(form => {
+                const input = form.querySelector('input[name="name"]');
+                const warning = form.querySelector('[data-duplicate-warning]');
+                if (!input || !warning) return;
+                const currentId = form.querySelector('input[name="id"]')?.value || '';
+                const originalName = currentId ? amudSafeLower(window.editingAppOriginalName) : '';
+                const value = amudSafeLower(input.value);
+                const duplicate = value && knownAppNames.has(value) && value !== originalName;
+                warning.style.display = duplicate ? 'block' : 'none';
+            });
+        }
+
+        function toggleGuestPreview() {
+            document.body.classList.toggle('guest-preview');
+            const enabled = document.body.classList.contains('guest-preview');
+            if (enabled) {
+                document.querySelectorAll('.status-badge').forEach(badge => {
+                    badge.dataset.containerManaged = 'false';
+                });
+                updateAppUrlStatuses(latestAppStatuses);
+            }
+        }
+
+        document.getElementById('guest-preview-toggle')?.addEventListener('click', toggleGuestPreview);
 
         // Clock, greeting and date updater
         function updateClock() {
@@ -493,6 +556,21 @@
             }
         }
 
+        setTimeout(() => {
+            let unknownCount = 0;
+            document.querySelectorAll('.status-badge').forEach(badge => {
+                if (!badge.dataset.lastStatus) {
+                    styleStatusBadge(badge, 'UNKNOWN');
+                    badge.title = 'No live status received yet';
+                    unknownCount += 1;
+                }
+            });
+            const hint = document.getElementById('health-status-hint');
+            if (hint && isAdmin && unknownCount > 0) {
+                hint.style.display = 'block';
+            }
+        }, 20000);
+
         function findContainerByNames(containers, names) {
             return containers.find(lxc => names.some(name =>
                 lxc.name.toLowerCase() === name ||
@@ -520,34 +598,48 @@
 
         function styleStatusBadge(badge, status, latencyMs = null) {
             const normalized = (status || '').toLowerCase();
-            if (latencyMs !== null && normalized === 'online') {
+            const guestPreview = document.body.classList.contains('guest-preview');
+            const showLatency = isAdmin && !guestPreview && latencyMs !== null && normalized === 'online';
+            if (showLatency) {
                 badge.innerText = `${latencyMs} ms`;
             } else {
                 badge.innerText = (status || 'UNKNOWN').toUpperCase();
             }
 
             const isHealthy = ['running', 'online'].includes(normalized);
-            const isWarn = ['not configured', 'checking'].includes(normalized);
-            badge.style.color = isHealthy ? '#10b981' : (isWarn ? 'var(--text-muted)' : '#ef4444');
-            badge.style.background = isHealthy
-                ? 'rgba(16, 185, 129, 0.1)'
-                : (isWarn ? 'rgba(255,255,255,0.05)' : 'rgba(239, 68, 68, 0.1)');
-            badge.style.borderColor = isHealthy
-                ? 'rgba(16, 185, 129, 0.2)'
-                : (isWarn ? 'var(--border-card)' : 'rgba(239, 68, 68, 0.2)');
+            const isWarn = ['not configured', 'checking', 'unknown'].includes(normalized);
+            badge.classList.remove('status-online', 'status-offline', 'status-checking', 'status-unknown', 'ms');
+            if (showLatency) {
+                badge.classList.add('ms');
+            } else if (isHealthy) {
+                badge.classList.add('status-online');
+            } else if (isWarn) {
+                badge.classList.add(normalized === 'checking' ? 'status-checking' : 'status-unknown');
+            } else {
+                badge.classList.add('status-offline');
+            }
+            badge.dataset.lastStatus = normalized || 'unknown';
         }
 
         function updateAppUrlStatuses(statuses) {
+            latestAppStatuses = statuses || {};
             document.querySelectorAll('.app-card').forEach(card => {
                 const appName = card.getAttribute('data-app-name');
                 if (!appName) return;
 
-                const status = statuses[appName] || statuses[appName.toLowerCase()];
-                if (!status) return;
+                const status = latestAppStatuses[appName] || latestAppStatuses[appName.toLowerCase()];
 
                 const badge = card.querySelector('.status-badge');
-                if (!badge || badge.dataset.containerManaged === 'true') return;
+                if (!badge || (badge.dataset.containerManaged === 'true' && !document.body.classList.contains('guest-preview'))) return;
+                if (!status) {
+                    styleStatusBadge(badge, 'UNKNOWN');
+                    badge.title = 'No URL health status has been received for this app';
+                    return;
+                }
 
+                badge.title = isAdmin && !document.body.classList.contains('guest-preview')
+                    ? 'URL health check'
+                    : 'Public availability check';
                 styleStatusBadge(badge, status.status, status.latency_ms);
             });
         }
@@ -644,20 +736,11 @@
                                 const badgeContainer = card.querySelector('.app-card-badges');
                                 if (badgeContainer) {
                                     const existingBadge = badgeContainer.querySelector('.status-badge');
-                                    const isRunning = match.status === 'running';
                                     
                                     if (existingBadge && !existingBadge.classList.contains('ms')) {
                                         existingBadge.dataset.containerManaged = 'true';
-                                        existingBadge.innerText = match.status.toUpperCase();
-                                        if (isRunning) {
-                                            existingBadge.style.color = '#10b981';
-                                            existingBadge.style.background = 'rgba(16, 185, 129, 0.1)';
-                                            existingBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
-                                        } else {
-                                            existingBadge.style.color = '#ef4444';
-                                            existingBadge.style.background = 'rgba(239, 68, 68, 0.1)';
-                                            existingBadge.style.borderColor = 'rgba(239, 68, 68, 0.2)';
-                                        }
+                                        existingBadge.title = 'Container runtime status';
+                                        styleStatusBadge(existingBadge, match.status);
                                     }
                                 }
 
@@ -731,8 +814,15 @@
         const socketUrl = `${protocol}//${window.location.host}/ws`;
         const ws = new WebSocket(socketUrl);
 
+            ws.onopen = () => {
+                setWsStatus('live');
+            };
             ws.onmessage = onWsMessage;
+            ws.onerror = () => {
+                setWsStatus('offline');
+            };
             ws.onclose = () => {
+                setWsStatus('offline');
                 console.warn("WebSocket closed. Attempting reload in 5s.");
                 setTimeout(() => { window.location.reload(); }, 5000);
             };

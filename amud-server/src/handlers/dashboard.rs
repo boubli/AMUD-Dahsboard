@@ -64,6 +64,13 @@ pub async fn dashboard_handler(
 
     // Load Applications (non-blocking DB access)
     let apps = with_db(state.db.clone(), load_apps_from_db).await;
+    let app_names_json = serde_json::to_string(
+        &apps
+            .iter()
+            .map(|app| app.name.to_lowercase())
+            .collect::<Vec<_>>(),
+    )
+    .unwrap_or_else(|_| "[]".to_string());
 
     let apps_html = if apps.is_empty() {
         r#"
@@ -88,7 +95,15 @@ pub async fn dashboard_handler(
             };
 
             // Status indicator — populated by WebSocket after first paint
-            let status_badge = r#"<span class="status-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border-card);">CHECKING...</span>"#;
+            let status_title = if is_admin {
+                "Waiting for container or URL health status"
+            } else {
+                "Public availability check"
+            };
+            let status_badge = format!(
+                r#"<span class="status-badge status-checking" title="{}" aria-label="{}" data-last-status="">CHECKING...</span>"#,
+                status_title, status_title
+            );
 
             // Category slug for filtering
             let cat_slug: String = app
@@ -166,7 +181,7 @@ pub async fn dashboard_handler(
                         <button type="button" class="btn-wake-app" title="Wake-on-LAN" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:0.4rem; display:inline-flex; align-items:center;" @click="triggerWakeAction($el, {})" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'">
                             <i data-lucide="power" style="width:1.1rem; height:1.1rem;"></i>
                         </button>
-                        <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); editAppModalOpen = true;">
+                            <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);">
                             <i data-lucide="edit-2"></i>
                         </button>
                         <form action="/apps/delete" method="POST" style="margin: 0; display: inline-flex; align-items: center;">
@@ -252,6 +267,9 @@ pub async fn dashboard_handler(
             <a href="/admin/settings" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
                 <i data-lucide="sliders-horizontal" style="width:0.95rem; height:0.95rem;"></i> Settings
             </a>
+            <button type="button" id="guest-preview-toggle" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
+                <i data-lucide="eye" style="width:0.95rem; height:0.95rem;"></i> Preview Guest
+            </button>
             "#
         } else {
             ""
@@ -467,6 +485,7 @@ pub async fn dashboard_handler(
             if hide_telemetry { "true" } else { "false" },
         )
         .replace("{{custom_css}}", custom_css)
+        .replace("{{app_names_json}}", &app_names_json)
         .replace("{{is_admin}}", if is_admin { "true" } else { "false" });
     let result = apply_theme_placeholders(result, overlay_theme);
 

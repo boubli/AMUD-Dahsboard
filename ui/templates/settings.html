@@ -587,12 +587,12 @@
                                 </select>
                             </div>
                             <div class="form-group" style="margin-top:1.5rem;">
-                                <label>Guest telemetry visibility</label>
+                                <label>Guest system telemetry visibility</label>
                                 <select name="telemetry_public" class="form-control" style="height:3rem; cursor:pointer;">
-                                    <option value="0" {{eq_telemetry_off}}>Hidden from anonymous guests</option>
-                                    <option value="1" {{eq_telemetry_on}}>Public (basic CPU/RAM/network for guests)</option>
+                                    <option value="0" {{eq_telemetry_off}}>Hide CPU/RAM/network from anonymous guests</option>
+                                    <option value="1" {{eq_telemetry_on}}>Show basic CPU/RAM/network to guests</option>
                                 </select>
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Controls what unauthenticated visitors see via the live WebSocket feed. Container names and app statuses stay hidden.</p>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Guests always receive only coarse app availability badges (ONLINE/OFFLINE). Container names, VMIDs, latency, CPU/RAM/disk details, streams, and admin controls stay hidden.</p>
                             </div>
                         </div>
 
