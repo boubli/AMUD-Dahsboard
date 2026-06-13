@@ -1,6 +1,6 @@
 [package]
 name = "amud-protocol"
-version = "1.3.4"
+version = "1.3.5"
 edition = "2021"
 description = "Shared wire types for AMUD dashboard ↔ agent IPC"
 

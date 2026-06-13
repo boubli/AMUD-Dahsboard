@@ -156,28 +156,26 @@ read_container_agent_secret() {
   echo "$secret"
 }
 
-ensure_container_systemd_env() {
-  local ct_id="$1"
-  local file="$2"
-  local key="$3"
-  local value="$4"
-  pct exec "$ct_id" -- bash -c "
-    if grep -q '^Environment=${key}=' '${file}'; then
-      sed -i 's|^Environment=${key}=.*|Environment=${key}=${value}|' '${file}'
-    else
-      sed -i '/^\[Service\]/a Environment=${key}=${value}' '${file}'
-    fi
-  "
-}
-
 sync_agent_ipc_secret() {
   local ct_id="$1"
   local secret="$2"
   msg_info "Synchronizing AMUD_AGENT_SECRET between server and host agent"
-  ensure_container_systemd_env "$ct_id" "/etc/systemd/system/amud.service" "AMUD_AGENT_SECRET" "$secret"
-  ensure_container_systemd_env "$ct_id" "/etc/systemd/system/amud.service" "AMUD_ENABLE_PROXMOX" "true"
-  ensure_container_systemd_env "$ct_id" "/etc/systemd/system/amud.service" "BIND_ADDR" "0.0.0.0"
-  pct exec "$ct_id" -- systemctl daemon-reload
+  pct exec "$ct_id" </dev/null -- bash -c "
+    file='/etc/systemd/system/amud.service'
+    update_env() {
+      local key=\$1
+      local val=\$2
+      if grep -q \"^Environment=\${key}=\" \"\$file\"; then
+        sed -i \"s|^Environment=\${key}=.*|Environment=\${key}=\${val}|\" \"\$file\"
+      else
+        sed -i \"/^\\\[Service\\\]/a Environment=\${key}=\${val}\" \"\$file\"
+      fi
+    }
+    update_env 'AMUD_AGENT_SECRET' '$secret'
+    update_env 'AMUD_ENABLE_PROXMOX' 'true'
+    update_env 'BIND_ADDR' '0.0.0.0'
+  "
+  pct exec "$ct_id" </dev/null -- systemctl daemon-reload
   if [ -f "/etc/systemd/system/amud-agent.service" ]; then
     ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "AMUD_AGENT_SECRET" "$secret"
     local pve_node
