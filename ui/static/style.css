@@ -1016,31 +1016,6 @@ select.form-control option {
     background: rgba(0, 0, 0, 0.15);
 }
 
-.status-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.55rem;
-    margin-top: 0.6rem;
-    color: var(--text-muted);
-    font-size: 0.72rem;
-}
-
-.status-legend span {
-    padding: 0.25rem 0.5rem;
-    border: 1px solid var(--border-card);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.status-legend strong {
-    color: var(--text-secondary);
-}
-
-body.guest-preview .admin-only-legend,
-body.public-view .admin-only-legend {
-    display: none;
-}
-
 .health-status-hint {
     margin: 1rem auto 0;
     max-width: 720px;
@@ -1062,32 +1037,6 @@ body.public-view .admin-only-legend {
 
 .duplicate-warning {
     color: #f59e0b;
-}
-
-body.guest-preview::after {
-    content: "Guest preview";
-    position: fixed;
-    right: 1rem;
-    bottom: 1rem;
-    z-index: 1000;
-    padding: 0.55rem 0.75rem;
-    border-radius: 999px;
-    border: 1px solid rgba(245, 158, 11, 0.35);
-    background: rgba(15, 23, 42, 0.86);
-    color: #f59e0b;
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    backdrop-filter: blur(12px);
-}
-
-body.guest-preview .container-controls,
-body.guest-preview .btn-wake-app,
-body.guest-preview .btn-edit-app,
-body.guest-preview .btn-delete-app,
-body.guest-preview .nested-metrics-grid {
-    display: none !important;
 }
 
 /* Single-Column Stream layout */

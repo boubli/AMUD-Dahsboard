@@ -93,12 +93,6 @@
             <div class="category-filters" id="category-tabs-container">
                 <!-- CATEGORY_TABS -->
             </div>
-            <div class="status-legend" aria-label="Status legend">
-                <span><strong>ONLINE</strong> URL reachable</span>
-                <span><strong>OFFLINE</strong> URL unreachable</span>
-                <span class="admin-only-legend"><strong>RUNNING</strong> container running</span>
-                <span class="admin-only-legend"><strong>STOPPED</strong> container stopped</span>
-            </div>
         </div>
 
         <!-- Top Row: Telemetry Micro-bars -->
@@ -327,9 +321,6 @@
         const isAdmin = "{{is_admin}}" === "true";
         const knownAppNames = new Set({{app_names_json}});
         let latestAppStatuses = {};
-        if (!isAdmin) {
-            document.body.classList.add('public-view');
-        }
 
         function amudSafeLower(value) {
             return (value || '').trim().toLowerCase();
@@ -356,19 +347,6 @@
                 warning.style.display = duplicate ? 'block' : 'none';
             });
         }
-
-        function toggleGuestPreview() {
-            document.body.classList.toggle('guest-preview');
-            const enabled = document.body.classList.contains('guest-preview');
-            if (enabled) {
-                document.querySelectorAll('.status-badge').forEach(badge => {
-                    badge.dataset.containerManaged = 'false';
-                });
-                updateAppUrlStatuses(latestAppStatuses);
-            }
-        }
-
-        document.getElementById('guest-preview-toggle')?.addEventListener('click', toggleGuestPreview);
 
         // Clock, greeting and date updater
         function updateClock() {
@@ -598,8 +576,7 @@
 
         function styleStatusBadge(badge, status, latencyMs = null) {
             const normalized = (status || '').toLowerCase();
-            const guestPreview = document.body.classList.contains('guest-preview');
-            const showLatency = isAdmin && !guestPreview && latencyMs !== null && normalized === 'online';
+            const showLatency = isAdmin && latencyMs !== null && normalized === 'online';
             if (showLatency) {
                 badge.innerText = `${latencyMs} ms`;
             } else {
@@ -630,16 +607,14 @@
                 const status = latestAppStatuses[appName] || latestAppStatuses[appName.toLowerCase()];
 
                 const badge = card.querySelector('.status-badge');
-                if (!badge || (badge.dataset.containerManaged === 'true' && !document.body.classList.contains('guest-preview'))) return;
+                if (!badge || badge.dataset.containerManaged === 'true') return;
                 if (!status) {
                     styleStatusBadge(badge, 'UNKNOWN');
                     badge.title = 'No URL health status has been received for this app';
                     return;
                 }
 
-                badge.title = isAdmin && !document.body.classList.contains('guest-preview')
-                    ? 'URL health check'
-                    : 'Public availability check';
+                badge.title = isAdmin ? 'URL health check' : 'Public availability check';
                 styleStatusBadge(badge, status.status, status.latency_ms);
             });
         }

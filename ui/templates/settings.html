@@ -36,6 +36,11 @@
             z-index: 10;
         }
 
+        body.settings-page {
+            padding: 0;
+            overflow: hidden;
+        }
+
         .settings-sidebar {
             width: 280px;
             background: rgba(15, 20, 25, 0.65);
@@ -302,7 +307,7 @@
     </style>
     <style id="amud-custom-css">{{custom_css}}</style>
 </head>
-<body x-data="settingsState()">
+<body class="settings-page" x-data="settingsState()">
     <!-- Ambient Wallpaper Background identical to dashboard -->
     <div class="wallpaper-bg" style="background-image: var(--brand-bg-image);"></div>
     <div class="wallpaper-overlay"></div>

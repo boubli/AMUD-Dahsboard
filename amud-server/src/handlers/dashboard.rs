@@ -267,9 +267,6 @@ pub async fn dashboard_handler(
             <a href="/admin/settings" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
                 <i data-lucide="sliders-horizontal" style="width:0.95rem; height:0.95rem;"></i> Settings
             </a>
-            <button type="button" id="guest-preview-toggle" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
-                <i data-lucide="eye" style="width:0.95rem; height:0.95rem;"></i> Preview Guest
-            </button>
             "#
         } else {
             ""
