@@ -48,11 +48,14 @@ target/
 # Cursor / agent session artifacts
 .cursor/
 agent-tools/
+AUDIT_TASKS.md
 
 # Local-only planning notes
 *.local.md
 docs/AMUD_AUDIT_TASKS.md
 docs/NEXT_SESSION*.md
+AUDIT_TASKS.md
+AMUD_AUDIT_TASKS.md
 
 # OS / editor backups
 Desktop.ini

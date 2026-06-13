@@ -29,7 +29,7 @@
     </style>
     <style id="amud-custom-css">{{custom_css}}</style>
 </head>
-<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '' } }">
+<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '' } }">
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
@@ -230,6 +230,23 @@
             </div>
 
             <div class="form-group">
+                <label>Integration Type (Optional)</label>
+                <select name="integration_type" class="form-control" x-model="editApp.integration_type">
+                    <option value="">None</option>
+                    <option value="pihole">Pi-hole</option>
+                    <option value="adguard">AdGuard Home</option>
+                    <option value="radarr">Radarr</option>
+                    <option value="sonarr">Sonarr</option>
+                </select>
+                <p class="form-help">Enables active API widgets on the dashboard card.</p>
+            </div>
+
+            <div class="form-group" x-show="editApp.integration_type !== ''">
+                <label>Integration API Key / Token</label>
+                <input type="text" name="api_key" class="form-control" placeholder="Paste the API key for the selected service">
+            </div>
+
+            <div class="form-group">
                 <label>Description</label>
                 <textarea name="description" class="form-control" rows="2" placeholder="Brief description of the app service"></textarea>
             </div>
@@ -296,6 +313,23 @@
             <div class="form-group">
                 <label>MAC Address (Optional)</label>
                 <input type="text" name="mac_address" x-model="editApp.mac_address" class="form-control" placeholder="e.g. 00:11:22:33:44:55 (For Wake-on-LAN)">
+            </div>
+
+            <div class="form-group">
+                <label>Integration Type (Optional)</label>
+                <select name="integration_type" class="form-control" x-model="editApp.integration_type">
+                    <option value="">None</option>
+                    <option value="pihole">Pi-hole</option>
+                    <option value="adguard">AdGuard Home</option>
+                    <option value="radarr">Radarr</option>
+                    <option value="sonarr">Sonarr</option>
+                </select>
+                <p class="form-help">Enables active API widgets on the dashboard card.</p>
+            </div>
+
+            <div class="form-group" x-show="editApp.integration_type !== ''">
+                <label>Integration API Key / Token</label>
+                <input type="text" name="api_key" class="form-control" x-model="editApp.api_key" placeholder="Paste the API key for the selected service">
             </div>
 
             <div class="form-group">

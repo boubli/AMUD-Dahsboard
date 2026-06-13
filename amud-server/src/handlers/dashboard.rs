@@ -216,9 +216,48 @@ pub async fn dashboard_handler(
                 "".to_string()
             };
 
+            let mut integration_widget = String::new();
+            if !app.integration_type.is_empty() {
+                integration_widget = format!(
+                    r#"
+                    <div class="integration-widget" x-show="integrationData">
+                        <template x-if="integrationData.type === 'pihole' || integrationData.type === 'adguard'">
+                            <div class="nested-metrics-grid cols-2">
+                                <div class="metric-block">
+                                    <span class="metric-value" x-text="integrationData.ads_blocked_today"></span>
+                                    <span class="metric-label">Ads Blocked</span>
+                                </div>
+                                <div class="metric-block" style="flex-direction: row; justify-content: center; gap: 0.5rem; align-items: center;">
+                                    <span class="metric-value" style="font-size: 0.8rem; text-transform: uppercase;" x-text="integrationData.status"></span>
+                                    <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; height: auto;" @click="fetch('/api/apps/{}/integration/action', {{ method: 'POST', headers: {{'Content-Type': 'application/json'}}, body: JSON.stringify({{action: 'disable'}}) }}).then(() => fetch('/api/apps/{}/integration').then(r=>r.json()).then(d=>integrationData=d))">Disable</button>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="integrationData.type === 'radarr' || integrationData.type === 'sonarr'">
+                            <div class="nested-metrics-grid">
+                                <div class="metric-block">
+                                    <span class="metric-value" x-text="integrationData.queue_size"></span>
+                                    <span class="metric-label">Items in Queue</span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>"#,
+                    app.id, app.id
+                );
+            }
+
+            let alpine_init = if !app.integration_type.is_empty() {
+                format!(
+                    r#"x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.json()).then(d => integrationData = d)""#,
+                    app.id
+                )
+            } else {
+                "".to_string()
+            };
+
             let card = format!(
                 r#"
-                <div class="glass-panel app-card" data-app-name="{}" data-category="{}">
+                <div class="glass-panel app-card" data-app-name="{}" data-category="{}" {}>
                     <div class="app-card-header">
                         <a href="{}" target="_blank" rel="noopener noreferrer" class="app-card-identity" style="text-decoration:none; color:inherit;">
                             <div class="app-card-icon">
@@ -236,9 +275,11 @@ pub async fn dashboard_handler(
                         </div>
                     </div>
                     {}
+                    {}
                 </div>"#,
                 escape_html(&name_lower),
                 escape_html(&cat_slug),
+                alpine_init,
                 escape_html(&app.url),
                 escape_html(&brand_logo),
                 escape_html(&app.name),
@@ -246,7 +287,8 @@ pub async fn dashboard_handler(
                 status_badge,
                 ctrl_container,
                 delete_btn,
-                sub_metrics
+                sub_metrics,
+                integration_widget
             );
             cols[col_idx].push_str(&card);
         }

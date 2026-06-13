@@ -26,6 +26,8 @@ pub async fn add_app_handler(
         .unwrap_or_else(|| "Local".to_string());
     let description = form.get("description").cloned().unwrap_or_default();
     let mac_address = form.get("mac_address").cloned().unwrap_or_default();
+    let integration_type = form.get("integration_type").cloned().unwrap_or_default();
+    let api_key = form.get("api_key").cloned().unwrap_or_default();
 
     if !name.is_empty() && !url.is_empty() {
         let admin_user = session
@@ -37,8 +39,8 @@ pub async fn add_app_handler(
             let category = crate::db::resolve_app_category(db, &category_input);
             if db
                 .execute(
-                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    params![name, url, icon, description, category, node_tag, mac_address],
+                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, api_key],
                 )
                 .is_ok()
             {
@@ -126,6 +128,8 @@ pub async fn edit_app_handler(
                 .unwrap_or_else(|| "Local".to_string());
             let description = form.get("description").cloned().unwrap_or_default();
             let mac_address = form.get("mac_address").cloned().unwrap_or_default();
+            let integration_type = form.get("integration_type").cloned().unwrap_or_default();
+            let api_key = form.get("api_key").cloned().unwrap_or_default();
 
             if !name.is_empty() && !url.is_empty() {
                 let admin_user = session
@@ -137,8 +141,8 @@ pub async fn edit_app_handler(
                     let category = crate::db::resolve_app_category(db, &category_input);
                     if db
                         .execute(
-                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ? WHERE id = ?",
-                            params![name, url, icon, description, category, node_tag, mac_address, id],
+                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ? WHERE id = ?",
+                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, id],
                         )
                         .is_ok()
                     {
@@ -518,4 +522,60 @@ pub async fn serve_upload_handler(
             .body(Body::from("Not found"))
             .unwrap(),
     }
+}
+
+pub async fn integration_data_handler(
+    Path(id): Path<i64>,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let app = with_db(state.db.clone(), move |db| {
+        let mut apps = crate::db::load_apps_from_db(db);
+        apps.retain(|a| a.id == id);
+        apps.pop()
+    })
+    .await;
+
+    if let Some(app) = app {
+        if let Some(data) = crate::integrations::fetch_integration_data(&app).await {
+            return Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(Body::from(data.to_string()))
+                .unwrap();
+        }
+    }
+
+    Response::builder()
+        .status(StatusCode::NOT_FOUND)
+        .body(Body::from("{}"))
+        .unwrap()
+}
+
+pub async fn integration_action_handler(
+    Path(id): Path<i64>,
+    State(state): State<Arc<AppState>>,
+    axum::Json(payload): axum::Json<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let action = payload.get("action").cloned().unwrap_or_default();
+    let app = with_db(state.db.clone(), move |db| {
+        let mut apps = crate::db::load_apps_from_db(db);
+        apps.retain(|a| a.id == id);
+        apps.pop()
+    })
+    .await;
+
+    if let Some(app) = app {
+        if let Some(data) = crate::integrations::execute_integration_action(&app, &action).await {
+            return Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(Body::from(data.to_string()))
+                .unwrap();
+        }
+    }
+
+    Response::builder()
+        .status(StatusCode::BAD_REQUEST)
+        .body(Body::from("{}"))
+        .unwrap()
 }

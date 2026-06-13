@@ -543,6 +543,8 @@ mod tests {
             category: String::new(),
             node_tag: String::new(),
             mac_address: String::new(),
+            integration_type: String::new(),
+            api_key: String::new(),
         }
     }
 

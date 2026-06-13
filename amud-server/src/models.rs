@@ -22,6 +22,10 @@ pub struct App {
     pub(crate) node_tag: String,
     #[serde(default)]
     pub(crate) mac_address: String,
+    #[serde(default)]
+    pub(crate) integration_type: String,
+    #[serde(default)]
+    pub(crate) api_key: String,
 }
 
 #[derive(Clone, Serialize)]

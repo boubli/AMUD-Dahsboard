@@ -4,6 +4,7 @@ pub mod audit;
 pub mod auth;
 pub mod db;
 pub mod handlers;
+pub mod integrations;
 pub mod logos;
 pub mod media;
 pub mod models;
@@ -85,6 +86,13 @@ pub async fn run() {
         "ALTER TABLE apps ADD COLUMN mac_address TEXT DEFAULT ''",
         [],
     );
+
+    let _ = conn.execute(
+        "ALTER TABLE apps ADD COLUMN integration_type TEXT DEFAULT ''",
+        [],
+    );
+
+    let _ = conn.execute("ALTER TABLE apps ADD COLUMN api_key TEXT DEFAULT ''", []);
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS users (
@@ -290,6 +298,11 @@ pub async fn run() {
         .route("/apps/edit", post(edit_app_handler))
         .route("/apps/wake", post(wake_app_handler))
         .route("/apps/action", post(app_action_handler))
+        .route("/api/apps/:id/integration", get(integration_data_handler))
+        .route(
+            "/api/apps/:id/integration/action",
+            post(integration_action_handler),
+        )
         .route(
             "/api/categories",
             get(list_categories_handler).post(add_category_handler),
