@@ -3,111 +3,119 @@
 </div>
 
 # AMUD Dashboard
-> **Unify Your Homelab: The Zero-YAML, UI-Driven Cockpit.**
 
 [![GitHub Release](https://img.shields.io/github/v/release/boubli/AMUD-Dashboard?style=flat-square)](https://github.com/boubli/AMUD-Dashboard/releases/latest)
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
-AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles at roughly **35MB to 100MB of RAM** (combined server and agent) with a **~660MB disk footprint** when deployed as a full Debian LXC container.
 
-**📚 Official Documentation:** [https://boubli.github.io/AMUD-Dashboard/](https://boubli.github.io/AMUD-Dashboard/)
+A compiled, zero-dependency homelab control center and telemetry dashboard.
 
-**Ready to deploy? Refer directly to our [AMUD Deployment Guide](DEPLOY.md) for automated installer scripts, Portainer configs, and Docker CLI instructions.**
+Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes (PHP-FPM, Node.js) and rely on complex nested YAML configuration files, AMUD is written in compiled Rust and persisted entirely in SQLite. Combined, the server and telemetry agent idle at **35MB to 100MB of RAM** with sub-millisecond route execution.
+
+## Architecture & Design Decisions
+
+AMUD is split into two native binaries:
+1. **`amud-server`**: Axum-based web server serving server-rendered HTML (templated via Alpine.js) and managing state via SQLite.
+2. **`amud-agent`**: Standalone daemon installed on the homelab host. It queries host metrics, Proxmox VE containers, and Docker runtimes, streaming raw JSON payloads back to the server via Unix Domain Sockets (UDS) or TCP.
+
+```mermaid
+graph TD
+    User[Web Browser] -->|HTML / WebSockets| Server[amud-server]
+    Server -->|SQLite WAL| DB[(amud.db)]
+    Agent[amud-agent] -->|JSON over UNIX Socket| Server
+    Agent -->|Direct HTTPS REST API| PVE[Proxmox VE API]
+    Agent -->|Unix Domain Socket| Docker[Docker Daemon]
+```
+
+### Technical Stack Justifications
+
+#### Rust & Axum
+* **No Runtime Overhead**: Compiles directly to native machine code. Eliminates the JVM/V8 startup and heap overhead.
+* **Concurrent Event Loop (Tokio)**: Telemetry streams and third-party integrations (AdGuard, Pi-hole, Plex, Home Assistant) poll concurrently on Tokio green threads. Telemetry is serialized once per poll tick and broadcasted to WebSockets using a `tokio::sync::watch` channel.
+
+#### SQLite Persistence (`rusqlite`)
+* **Zero YAML**: Configuration is stored in an embedded SQLite database. Layouts, category tabs, and settings are configured directly via the UI, bypassing YAML syntax headaches.
+* **Performance**: Configured in WAL (Write-Ahead Logging) mode, enabling concurrent reads and low-latency writes without external network overhead.
+
+#### Direct Telemetry Collection
+* **Zero Shell Subprocesses**: Legacy solutions fork system calls like `pvesh` or `curl` every few seconds to grab container stats, resulting in high CPU overhead.
+* **Natively Networked**: `amud-agent` utilizes `hyper` and `rustls` to send native HTTPS REST API calls to Proxmox VE and reads the Docker daemon directly over the UNIX socket via `hyperlocal`.
 
 ---
 
-## Proxmox Telemetry Configuration
+## Telemetry Configuration
 
-AMUD now communicates **directly with the Proxmox VE REST API** for container telemetry. The agent no longer shells out to the `pvesh` Python CLI on every poll — it issues native, lightweight HTTPS requests over `hyper`, dramatically reducing CPU and memory overhead on your Proxmox host.
+### Proxmox VE Integration
+Host metrics function automatically. For LXC container monitoring, the agent must be authenticated to the Proxmox VE REST API.
 
-To enable LXC telemetry, provide the agent with a Proxmox API token.
-
-### 1. Create an API Token
-
-In the Proxmox web UI:
-
+#### 1. Generate API Token
+In the Proxmox VE Web UI:
 1. Navigate to **Datacenter → Permissions → API Tokens**.
-2. Click **Add**.
-3. Select the **User** the token belongs to (e.g. `root@pam`).
-4. Enter a **Token ID** (e.g. `amud`).
-5. *(Optional)* Leave **Privilege Separation** unchecked to inherit the user's permissions, or assign the token explicit `VM.Audit` / `Sys.Audit` rights on the relevant nodes.
-6. Click **Add**, then **copy the Secret value immediately** — Proxmox displays it only once.
+2. Click **Add**. Select User (e.g., `root@pam`) and Token ID (e.g., `amud`).
+3. **Uncheck** *Privilege Separation* so the token inherits the user's VM/System audit permissions.
+4. Copy the returned Secret key.
 
-### 2. Set the Environment Variable
-
-Pass the credential to the agent via `PVE_API_TOKEN`. It must contain the **entire** value, including the `PVEAPIToken=` scheme prefix:
-
+#### 2. Pass Token to Agent
+Set the environment variable on the host running the agent:
 ```bash
-PVE_API_TOKEN=PVEAPIToken=USER@REALM!TOKENID=SECRET
+PVE_API_TOKEN=PVEAPIToken=root@pam!amud=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 ```
 
-For example:
+---
 
-```bash
-PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-```
+## Deployment
 
-> If this variable is unset, the agent simply skips Proxmox polling — host CPU/RAM/disk metrics continue to work normally.
+### Docker Compose
 
-### 3. Add it to `docker-compose.yml`
+For containerized hosts (combines server and agent communicating over a shared volume for the Unix socket):
 
 ```yaml
 services:
+  amud-server:
+    image: tradmss/amud-dashboard:latest
+    entrypoint: ["/app/amud-server"]
+    ports:
+      - "8000:8000"
+    environment:
+      - AMUD_AGENT_SECRET=change-me-to-a-long-random-string
+    volumes:
+      - /opt/amud/data:/app/data
+      - /opt/amud/run:/opt/amud/run
+    restart: unless-stopped
+
   amud-agent:
     image: tradmss/amud-dashboard:latest
     entrypoint: ["/app/amud-agent"]
     environment:
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string
-      - PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      - PVE_API_TOKEN=PVEAPIToken=root@pam!amud=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
     volumes:
       - /opt/amud/run:/opt/amud/run
     restart: unless-stopped
 ```
 
----
-
-## Why AMUD Demolishes Legacy Dashboards (Heimdall, Homepage, Homarr)
-
-### 1. Bare-Metal Resource Discipline
-* **The Legacy Problem:** Heimdall relies on a heavy PHP/Laravel lifecycle, requiring background web servers (Nginx/Apache) and PHP-FPM daemons that swallow 150MB+ RAM just sitting idle. 
-* **The AMUD Solution:** Written in pure, compiled Rust. It executes native machine code with zero interpreter overhead, running the entire dashboard, telemetry layer, and database inside a strict **~26MB RAM** envelope at idle in a full LXC container.
-
-### 2. Zero-YAML, 100% UI-Driven Control
-* **The Legacy Problem:** Next-gen dashboards force you to spend hours manually writing, indenting, and debugging hundreds of lines of complex YAML text files just to add a shortcut.
-* **The AMUD Solution:** Powered by an embedded, ultra-fast **SQLite (Rusqlite)** architecture. You get the advanced layout categories, tagging, and sub-pages of a modern dashboard, but configured entirely through an elegant, reactive user interface. 
-
-### 3. Active Cockpit vs. Passive Bookmarks
-* **The Legacy Problem:** Traditional dashboards are just glorified lists of web links. If a service freezes or crashes, they are completely blind to it.
-* **The AMUD Solution:** 
-  * **Asynchronous Tokio Telemetry:** Background tokio threads concurrently poll your metrics and stream live updates to the UI via WebSockets without blocking your browser or causing layout lags.
-  * **Integrated Live Clock, Search & Category Filters:** View a live-updating local clock and customized greetings based on the hour of the day, search the web with a configurable search widget, and filter applications dynamically client-side with category filter tabs.
-  * **Dynamic Media Streams:** The dashboard automatically hides Plex/Jellyfin stream cards if those applications aren't registered in your homelab database, showing them only when configured.
-
-### 4. Admin vs. Guest Profiles
-* **The Legacy Problem:** Sharing your landing page with family members usually means exposing your sensitive admin tools (Proxmox, Portainer) or setting up massive external proxy layers.
-* **The AMUD Solution:** Built-in cryptographic user roles. Admins see the full cluster control array (with add/delete buttons and settings drawer); guests or family profiles get a clean, read-only dashboard layout out of the box.
+### Proxmox LXC Autopilot Script
+For native installation within a Proxmox VE LXC container (running outside Docker), execute this on your Proxmox VE host:
+```bash
+curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setup-amud.sh | bash
+```
 
 ---
 
-## Microscopic Production Footprint
+## Production Resource Footprint
 
-| Dimension | Heimdall Application Dashboard | AMUD Dashboard |
-| :--- | :---: | :---: |
+| Dimension | Heimdall (Legacy PHP) | AMUD Dashboard (Rust) |
+| :--- | :--- | :--- |
 | **Engine** | PHP 8+ / Laravel | Rust / Axum / Tokio |
-| **Runtime Overhead** | High (Interpreted PHP-FPM) | Zero (Native Compiled Machine Code) |
-| **Assets Injection** | Read from host disk paths | Embedded templates (`include_str!`) + static files |
-| **Idle RAM Footprint** | 80MB - 150MB | **35MB to 100MB** |
-| **Boot Time** | 2 - 5 seconds | **Sub-millisecond (Instant)** |
+| **Execution Overhead** | High (Interpreted PHP-FPM) | Zero (Native Machine Code) |
+| **Asset Delivery** | Disk reads per request | Embedded in binary via `include_str!` |
+| **Idle RAM Footprint** | ~150MB | **35MB - 100MB** (Combined) |
+| **Startup / Boot Time**| ~2 - 5 seconds | **Sub-millisecond** |
 
 ---
 
 ## Support & Donation
 
-AMUD is completely free with every feature unlocked. A donation is optional and unlocks nothing extra - it is simply a kind way to support continued development.
-
-* 💖 **GitHub Sponsors:** [Sponsor @boubli on GitHub](https://github.com/sponsors/boubli)
-* 💳 **Card (Stripe):** [Donate via Card](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)
-* ☕ **Ko-fi:** [Support on Ko-fi](https://ko-fi.com/Youssefboubli)
-
-Every contribution helps keep development active. Thank you!
-
+* [GitHub Sponsors](https://github.com/sponsors/boubli)
+* [Donate via Stripe](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)
+* [Ko-fi](https://ko-fi.com/Youssefboubli)

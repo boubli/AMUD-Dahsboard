@@ -4,49 +4,33 @@ sidebar_position: 1
 
 # Introduction
 
-Welcome to **AMUD (Advanced Modern Unified Dashboard)**.
+AMUD (Advanced Modern Unified Dashboard) is a compiled, zero-dependency homelab control center and telemetry dashboard.
 
-AMUD is a high-performance, intelligent home lab cockpit engineered strictly for resource-constrained environments. While legacy dashboards demand heavy runtimes, bloated frameworks, and complex text-file configurations, AMUD provides a single-binary, zero-dependency ecosystem control center that idles at roughly **~26MB of RAM** (combined server and agent) with a **~660MB disk footprint** when deployed as a full Debian LXC container.
+Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes (PHP-FPM, Node.js) and rely on complex nested YAML configuration files, AMUD is written in compiled Rust and persisted entirely in SQLite. Combined, the server and telemetry agent idle at **35MB to 100MB of RAM** with sub-millisecond route execution.
 
-## How AMUD Works (Architecture)
+## System Architecture
 
-Below is an overview of how the AMUD Dashboard and Telemetry Agent communicate to aggregate metrics and report container status in real-time.
+AMUD uses a decoupled client-server architecture to aggregate metrics and report container status in real-time.
 
 ![AMUD Architecture Diagram](/img/amud-architecture.svg)
 
-AMUD uses a decoupled client-server architecture:
-- **amud-agent**: Runs on the hypervisor host (e.g. Proxmox VE) or docker host. It polls system metrics and container states, sending them through a fast Unix domain socket.
-- **amud-socket (`amud.sock`)**: A shared Unix Domain socket. By using a secure socket instead of standard TCP network ports, we avoid exposure and overhead, transferring telemetry at lightning speed.
-- **amud-server**: Listens to the socket and serves the dashboard user interface to your browser over HTTP. It utilizes lightweight **WebSockets** to stream live statistics directly to you.
+1. **`amud-server`**: Axum-based web server that serves server-rendered HTML (via Alpine.js templates) and manages persistent state in SQLite.
+2. **`amud-agent`**: Standalone daemon installed on the homelab host. It queries host metrics, Proxmox VE containers, and Docker runtimes, streaming raw JSON payloads back to the server via UDS (`amud.sock`) or TCP.
 
+## Key Design Principles
 
-## Why AMUD Demolishes Legacy Dashboards
+### 1. Minimal Resource Overhead
+* **Native Compilation**: No PHP-FPM, JVM, or Node.js runtime environment is required. The binary compiles to native machine code to eliminate JVM/V8 startup and heap overhead.
+* **Tokio background telemetry loops**: Polling loops for system metrics and integrations (AdGuard, Pi-hole, Plex, Home Assistant) run concurrently on Tokio green threads. Live updates are pushed to WebSockets using a `tokio::sync::watch` channel.
 
-### 1. Bare-Metal Resource Discipline
-* **The Legacy Problem:** Legacy dashboards rely on heavy PHP/Laravel lifecycles, requiring background web servers (Nginx/Apache) and PHP-FPM daemons that swallow 150MB+ RAM just sitting idle. 
-* **The AMUD Solution:** Written in pure, compiled Rust. It executes native machine code with zero interpreter overhead, running the entire dashboard, telemetry layer, and database inside a strict **~26MB RAM** envelope at idle in a full LXC container.
+### 2. Zero-YAML Configuration
+* **SQLite Persistence**: Configuration is stored in an embedded SQLite database (configured in WAL mode for concurrent reads). Layouts, category tabs, and settings are configured directly via the UI, bypassing YAML syntax headaches.
 
-### 2. Zero-YAML, 100% UI-Driven Control
-* **The Legacy Problem:** Next-gen dashboards force you to spend hours manually writing, indenting, and debugging hundreds of lines of complex YAML text files just to add a shortcut.
-* **The AMUD Solution:** Powered by an embedded, ultra-fast **SQLite** architecture. You get the advanced layout categories, tagging, and sub-pages of a modern dashboard, but configured entirely through an elegant, reactive user interface. 
-
-### 3. Active Cockpit vs. Passive Bookmarks
-* **The Legacy Problem:** Traditional dashboards are just glorified lists of web links. If a service freezes or crashes, they are completely blind to it.
-* **The AMUD Solution:** 
-  * **Native LXC Telemetry:** AMUD natively polls your Proxmox host via `pvesh` to stream real-time CPU, RAM, and true ON/OFF statuses directly to your custom application cards.
-  * **Asynchronous Tokio Telemetry:** Background threads concurrently poll your metrics and stream live updates to the UI via WebSockets without blocking your browser.
+### 3. Direct Telemetry Collection
+* **Zero Shell Subprocesses**: `amud-agent` queries the Proxmox VE REST API natively using `hyper` and `rustls` for HTTPS requests, and reads the Docker daemon directly over the UNIX socket via `hyperlocal`. It avoids spawning heavy system call forks like `pvesh` or `curl`.
 
 ### 4. Admin vs. Guest Profiles
-* **The Legacy Problem:** Sharing your landing page with family members usually means exposing your sensitive admin tools.
-* **The AMUD Solution:** Built-in cryptographic user roles. Admins see the full cluster control array; guests or family profiles get a clean, read-only dashboard layout out of the box.
-
-### 5. Smart Home Integration & Wake-on-LAN
-* **Smart Home:** Directly hook into your Home Assistant to display your active lights, switches, and home temperature right from your AMUD dashboard without opening a new tab.
-* **Wake-on-LAN:** Boot up your sleeping servers or nodes seamlessly with the click of a button right next to your apps.
-
-### 6. Fully Portable & Customizable
-* **Database Backups:** Use the built-in backup tools to export your entire SQLite configuration and restore it on any new server instantly.
-* **Custom CSS Injection:** Fully theme the dashboard exactly how you want it by injecting custom CSS directly from the UI.
+* **Cryptographic Roles**: built-in user roles. Admins see the full cluster control array; guests or family profiles get a clean, read-only dashboard layout out of the box.
 
 ## Next Steps
 

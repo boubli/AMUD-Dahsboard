@@ -1,195 +1,131 @@
-# AMUD Deployment & Maintenance Guide
+# AMUD Deployment Guide
 
-This document outlines the verified production deployment methodologies for the AMUD Dashboard. AMUD is designed to run with a microscopic resource footprint (less than 10MB RAM combined) by avoiding heavy virtualization layers or Docker nesting within the LXC container.
+Production deployment instructions for AMUD Server and Telemetry Agent.
 
 ---
 
-## 1. Proxmox VE Autopilot Deployment (LXC & Host Agent)
+## 1. Native Proxmox VE Installation (LXC & Host Agent)
 
-The elite deployment method for Proxmox VE clusters uses our native autopilot shell script (`setup-amud.sh`) to automate container provisioning, directory bind-mounting, and host telemetry agent installation directly from GitHub Releases.
+This method deploys the server natively inside a minimal Linux Container (LXC) and installs the agent on the Proxmox host. This avoids virtualization overhead and Docker nesting.
 
-### How the Autopilot Script Works:
-1. **Container Setup**: Provisions a minimal Debian 12 Linux Container (LXC) on Proxmox, allocating **256MB RAM** (with 256MB swap) for a native production runtime.
-2. **Directory Bind-Mounting**: Configures a secure directory `/opt/amud/run` on the Proxmox host and bind-mounts it to the LXC container as `/opt/amud/run`.
-3. **App Orchestration**: Retrieves the latest precompiled `amud-server` and `ui.tar.gz` assets directly from the official **GitHub Releases** page inside the LXC container, configuring them to run natively under `systemd`. No Docker, compiler, or Go/Rust toolchain is needed.
-4. **Host Agent Installation**: Downloads the latest precompiled `amud-agent` binary directly from GitHub Releases, installs it at `/usr/local/bin/amud-agent` on the Proxmox host, and configures a lightweight `systemd` daemon (`amud-agent.service`). This agent streams real-time CPU, RAM, and disk metrics to the server via the UNIX Domain Socket.
+### How the Installer Works:
+1. **LXC Provisioning**: Creates a minimal Debian 12 container on Proxmox allocating 256MB RAM (256MB swap).
+2. **Directory Bind-Mounting**: Configures a directory (`/opt/amud/run`) on the host and bind-mounts it to the LXC container at `/opt/amud/run` for UDS communication.
+3. **Server Deployment**: Downloads precompiled `amud-server` and assets, setting up a systemd unit inside the container.
+4. **Agent Installation**: Downloads and registers `amud-agent` as a systemd daemon on the Proxmox host to stream CPU, RAM, and disk metrics via the UNIX domain socket.
 
-### Execution:
-SSH into your Proxmox VE host as `root` and run:
-```bash
-# Clone the repository and execute the installer
-git clone https://github.com/boubli/AMUD-Dashboard.git
-cd AMUD-Dashboard
-chmod +x *.sh
-./setup-amud.sh
-```
-
-Alternatively, you can run the installer directly via a single-line command:
+### Execution
+SSH into the Proxmox VE host as `root` and run:
 ```bash
 curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setup-amud.sh | bash
 ```
 
 ---
 
-## 1.1 Proxmox API Token Configuration (Required for LXC Monitoring)
+## 1.1 Proxmox API Token Setup (For LXC Telemetry)
 
-After the autopilot script completes, the agent will stream host-level CPU, RAM, and disk metrics immediately. However, to enable **live LXC container status monitoring** (turning "CHECKING..." badges into "RUNNING"/"STOPPED"), you must provide the agent with a Proxmox API token.
+To enable live LXC status polling in the dashboard, the agent must be authenticated to the Proxmox VE REST API.
 
-### Create a Token in Proxmox
+### 1. Generate API Token
+1. In the Proxmox Web UI, navigate to **Datacenter → Permissions → API Tokens**.
+2. Click **Add**. Select user (e.g. `root@pam`) and Token ID (e.g. `amud`).
+3. **Uncheck** *Privilege Separation* (required for the token to inherit the user's VM/System audit permissions).
+4. Copy the returned Secret key.
 
-1. Open the **Proxmox Web UI** (`https://YOUR_IP:8006`).
-2. Navigate to **Datacenter → Permissions → API Tokens**.
-3. Click **Add**.
-4. Set:
-   - **User:** `root@pam`
-   - **Token ID:** `amud`
-   - **⚠️ UNCHECK "Privilege Separation"** (enabled by default — if left checked, the token has zero permissions and the API will return an empty container list)
-5. Click **Add**, then **copy the Secret value immediately** (Proxmox shows it only once).
-
-### Add the Token to the Agent Service
-
-Edit the agent's systemd unit file on the **Proxmox host**:
-
+### 2. Configure Agent Environment
+Edit the agent systemd unit file on the **Proxmox host**:
 ```bash
 nano /etc/systemd/system/amud-agent.service
 ```
 
-Add this line under `[Service]` (replace with your real token):
-
+Add your token under the `[Service]` section:
 ```ini
 Environment="PVE_API_TOKEN=PVEAPIToken=root@pam!amud=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
-> **Important:** The line must have both opening `"` and closing `"` quotes.
-
-Then reload and restart:
-
+Reload and restart the daemon:
 ```bash
 systemctl daemon-reload
 systemctl restart amud-agent
 ```
 
-### Verify
-
+Verify via logs:
 ```bash
-journalctl -u amud-agent --no-pager -n 10
+journalctl -u amud-agent -n 10
 ```
-
-You should see: `[LXC] Successfully fetched XX containers from PVE.`
-
-> For detailed troubleshooting, see the full [Troubleshooting Guide](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting).
+It should report successful container extraction.
 
 ---
 
-## 2. How to Update AMUD to the Latest Release
+## 2. In-Place Updates
 
-When a new version of the AMUD Dashboard or Agent is released on GitHub, you can perform an in-place update of both the LXC server and the Proxmox host agent without destroying your configuration or database.
+Update the LXC server and host agent binaries without modifying existing databases or configurations.
 
-The update script `update-amud.sh` automatically queries the GitHub API for the latest release, stops the services, replaces the binaries and UI templates with the latest precompiled release assets, and restarts the services.
-
-### Update execution:
-SSH into your Proxmox VE host as `root` and run:
-```bash
-# Navigate to the cloned folder and run the updater
-cd AMUD-Dashboard
-./update-amud.sh
-```
-
-Or run the updater directly via curl:
+SSH into the Proxmox VE host as `root` and execute:
 ```bash
 curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/update-amud.sh | bash
 ```
 
 ---
 
-## 3. Complete Uninstallation / Cleanup
+## 3. Uninstallation
 
-If you need to completely remove the AMUD Dashboard LXC and the Proxmox host telemetry agent, we provide an uninstaller script that destroys the container, stops/deletes the host agent, and removes all socket directories.
+To destroy the LXC container, stop host-side telemetry agents, and clean up directories:
 
-SSH into your Proxmox VE host as `root` and run:
-```bash
-# Run the uninstaller script from the cloned repository
-cd AMUD-Dashboard
-./uninstall-amud.sh
-```
-
-Or run the uninstaller directly via curl:
+SSH into the Proxmox VE host as `root` and execute:
 ```bash
 curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/uninstall-amud.sh | bash
 ```
 
 ---
 
-## 4. Portainer Stack Deployment (Web Editor)
+## 4. Docker Compose Deployment
 
-For standard containerized host management panels (when running as a standalone container, not on Proxmox LXC):
-1. Open your Portainer Web UI.
-2. Select **Stacks** -> **Add Stack**.
-3. Under the Web Editor panel, paste the following single-service definition:
-Use the full `docker-compose.yml` from this repository (dashboard **and** agent). Create a `.env` file with a shared secret:
+For containerized hosts (running server and agent on standard Linux distros):
 
+### 1. Create Environment Config (`.env`)
 ```bash
 AMUD_AGENT_SECRET=change-me-to-a-long-random-string
 ```
 
+### 2. Compose Definition (`docker-compose.yml`)
 ```yaml
 version: '3.8'
 
 services:
-  app:
+  amud-server:
     image: tradmss/amud-dashboard:latest
-    container_name: amud_app
-    restart: always
+    container_name: amud_server
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       - DB_PATH=/app/data/amud.db
       - PORT=8000
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
-      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
+      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET}
     volumes:
       - ./data:/app/data
       - amud_run:/var/run/amud
 
-  agent:
+  amud-agent:
     image: tradmss/amud-dashboard:latest
     container_name: amud_agent
     entrypoint: ["/app/amud-agent"]
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
-      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
+      - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET}
     volumes:
       - amud_run:/var/run/amud
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: always
+    restart: unless-stopped
 
 volumes:
   amud_run:
     name: amud_run
 ```
 
-**Environment Variables:**
-
-| Variable | Required | Description |
-|---|---|---|
-| `AMUD_AGENT_SECRET` | **Yes** | Shared secret between dashboard and agent (must match on both containers) |
-| `DB_PATH` | No | SQLite database file path (default `/app/data/amud.db`) |
-| `PORT` | No | HTTP server listen port (default `8000`) |
-| `AMUD_SOCKET_PATH` | No | Unix domain socket path for agent IPC |
-
-4. Click **Deploy the stack**.
-
----
-
-## 5. Standalone Docker Compose (CLI Native)
-
-To compile and launch the dashboard locally on any Linux server:
+Deploy the stack:
 ```bash
-# Clone the repository
-git clone https://github.com/boubli/AMUD-Dashboard.git
-cd AMUD-Dashboard
-
-# Run the compose stack in detached mode
 docker compose up -d
 ```
-The dashboard service is now serving at `http://localhost:8000`.

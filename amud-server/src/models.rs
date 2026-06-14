@@ -99,7 +99,6 @@ pub struct Webhook {
     pub(crate) is_active: i32,
 }
 
-// Global App State
 #[allow(dead_code)]
 pub struct AppState {
     pub(crate) db: Arc<Mutex<Connection>>,

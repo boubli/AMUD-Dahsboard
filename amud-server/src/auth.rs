@@ -143,7 +143,6 @@ pub(crate) fn parse_agent_auth_proof(line: &str) -> Option<String> {
         .filter(|proof| !proof.is_empty())
 }
 
-// Password hashing helper
 pub(crate) fn hash_password(password: &str) -> String {
     let salt = SaltString::generate(&mut OsRng);
     Argon2::default()

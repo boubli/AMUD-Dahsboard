@@ -143,7 +143,6 @@ pub async fn logout_handler(
         .unwrap()
 }
 
-// WS upgrades handler
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
     headers: HeaderMap,
@@ -161,7 +160,6 @@ pub async fn ws_handler(
         false
     };
     ws.on_upgrade(move |socket| handle_ws_session(socket, state, limited_telemetry, public))
-    // public re-checked each tick
 }
 
 async fn handle_ws_session(
@@ -204,4 +202,3 @@ async fn handle_ws_session(
     }
 }
 
-// Settings Handler

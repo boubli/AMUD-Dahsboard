@@ -84,7 +84,6 @@ pub async fn settings_handler(
     Redirect::to("/admin/settings").into_response()
 }
 
-// Proxmox VE API Token connection tester handler
 pub async fn test_proxmox_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
@@ -118,10 +117,9 @@ pub async fn test_proxmox_handler(
         tokio::time::sleep(std::time::Duration::from_millis(200)).await;
     }
 
-    // Clear any previous test response
     *state.pve_test_response.write().unwrap() = None;
 
-    // Agent tests its cached/env token — token is not sent in this command (SEC-015)
+    // Trigger agent self-test without exposing secrets
     let cmd = serde_json::json!({ "action": "test_pve" });
 
     let mut success = false;
@@ -141,7 +139,6 @@ pub async fn test_proxmox_handler(
         };
 
         if sent {
-            // Wait for response up to 5 seconds
             let start = std::time::Instant::now();
             while start.elapsed() < std::time::Duration::from_secs(5) {
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;
@@ -175,7 +172,6 @@ pub async fn test_proxmox_handler(
         .unwrap()
 }
 
-// Secure Credentials Update Handler
 pub async fn credentials_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
@@ -346,4 +342,3 @@ pub async fn credentials_handler(
         .unwrap()
 }
 
-// Categories CRUD Handlers

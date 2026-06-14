@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-// Global default settings
 pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     let mut s = HashMap::new();
     s.insert("app_name", "AMUD");
@@ -89,8 +88,7 @@ pub(crate) fn sanitize_setting_url(value: &str) -> String {
     String::new()
 }
 
-// Donation links are fixed to the AMUD author. Self-hosters can toggle the
-// Support card on/off in Settings, but cannot change these links.
+// Donation links are locked to the author; toggle via show_donation setting.
 pub(crate) const DONATION_MESSAGE: &str = "AMUD is completely free and you already have every feature unlocked. A donation is not required and unlocks nothing extra - it is simply a kind way to support continued development. Thank you!";
 pub(crate) const DONATION_LINKS: [(&str, &str, &str); 3] = [
     (

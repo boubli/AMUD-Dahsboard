@@ -243,7 +243,6 @@ fn fetch_lxc_containers_with_token(token: &str) -> Result<Vec<LxcContainer>, Str
             use hyper_util::client::legacy::Client;
             use hyper_util::rt::TokioExecutor;
 
-            // Build a rustls client config that trusts the Proxmox self-signed cert.
             let tls = rustls::ClientConfig::builder_with_provider(Arc::new(
                 rustls::crypto::ring::default_provider(),
             ))
@@ -264,7 +263,6 @@ fn fetch_lxc_containers_with_token(token: &str) -> Result<Vec<LxcContainer>, Str
                 .enable_http1()
                 .build();
 
-            // legacy::Client handles connection setup/pooling, so no manual handshake.
             let client: Client<_, Empty<Bytes>> =
                 Client::builder(TokioExecutor::new()).build(https);
 
@@ -412,7 +410,6 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
         use hyper_util::client::legacy::Client;
         use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
 
-        // hyperlocal's UnixConnector speaks HTTP/1 directly over the socket.
         let client: Client<UnixConnector, Empty<Bytes>> = Client::unix();
 
         let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", "/containers/json").into();
@@ -609,7 +606,6 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         }
     }
 
-    // Request configuration from server on startup
     let req = ConfigRequest {
         request: "get_config".to_string(),
     };
@@ -619,7 +615,6 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         stream.flush()?;
     }
 
-    // Spawn client reader thread to receive remote commands from Server
     let reader_stream = stream.try_clone()?;
     let mut response_stream = stream.try_clone()?;
     std::thread::spawn(move || {
@@ -628,7 +623,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let mut line = String::new();
         while let Ok(n) = reader.read_line(&mut line) {
             if n == 0 {
-                break; // Socket EOF
+                break;
             }
             execute_command_from_server(&line, &mut response_stream);
             line.clear();
@@ -646,10 +641,8 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
     let mut last_network_sample = Instant::now();
 
     loop {
-        // Refresh telemetry
         sys.refresh_all();
 
-        // Let CPU settle and average usage across cores
         let cpus = sys.cpus();
         let cpu_usage = if !cpus.is_empty() {
             let sum: f32 = cpus.iter().map(|cpu| cpu.cpu_usage()).sum();
@@ -658,7 +651,6 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             0
         };
 
-        // RAM Usage in GB
         let total_mem = sys.total_memory();
         let used_mem = sys.used_memory();
         let ram_usage = if total_mem > 0 {
@@ -669,7 +661,6 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let ram_total_gb = (total_mem as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
         let ram_used_gb = (used_mem as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
-        // CPU Temperatures
         let components = sysinfo::Components::new_with_refreshed_list();
         let mut cpu_temp = 0.0;
         for c in &components {
@@ -683,7 +674,6 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             cpu_temp = components[0].temperature() as f64;
         }
 
-        // Disk metrics
         let disks = sysinfo::Disks::new_with_refreshed_list();
         let mut total_disk: u64 = 0;
         let mut avail_disk: u64 = 0;
@@ -691,7 +681,6 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         for disk in &disks {
             let fs = disk.file_system().to_string_lossy().to_lowercase();
             let mount = disk.mount_point().to_string_lossy().to_string();
-            // Skip virtual/pseudo filesystems
             if fs == "tmpfs"
                 || fs == "overlay"
                 || fs == "squashfs"
@@ -706,11 +695,9 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             {
                 continue;
             }
-            // Skip snap and loop mounts
             if mount.starts_with("/snap") || mount.starts_with("/dev/loop") {
                 continue;
             }
-            // Skip duplicate devices (e.g. bind mounts of the same partition)
             let device_name = disk.name().to_string_lossy().to_string();
             if !seen_devices.insert(device_name) {
                 continue;
@@ -727,14 +714,12 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let disk_total_gb = (total_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
         let disk_used_gb = (used_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
-        // Fetch LXC info from Proxmox natively (no subprocess fork), throttled to every 10s.
         if last_lxc_fetch.elapsed() >= Duration::from_secs(10) {
             cached_lxc = fetch_lxc_containers();
             last_lxc_fetch = Instant::now();
         }
         let mut lxc_containers = cached_lxc.clone();
 
-        // Fetch Docker containers natively over the UNIX socket (no curl fork) and merge.
         lxc_containers.extend(fetch_docker_containers());
 
         let now_network_snapshot = read_network_snapshot();
@@ -759,9 +744,8 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             network: Some(network),
         };
 
-        // Serialize and push
         let mut serialized = serde_json::to_vec(&telemetry).unwrap_or_default();
-        serialized.push(b'\n'); // newline delimited JSON
+        serialized.push(b'\n');
 
         stream.write_all(&serialized)?;
         stream.flush()?;
@@ -770,7 +754,6 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
     }
 }
 
-// Parse and dispatch command received from Dashboard Server
 fn send_action_result(
     response_stream: &mut StreamType,
     request_id: &str,
@@ -863,7 +846,6 @@ fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
     }
 }
 
-// Native Proxmox LXC status change poster
 fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
     let token = get_pve_api_token();
     if token.is_empty() {
@@ -947,7 +929,6 @@ fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
     })
 }
 
-// Native Docker Engine socket status change poster
 #[cfg(unix)]
 fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<String>) {
     if !docker_enabled() {

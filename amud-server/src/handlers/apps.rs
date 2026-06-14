@@ -52,7 +52,6 @@ pub async fn add_app_handler(
     Redirect::to("/").into_response()
 }
 
-// Delete App Handler
 pub async fn delete_app_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
@@ -99,7 +98,6 @@ pub async fn delete_app_handler(
     Redirect::to("/").into_response()
 }
 
-// Edit App Handler
 pub async fn edit_app_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
@@ -225,7 +223,6 @@ pub async fn wake_app_handler(
         .unwrap()
 }
 
-// Multipart File Uploader
 pub async fn upload_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
@@ -325,7 +322,6 @@ pub async fn upload_handler(
     }
 }
 
-// Action Trigger Handler for LXC / Docker containers
 pub async fn app_action_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,

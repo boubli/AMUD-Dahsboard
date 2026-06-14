@@ -58,7 +58,6 @@ fn start_action_results_cleanup(action_results: Arc<RwLock<HashMap<String, Actio
 pub async fn run() {
     println!("AMUD Server starting up in Rust...");
 
-    // Init DB
     fs::create_dir_all("data").ok();
     let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "data/amud.db".to_string());
     secrets::init_secrets_key(&db_path).expect("Failed to initialize AMUD secrets encryption key");
@@ -152,7 +151,6 @@ pub async fn run() {
     )
     .unwrap();
 
-    // Seed default categories if empty
     {
         let mut stmt_cats = conn.prepare("SELECT COUNT(*) FROM categories").unwrap();
         let cat_count: i64 = stmt_cats.query_row([], |r| r.get(0)).unwrap();
@@ -176,7 +174,6 @@ pub async fn run() {
         }
     }
 
-    // Seed default settings if they don't exist
     {
         println!("Ensuring default settings exist...");
         for (key, val) in get_default_settings() {
@@ -188,7 +185,6 @@ pub async fn run() {
         }
     }
 
-    // Check users count
     {
         let mut stmt_users = conn.prepare("SELECT COUNT(*) FROM users").unwrap();
         let user_count: i64 = stmt_users.query_row([], |r| r.get(0)).unwrap();
@@ -261,7 +257,6 @@ pub async fn run() {
         telemetry_broadcast: telemetry_broadcast.clone(),
     });
 
-    // Start background tasks
     start_telemetry_broadcaster(state.clone());
     start_agent_listener(state.clone());
     start_session_cleanup(sessions.clone());
@@ -271,7 +266,6 @@ pub async fn run() {
     start_media_poller(shared_db.clone(), settings_cache.clone(), media_streams);
     start_status_poller(shared_db.clone(), app_statuses);
 
-    // Set up Axum Router
     let app = Router::new()
         .route("/", get(dashboard_handler))
         .route("/login", get(login_page).post(login_handler))

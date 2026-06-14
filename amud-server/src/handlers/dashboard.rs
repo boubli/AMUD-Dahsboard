@@ -7,7 +7,6 @@ pub async fn dashboard_handler(
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
 
-    // Load Settings from in-memory cache (refreshed on save / startup)
     let settings = state.settings_cache.read().unwrap().clone();
 
     let branding = branding_from_settings(&settings);
@@ -62,7 +61,6 @@ pub async fn dashboard_handler(
         category_options_html = r#"<option value="General">General</option>"#.to_string();
     }
 
-    // Load Applications (non-blocking DB access)
     let apps = with_db(state.db.clone(), load_apps_from_db).await;
     let app_names_json = serde_json::to_string(
         &apps
@@ -79,7 +77,6 @@ pub async fn dashboard_handler(
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Log in as Admin and click "Add App" to register your infrastructure.</p>
         </div>"#.to_string()
     } else {
-        // Group cards into the configured number of dashboard columns.
         let mut cols = vec![String::new(); grid_columns_n];
         for (i, app) in apps.iter().enumerate() {
             let col_idx = i % grid_columns_n;
@@ -94,7 +91,6 @@ pub async fn dashboard_handler(
                 "/static/fallback.svg".to_string()
             };
 
-            // Status indicator — populated by WebSocket after first paint
             let status_title = if is_admin {
                 "Waiting for container or URL health status"
             } else {
@@ -105,7 +101,6 @@ pub async fn dashboard_handler(
                 status_title, status_title
             );
 
-            // Category slug for filtering
             let cat_slug: String = app
                 .category
                 .to_lowercase()
@@ -114,7 +109,6 @@ pub async fn dashboard_handler(
                 .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
                 .collect();
 
-            // Build Sub-Metrics Grid
             let name_lower = app.name.to_lowercase();
             let sub_metrics = if session.is_some() {
                 if name_lower.contains("proxmox") {
@@ -299,7 +293,6 @@ pub async fn dashboard_handler(
             .join("")
     };
 
-    // Auth actions buttons in topbar
     let auth_buttons = if let Some(ref sess) = session {
         let admin_settings_btn = if sess.role == "Admin" {
             r#"
@@ -335,7 +328,7 @@ pub async fn dashboard_handler(
         "#.to_string()
     };
 
-    // Stream cards only when Plex / Jellyfin / Emby is registered in the app grid
+    // dynamic streams matching active config
     let has_plex = apps.iter().any(is_plex_app);
     let has_jellyfin = apps.iter().any(is_jellyfin_app);
 
@@ -412,7 +405,6 @@ pub async fn dashboard_handler(
         streams_html = format!(r#"<section class="{}">{}</section>"#, cols_class, cards);
     }
 
-    // Build category filter tabs HTML
     let mut categories = Vec::<String>::new();
     for app in apps.iter() {
         if !app.category.is_empty() && !categories.contains(&app.category) {
@@ -438,8 +430,7 @@ pub async fn dashboard_handler(
         ));
     }
 
-    // Build Support / Donation card. The links are hardcoded to the AMUD author -
-    // self-hosters can only enable or disable the card, not change the links.
+    // Support card with author links. Configured via show_donation.
     let donate_enabled = settings
         .get("donate_enabled")
         .map(|s| s.as_str())
@@ -468,10 +459,8 @@ pub async fn dashboard_handler(
         );
     }
 
-    // Build root_css style overrides
     let root_css = build_root_css(&branding);
 
-    // Load templates
     let index_tmpl = include_str!("../../../ui/templates/index.html");
     let username = session
         .as_ref()
