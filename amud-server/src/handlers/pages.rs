@@ -159,6 +159,10 @@ pub async fn settings_page_handler(
         .get("telemetry_public")
         .map(|s| s.as_str())
         .unwrap_or("0");
+    let accept_invalid = settings
+        .get("accept_invalid_certs")
+        .map(|s| s.as_str())
+        .unwrap_or("0");
     let result = result
         .replace(
             "{{eq_telemetry_on}}",
@@ -171,6 +175,22 @@ pub async fn settings_page_handler(
         .replace(
             "{{eq_telemetry_off}}",
             if telemetry_public != "1" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_accept_invalid_certs_on}}",
+            if accept_invalid == "1" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_accept_invalid_certs_off}}",
+            if accept_invalid != "1" {
                 "selected"
             } else {
                 ""

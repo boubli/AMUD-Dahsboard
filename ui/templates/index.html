@@ -29,7 +29,7 @@
     </style>
     <style id="amud-custom-css">{{custom_css}}</style>
 </head>
-<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '' } }">
+<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '' } }">
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
@@ -231,7 +231,7 @@
 
             <div class="form-group">
                 <label>Integration Type (Optional)</label>
-                <select name="integration_type" class="form-control" x-model="editApp.integration_type">
+                <select name="integration_type" class="form-control" x-model="newApp.integration_type">
                     <option value="">None</option>
                     <option value="pihole">Pi-hole</option>
                     <option value="adguard">AdGuard Home</option>
@@ -241,7 +241,7 @@
                 <p class="form-help">Enables active API widgets on the dashboard card.</p>
             </div>
 
-            <div class="form-group" x-show="editApp.integration_type !== ''">
+            <div class="form-group" x-show="newApp.integration_type !== ''">
                 <label>Integration API Key / Token</label>
                 <input type="text" name="api_key" class="form-control" placeholder="Paste the API key for the selected service">
             </div>

@@ -266,7 +266,19 @@ pub async fn run() {
     start_media_poller(shared_db.clone(), settings_cache.clone(), media_streams);
     start_status_poller(shared_db.clone(), app_statuses);
 
-    let app = Router::new()
+    let app = build_app_router(state);
+
+    let port = std::env::var("PORT").unwrap_or_else(|_| "8000".to_string());
+    let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let addr = format!("{}:{}", bind_addr.trim(), port);
+    println!("AMUD Web Server listening online on http://{}", addr);
+
+    let listener = TokioTcpListener::bind(&addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+
+pub fn build_app_router(state: Arc<AppState>) -> Router {
+    Router::new()
         .route("/", get(dashboard_handler))
         .route("/login", get(login_page).post(login_handler))
         .route("/logout", post(logout_handler))
@@ -317,13 +329,5 @@ pub async fn run() {
         .route("/uploads/:filename", get(serve_upload_handler))
         .nest_service("/static", tower_http::services::ServeDir::new("ui/static"))
         .layer(middleware::from_fn(security_headers))
-        .with_state(state);
-
-    let port = std::env::var("PORT").unwrap_or_else(|_| "8000".to_string());
-    let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1".to_string());
-    let addr = format!("{}:{}", bind_addr.trim(), port);
-    println!("AMUD Web Server listening online on http://{}", addr);
-
-    let listener = TokioTcpListener::bind(&addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+        .with_state(state)
 }

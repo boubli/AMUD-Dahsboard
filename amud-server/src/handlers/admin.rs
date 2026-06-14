@@ -341,4 +341,3 @@ pub async fn credentials_handler(
         .body(axum::body::Body::from(r#"{"success":true}"#))
         .unwrap()
 }
-

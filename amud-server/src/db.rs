@@ -30,7 +30,10 @@ pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
                 node_tag: row.get(6)?,
                 mac_address: row.get(7).unwrap_or_else(|_| "".to_string()),
                 integration_type: row.get(8).unwrap_or_else(|_| "".to_string()),
-                api_key: row.get(9).unwrap_or_else(|_| "".to_string()),
+                api_key: {
+                    let raw_key = row.get::<_, String>(9).unwrap_or_default();
+                    crate::secrets::decrypt_value(&raw_key).unwrap_or(raw_key)
+                },
             })
         })() {
             apps.push(app);

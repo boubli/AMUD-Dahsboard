@@ -176,7 +176,7 @@ pub(crate) fn verify_password(stored_hash: &str, password: &str) -> (bool, bool)
     (verified, verified)
 }
 
-pub(crate) fn now_epoch_secs() -> u64 {
+pub fn now_epoch_secs() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())

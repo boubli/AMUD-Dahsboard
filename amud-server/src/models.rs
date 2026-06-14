@@ -6,9 +6,9 @@ use std::sync::{Arc, Mutex, RwLock};
 use std::time::Instant;
 
 #[derive(Clone)]
-pub(crate) struct AgentCommandHandle {
-    pub(crate) id: u64,
-    pub(crate) tx: tokio::sync::mpsc::UnboundedSender<String>,
+pub struct AgentCommandHandle {
+    pub id: u64,
+    pub tx: tokio::sync::mpsc::UnboundedSender<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -30,10 +30,10 @@ pub struct App {
 
 #[derive(Clone, Serialize)]
 pub struct Session {
-    pub(crate) username: String,
-    pub(crate) role: String,
-    pub(crate) expires_at_epoch: u64,
-    pub(crate) csrf_token: String,
+    pub username: String,
+    pub role: String,
+    pub expires_at_epoch: u64,
+    pub csrf_token: String,
 }
 
 pub(crate) use amud_protocol::{AgentTelemetry, LxcContainer, NetworkTelemetry};
@@ -101,23 +101,23 @@ pub struct Webhook {
 
 #[allow(dead_code)]
 pub struct AppState {
-    pub(crate) db: Arc<Mutex<Connection>>,
-    pub(crate) sessions: Arc<RwLock<HashMap<String, Session>>>,
-    pub(crate) latest_telemetry: Arc<RwLock<AgentTelemetry>>,
-    pub(crate) agent_connected: Arc<RwLock<bool>>,
-    pub(crate) media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
-    pub(crate) app_statuses: Arc<RwLock<HashMap<String, AppStatus>>>,
-    pub(crate) agent_command_tx: Arc<Mutex<Option<AgentCommandHandle>>>,
-    pub(crate) next_agent_conn_id: Arc<AtomicU64>,
-    pub(crate) pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
-    pub(crate) action_results: Arc<RwLock<HashMap<String, ActionResult>>>,
-    pub(crate) settings_cache: Arc<RwLock<HashMap<String, String>>>,
-    pub(crate) alert_cooldowns: Arc<Mutex<HashMap<String, std::time::Instant>>>,
-    pub(crate) login_attempts: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
-    pub(crate) api_rate_limits: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
-    pub(crate) agent_secret: Arc<String>,
-    pub(crate) smart_home_telemetry: Arc<RwLock<crate::smart_home::SmartHomeTelemetry>>,
-    pub(crate) logo_manifest: Arc<HashMap<String, String>>,
-    pub(crate) telemetry_broadcast:
+    pub db: Arc<Mutex<Connection>>,
+    pub sessions: Arc<RwLock<HashMap<String, Session>>>,
+    pub latest_telemetry: Arc<RwLock<AgentTelemetry>>,
+    pub agent_connected: Arc<RwLock<bool>>,
+    pub media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
+    pub app_statuses: Arc<RwLock<HashMap<String, AppStatus>>>,
+    pub agent_command_tx: Arc<Mutex<Option<AgentCommandHandle>>>,
+    pub next_agent_conn_id: Arc<AtomicU64>,
+    pub pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
+    pub action_results: Arc<RwLock<HashMap<String, ActionResult>>>,
+    pub settings_cache: Arc<RwLock<HashMap<String, String>>>,
+    pub alert_cooldowns: Arc<Mutex<HashMap<String, std::time::Instant>>>,
+    pub login_attempts: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
+    pub api_rate_limits: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
+    pub agent_secret: Arc<String>,
+    pub smart_home_telemetry: Arc<RwLock<crate::smart_home::SmartHomeTelemetry>>,
+    pub logo_manifest: Arc<HashMap<String, String>>,
+    pub telemetry_broadcast:
         tokio::sync::watch::Sender<Arc<crate::telemetry_broadcast::WsTelemetryBundle>>,
 }

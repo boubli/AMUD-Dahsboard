@@ -44,6 +44,8 @@ target/
 .env
 .env.*
 !.env.example
+.amud-secrets-key
+*.amud-secrets-key
 
 # Cursor / agent session artifacts
 .cursor/

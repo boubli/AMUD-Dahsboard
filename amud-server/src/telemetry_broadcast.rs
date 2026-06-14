@@ -6,7 +6,7 @@ use std::time::Duration;
 use tokio::sync::watch;
 
 #[derive(Clone)]
-pub(crate) struct WsTelemetryBundle {
+pub struct WsTelemetryBundle {
     pub full: Arc<str>,
     pub guest_public: Arc<str>,
     pub guest_redacted: Arc<str>,

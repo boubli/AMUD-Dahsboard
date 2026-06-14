@@ -37,6 +37,7 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "custom_overlay_color",
     "weather_latitude",
     "weather_longitude",
+    "accept_invalid_certs",
 ];
 
 pub(crate) fn allowed_setting_keys() -> std::collections::HashSet<String> {

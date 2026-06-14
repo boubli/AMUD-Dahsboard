@@ -599,6 +599,14 @@
                                 </select>
                                 <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Guests always receive only coarse app availability badges (ONLINE/OFFLINE). Container names, VMIDs, latency, CPU/RAM/disk details, streams, and admin controls stay hidden.</p>
                             </div>
+                            <div class="form-group" style="margin-top:1.5rem;">
+                                <label>TLS Verification for Integrations</label>
+                                <select name="accept_invalid_certs" class="form-control" style="height:3rem; cursor:pointer;">
+                                    <option value="0" {{eq_accept_invalid_certs_off}}>Verify TLS certificates (Secure)</option>
+                                    <option value="1" {{eq_accept_invalid_certs_on}}>Accept self-signed/invalid TLS certificates (Local Dev)</option>
+                                </select>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Control whether integration calls (e.g. Pi-hole, AdGuard) enforce strict TLS validation. Enable self-signed certificate support if using local HTTPS setups.</p>
+                            </div>
                         </div>
 
                         <div class="settings-block">

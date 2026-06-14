@@ -2,20 +2,20 @@ use crate::models::App;
 use serde_json::{json, Value};
 use std::time::Duration;
 
-fn build_client() -> reqwest::Client {
+fn build_client(accept_invalid_certs: bool) -> reqwest::Client {
     reqwest::Client::builder()
         .timeout(Duration::from_secs(5))
-        .danger_accept_invalid_certs(true)
+        .danger_accept_invalid_certs(accept_invalid_certs)
         .build()
         .unwrap_or_else(|_| reqwest::Client::new())
 }
 
-pub async fn fetch_integration_data(app: &App) -> Option<Value> {
+pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Option<Value> {
     if app.integration_type.is_empty() || app.api_key.is_empty() {
         return None;
     }
 
-    let client = build_client();
+    let client = build_client(accept_invalid_certs);
     let base_url = app.url.trim_end_matches('/');
 
     match app.integration_type.as_str() {
@@ -119,12 +119,16 @@ pub async fn fetch_integration_data(app: &App) -> Option<Value> {
     None
 }
 
-pub async fn execute_integration_action(app: &App, action: &str) -> Option<Value> {
+pub async fn execute_integration_action(
+    app: &App,
+    action: &str,
+    accept_invalid_certs: bool,
+) -> Option<Value> {
     if app.integration_type.is_empty() || app.api_key.is_empty() {
         return None;
     }
 
-    let client = build_client();
+    let client = build_client(accept_invalid_certs);
     let base_url = app.url.trim_end_matches('/');
 
     match app.integration_type.as_str() {

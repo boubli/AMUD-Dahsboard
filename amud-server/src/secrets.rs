@@ -14,7 +14,7 @@ pub(crate) fn encrypted_setting_key(key: &str) -> bool {
     SECRET_SETTING_KEYS.contains(&key) || key == "agent_shared_secret"
 }
 
-pub(crate) fn init_secrets_key(db_path: &str) -> Result<(), String> {
+pub fn init_secrets_key(db_path: &str) -> Result<(), String> {
     let key = load_or_create_key(db_path)?;
     SECRETS_KEY
         .set(key)
@@ -105,7 +105,7 @@ pub(crate) fn decrypt_setting_from_db(key: &str, value: &str) -> String {
     decrypt_value(value).unwrap_or_else(|_| String::new())
 }
 
-fn encrypt_value(plaintext: &str) -> Result<String, &'static str> {
+pub fn encrypt_value(plaintext: &str) -> Result<String, &'static str> {
     let cipher = ChaCha20Poly1305::new_from_slice(key_bytes()).map_err(|_| "cipher")?;
     let mut nonce_bytes = [0u8; 12];
     getrandom::getrandom(&mut nonce_bytes).map_err(|_| "rng")?;
@@ -118,7 +118,7 @@ fn encrypt_value(plaintext: &str) -> Result<String, &'static str> {
     Ok(format!("{ENC_PREFIX}{}", URL_SAFE_NO_PAD.encode(packed)))
 }
 
-fn decrypt_value(stored: &str) -> Result<String, &'static str> {
+pub fn decrypt_value(stored: &str) -> Result<String, &'static str> {
     if !stored.starts_with(ENC_PREFIX) {
         return Ok(stored.to_string());
     }

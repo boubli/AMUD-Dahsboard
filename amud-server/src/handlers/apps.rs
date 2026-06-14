@@ -28,6 +28,11 @@ pub async fn add_app_handler(
     let mac_address = form.get("mac_address").cloned().unwrap_or_default();
     let integration_type = form.get("integration_type").cloned().unwrap_or_default();
     let api_key = form.get("api_key").cloned().unwrap_or_default();
+    let encrypted_api_key = if !api_key.trim().is_empty() {
+        crate::secrets::encrypt_value(&api_key).unwrap_or_else(|_| api_key.clone())
+    } else {
+        api_key
+    };
 
     if !name.is_empty() && !url.is_empty() {
         let admin_user = session
@@ -40,7 +45,7 @@ pub async fn add_app_handler(
             if db
                 .execute(
                     "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, api_key],
+                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key],
                 )
                 .is_ok()
             {
@@ -137,10 +142,17 @@ pub async fn edit_app_handler(
                 let headers = headers.clone();
                 with_db(state.db.clone(), move |db| {
                     let category = crate::db::resolve_app_category(db, &category_input);
+                    let final_api_key = if api_key.trim().is_empty() || api_key == "Configured — leave blank to keep unchanged" {
+                        db.query_row("SELECT api_key FROM apps WHERE id = ?", params![id], |row| {
+                            row.get::<_, String>(0)
+                        }).unwrap_or_default()
+                    } else {
+                        crate::secrets::encrypt_value(&api_key).unwrap_or_else(|_| api_key.clone())
+                    };
                     if db
                         .execute(
                             "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ? WHERE id = ?",
-                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, id],
+                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, id],
                         )
                         .is_ok()
                     {
@@ -521,9 +533,19 @@ pub async fn serve_upload_handler(
 }
 
 pub async fn integration_data_handler(
+    headers: HeaderMap,
     Path(id): Path<i64>,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+
     let app = with_db(state.db.clone(), move |db| {
         let mut apps = crate::db::load_apps_from_db(db);
         apps.retain(|a| a.id == id);
@@ -531,8 +553,17 @@ pub async fn integration_data_handler(
     })
     .await;
 
+    let accept_invalid = {
+        let cache = state.settings_cache.read().unwrap();
+        cache
+            .get("accept_invalid_certs")
+            .map(|s| s == "1")
+            .unwrap_or(false)
+    };
+
     if let Some(app) = app {
-        if let Some(data) = crate::integrations::fetch_integration_data(&app).await {
+        if let Some(data) = crate::integrations::fetch_integration_data(&app, accept_invalid).await
+        {
             return Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", "application/json")
@@ -548,10 +579,31 @@ pub async fn integration_data_handler(
 }
 
 pub async fn integration_action_handler(
+    headers: HeaderMap,
     Path(id): Path<i64>,
     State(state): State<Arc<AppState>>,
     axum::Json(payload): axum::Json<HashMap<String, String>>,
 ) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap();
+    }
+    if !validate_csrf(&headers, &state.sessions, None) {
+        return csrf_forbidden_response();
+    }
+
+    let accept_invalid = {
+        let cache = state.settings_cache.read().unwrap();
+        cache
+            .get("accept_invalid_certs")
+            .map(|s| s == "1")
+            .unwrap_or(false)
+    };
+
     let action = payload.get("action").cloned().unwrap_or_default();
     let app = with_db(state.db.clone(), move |db| {
         let mut apps = crate::db::load_apps_from_db(db);
@@ -561,7 +613,9 @@ pub async fn integration_action_handler(
     .await;
 
     if let Some(app) = app {
-        if let Some(data) = crate::integrations::execute_integration_action(&app, &action).await {
+        if let Some(data) =
+            crate::integrations::execute_integration_action(&app, &action, accept_invalid).await
+        {
             return Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", "application/json")
