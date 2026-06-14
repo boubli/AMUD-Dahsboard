@@ -37,6 +37,6 @@ AMUD operates inside your local area network (LAN) or homelab environment. It is
 If you discover a security vulnerability in this project, please report it immediately:
 
 1. **Do not open a public issue** on GitHub.
-2. Email the maintainer directly at security@boubli.dev (or the user-defined security contact email).
+2. Email the maintainer directly at bbb.vloger@gmail.com (or the user-defined security contact email).
 3. Include details of the vulnerability, a proof of concept (PoC), and steps to reproduce.
 4. We aim to acknowledge reports within 48 hours and provide a fix within 7 days.
