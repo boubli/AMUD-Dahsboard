@@ -60,10 +60,11 @@ EOF
 header_info
 
 # 1. Stop and Destroy the LXC Container
-CT_ID=$(pct list 2>/dev/null | awk '$3 == "amud-dashboard" {print $1}' | head -n1 || true)
+CT_ID=$(pct list 2>/dev/null | awk '$3 == "amud-dashboard" || $3 == "hydrivax-amud" {print $1}' | head -n1 || true)
 
 if [ -n "$CT_ID" ]; then
-    echo -e "  ${INFO}  Found AMUD LXC container (ID: $CT_ID). Stopping and destroying..."
+    CT_NAME=$(pct list 2>/dev/null | awk -v id="$CT_ID" '$1 == id {print $3}' || echo "amud-dashboard")
+    echo -e "  ${INFO}  Found AMUD LXC container (ID: $CT_ID, Name: $CT_NAME). Stopping and destroying..."
     
     msg_info "Stopping LXC container $CT_ID"
     pct stop "$CT_ID" >/dev/null 2>&1 || true
@@ -71,9 +72,9 @@ if [ -n "$CT_ID" ]; then
     
     msg_info "Destroying LXC container $CT_ID"
     pct destroy "$CT_ID" >/dev/null 2>&1
-    msg_ok "LXC Container $CT_ID (amud-dashboard) destroyed successfully"
+    msg_ok "LXC Container $CT_ID ($CT_NAME) destroyed successfully"
 else
-    echo -e "  ${INFO}  No LXC container named 'amud-dashboard' found."
+    echo -e "  ${INFO}  No LXC container named 'amud-dashboard' or 'hydrivax-amud' found."
 fi
 
 # 2. Stop and Disable Host systemd Agent Service

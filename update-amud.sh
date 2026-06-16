@@ -231,7 +231,7 @@ if [ -f "/usr/local/bin/amud-agent" ]; then
 fi
 msg_ok "Release assets downloaded and verified"
 
-CT_ID=$(pct list 2>/dev/null | awk '$3 == "amud-dashboard" {print $1}' | head -n1 || true)
+CT_ID=$(pct list 2>/dev/null | awk '$3 == "amud-dashboard" || $3 == "hydrivax-amud" {print $1}' | head -n1 || true)
 
 if [ -n "$CT_ID" ]; then
   echo -e "\n  ${INFO}  Updating AMUD Dashboard Server inside LXC container $CT_ID..."
@@ -277,7 +277,7 @@ if [ -n "$CT_ID" ]; then
 
   echo -e "  ${CM}  Dashboard Server inside LXC container $CT_ID updated to $LATEST_RELEASE"
 else
-  echo -e "  ${WARNING}  AMUD LXC container (amud-dashboard) not found. Skipping server update."
+  echo -e "  ${WARNING}  AMUD LXC container (amud-dashboard or hydrivax-amud) not found. Skipping server update."
 fi
 
 if [ -f "/usr/local/bin/amud-agent" ]; then
