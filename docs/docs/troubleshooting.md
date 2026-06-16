@@ -404,6 +404,21 @@ pct exec <CT_ID> -- apt-get update
 pct exec <CT_ID> -- apt-get install -y sqlite3
 ```
 
+### Retrieve Initial Bootstrap Password
+
+If this is a fresh installation and you did not save the random bootstrap password printed by the installer, you can retrieve it directly from the systemd journal logs. 
+
+Run this command on your **Proxmox Host**:
+
+```bash
+pct exec <CT_ID> -- journalctl -u amud --no-pager | grep 'Password:'
+```
+
+It will print the seeded admin password, for example:
+```text
+amud-server[123]:    Password: xxxxx-xxxxx-xxxxx
+```
+
 ### Reset `admin` Password to `admin`
 
 ```bash
