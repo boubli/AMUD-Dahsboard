@@ -116,7 +116,7 @@ Live **RUNNING** / **STOPPED** badges and start/stop controls require:
 2. Matching **container IDs** or Docker names on app cards
 3. A working **amud-agent** on the hypervisor host
 
-See [Proxmox VE Installation](./installation/proxmox.md#4-proxmox-api-token-configuration) for token setup.
+See [Proxmox VE Installation](./installation/proxmox.md#5-proxmox-api-token-configuration) for token setup.
 
 ---
 

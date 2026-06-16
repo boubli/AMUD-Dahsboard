@@ -57,7 +57,7 @@ Look for lines starting with `[LXC]`. The log output will tell you exactly what'
 
 If you see `PVE_API_TOKEN not set or empty`, the agent's systemd service file doesn't have the token configured.
 
-1. Create an API token in Proxmox (see [Proxmox Installation → API Token Setup](/docs/installation/proxmox#4-proxmox-api-token-configuration)).
+1. Create an API token in Proxmox (see [Proxmox Installation → API Token Setup](/docs/installation/proxmox#5-proxmox-api-token-configuration)).
 2. Edit the agent service file:
 
 ```bash

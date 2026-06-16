@@ -158,6 +158,12 @@ msg_info "Installing core guest dependencies"
 pct exec "$CT_ID" -- bash -c "env DEBIAN_FRONTEND=noninteractive LC_ALL=C LANG=C LANGUAGE=C apt-get update -qq -y >/dev/null && env DEBIAN_FRONTEND=noninteractive LC_ALL=C LANG=C LANGUAGE=C apt-get install -qq -y curl tar ca-certificates >/dev/null"
 msg_ok "Core guest dependencies installed and system updated"
 
+# Generate a random root password and configure it inside guest
+LXC_ROOT_PASSWORD=$(openssl rand -base64 12 | tr -d '/+=' | head -c 12)
+msg_info "Setting guest root password"
+echo "root:$LXC_ROOT_PASSWORD" | pct exec "$CT_ID" -- chpasswd
+msg_ok "Guest root password configured"
+
 # 6. Fetch Latest Release Version
 msg_info "Querying latest release from GitHub API"
 REPO="boubli/AMUD-Dashboard"
@@ -283,10 +289,12 @@ AMUD-Dashboard (LXC OS: Debian 12 - Native Service)
   Access UI / API:   http://__IP__:8000 (Port 8000)
   First login:       user admin — password printed once in
                      journalctl -u amud-server (bootstrap only)
+  Root Console:      username: root — password: __ROOT_PASS__
 ==============================================================
 EOF
 )
-echo "${TEMPLATE_MOTD//__IP__/$CT_IP_ADDR}" > /tmp/amud-motd
+TEMP_MOTD="${TEMPLATE_MOTD//__IP__/$CT_IP_ADDR}"
+echo "${TEMP_MOTD//__ROOT_PASS__/$LXC_ROOT_PASSWORD}" > /tmp/amud-motd
 pct push "$CT_ID" /tmp/amud-motd /etc/motd
 rm -f /tmp/amud-motd
 
@@ -297,6 +305,7 @@ echo -e "  Container ID:       ${GN}$CT_ID${CL}"
 echo -e "  Container Hostname: ${GN}$CT_NAME${CL}"
 echo -e "  Container Local IP: ${GN}$CT_IP_ADDR${CL}"
 echo -e "  RAM / Swap Alloc:   ${GN}256MB / 256MB${CL}"
+echo -e "  Root Password:      ${GN}$LXC_ROOT_PASSWORD${CL}"
 echo -e "--------------------------------------------------------------"
 echo -e "  ${LAUNCH}  ${BGN}AMUD UI & API:     http://${CT_IP_ADDR}:8000${CL}"
 echo -e "=============================================================="

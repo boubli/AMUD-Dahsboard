@@ -70,7 +70,23 @@ curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amu
 
 ---
 
-## 3. Initial Dashboard Access
+## 3. LXC Console Login & Password Setup
+
+If you want to log directly into the LXC container's terminal (via the Proxmox Web Console or SSH), you need to set a password for the `root` user. By default, Debian LXC templates do not have a pre-configured root password.
+
+You can set or reset the password directly from your **Proxmox Host shell** without needing the old password:
+
+```bash
+# Set the password for the root user of your container
+pct set <CONTAINER_ID> -password
+
+# Alternatively, enter a direct shell inside the container to configure it
+pct enter <CONTAINER_ID>
+```
+
+---
+
+## 4. Initial Dashboard Access
 
 Once the installation completes, the script displays the container's IP address.
 
@@ -88,7 +104,7 @@ Log in, navigate to **Settings → Admin Profile**, and change the administrator
 
 ---
 
-## 4. Proxmox API Token Configuration
+## 5. Proxmox API Token Configuration
 
 To display live status badges (**RUNNING**, **STOPPED**) for other containers on your dashboard, the `amud-agent` needs a Proxmox API token. Without a token, the agent will report host metrics (CPU/RAM/Disk), but your app cards will remain stuck on **"CHECKING..."**.
 
@@ -149,7 +165,7 @@ If **Privilege Separation** is checked, the token is treated as an isolated enti
 
 ---
 
-## 5. Saving and Testing Token in AMUD
+## 6. Saving and Testing Token in AMUD
 
 Once you have your API token, configure it using AMUD's built-in settings panel:
 
@@ -169,7 +185,7 @@ Once you have your API token, configure it using AMUD's built-in settings panel:
 
 ---
 
-## 6. Advanced / Headless Configuration
+## 7. Advanced / Headless Configuration
 
 For infrastructure-as-code deployments or headless scripts, you can set the token directly on the Proxmox host using Systemd environment variables:
 
@@ -195,7 +211,7 @@ For infrastructure-as-code deployments or headless scripts, you can set the toke
 
 ---
 
-## 7. Troubleshooting Socket Mounts
+## 8. Troubleshooting Socket Mounts
 
 If the dashboard displays `0%` metrics for the host CPU/RAM/Disk, the agent and server cannot communicate via the Unix socket file.
 
@@ -217,7 +233,7 @@ If the dashboard displays `0%` metrics for the host CPU/RAM/Disk, the agent and 
 
 ---
 
-## 8. Upgrading AMUD
+## 9. Upgrading AMUD
 
 Run the updater on the **Proxmox host** as root:
 
