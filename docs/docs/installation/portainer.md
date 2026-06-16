@@ -11,8 +11,8 @@ Portainer is a popular web-based interface for managing Docker environments. You
 ## 1. How Portainer Manages AMUD
 
 When you deploy AMUD as a Portainer Stack, Portainer provisions two containers and connects them via a shared volume:
-* **`amud-dashboard`**: Serves the web-based cockpit.
-* **`amud-agent`**: Queries the host's `/var/run/docker.sock` to detect container states and streams this telemetry to the dashboard via a Unix socket.
+* **`amud_app`**: Serves the web-based cockpit.
+* **`amud_agent`**: Queries the host's `/var/run/docker.sock` to detect container states and streams this telemetry to the dashboard via a Unix socket.
 
 ---
 
@@ -33,40 +33,42 @@ Follow these steps to deploy AMUD on your Portainer instance:
 version: '3.8'
 
 services:
-  amud-dashboard:
+  app:
     image: tradmss/amud-dashboard:latest
-    container_name: amud-dashboard
+    container_name: amud_app
+    restart: always
     ports:
       - "8000:8000"
     environment:
       - PORT=8000
+      - BIND_ADDR=0.0.0.0
       - DB_PATH=/app/data/amud.db
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # MUST match the agent secret below
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - amud_data:/app/data
       - amud_run:/var/run/amud
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 128M
 
-  amud-agent:
+  agent:
     image: tradmss/amud-dashboard:latest
-    container_name: amud-agent
+    container_name: amud_agent
     entrypoint: ["/app/amud-agent"]
+    restart: always
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # MUST match the app secret above
+      - AMUD_DOCKER=0 # Set to 1 to enable Docker monitoring (requires the docker.sock volume below)
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - amud_run:/var/run/amud
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 64M
 
 volumes:
   amud_data:
@@ -101,7 +103,7 @@ To backup your dashboard configuration:
 
 To secure your Portainer deployment:
 * **Docker Socket Trust Boundary**: Keep `/var/run/docker.sock` mounted read-only (`:ro`) so the socket file cannot be modified through the bind mount. The Docker API can still process lifecycle requests over the socket, so treat the agent as trusted or place a Docker socket proxy in front of it for method-level filtering.
-* **Network Isolation**: If you deploy multiple stacks, consider placing AMUD on a isolated internal Docker bridge network, and use a reverse proxy stack (like Nginx Proxy Manager) to route traffic to `amud-dashboard` port `8000`.
+* **Network Isolation**: If you deploy multiple stacks, consider placing AMUD on a isolated internal Docker bridge network, and use a reverse proxy stack (like Nginx Proxy Manager) to route traffic to `amud_app` port `8000`.
 
 ---
 
@@ -127,4 +129,4 @@ After upgrading:
 
 1. **Hard-refresh the browser** (`Ctrl+Shift+R`) or [clear the PWA cache](../troubleshooting#pwa--browser-cache-issues).
 2. Set `AMUD_SECURE_COOKIES=1` when HTTPS is terminated at your reverse proxy — see [Security](../security.md).
-3. Verify both dashboard and agent containers are running in the stack.
+3. Verify both `amud_app` and `amud_agent` containers are running in the stack.

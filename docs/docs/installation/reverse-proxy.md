@@ -234,3 +234,18 @@ Restart Apache:
 ```bash
 sudo systemctl restart apache2
 ```
+
+---
+
+## 5. Session Hardening (Secure Cookies)
+
+When exposing AMUD via HTTPS behind a reverse proxy, you **must** configure the server to flag session cookies as `Secure`. If you do not do this, browsers may transmit the cookie over unencrypted channels or fail to store it correctly under strict policies.
+
+To enable secure cookies, set the environment variable:
+
+```ini
+AMUD_SECURE_COOKIES=1
+```
+
+- **Bare-metal / LXC**: Add `Environment=AMUD_SECURE_COOKIES=1` to the `[Service]` block of your `amud-server.service` or `amud.service` file and restart.
+- **Docker / Portainer**: Add `- AMUD_SECURE_COOKIES=1` to the `environment` block of the `app` service and recreate the container.

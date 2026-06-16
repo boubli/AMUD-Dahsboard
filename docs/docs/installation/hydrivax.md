@@ -65,7 +65,7 @@ curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-hyd
 3. **Server Deployment**:
    - Sets up `/opt/amud/data` inside the container for the SQLite database.
    - Installs the `amud-server` binary and extracts UI assets to `/opt/amud/ui`.
-   - Registers and starts the `amud-server.service` daemon.
+   - Registers and starts the `amud.service` daemon.
 
 ---
 

@@ -70,28 +70,49 @@ PVE_API_TOKEN=PVEAPIToken=root@pam!amud=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 For containerized hosts (combines server and agent communicating over a shared volume for the Unix socket):
 
 ```yaml
+version: '3.8'
+
 services:
-  amud-server:
+  app:
     image: tradmss/amud-dashboard:latest
-    entrypoint: ["/app/amud-server"]
+    container_name: amud_app
+    restart: always
     ports:
       - "8000:8000"
     environment:
-      - AMUD_AGENT_SECRET=change-me-to-a-long-random-string
+      - PORT=8000
+      - BIND_ADDR=0.0.0.0
+      - DB_PATH=/app/data/amud.db
+      - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # MUST match the agent secret below
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
-      - /opt/amud/data:/app/data
-      - /opt/amud/run:/opt/amud/run
-    restart: unless-stopped
+      - ./data:/app/data
+      - amud_run:/var/run/amud
 
-  amud-agent:
+  agent:
     image: tradmss/amud-dashboard:latest
+    container_name: amud_agent
     entrypoint: ["/app/amud-agent"]
+    restart: always
     environment:
-      - AMUD_AGENT_SECRET=change-me-to-a-long-random-string
-      - PVE_API_TOKEN=PVEAPIToken=root@pam!amud=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+      - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
+      - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # MUST match the app secret above
+      - AMUD_DOCKER=0 # Set to 1 to enable Docker monitoring
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
-      - /opt/amud/run:/opt/amud/run
-    restart: unless-stopped
+      - amud_run:/var/run/amud
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  amud_run:
+    name: amud_run
 ```
 
 ### Proxmox LXC Autopilot Script

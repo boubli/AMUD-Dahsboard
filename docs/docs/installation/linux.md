@@ -58,6 +58,15 @@ sudo chmod 775 /opt/amud/run
 sudo chmod 770 /opt/amud/data
 ```
 
+### Step 4: Generate a shared IPC secret
+AMUD requires a shared cryptographically secure secret (`AMUD_AGENT_SECRET`) to authenticate communication between the server and the agent daemon. Generate a random secret string:
+
+```bash
+openssl rand -base64 32 | tr -d '/+=' | head -c 43
+```
+
+Save the generated value; you will need to add it to the environment configuration of both services in Section 4.
+
 ---
 
 ## 3. Download Release Assets
@@ -113,9 +122,10 @@ RestartSec=5
 
 # Environment variables
 Environment=PORT=8000
+Environment=BIND_ADDR=127.0.0.1
 Environment=DB_PATH=/opt/amud/data/amud.db
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
-Environment=UI_DIR=/opt/amud/ui
+Environment=AMUD_AGENT_SECRET=your_generated_secret_here # Paste secret generated in Step 4
 Environment=AMUD_ENABLE_PROXMOX=false # Set to true if running on Proxmox
 UMask=0002
 
@@ -154,6 +164,7 @@ ExecStart=/usr/local/bin/amud-agent
 Restart=always
 RestartSec=5
 Environment=AMUD_SOCKET_PATH=/opt/amud/run/amud.sock
+Environment=AMUD_AGENT_SECRET=your_generated_secret_here # MUST match the server secret above
 UMask=0002
 
 [Install]
@@ -225,7 +236,7 @@ http://<YOUR_SERVER_IP>:8000/
 
 ## 8. Upgrading
 
-Download the latest release binaries and UI bundle, then replace `/opt/amud/bin/amud-server`, `/usr/local/bin/amud-agent`, and `/opt/amud/ui` per [Download Release Assets](#3-download-release-assets). Restart both services:
+Download the latest release binaries and UI bundle, then replace `/usr/local/bin/amud-server`, `/usr/local/bin/amud-agent`, and `/opt/amud/ui` per [Download Release Assets](#3-download-release-assets). Restart both services:
 
 ```bash
 sudo systemctl restart amud-server amud-agent

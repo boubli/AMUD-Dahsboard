@@ -57,51 +57,45 @@ Using Docker Compose is the standard method for running AMUD. Create a `docker-c
 version: '3.8'
 
 services:
-  amud-dashboard:
+  app:
     image: tradmss/amud-dashboard:latest
-    container_name: amud-dashboard
-    restart: unless-stopped
+    container_name: amud_app
+    restart: always
     ports:
       - "8000:8000"
     environment:
       - PORT=8000
+      - BIND_ADDR=0.0.0.0
       - DB_PATH=/app/data/amud.db
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
       - AMUD_ENABLE_PROXMOX=false # Set to true if running on Proxmox
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
-      - amud_data:/app/data
+      - ./data:/app/data
       - amud_run:/var/run/amud
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 128M
-        reservations:
-          memory: 32M
 
-  amud-agent:
+  agent:
     image: tradmss/amud-dashboard:latest
-    container_name: amud-agent
+    container_name: amud_agent
     entrypoint: ["/app/amud-agent"]
-    restart: unless-stopped
+    restart: always
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
+      - AMUD_DOCKER=${AMUD_DOCKER:-0} # Set to 1 to enable Docker monitoring
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - amud_run:/var/run/amud
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 64M
-        reservations:
-          memory: 16M
 
 volumes:
-  amud_data:
-    name: amud_data
   amud_run:
     name: amud_run
 ```
@@ -127,6 +121,17 @@ To view real-time log aggregates for diagnostic purposes:
 docker compose logs -f
 ```
 
+### Running Without Docker Socket (Optional)
+
+If you do not need Docker container status badges on your dashboard and prefer to run the telemetry agent without mounting the host's `/var/run/docker.sock`, you can utilize the optional `docker-compose.no-docker.yml` override:
+
+```bash
+# Start the stack with the no-docker override applied
+docker compose -f docker-compose.yml -f docker-compose.no-docker.yml up -d
+```
+
+When using this file, keep `AMUD_DOCKER=0` (the default) on the agent.
+
 ---
 
 ## 3. Alternative: Docker CLI Run
@@ -137,32 +142,35 @@ If you prefer using pure CLI commands without creating files, establish the shar
 # 1. Create a shared volume for the Unix IPC socket
 docker volume create amud_run
 
-# 2. Create a persistent volume for the SQLite database
-docker volume create amud_data
-
-# 3. Start the dashboard web server
+# 2. Start the dashboard web server (with hardened security settings)
 docker run -d \
-  --name amud-dashboard \
+  --name amud_app \
   -p 8000:8000 \
-  -v amud_data:/app/data \
+  -v $(pwd)/data:/app/data \
   -v amud_run:/var/run/amud \
   -e PORT=8000 \
+  -e BIND_ADDR=0.0.0.0 \
   -e DB_PATH=/app/data/amud.db \
   -e AMUD_SOCKET_PATH=/var/run/amud/amud.sock \
   -e AMUD_AGENT_SECRET=change-me-to-a-long-random-string \
   -e AMUD_ENABLE_PROXMOX=false \
-  --restart unless-stopped \
+  --cap-drop ALL \
+  --security-opt no-new-privileges:true \
+  --restart always \
   tradmss/amud-dashboard:latest
 
-# 4. Start the telemetry agent
+# 3. Start the telemetry agent
 docker run -d \
-  --name amud-agent \
+  --name amud_agent \
   -v amud_run:/var/run/amud \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -e AMUD_SOCKET_PATH=/var/run/amud/amud.sock \
   -e AMUD_AGENT_SECRET=change-me-to-a-long-random-string \
+  -e AMUD_DOCKER=0 \
   --entrypoint "/app/amud-agent" \
-  --restart unless-stopped \
+  --cap-drop ALL \
+  --security-opt no-new-privileges:true \
+  --restart always \
   tradmss/amud-dashboard:latest
 ```
 
@@ -174,15 +182,17 @@ You can pass these environment variables to adjust container configurations:
 
 | Variable | Target Container | Default | Description |
 |---|---|---|---|
-| `PORT` | `amud-dashboard` | `8000` | Port on which the Axum web server listens. |
-| `DB_PATH` | `amud-dashboard` | `/app/data/amud.db` | Directory path pointing to the SQLite database file. |
+| `PORT` | `amud_app` | `8000` | Port on which the Axum web server listens. |
+| `DB_PATH` | `amud_app` | `/app/data/amud.db` | Directory path pointing to the SQLite database file. |
 | `AMUD_SOCKET_PATH` | Both | `/var/run/amud/amud.sock` | File path pointing to the Unix socket for agent-server IPC. |
+| `AMUD_TCP_ADDR` | Both | `127.0.0.1:8050` | TCP bind address/port used for agent-server IPC on Windows or non-Unix setups. |
 | `AMUD_AGENT_SECRET` | Both | *(Required)* | Shared authentication secret between dashboard and agent. |
-| `BIND_ADDR` | `amud-dashboard` | `127.0.0.1` | Set to `0.0.0.0` inside Docker so the container accepts external connections. |
-| `AMUD_DOCKER` | `amud-agent` | `0` | Set to `1` to enable Docker container monitoring (requires the socket mount below). |
-| `PVE_NODE` | `amud-agent` | hostname | Proxmox node name when it differs from the container/host hostname. |
-| `PVE_API_TOKEN` | `amud-agent` | *(None)* | Proxmox API token (if using agent on a PVE host; not needed for Docker monitoring). |
-| `AMUD_ENABLE_PROXMOX` | `amud-dashboard` | `false` | Set to `true` if installing on a Proxmox LXC to show the Proxmox settings tab in the UI. |
+| `BIND_ADDR` | `amud_app` | `127.0.0.1` | Set to `0.0.0.0` inside Docker so the container accepts external connections. |
+| `AMUD_SECURE_COOKIES` | `amud_app` | `0` | Set to `1` to restrict session cookies to HTTPS connections. |
+| `AMUD_DOCKER` | `amud_agent` | `0` | Set to `1` to enable Docker container monitoring (requires the socket mount below). |
+| `PVE_NODE` | `amud_agent` | hostname | Proxmox node name when it differs from the container/host hostname. |
+| `PVE_API_TOKEN` | `amud_agent` | *(None)* | Proxmox API token (if using agent on a PVE host; not needed for Docker monitoring). |
+| `AMUD_ENABLE_PROXMOX` | `amud_app` | `false` | Set to `true` if installing on a Proxmox LXC to show the Proxmox settings tab in the UI. |
 
 :::info For Non-Proxmox Users (Other OS)
 If you are deploying AMUD via Docker on a standard Linux distribution (like Ubuntu, Fedora, Arch Linux, or Alpine) instead of Proxmox VE, the Proxmox Integration tab is hidden by default. If you do want to enable it, you can pass `-e AMUD_ENABLE_PROXMOX=true` to your dashboard container. Your host's CPU and Memory will still display perfectly fine on the dashboard under the "System" widget!
@@ -204,13 +214,13 @@ If your host enforces strict daemon security, configure the agent to run under t
    ```bash
    getent group docker | cut -d: -f3
    ```
-2. In the `amud-agent` service definition inside `docker-compose.yml`, specify the appropriate user grouping:
+2. In the `agent` service definition inside `docker-compose.yml`, specify the appropriate user grouping:
    ```yaml
    user: "1000:998" # Replace 998 with your host's docker GID
    ```
 
 ### C. Restricting Port Exposure
-If you use a reverse proxy (e.g. Nginx, Caddy, Traefik), prevent exposing port `8000` to the public internet. Bind the port strictly to the host loopback interface by modifying the dashboard ports entry:
+If you use a reverse proxy (e.g. Nginx, Caddy, Traefik), prevent exposing port `8000` to the public internet. Bind the port strictly to the host loopback interface by modifying the `app` service ports entry:
 ```yaml
 ports:
   - "127.0.0.1:8000:8000"
@@ -245,4 +255,4 @@ After upgrading:
 
 1. **Hard-refresh the browser** (`Ctrl+Shift+R`) or [clear the PWA cache](../troubleshooting#pwa--browser-cache-issues).
 2. If you use HTTPS via a reverse proxy, set `AMUD_SECURE_COOKIES=1` on the dashboard container — see [Security](../security.md).
-3. Confirm both `amud-dashboard` and `amud-agent` containers are healthy: `docker compose ps`.
+3. Confirm both `amud_app` and `amud_agent` containers are healthy: `docker compose ps`.

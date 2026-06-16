@@ -61,12 +61,12 @@ curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amu
    - Initializes `/opt/amud/run` for runtime IPC socket files.
 2. **LXC Container Provisioning**:
    - Downloads the official Debian 12 template if it is not already present in your local storage.
-   - Spins up an LXC named `amud-dashboard` using the next available cluster ID from Proxmox (1 CPU Core, 512MB RAM, 4GB Disk). The installer prints the assigned ID at the end.
+   - Spins up an LXC named `amud-dashboard` using the next available cluster ID from Proxmox (1 CPU Core, 256MB RAM, 4GB Disk). The installer prints the assigned ID at the end.
    - Establishes a secure bind-mount mapping `/opt/amud/run` on the host to `/opt/amud/run` in the container.
 3. **Server Deployment**:
    - Sets up `/opt/amud/data` inside the container for the SQLite database.
    - Installs the `amud-server` binary and extracts UI assets to `/opt/amud/ui`.
-   - Registers and starts the `amud-server.service` daemon.
+   - Registers and starts the `amud.service` daemon.
 
 ---
 
