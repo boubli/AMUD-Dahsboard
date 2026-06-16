@@ -242,6 +242,23 @@ pct exec "$CT_ID" -- systemctl daemon-reload
 pct exec "$CT_ID" -- systemctl enable --now amud
 msg_ok "Systemd daemon enabled and running inside guest"
 
+msg_info "Waiting for AMUD service to initialize and seed database"
+sleep 4
+BOOTSTRAP_PASS=""
+for i in {1..5}; do
+  BOOTSTRAP_PASS=$(pct exec "$CT_ID" -- journalctl -u amud --no-pager 2>/dev/null | grep 'Password:' | awk -F': ' '{print $2}' | tr -d ' \r\n' || true)
+  if [ -n "$BOOTSTRAP_PASS" ]; then
+    break
+  fi
+  sleep 2
+done
+if [ -n "$BOOTSTRAP_PASS" ]; then
+  msg_ok "Bootstrap password retrieved successfully"
+else
+  msg_warn "Could not retrieve bootstrap password from systemd logs"
+  BOOTSTRAP_PASS="Check journalctl -u amud inside container"
+fi
+
 # 9. Download and Install Host Telemetry Agent on Proxmox Host
 msg_info "Installing amud-agent on Proxmox host"
 curl -L -sS -f -o /tmp/amud-agent "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent"
@@ -287,14 +304,14 @@ AMUD-Dashboard (LXC OS: Debian 12 - Native Service)
 ==============================================================
   Local IP Address: http://__IP__
   Access UI / API:   http://__IP__:8000 (Port 8000)
-  First login:       user admin — password printed once in
-                     journalctl -u amud-server (bootstrap only)
+  First login:       user admin — password: __ADMIN_PASS__
   Root Console:      username: root — password: __ROOT_PASS__
 ==============================================================
 EOF
 )
 TEMP_MOTD="${TEMPLATE_MOTD//__IP__/$CT_IP_ADDR}"
-echo "${TEMP_MOTD//__ROOT_PASS__/$LXC_ROOT_PASSWORD}" > /tmp/amud-motd
+TEMP_MOTD="${TEMP_MOTD//__ROOT_PASS__/$LXC_ROOT_PASSWORD}"
+echo "${TEMP_MOTD//__ADMIN_PASS__/$BOOTSTRAP_PASS}" > /tmp/amud-motd
 pct push "$CT_ID" /tmp/amud-motd /etc/motd
 rm -f /tmp/amud-motd
 
@@ -306,6 +323,7 @@ echo -e "  Container Hostname: ${GN}$CT_NAME${CL}"
 echo -e "  Container Local IP: ${GN}$CT_IP_ADDR${CL}"
 echo -e "  RAM / Swap Alloc:   ${GN}256MB / 256MB${CL}"
 echo -e "  Root Password:      ${GN}$LXC_ROOT_PASSWORD${CL}"
+echo -e "  Admin Password:     ${GN}$BOOTSTRAP_PASS${CL}"
 echo -e "--------------------------------------------------------------"
 echo -e "  ${LAUNCH}  ${BGN}AMUD UI & API:     http://${CT_IP_ADDR}:8000${CL}"
 echo -e "=============================================================="
