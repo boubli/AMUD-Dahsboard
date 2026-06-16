@@ -135,6 +135,10 @@ pct create "$CT_ID" "local:vztmpl/$TEMPLATE_FILE" \
     -nameserver "1.1.1.1 8.8.8.8" >/dev/null
 msg_ok "LXC Container $CT_ID was successfully created"
 
+msg_info "Applying container tags"
+pct set "$CT_ID" --tags dashboard,hydrivax >/dev/null 2>&1 || true
+msg_ok "Container tags applied"
+
 msg_info "Creating host socket directory and configuring bind-mount"
 mkdir -p /opt/amud/run
 chmod 770 /opt/amud/run
