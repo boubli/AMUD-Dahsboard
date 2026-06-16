@@ -246,7 +246,7 @@ msg_info "Waiting for AMUD service to initialize and seed database"
 sleep 4
 BOOTSTRAP_PASS=""
 for i in {1..5}; do
-  BOOTSTRAP_PASS=$(pct exec "$CT_ID" -- journalctl -u amud --no-pager 2>/dev/null | grep 'Password:' | awk -F': ' '{print $2}' | tr -d ' \r\n' || true)
+  BOOTSTRAP_PASS=$(pct exec "$CT_ID" -- journalctl -u amud --no-pager 2>/dev/null | grep 'Password:' | awk -F'Password: ' '{print $2}' | tr -d ' \r\n' || true)
   if [ -n "$BOOTSTRAP_PASS" ]; then
     break
   fi
