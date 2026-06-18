@@ -312,6 +312,23 @@ pct reboot <CT_ID>
 systemctl restart amud-agent
 ```
 
+### Fix 3 — Unprivileged LXC Socket Directory Permission (Proxmox)
+
+**Symptom:** In the `amud-agent` logs on the host, you see:
+```text
+Failed to connect to dashboard daemon: Connection refused (os error 111)
+```
+
+**Cause:** By default, unprivileged LXC containers map the guest's `root` user to UID `100000` on the Proxmox host. If the host socket folder `/opt/amud/run` is owned by `root:root` (UID `0`) with `770` permissions, the containerized `amud-server` cannot create or bind to the `/opt/amud/run/amud.sock` socket file.
+
+**Fix:** Change the host directory ownership to the unprivileged container root user's mapped UID:
+
+```bash
+chown -R 100000:100000 /opt/amud/run
+pct exec <CT_ID> -- systemctl restart amud
+systemctl restart amud-agent
+```
+
 ---
 
 ## Docker / Portainer: Permission Denied on docker.sock

@@ -260,13 +260,21 @@ fn render_apps_grid(
                 .replace('&', "&amp;")
                 .replace('"', "&quot;")
                 .replace('\'', "&#39;");
+            let wol_btn = if !app.mac_address.trim().is_empty() {
+                format!(
+                    r#"<button type="button" class="btn-wake-app" title="Wake-on-LAN" data-wake-id="{}" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:0.4rem; display:inline-flex; align-items:center;" @click="triggerWakeAction($el)" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'">
+                        <i data-lucide="power" style="width:1.1rem; height:1.1rem;"></i>
+                    </button>"#,
+                    app.id
+                )
+            } else {
+                "".to_string()
+            };
             format!(
                 r#"
                 <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                    <button type="button" class="btn-wake-app" title="Wake-on-LAN" data-wake-id="{}" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:0.4rem; display:inline-flex; align-items:center;" @click="triggerWakeAction($el)" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'">
-                        <i data-lucide="power" style="width:1.1rem; height:1.1rem;"></i>
-                    </button>
-                        <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);">
+                    {}
+                    <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);">
                         <i data-lucide="edit-2"></i>
                     </button>
                     <form action="/apps/delete" method="POST" style="margin: 0; display: inline-flex; align-items: center;">
@@ -278,7 +286,7 @@ fn render_apps_grid(
                     </form>
                 </div>
                 "#,
-                app.id, escaped_json, app.id, csrf_attr
+                wol_btn, escaped_json, app.id, csrf_attr
             )
         } else {
             "".to_string()

@@ -141,6 +141,7 @@ msg_ok "Container tags applied"
 
 msg_info "Creating host socket directory and configuring bind-mount"
 mkdir -p /opt/amud/run
+chown -R 100000:100000 /opt/amud/run
 chmod 770 /opt/amud/run
 # Append bind mount mapping to LXC config
 echo "mp0: /opt/amud/run,mp=/opt/amud/run" >> "/etc/pve/lxc/${CT_ID}.conf"
