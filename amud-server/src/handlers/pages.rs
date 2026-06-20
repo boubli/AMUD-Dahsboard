@@ -89,9 +89,9 @@ pub async fn settings_page_handler(
     } else {
         result = result
             .replace("{{if app_logo}}", "")
-            .replace("{{app_logo}}", app_logo)
             .replace("{{end}}", "");
     }
+    result = result.replace("{{app_logo}}", &escape_html(app_logo));
 
     let result = result
         .replace("{{accent_color}}", accent_color)

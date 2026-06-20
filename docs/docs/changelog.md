@@ -11,6 +11,27 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.4.1.0 — Proxmox card, host telemetry, and privacy settings
+
+**2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.1.0) · [Compare v1.4.0.0…v1.4.1.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.4.0.0...v1.4.1.0)
+
+**Proxmox**
+- Jellyfin-style Proxmox stream card; status from host agent (no false OFFLINE on self-signed PVE UI).
+- Card shown under its app category, not hidden by Media filter.
+
+**Telemetry**
+- Per-app CPU/RAM restored on dashboard cards.
+- Host card: CPU model, cores, temp, CPU/Memory sparklines.
+- GPU card when `nvidia-smi` is on the Proxmox host agent.
+
+**Settings**
+- Logo field no longer shows `{{app_logo}}` when empty.
+- **Privacy & Access** tab for guest telemetry and TLS (moved from Support / Donation).
+
+**Upgrade:** `curl -sSL …/update-amud.sh | bash` — then `systemctl restart amud-agent` on the PVE host for GPU.
+
+---
+
 ## v1.4.0.0 — Security, audit log, and UI overhaul
 
 **2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.0.0) · [Compare v1.3.7.3…v1.4.0.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.3.7.3...v1.4.0.0)

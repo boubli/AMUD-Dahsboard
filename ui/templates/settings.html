@@ -340,6 +340,9 @@
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'integrations' }" @click="switchTab('integrations')">
                     <i data-lucide="plug"></i> Integrations
                 </button>
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'privacy' }" @click="switchTab('privacy')">
+                    <i data-lucide="eye"></i> Privacy & Access
+                </button>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'smarthome' }" @click="switchTab('smarthome')">
                     <i data-lucide="home"></i> Smart Home
                 </button>
@@ -571,6 +574,36 @@
                         </div>
                     </div>
 
+                    <!-- TAB: PRIVACY & ACCESS -->
+                    <div x-show="activeTab === 'privacy'" x-transition.opacity style="display:none;">
+                        <h1 class="settings-page-title">Privacy & Access</h1>
+                        <p class="settings-page-subtitle">Control what anonymous visitors and guest accounts can see on the dashboard, and how integrations validate TLS.</p>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="eye" style="color:var(--accent-color);"></i> Guest visibility</h3>
+                            <div class="form-group">
+                                <label for="setting-telemetry-public">Guest system telemetry visibility</label>
+                                <select id="setting-telemetry-public" name="telemetry_public" class="form-control" style="height:3rem; cursor:pointer;">
+                                    <option value="0" {{eq_telemetry_off}}>Hide CPU/RAM/GPU/network from anonymous guests</option>
+                                    <option value="1" {{eq_telemetry_on}}>Show basic CPU/RAM/GPU/network to guests</option>
+                                </select>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">When enabled, guests see host CPU model, usage, memory, and GPU stats (if the agent reports them). Container names, VMIDs, latency, per-app metrics, streams, and admin controls stay hidden.</p>
+                            </div>
+                        </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="shield" style="color:var(--accent-color);"></i> Integration security</h3>
+                            <div class="form-group">
+                                <label for="setting-accept-invalid-certs">TLS Verification for Integrations</label>
+                                <select id="setting-accept-invalid-certs" name="accept_invalid_certs" class="form-control" style="height:3rem; cursor:pointer;">
+                                    <option value="0" {{eq_accept_invalid_certs_off}}>Verify TLS certificates (Secure)</option>
+                                    <option value="1" {{eq_accept_invalid_certs_on}}>Accept self-signed/invalid TLS certificates (Local Dev)</option>
+                                </select>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Control whether integration calls (e.g. Pi-hole, AdGuard) enforce strict TLS validation. Enable self-signed certificate support if using local HTTPS setups.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- TAB: SMART HOME -->
                     <div x-show="activeTab === 'smarthome'" x-transition.opacity style="display:none;">
                         <h1 class="settings-page-title">Smart Home</h1>
@@ -592,32 +625,16 @@
                     <!-- TAB: SUPPORT / DONATION -->
                     <div x-show="activeTab === 'donation'" x-transition.opacity style="display:none;">
                         <h1 class="settings-page-title">Support / Donation</h1>
-                        <p class="settings-page-subtitle">AMUD is free with every feature unlocked - a donation is purely optional support for the project author, not a way to buy features. You can show or hide the Support card here; the links themselves are fixed and cannot be changed.</p>
+                        <p class="settings-page-subtitle">AMUD is free with every feature unlocked — a donation is purely optional support for the project author, not a way to buy features. You can show or hide the Support card here; the links themselves are fixed and cannot be changed.</p>
 
                         <div class="settings-block">
-                            <h3><i data-lucide="heart" style="color:var(--accent-color);"></i> Visibility</h3>
+                            <h3><i data-lucide="heart" style="color:var(--accent-color);"></i> Support card</h3>
                             <div class="form-group">
                                 <label for="setting-donate-enabled">Show Support card on the dashboard</label>
                                 <select id="setting-donate-enabled" name="donate_enabled" class="form-control" style="height:3rem; cursor:pointer;">
                                     <option value="1" {{eq_donate_on}}>Enabled</option>
                                     <option value="0" {{eq_donate_off}}>Disabled</option>
                                 </select>
-                            </div>
-                            <div class="form-group" style="margin-top:1.5rem;">
-                                <label for="setting-telemetry-public">Guest system telemetry visibility</label>
-                                <select id="setting-telemetry-public" name="telemetry_public" class="form-control" style="height:3rem; cursor:pointer;">
-                                    <option value="0" {{eq_telemetry_off}}>Hide CPU/RAM/network from anonymous guests</option>
-                                    <option value="1" {{eq_telemetry_on}}>Show basic CPU/RAM/network to guests</option>
-                                </select>
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Guests always receive only coarse app availability badges (ONLINE/OFFLINE). Container names, VMIDs, latency, CPU/RAM/disk details, streams, and admin controls stay hidden.</p>
-                            </div>
-                            <div class="form-group" style="margin-top:1.5rem;">
-                                <label for="setting-accept-invalid-certs">TLS Verification for Integrations</label>
-                                <select id="setting-accept-invalid-certs" name="accept_invalid_certs" class="form-control" style="height:3rem; cursor:pointer;">
-                                    <option value="0" {{eq_accept_invalid_certs_off}}>Verify TLS certificates (Secure)</option>
-                                    <option value="1" {{eq_accept_invalid_certs_on}}>Accept self-signed/invalid TLS certificates (Local Dev)</option>
-                                </select>
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Control whether integration calls (e.g. Pi-hole, AdGuard) enforce strict TLS validation. Enable self-signed certificate support if using local HTTPS setups.</p>
                             </div>
                         </div>
 

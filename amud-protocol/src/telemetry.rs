@@ -11,6 +11,20 @@ pub struct AgentTelemetry {
     pub disk_used_gb: f64,
     pub disk_total_gb: f64,
     #[serde(default)]
+    pub cpu_model: String,
+    #[serde(default)]
+    pub cpu_cores: u32,
+    #[serde(default)]
+    pub gpu_name: String,
+    #[serde(default)]
+    pub gpu_usage: i32,
+    #[serde(default)]
+    pub gpu_mem_usage: i32,
+    #[serde(default)]
+    pub gpu_mem_used_mb: f64,
+    #[serde(default)]
+    pub gpu_mem_total_mb: f64,
+    #[serde(default)]
     pub lxc_containers: Vec<LxcContainer>,
     #[serde(default)]
     pub network: Option<NetworkTelemetry>,

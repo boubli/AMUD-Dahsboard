@@ -141,7 +141,7 @@ These are set on the **server** or **agent** process (Docker `environment:`, sys
 
 ### Public telemetry
 
-In **Settings → Donation**, the **Public telemetry** toggle stores `telemetry_public` in SQLite. When enabled, anonymous visitors and Guest-role users see host metrics on the dashboard (container names and app health remain hidden).
+In **Settings → Privacy & Access**, the **Guest system telemetry visibility** toggle stores `telemetry_public` in SQLite. When enabled, anonymous visitors and Guest-role users see host CPU model, usage, memory, GPU (when reported by the agent), and network stats on the dashboard. Container names, VMIDs, per-app metrics, streams, and admin controls stay hidden.
 
 ---
 

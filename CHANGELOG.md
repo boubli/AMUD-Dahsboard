@@ -8,6 +8,27 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.4.1.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.1.0) — 2026-06-20
+
+Proxmox card, host telemetry (CPU model + GPU), and settings fixes. See [release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.1.0).
+
+### Added
+- Host CPU model, cores, temperature, and live CPU/Memory sparklines
+- GPU telemetry via `nvidia-smi` on the Proxmox host agent
+- **Privacy & Access** settings tab (guest telemetry + TLS)
+
+### Fixed
+- Proxmox false OFFLINE when agent is connected
+- Per-app container CPU/RAM on dashboard cards
+- WebSocket telemetry updates stopping on null DOM nodes
+- Settings logo field showing `{{app_logo}}` placeholder
+
+### Changed
+- Proxmox Jellyfin-style stream card in app category section
+- Guest/TLS settings moved out of Support / Donation
+
+---
+
 ## [v1.4.0.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.0.0) — 2026-06-20
 
 Security, audit log, and UI overhaul. See [release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.0.0) for full details.

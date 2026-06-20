@@ -94,17 +94,42 @@
         <!-- Top Row: Telemetry Micro-bars (host CPU, disk, network) -->
         <section class="telemetry-row" id="telemetry-section">
             <!-- PVE Host Stats -->
-            <div class="glass-panel telemetry-card" id="pve-card">
+            <div class="glass-panel telemetry-card telemetry-card--host" id="pve-card">
                 <div class="telemetry-header">
-                    <span class="telemetry-title">System</span>
+                    <span class="telemetry-title">Host</span>
                     <span class="telemetry-value" id="val-pve-cpu">CPU 0%</span>
                 </div>
-                <div class="telemetry-bar-container">
-                    <div class="telemetry-bar-fill" id="bar-pve-cpu" style="width: 0%;"></div>
+                <div class="telemetry-cpu-model" id="sys-cpu-model" title="">Detecting CPU…</div>
+                <div class="telemetry-spark-row">
+                    <div class="spark-group">
+                        <span class="spark-label">CPU</span>
+                        <canvas id="spark-cpu" class="telemetry-sparkline" height="40"></canvas>
+                    </div>
+                    <div class="spark-group">
+                        <span class="spark-label">Memory</span>
+                        <canvas id="spark-mem" class="telemetry-sparkline" height="40"></canvas>
+                    </div>
                 </div>
                 <div class="telemetry-subinfo">
-                    <span>Host Agent CPU Stats</span>
+                    <span id="sys-cpu-detail">—</span>
                     <span id="val-pve-mem">Mem 0%</span>
+                </div>
+            </div>
+
+            <!-- GPU stats (shown when agent reports a GPU) -->
+            <div class="glass-panel telemetry-card" id="gpu-card" style="display:none;">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">GPU</span>
+                    <span class="telemetry-value" id="val-gpu-usage">0%</span>
+                </div>
+                <div class="telemetry-cpu-model" id="sys-gpu-name" title="">—</div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill telemetry-bar-fill--gpu" id="bar-gpu-usage" style="width: 0%;"></div>
+                </div>
+                <canvas id="spark-gpu" class="telemetry-sparkline telemetry-sparkline--solo" height="32"></canvas>
+                <div class="telemetry-subinfo">
+                    <span id="val-gpu-vram">VRAM —</span>
+                    <span id="val-gpu-mem-pct">Mem 0%</span>
                 </div>
             </div>
 
@@ -598,6 +623,49 @@
         }
 
         const hideTelemetry = "{{hide_telemetry}}" === "true";
+        const SPARK_HISTORY_LEN = 60;
+        const sparkHistory = { cpu: [], mem: [], gpu: [] };
+
+        function pushSparkHistory(arr, value) {
+            const n = Number(value);
+            if (Number.isNaN(n)) return;
+            arr.push(n);
+            if (arr.length > SPARK_HISTORY_LEN) arr.shift();
+        }
+
+        function truncateLabel(text, maxLen = 42) {
+            const s = String(text || '').trim();
+            if (s.length <= maxLen) return s;
+            return `${s.slice(0, maxLen - 1)}…`;
+        }
+
+        function drawSparkline(canvasId, data, maxValue = 100) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || data.length < 2) return;
+            const parentWidth = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
+            const rect = canvas.getBoundingClientRect();
+            const width = Math.max(1, Math.floor(rect.width || parentWidth));
+            const height = Math.max(1, Math.floor(rect.height || canvas.height));
+            if (canvas.width !== width) canvas.width = width;
+            if (canvas.height !== height) canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.clearRect(0, 0, width, height);
+
+            const max = Math.max(1, maxValue);
+            ctx.strokeStyle = '#2dd4bf';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            data.forEach((value, index) => {
+                const x = (index / (SPARK_HISTORY_LEN - 1)) * width;
+                const clamped = Math.max(0, Math.min(max, value));
+                const y = height - (clamped / max) * (height - 2) - 1;
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
 
         if (hideTelemetry) {
             const telemetrySection = document.getElementById('telemetry-section');
@@ -650,14 +718,63 @@
 
         function updateHostTelemetry(sys) {
             if (!sys) return;
-            setDashboardText('val-pve-cpu', `CPU ${sys.cpu_usage ?? 0}%`);
-            setDashboardBar('bar-pve-cpu', sys.cpu_usage ?? 0);
-            setDashboardText('val-pve-mem', `Mem ${sys.ram_usage ?? 0}%`);
+            const cpuPct = sys.cpu_usage ?? 0;
+            const memPct = sys.ram_usage ?? 0;
+            setDashboardText('val-pve-cpu', `CPU ${cpuPct}%`);
+            setDashboardText('val-pve-mem', `Mem ${memPct}%`);
+
+            const cpuModel = sys.cpu_model || '';
+            const cpuModelEl = document.getElementById('sys-cpu-model');
+            if (cpuModelEl) {
+                const label = cpuModel ? truncateLabel(cpuModel) : 'Host CPU';
+                cpuModelEl.textContent = label;
+                cpuModelEl.title = cpuModel || '';
+            }
+
+            const coreCount = sys.cpu_cores || 0;
+            const temp = sys.cpu_temp ?? 0;
+            let cpuDetail = coreCount > 0 ? `${coreCount} cores` : 'Host agent';
+            if (temp > 0) cpuDetail += ` · ${temp.toFixed(0)}°C`;
+            setDashboardText('sys-cpu-detail', cpuDetail);
+
+            pushSparkHistory(sparkHistory.cpu, cpuPct);
+            pushSparkHistory(sparkHistory.mem, memPct);
+            drawSparkline('spark-cpu', sparkHistory.cpu);
+            drawSparkline('spark-mem', sparkHistory.mem);
 
             const freeGb = (sys.disk_total_gb ?? 0) - (sys.disk_used_gb ?? 0);
             setDashboardText('val-nas-free', `${freeGb.toFixed(1)} GB Free`);
             setDashboardBar('bar-nas-usage', sys.disk_usage ?? 0);
             setDashboardText('val-nas-used', `${(sys.disk_used_gb ?? 0).toFixed(1)} GB Used`);
+
+            const gpuCard = document.getElementById('gpu-card');
+            const gpuName = (sys.gpu_name || '').trim();
+            const hasGpu = gpuName.length > 0 && (sys.gpu_usage ?? -1) >= 0;
+            if (gpuCard) {
+                gpuCard.style.display = hasGpu ? '' : 'none';
+            }
+            if (hasGpu) {
+                const gpuPct = sys.gpu_usage ?? 0;
+                const gpuMemPct = sys.gpu_mem_usage ?? 0;
+                setDashboardText('val-gpu-usage', `${gpuPct}%`);
+                setDashboardBar('bar-gpu-usage', gpuPct);
+
+                const gpuNameEl = document.getElementById('sys-gpu-name');
+                if (gpuNameEl) {
+                    gpuNameEl.textContent = truncateLabel(gpuName, 36);
+                    gpuNameEl.title = gpuName;
+                }
+
+                const vramUsed = sys.gpu_mem_used_mb ?? 0;
+                const vramTotal = sys.gpu_mem_total_mb ?? 0;
+                setDashboardText('val-gpu-vram', vramTotal > 0
+                    ? `${(vramUsed / 1024).toFixed(1)}/${(vramTotal / 1024).toFixed(1)} GB`
+                    : 'VRAM —');
+                setDashboardText('val-gpu-mem-pct', gpuMemPct >= 0 ? `Mem ${gpuMemPct}%` : 'Mem —');
+
+                pushSparkHistory(sparkHistory.gpu, gpuPct);
+                drawSparkline('spark-gpu', sparkHistory.gpu);
+            }
         }
 
         function updateStreamStatusBadges(containers) {

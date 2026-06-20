@@ -21,6 +21,70 @@ where
 }
 
 #[derive(Clone, Default)]
+struct GpuSnapshot {
+    name: String,
+    usage: i32,
+    mem_usage: i32,
+    mem_used_mb: f64,
+    mem_total_mb: f64,
+}
+
+fn read_gpu_snapshot() -> GpuSnapshot {
+    use std::process::Command;
+
+    let output = match Command::new("nvidia-smi")
+        .args([
+            "--query-gpu=name,utilization.gpu,utilization.memory,memory.used,memory.total",
+            "--format=csv,noheader,nounits",
+        ])
+        .output()
+    {
+        Ok(output) if output.status.success() => output,
+        _ => return GpuSnapshot::default(),
+    };
+
+    let line = String::from_utf8_lossy(&output.stdout);
+    let line = line.lines().next().unwrap_or("").trim();
+    if line.is_empty() {
+        return GpuSnapshot::default();
+    }
+
+    // GPU name may contain commas; numeric fields are always last.
+    let mut parts = line.rsplitn(5, ',');
+    let mem_total = parts
+        .next()
+        .and_then(|v| v.trim().parse::<f64>().ok())
+        .unwrap_or(0.0);
+    let mem_used = parts
+        .next()
+        .and_then(|v| v.trim().parse::<f64>().ok())
+        .unwrap_or(0.0);
+    let mem_usage = parts
+        .next()
+        .and_then(|v| v.trim().parse::<f64>().ok())
+        .map(|v| v.round() as i32)
+        .unwrap_or(-1);
+    let usage = parts
+        .next()
+        .and_then(|v| v.trim().parse::<f64>().ok())
+        .map(|v| v.round() as i32)
+        .unwrap_or(-1);
+    let name = parts.next().unwrap_or("").trim().to_string();
+
+    if name.is_empty() || usage < 0 {
+        return GpuSnapshot::default();
+    }
+
+    GpuSnapshot {
+        name,
+        usage,
+        mem_usage,
+        mem_used_mb: mem_used,
+        mem_total_mb: mem_total,
+    }
+}
+
+#[derive(Clone, Default)]
 struct NetworkSnapshot {
     internal_rx: u64,
     internal_tx: u64,
@@ -651,6 +715,13 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         } else {
             0
         };
+        let cpu_model = cpus
+            .first()
+            .map(|cpu| cpu.brand().trim().to_string())
+            .filter(|name| !name.is_empty())
+            .unwrap_or_default();
+        let cpu_cores = cpus.len() as u32;
+        let gpu = read_gpu_snapshot();
 
         let total_mem = sys.total_memory();
         let used_mem = sys.used_memory();
@@ -741,6 +812,13 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             disk_usage,
             disk_used_gb,
             disk_total_gb,
+            cpu_model,
+            cpu_cores,
+            gpu_name: gpu.name,
+            gpu_usage: gpu.usage,
+            gpu_mem_usage: gpu.mem_usage,
+            gpu_mem_used_mb: gpu.mem_used_mb,
+            gpu_mem_total_mb: gpu.mem_total_mb,
             lxc_containers,
             network: Some(network),
         };

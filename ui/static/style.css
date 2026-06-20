@@ -169,8 +169,13 @@ body::-webkit-scrollbar-button {
 /* Row 1: Telemetry micro-bars */
 .telemetry-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
+}
+
+.telemetry-card--host {
+    grid-column: span 2;
+    min-width: 280px;
 }
 
 .telemetry-card {
@@ -178,6 +183,51 @@ body::-webkit-scrollbar-button {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.telemetry-cpu-model {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.telemetry-spark-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+}
+
+.spark-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.spark-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.telemetry-sparkline {
+    width: 100%;
+    height: 40px;
+    display: block;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.telemetry-sparkline--solo {
+    height: 32px;
+}
+
+.telemetry-bar-fill--gpu {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
 }
 
 .telemetry-header {
@@ -1190,6 +1240,10 @@ input[type="color"].form-control {
         grid-template-columns: repeat(2, 1fr);
     }
 
+    .telemetry-card--host {
+        grid-column: span 2;
+    }
+
     .topbar {
         flex-wrap: wrap;
         gap: 0.75rem;
@@ -1208,7 +1262,11 @@ input[type="color"].form-control {
     }
 
     .telemetry-row {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
+    }
+
+    .telemetry-card--host {
+        grid-column: span 1;
     }
 
     .streams-row {

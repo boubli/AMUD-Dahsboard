@@ -445,39 +445,23 @@ mod tests {
         });
 
         let old_telemetry = AgentTelemetry {
-            cpu_usage: 0,
-            ram_usage: 0,
-            ram_used_gb: 0.0,
-            ram_total_gb: 0.0,
-            cpu_temp: 0.0,
-            disk_usage: 0,
-            disk_used_gb: 0.0,
-            disk_total_gb: 0.0,
-            network: None,
             lxc_containers: vec![LxcContainer {
                 vmid: 100,
                 status: "running".to_string(),
                 name: "test-lxc".to_string(),
                 ..Default::default()
             }],
+            ..Default::default()
         };
 
         let new_telemetry = AgentTelemetry {
-            cpu_usage: 0,
-            ram_usage: 0,
-            ram_used_gb: 0.0,
-            ram_total_gb: 0.0,
-            cpu_temp: 0.0,
-            disk_usage: 0,
-            disk_used_gb: 0.0,
-            disk_total_gb: 0.0,
-            network: None,
             lxc_containers: vec![LxcContainer {
                 vmid: 100,
                 status: "stopped".to_string(),
                 name: "test-lxc".to_string(),
                 ..Default::default()
             }],
+            ..Default::default()
         };
 
         // Trigger alert check
