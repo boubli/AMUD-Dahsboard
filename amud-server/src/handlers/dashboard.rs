@@ -81,7 +81,13 @@ pub async fn dashboard_handler(
     let wol_html = render_wol_devices(&wol_devices, is_admin, &csrf_attr);
 
     let auth_buttons = render_auth_buttons(&session, &csrf_attr);
-    let streams_html = render_streams(&apps, &session, is_admin, &csrf_attr, logo_manifest.as_ref());
+    let streams_html = render_streams(
+        &apps,
+        &session,
+        is_admin,
+        &csrf_attr,
+        logo_manifest.as_ref(),
+    );
     let category_tabs_html = render_category_tabs(&apps);
     let support_html = render_support_section(&settings);
 
@@ -394,9 +400,9 @@ fn render_apps_grid(
             }
         }
         let container_aliases = alias_tokens.join(" ");
-        let is_host_agent_app = alias_tokens.iter().any(|t| {
-            t == "proxmox" || t == "pve" || t == "beszel" || t == "filebrowser"
-        });
+        let is_host_agent_app = alias_tokens
+            .iter()
+            .any(|t| t == "proxmox" || t == "pve" || t == "beszel" || t == "filebrowser");
         let guest_compact_class = if session.is_none() {
             " app-card--guest-compact"
         } else {
