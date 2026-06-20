@@ -128,9 +128,17 @@ async fn fetch_latest_release() -> Result<CachedRelease, String> {
     })
 }
 
+use axum::extract::Query;
+
+#[derive(Deserialize)]
+pub struct VersionQuery {
+    refresh: Option<bool>,
+}
+
 pub async fn system_version_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
+    Query(query): Query<VersionQuery>,
 ) -> impl IntoResponse {
     if let Some(resp) = check_api_rate_limit(&state, &headers, "system_version", 10, 60) {
         return resp.into_response();
@@ -148,7 +156,8 @@ pub async fn system_version_handler(
         format!("v{}", current)
     };
 
-    let need_fetch = {
+    let force_refresh = query.refresh.unwrap_or(false);
+    let need_fetch = force_refresh || {
         let cache = RELEASE_CACHE.read().unwrap();
         match &*cache {
             Some(ref cached) => cached.fetched_at.elapsed() > Duration::from_secs(3600),

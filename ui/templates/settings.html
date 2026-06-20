@@ -873,7 +873,7 @@
                                     <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">
                                         No updates available at this time.
                                     </p>
-                                    <button @click="loadSystemVersion()" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 4px; background: rgba(255,255,255,0.02);">
+                                    <button @click="loadSystemVersion(true)" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 4px; background: rgba(255,255,255,0.02);">
                                         <i data-lucide="refresh-cw" style="width: 0.85rem; height: 0.85rem;"></i> Check Again
                                     </button>
                                 </div>
@@ -1186,10 +1186,11 @@
                     }
                 },
 
-                loadSystemVersion() {
+                loadSystemVersion(refresh = false) {
                     this.checkingVersion = true;
                     this.systemError = null;
-                    fetch('/api/system/version')
+                    const url = refresh ? '/api/system/version?refresh=true' : '/api/system/version';
+                    fetch(url)
                         .then(res => {
                             if (!res.ok) throw new Error('Failed to fetch system version');
                             return res.json();
