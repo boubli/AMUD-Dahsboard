@@ -1,5 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 :root {
     /* Rebranding variables - Overwritten at runtime via user settings */
     --brand-bg-image: url('https://raw.githubusercontent.com/youssef-boubli/assets/main/dashboard-bg.jpg');
@@ -1398,7 +1410,7 @@ input[type="color"].form-control {
     justify-content: space-between;
     padding: 0.6rem 1.25rem;
     background: linear-gradient(135deg, rgba(210, 153, 34, 0.12), rgba(245, 158, 11, 0.08));
-    border-b: 1px solid rgba(210, 153, 34, 0.25);
+    border-bottom: 1px solid rgba(210, 153, 34, 0.25);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     position: sticky;

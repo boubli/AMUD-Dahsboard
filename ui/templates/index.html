@@ -76,15 +76,17 @@
         <!-- Search Bar Widget -->
         <div class="search-bar-wrapper">
             <div class="search-bar glass-panel">
-                <select id="search-engine" class="search-engine-select">
+                <label for="search-engine" class="visually-hidden">Search engine</label>
+                <select id="search-engine" class="search-engine-select" aria-label="Search engine">
                     <option value="google">Google</option>
                     <option value="duckduckgo">DuckDuckGo</option>
                     <option value="bing">Bing</option>
                 </select>
                 <div class="search-input-divider"></div>
                 <div class="search-input-wrapper">
-                    <i data-lucide="search" class="search-icon"></i>
-                    <input type="text" id="search-input" class="search-input" placeholder="Search the web...">
+                    <label for="search-input" class="visually-hidden">Search the web</label>
+                    <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
+                    <input type="text" id="search-input" class="search-input" placeholder="Search the web..." aria-label="Search the web">
                 </div>
             </div>
         </div>
@@ -213,7 +215,8 @@
                 <label for="add-app-icon">Icon Identifier / Upload Logo</label>
                 <input type="text" id="add-app-icon" name="icon" x-model="appIconUrl" class="form-control" placeholder="e.g. radarr, sonarr, or image URL">
                 <div class="upload-zone" @click="$refs.appIconFileInput.click()">
-                    <input type="file" x-ref="appIconFileInput" style="display:none;" @change="handleFileUpload($event, 'appIcon')">
+                    <label for="add-app-icon-file" class="visually-hidden">Upload app icon file</label>
+                    <input type="file" id="add-app-icon-file" x-ref="appIconFileInput" style="display:none;" @change="handleFileUpload($event, 'appIcon')">
                     <i data-lucide="upload-cloud"></i>
                     <span>Select app icon file</span>
                     <span class="upload-hint">SVG, PNG, JPG, ICO (Max 5MB). Recommended size: 256x256px.</span>
@@ -296,7 +299,8 @@
                 <label for="edit-app-icon">Icon Identifier / Upload Logo</label>
                 <input type="text" id="edit-app-icon" name="icon" x-model="editApp.icon" class="form-control" placeholder="e.g. radarr, sonarr, or image URL">
                 <div class="upload-zone" @click="$refs.editAppIconFileInput.click()">
-                    <input type="file" x-ref="editAppIconFileInput" style="display:none;" @change="handleFileUpload($event, 'editAppIcon')">
+                    <label for="edit-app-icon-file" class="visually-hidden">Upload app icon file</label>
+                    <input type="file" id="edit-app-icon-file" x-ref="editAppIconFileInput" style="display:none;" @change="handleFileUpload($event, 'editAppIcon')">
                     <i data-lucide="upload-cloud"></i>
                     <span>Select app icon file</span>
                     <span class="upload-hint">SVG, PNG, JPG, ICO (Max 5MB). Recommended size: 256x256px.</span>

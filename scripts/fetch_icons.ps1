@@ -79,7 +79,7 @@ foreach ($app in $targetApps) {
                 }
             }
         } catch {
-            # Try next candidate
+            Write-Verbose "Icon candidate failed: $($_.Exception.Message)"
         }
     }
 
