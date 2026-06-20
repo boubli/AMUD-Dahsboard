@@ -108,15 +108,16 @@ Log in, navigate to **Settings → Admin Profile**, and change the administrator
 
 To display live status badges (**RUNNING**, **STOPPED**) for other containers on your dashboard, the `amud-agent` needs a Proxmox API token. Without a token, the agent will report host metrics (CPU/RAM/Disk), but your app cards will remain stuck on **"CHECKING..."**.
 
-AMUD is designed with security in mind. Rather than using administrative credentials, we recommend setting up a restricted, read-only PVE user.
+AMUD is designed with security in mind. Rather than using administrative credentials, we recommend setting up a restricted PVE user. If you wish to control container power actions (Start, Stop, Restart) directly from the AMUD dashboard, you must grant the user power management privileges (`VM.PowerMgmt`) in addition to audit permissions.
 
 ### Option A: Direct CLI Provisioning (Recommended for Pros)
 
-For an automated, reproducible setup, paste the following script block directly into your Proxmox host terminal. It creates a restricted group, a local user, assigns read-only audit permissions, and generates the API token:
+For an automated, reproducible setup, paste the following script block directly into your Proxmox host terminal. It creates a restricted group, a local user, assigns audit (and optionally power management) privileges, and generates the API token:
 
 ```bash
-# 1. Create a custom permission role with absolute minimum read privileges
-pveum role add AMUDAgentRole -privs "VM.Audit Sys.Audit"
+# 1. Create a custom permission role
+# Grant "VM.PowerMgmt" only if you want to start/stop/restart containers from AMUD
+pveum role add AMUDAgentRole -privs "VM.Audit Sys.Audit VM.PowerMgmt"
 
 # 2. Create a restricted local system user group and user
 pveum group add amud-group
@@ -144,7 +145,11 @@ If you prefer to configure permissions visually:
 1. **Create the Role**:
    - Navigate to **Datacenter → Permissions → Roles** and click **Create**.
    - Name the role `AMUDAgentRole`.
-   - Check two permissions: **`VM.Audit`** (to inspect LXC/VM state) and **`Sys.Audit`** (to inspect host node details). Click **Create**.
+   - Check the following permissions:
+     - **`VM.Audit`** (to inspect LXC/VM state)
+     - **`Sys.Audit`** (to inspect host node details)
+     - **`VM.PowerMgmt`** (optional, check this if you want to control container states like Start/Stop/Restart from the dashboard)
+   - Click **Create**.
 2. **Create the User**:
    - Navigate to **Datacenter → Permissions → Users** and click **Add**.
    - Set User name to `amud` and Realm to `pve`. Click **Add**.
@@ -161,6 +166,10 @@ If you prefer to configure permissions visually:
 
 :::danger Privilege Separation Notice
 If **Privilege Separation** is checked, the token is treated as an isolated entity with zero inherited permissions. This will cause the Proxmox API to return empty lists, leaving your dashboard cards stuck on **"CHECKING..."**. Always ensure it is unchecked.
+:::
+
+:::info Container Power Actions (Optional)
+To enable dashboard buttons for starting, stopping, and restarting containers on native Proxmox LXC nodes, the API token must be assigned a role with `VM.PowerMgmt` privileges. If you prefer to keep AMUD completely read-only, you can omit `VM.PowerMgmt`; container power actions will then fail with a permission error (shown in the audit logs), but telemetry and status badges will continue to function normally.
 :::
 
 ---

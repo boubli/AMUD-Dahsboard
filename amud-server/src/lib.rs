@@ -94,6 +94,38 @@ pub async fn run() {
     let _ = conn.execute("ALTER TABLE apps ADD COLUMN api_key TEXT DEFAULT ''", []);
 
     conn.execute(
+        "CREATE TABLE IF NOT EXISTS wol_devices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        mac_address TEXT NOT NULL,
+        ip_address TEXT DEFAULT '',
+        icon TEXT DEFAULT ''
+    );",
+        [],
+    )
+    .unwrap();
+
+    // Migrate existing apps with MAC address configured
+    if let Ok(mut stmt) = conn.prepare("SELECT name, mac_address, icon FROM apps WHERE mac_address IS NOT NULL AND TRIM(mac_address) != ''") {
+        if let Ok(mut rows) = stmt.query([]) {
+            while let Ok(Some(row)) = rows.next() {
+                if let (Ok(name), Ok(mac), Ok(icon)) = (row.get::<_, String>(0), row.get::<_, String>(1), row.get::<_, String>(2)) {
+                    let mut check_stmt = conn.prepare("SELECT COUNT(*) FROM wol_devices WHERE mac_address = ?").unwrap();
+                    let exists: i64 = check_stmt.query_row(params![mac], |r| r.get(0)).unwrap_or(0);
+                    if exists == 0 {
+                        let device_name = format!("WOL: {}", name);
+                        conn.execute(
+                            "INSERT INTO wol_devices (name, mac_address, ip_address, icon) VALUES (?, ?, '', ?)",
+                            params![device_name, mac, icon],
+                        ).ok();
+                    }
+                }
+            }
+        }
+    }
+    let _ = conn.execute("UPDATE apps SET mac_address = ''", []);
+
+    conn.execute(
         "CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
@@ -304,6 +336,9 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/apps/edit", post(edit_app_handler))
         .route("/apps/wake", post(wake_app_handler))
         .route("/apps/action", post(app_action_handler))
+        .route("/api/wol", get(list_wol_devices_handler))
+        .route("/api/wol/add", post(add_wol_device_handler))
+        .route("/api/wol/delete", post(delete_wol_device_handler))
         .route("/api/apps/:id/integration", get(integration_data_handler))
         .route(
             "/api/apps/:id/integration/action",

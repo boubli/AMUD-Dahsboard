@@ -11,6 +11,7 @@ pub(crate) use crate::auth::{
 pub(crate) use crate::db::{
     delete_category_by_id, delete_user_by_id, fetch_app_mac_address, fetch_webhook_by_id,
     load_apps_from_db, load_categories, load_categories_json, load_users_json, load_webhooks_json,
+    load_wol_devices_from_db, fetch_wol_device_mac_address, insert_wol_device, delete_wol_device,
     process_login, record_audit_blocking, refresh_settings_cache, secret_field_placeholder,
     secret_setting_configured, setting_value_or_existing, telemetry_public_from_cache,
     update_category_by_id, with_db, CategoryDeleteError, DeleteUserError,

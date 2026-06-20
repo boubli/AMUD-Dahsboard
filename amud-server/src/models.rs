@@ -28,6 +28,15 @@ pub struct App {
     pub(crate) api_key: String,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+pub struct WolDevice {
+    pub(crate) id: i64,
+    pub(crate) name: String,
+    pub(crate) mac_address: String,
+    pub(crate) ip_address: String,
+    pub(crate) icon: String,
+}
+
 #[derive(Clone, Serialize)]
 pub struct Session {
     pub username: String,

@@ -106,6 +106,8 @@ Make the dashboard truly yours by overriding the default styling.
 
 *(Note: If you write invalid CSS that breaks the layout entirely, refer to [Troubleshooting](./troubleshooting.md) for recovery).*
 
+For ready-to-use themes, see the [Custom Themes Gallery](./themes.md).
+
 ---
 
 ## Proxmox and container control

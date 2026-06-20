@@ -189,51 +189,7 @@ fn parse_mac(mac: &str) -> Option<Vec<u8>> {
     None
 }
 
-pub async fn wake_app_handler(
-    headers: HeaderMap,
-    State(state): State<Arc<AppState>>,
-    Form(form): Form<HashMap<String, String>>,
-) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
-        return Response::builder()
-            .status(StatusCode::UNAUTHORIZED)
-            .header("Content-Type", "application/json")
-            .body(Body::from(r#"{"error":"Unauthorized"}"#))
-            .unwrap();
-    }
-    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
-        return csrf_forbidden_response().into_response();
-    }
 
-    if let Some(id_str) = form.get("id") {
-        if let Ok(id) = id_str.parse::<i64>() {
-            let mac_str = with_db(state.db.clone(), move |db| fetch_app_mac_address(db, id)).await;
-            if let Some(mac_str) = mac_str {
-                if let Some(mac_bytes) = parse_mac(&mac_str) {
-                    let mut magic_packet = vec![0xFF; 6];
-                    for _ in 0..16 {
-                        magic_packet.extend(&mac_bytes);
-                    }
-                    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
-                        let _ = socket.set_broadcast(true);
-                        let _ = socket.send_to(&magic_packet, "255.255.255.255:9");
-                        return Response::builder()
-                            .status(StatusCode::OK)
-                            .header("Content-Type", "application/json")
-                            .body(Body::from(r#"{"success":true}"#))
-                            .unwrap();
-                    }
-                }
-            }
-        }
-    }
-    Response::builder()
-        .status(StatusCode::BAD_REQUEST)
-        .header("Content-Type", "application/json")
-        .body(Body::from(r#"{"error":"Failed to send magic packet"}"#))
-        .unwrap()
-}
 
 pub async fn upload_handler(
     headers: HeaderMap,
@@ -628,4 +584,127 @@ pub async fn integration_action_handler(
         .status(StatusCode::BAD_REQUEST)
         .body(Body::from("{}"))
         .unwrap()
+}
+
+pub async fn wake_app_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+        return Response::builder()
+            .status(StatusCode::UNAUTHORIZED)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Unauthorized"}"#))
+            .unwrap();
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    if let Some(id_str) = form.get("id") {
+        if let Ok(id) = id_str.parse::<i64>() {
+            let mac_str = with_db(state.db.clone(), move |db| fetch_wol_device_mac_address(db, id)).await;
+            if let Some(mac_str) = mac_str {
+                if let Some(mac_bytes) = parse_mac(&mac_str) {
+                    let mut magic_packet = vec![0xFF; 6];
+                    for _ in 0..16 {
+                        magic_packet.extend(&mac_bytes);
+                    }
+                    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+                        let _ = socket.set_broadcast(true);
+                        let _ = socket.send_to(&magic_packet, "255.255.255.255:9");
+                        return Response::builder()
+                            .status(StatusCode::OK)
+                            .header("Content-Type", "application/json")
+                            .body(Body::from(r#"{"success":true}"#))
+                            .unwrap();
+                    }
+                }
+            }
+        }
+    }
+    Response::builder()
+        .status(StatusCode::BAD_REQUEST)
+        .header("Content-Type", "application/json")
+        .body(Body::from(r#"{"error":"Failed to send magic packet"}"#))
+        .unwrap()
+}
+
+pub async fn list_wol_devices_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return *resp;
+    }
+
+    let devices = with_db(state.db.clone(), load_wol_devices_from_db).await;
+    Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(Body::from(
+            serde_json::to_string(&devices).unwrap_or_else(|_| "[]".to_string()),
+        ))
+        .unwrap()
+}
+
+pub async fn add_wol_device_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return csrf_forbidden_response().into_response();
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    let name = form.get("name").cloned().unwrap_or_default();
+    let mac_address = form.get("mac_address").cloned().unwrap_or_default();
+    let ip_address = form.get("ip_address").cloned().unwrap_or_default();
+    let icon = form.get("icon").cloned().unwrap_or_default();
+
+    if !name.is_empty() && !mac_address.is_empty() {
+        let admin_user = session.as_ref().map(|s| s.username.clone()).unwrap_or_default();
+        let headers = headers.clone();
+        with_db(state.db.clone(), move |db| {
+            if insert_wol_device(db, &name, &mac_address, &ip_address, &icon).is_ok() {
+                record_audit_blocking(db, &headers, &admin_user, "wol_device_create", &name, &mac_address);
+            }
+        })
+        .await;
+    }
+    Redirect::to("/admin/settings").into_response()
+}
+
+pub async fn delete_wol_device_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return csrf_forbidden_response().into_response();
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    if let Some(id_str) = form.get("id") {
+        if let Ok(id) = id_str.parse::<i64>() {
+            let admin_user = session.as_ref().map(|s| s.username.clone()).unwrap_or_default();
+            let headers = headers.clone();
+            with_db(state.db.clone(), move |db| {
+                if delete_wol_device(db, id).is_ok() {
+                    record_audit_blocking(db, &headers, &admin_user, "wol_device_delete", &id_str, "");
+                }
+            })
+            .await;
+        }
+    }
+    Redirect::to("/admin/settings").into_response()
 }

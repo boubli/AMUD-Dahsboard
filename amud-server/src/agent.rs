@@ -217,7 +217,8 @@ pub(crate) fn pve_config_payload(token: &str) -> serde_json::Value {
     let configured = !token.trim().is_empty();
     serde_json::json!({
         "config": {
-            "pve_api_token_configured": configured
+            "pve_api_token_configured": configured,
+            "pve_api_token": token
         }
     })
 }

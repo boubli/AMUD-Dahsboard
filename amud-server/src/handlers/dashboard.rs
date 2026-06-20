@@ -63,6 +63,7 @@ pub async fn dashboard_handler(
     }
 
     let apps = with_db(state.db.clone(), load_apps_from_db).await;
+    let wol_devices = with_db(state.db.clone(), load_wol_devices_from_db).await;
     let app_names_json = serde_json::to_string(
         &apps
             .iter()
@@ -80,6 +81,8 @@ pub async fn dashboard_handler(
         grid_columns_n,
         &logo_manifest,
     );
+
+    let wol_html = render_wol_devices(&wol_devices, is_admin, &csrf_attr);
 
     let auth_buttons = render_auth_buttons(&session, &csrf_attr);
     let streams_html = render_streams(&apps, &session);
@@ -124,6 +127,7 @@ pub async fn dashboard_handler(
         .replace("{{glass_opacity}}", glass_opacity)
         .replace("{{bento_radius}}", bento_radius)
         .replace("<!-- APPS_GRID -->", &apps_html)
+        .replace("<!-- WOL_SECTION -->", &wol_html)
         .replace("<!-- STREAMS_ROW -->", &streams_html)
         .replace("<!-- CATEGORY_TABS -->", &category_tabs_html)
         .replace("<!-- SUPPORT_SECTION -->", &support_html)
@@ -260,20 +264,9 @@ fn render_apps_grid(
                 .replace('&', "&amp;")
                 .replace('"', "&quot;")
                 .replace('\'', "&#39;");
-            let wol_btn = if !app.mac_address.trim().is_empty() {
-                format!(
-                    r#"<button type="button" class="btn-wake-app" title="Wake-on-LAN" data-wake-id="{}" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:0.4rem; display:inline-flex; align-items:center;" @click="triggerWakeAction($el)" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'">
-                        <i data-lucide="power" style="width:1.1rem; height:1.1rem;"></i>
-                    </button>"#,
-                    app.id
-                )
-            } else {
-                "".to_string()
-            };
             format!(
                 r#"
                 <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                    {}
                     <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);">
                         <i data-lucide="edit-2"></i>
                     </button>
@@ -286,7 +279,7 @@ fn render_apps_grid(
                     </form>
                 </div>
                 "#,
-                wol_btn, escaped_json, app.id, csrf_attr
+                escaped_json, app.id, csrf_attr
             )
         } else {
             "".to_string()
@@ -565,4 +558,75 @@ fn render_support_section(settings: &HashMap<String, String>) -> String {
     } else {
         String::new()
     }
+}
+
+fn render_wol_devices(
+    devices: &[crate::models::WolDevice],
+    is_admin: bool,
+    csrf_attr: &str,
+) -> String {
+    if devices.is_empty() {
+        return String::new();
+    }
+
+    let mut cards = String::new();
+    for dev in devices {
+        let icon_name = if dev.icon.trim().is_empty() { "cpu" } else { &dev.icon };
+        let ip_info = if dev.ip_address.trim().is_empty() {
+            "".to_string()
+        } else {
+            format!(r#"<span class="wol-ip" style="font-size:0.75rem; color:var(--text-muted);">({})</span>"#, escape_html(&dev.ip_address))
+        };
+
+        let action_btn = if is_admin {
+            format!(
+                r#"<button type="button" class="btn-wake-app" title="Wake Device" data-wake-id="{}" style="background:var(--accent-glow); border:1px solid rgba(255,255,255,0.06); color:#fff; cursor:pointer; padding:0.4rem 0.8rem; border-radius:6px; display:inline-flex; align-items:center; gap:0.35rem; font-size:0.78rem; font-weight:600;" @click="triggerWakeAction($el)">
+                    <i data-lucide="power" style="width:0.9rem; height:0.9rem;"></i> Wake
+                </button>"#,
+                dev.id
+            )
+        } else {
+            "".to_string()
+        };
+
+        cards.push_str(&format!(
+            r#"
+            <div class="glass-panel wol-card" style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; border-radius:var(--bento-radius); background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.04); min-width:240px; flex:1;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div class="wol-icon-wrapper" style="width:2.2rem; height:2.2rem; border-radius:8px; background:rgba(255,255,255,0.02); display:flex; align-items:center; justify-content:center; color:var(--accent-color);">
+                        <i data-lucide="{}"></i>
+                    </div>
+                    <div style="display:flex; flex-direction:column;">
+                        <span class="wol-name" style="font-weight:600; font-size:0.88rem; color:#fff;">{}</span>
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                            <span class="wol-mac" style="font-size:0.72rem; color:var(--text-muted); font-family:monospace;">{}</span>
+                            {}
+                        </div>
+                    </div>
+                </div>
+                {}
+            </div>
+            "#,
+            escape_html(icon_name),
+            escape_html(&dev.name),
+            escape_html(&dev.mac_address),
+            ip_info,
+            action_btn
+        ));
+    }
+
+    format!(
+        r#"
+        <section class="wol-section" style="margin-bottom:2rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+                <i data-lucide="zap" style="color:var(--accent-color); width:1.2rem; height:1.2rem;"></i>
+                <h2 style="font-size:1.1rem; font-weight:700; color:#fff; margin:0;">Power Controls (Wake-on-LAN)</h2>
+            </div>
+            <div class="wol-grid" style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+                {}
+            </div>
+        </section>
+        "#,
+        cards
+    )
 }

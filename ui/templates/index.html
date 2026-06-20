@@ -161,6 +161,9 @@
         <!-- Second Row: Active Media Streams -->
         <!-- STREAMS_ROW -->
 
+        <!-- Wake-on-LAN Row -->
+        <!-- WOL_SECTION -->
+
         <!-- Main Bento Grid Columns -->
         <main class="bento-grid">
             <!-- APPS_GRID -->
@@ -224,10 +227,7 @@
                 <input type="text" name="node_tag" class="form-control" placeholder="e.g. Local, PVE-1 (Defaults to Local)">
             </div>
 
-            <div class="form-group">
-                <label>MAC Address (Optional)</label>
-                <input type="text" name="mac_address" class="form-control" placeholder="e.g. 00:11:22:33:44:55 (For Wake-on-LAN)">
-            </div>
+
 
             <div class="form-group">
                 <label>Integration Type (Optional)</label>
@@ -310,10 +310,7 @@
                 <input type="text" name="node_tag" x-model="editApp.node_tag" class="form-control" placeholder="e.g. Local, PVE-1 (Defaults to Local)">
             </div>
 
-            <div class="form-group">
-                <label>MAC Address (Optional)</label>
-                <input type="text" name="mac_address" x-model="editApp.mac_address" class="form-control" placeholder="e.g. 00:11:22:33:44:55 (For Wake-on-LAN)">
-            </div>
+
 
             <div class="form-group">
                 <label>Integration Type (Optional)</label>

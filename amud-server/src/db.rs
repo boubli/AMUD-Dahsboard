@@ -1,6 +1,6 @@
 use crate::audit::record_audit;
 use crate::auth::{hash_password, verify_password};
-use crate::models::{App, Webhook};
+use crate::models::{App, Webhook, WolDevice};
 use crate::security::mask_webhook_url;
 use crate::settings::SECRET_SETTING_KEYS;
 use axum::http::HeaderMap;
@@ -40,6 +40,32 @@ pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
         }
     }
     apps
+}
+
+pub(crate) fn load_wol_devices_from_db(db: &Connection) -> Vec<WolDevice> {
+    let mut devices = Vec::new();
+    let Ok(mut stmt) = db.prepare(
+        "SELECT id, name, mac_address, ip_address, icon FROM wol_devices ORDER BY id DESC",
+    ) else {
+        return devices;
+    };
+    let Ok(mut rows) = stmt.query([]) else {
+        return devices;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if let Ok(dev) = (|| -> rusqlite::Result<WolDevice> {
+            Ok(WolDevice {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                mac_address: row.get(2)?,
+                ip_address: row.get(3).unwrap_or_else(|_| "".to_string()),
+                icon: row.get(4).unwrap_or_else(|_| "".to_string()),
+            })
+        })() {
+            devices.push(dev);
+        }
+    }
+    devices
 }
 
 pub(crate) async fn with_db<T, F>(db: Arc<Mutex<Connection>>, f: F) -> T
@@ -308,6 +334,29 @@ pub(crate) fn fetch_app_mac_address(db: &Connection, id: i64) -> Option<String> 
     )
     .ok()
 }
+
+pub(crate) fn fetch_wol_device_mac_address(db: &Connection, id: i64) -> Option<String> {
+    db.query_row(
+        "SELECT mac_address FROM wol_devices WHERE id = ?",
+        params![id],
+        |row| row.get(0),
+    )
+    .ok()
+}
+
+pub(crate) fn insert_wol_device(db: &Connection, name: &str, mac: &str, ip: &str, icon: &str) -> Result<i64, rusqlite::Error> {
+    db.execute(
+        "INSERT INTO wol_devices (name, mac_address, ip_address, icon) VALUES (?, ?, ?, ?)",
+        params![name, mac, ip, icon],
+    )?;
+    Ok(db.last_insert_rowid())
+}
+
+pub(crate) fn delete_wol_device(db: &Connection, id: i64) -> Result<(), rusqlite::Error> {
+    db.execute("DELETE FROM wol_devices WHERE id = ?", params![id])?;
+    Ok(())
+}
+
 
 pub(crate) fn fetch_webhook_by_id(db: &Connection, id: i64) -> Option<(String, String)> {
     db.query_row(
