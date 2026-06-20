@@ -83,8 +83,8 @@
 .glow-button {
   position: relative;
   border: none;
-  background: #c2410c;
-  color: #ffffff !important;
+  background: linear-gradient(135deg, var(--amud-orange), #ff4500);
+  color: #fff !important;
   font-weight: 800;
   border-radius: 12px;
   padding: 0 2rem;
@@ -139,8 +139,8 @@
 
 .outline-button:hover {
   border-color: var(--amud-orange);
-  color: #ffffff !important;
-  background: #c2410c;
+  color: #fff !important;
+  background: rgba(255, 107, 43, 0.25);
   transform: translateY(-3px);
   text-decoration: none;
 }

@@ -521,9 +521,9 @@ body::-webkit-scrollbar-button {
 
 .status-badge.status-offline,
 .status-badge.down {
-    background: #991b1b;
-    color: #ffffff;
-    border-color: #b91c1c;
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.07) 100%);
+    color: #fecaca;
+    border-color: rgba(239, 68, 68, 0.45);
 }
 
 .status-badge.status-offline::before,
@@ -532,9 +532,9 @@ body::-webkit-scrollbar-button {
 }
 
 .status-badge.status-online {
-    background: #166534;
-    color: #ffffff;
-    border-color: #16a34a;
+    background: linear-gradient(180deg, rgba(33, 191, 75, 0.2) 0%, rgba(33, 191, 75, 0.07) 100%);
+    color: #86efac;
+    border-color: rgba(33, 191, 75, 0.45);
 }
 
 .status-badge.status-online::before {
@@ -843,15 +843,15 @@ body::-webkit-scrollbar-button {
 }
 
 .settings-tabs .tab-btn.active {
-    background: #374151 !important;
-    border-color: #4b5563 !important;
-    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f3f4f6 !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .settings-tabs .tab-btn:hover {
-    background: #1f2937;
-    color: #f9fafb !important;
+    background: rgba(255, 255, 255, 0.03);
+    color: #fff !important;
 }
 
 /* Redesigned Settings drawer layout section container */
@@ -1176,10 +1176,10 @@ select.form-control option {
     margin: 1rem auto 0;
     max-width: 720px;
     padding: 0.8rem 1rem;
-    border: 1px solid #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.25);
     border-radius: var(--radius-md);
-    background: #78350f;
-    color: #fef3c7;
+    background: rgba(245, 158, 11, 0.08);
+    color: #f59e0b;
     font-size: 0.82rem;
     text-align: center;
 }
@@ -1449,9 +1449,9 @@ input[type="color"].form-control {
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
-    color: #f9fafb;
-    border: 1px solid #334155;
-    background: #1e293b;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
     transition: all 0.2s ease;
 }
 
@@ -1514,9 +1514,9 @@ input[type="color"].form-control {
 }
 
 .btn-update-banner {
-    background: #92400e;
-    border: 1px solid #d97706;
-    color: #ffffff;
+    background: rgba(210, 153, 34, 0.15);
+    border: 1px solid rgba(210, 153, 34, 0.4);
+    color: #fff;
     padding: 0.35rem 0.8rem;
     border-radius: 6px;
     font-size: 0.78rem;
@@ -1568,8 +1568,7 @@ input[type="color"].form-control {
 }
 
 .version-badge.update-available {
-    background-color: #0a0b10;
-    color: #fbbf24;
+    color: #f59e0b;
     opacity: 1;
     font-weight: 600;
     animation: pulse-glow 2s infinite ease-in-out;
@@ -1577,21 +1576,21 @@ input[type="color"].form-control {
 
 /* System Tab Badges & Cards */
 .badge-success {
-    background: #166534 !important;
-    color: #ffffff !important;
-    border: 1px solid #16a34a !important;
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #4ade80 !important;
+    border: 1px solid rgba(34, 197, 94, 0.3) !important;
 }
 
 .badge-failed {
-    background: #991b1b !important;
-    color: #ffffff !important;
-    border: 1px solid #b91c1c !important;
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #fca5a5 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
 }
 
 .badge-info {
-    background: #1e40af !important;
-    color: #ffffff !important;
-    border: 1px solid #2563eb !important;
+    background: rgba(58, 166, 255, 0.15) !important;
+    color: #93c5fd !important;
+    border: 1px solid rgba(58, 166, 255, 0.3) !important;
 }
 
 /* Proxmox-inspired status chips */
@@ -1619,9 +1618,9 @@ input[type="color"].form-control {
 }
 
 .pve-badge--proxmox {
-    background: #92400e;
-    color: #ffffff;
-    border: 1px solid #d97706;
+    background: linear-gradient(180deg, rgba(229, 160, 36, 0.2) 0%, rgba(229, 160, 36, 0.07) 100%);
+    color: #fde047;
+    border: 1px solid rgba(229, 160, 36, 0.5);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
@@ -1631,9 +1630,9 @@ input[type="color"].form-control {
 }
 
 .pve-badge--docker {
-    background: #1e40af;
-    color: #ffffff;
-    border: 1px solid #2563eb;
+    background: linear-gradient(180deg, rgba(36, 150, 243, 0.18) 0%, rgba(36, 150, 243, 0.07) 100%);
+    color: #90caf9;
+    border: 1px solid rgba(36, 150, 243, 0.45);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
@@ -1643,9 +1642,9 @@ input[type="color"].form-control {
 }
 
 .pve-badge--native {
-    background: #475569;
-    color: #ffffff;
-    border: 1px solid #64748b;
+    background: linear-gradient(180deg, rgba(148, 163, 184, 0.16) 0%, rgba(148, 163, 184, 0.06) 100%);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.4);
 }
 
 .pve-badge--native::before {
@@ -1653,9 +1652,9 @@ input[type="color"].form-control {
 }
 
 .pve-badge--online {
-    background: #166534;
-    color: #ffffff;
-    border: 1px solid #16a34a;
+    background: linear-gradient(180deg, rgba(33, 191, 75, 0.2) 0%, rgba(33, 191, 75, 0.07) 100%);
+    color: #86efac;
+    border: 1px solid rgba(33, 191, 75, 0.5);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
@@ -1666,9 +1665,9 @@ input[type="color"].form-control {
 }
 
 .pve-badge--offline {
-    background: #991b1b;
-    color: #ffffff;
-    border: 1px solid #b91c1c;
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.07) 100%);
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.45);
 }
 
 .pve-badge--offline::before {
