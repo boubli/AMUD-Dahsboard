@@ -13,7 +13,8 @@ use tower::util::ServiceExt; // for oneshot
 fn setup_test_db() -> Connection {
     let conn = Connection::open_in_memory().unwrap();
     conn.execute_batch(
-        "CREATE TABLE IF NOT EXISTS users (
+        "PRAGMA foreign_keys=ON;
+        CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,

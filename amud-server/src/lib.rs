@@ -62,6 +62,11 @@ pub async fn run() {
     let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "data/amud.db".to_string());
     secrets::init_secrets_key(&db_path).expect("Failed to initialize AMUD secrets encryption key");
     let conn = Connection::open(&db_path).expect("Failed to open SQLite database");
+    conn.execute_batch(
+        "PRAGMA journal_mode=WAL;
+         PRAGMA foreign_keys=ON;",
+    )
+    .expect("Failed to configure SQLite database pragmas");
     let migrated_secrets = secrets::migrate_plaintext_secrets(&conn);
     if migrated_secrets > 0 {
         println!("Encrypted {migrated_secrets} legacy plaintext secret(s) at rest.");
