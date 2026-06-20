@@ -13,6 +13,40 @@
         return div.innerHTML;
     }
 
+    function appendTableCell(tr, text, options) {
+        const td = document.createElement('td');
+        const opts = options || {};
+        if (opts.style) td.setAttribute('style', opts.style);
+        if (opts.className) td.className = opts.className;
+        if (opts.code) {
+            const code = document.createElement('code');
+            code.style.fontSize = '0.75rem';
+            code.textContent = text == null ? '' : String(text);
+            td.appendChild(code);
+        } else if (opts.strong) {
+            const strong = document.createElement('strong');
+            strong.textContent = text == null ? '' : String(text);
+            td.appendChild(strong);
+        } else {
+            td.textContent = text == null ? '' : String(text);
+        }
+        tr.appendChild(td);
+        return td;
+    }
+
+    function setTableMessage(tbody, colspan, message, options) {
+        const opts = options || {};
+        tbody.replaceChildren();
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = colspan;
+        td.textContent = message;
+        if (opts.style) td.setAttribute('style', opts.style);
+        if (opts.className) td.className = opts.className;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+    }
+
     function amudUploadImage(file, onSuccess, onError) {
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
@@ -64,6 +98,8 @@
     global.amudCsrfToken = amudCsrfToken;
     global.amudCsrfHeaders = amudCsrfHeaders;
     global.escapeHtml = escapeHtml;
+    global.appendTableCell = appendTableCell;
+    global.setTableMessage = setTableMessage;
     global.amudUploadImage = amudUploadImage;
     global.handleFileUpload = handleFileUpload;
 })(typeof window !== 'undefined' ? window : globalThis);

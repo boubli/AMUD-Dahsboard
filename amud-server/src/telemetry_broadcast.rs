@@ -1,7 +1,7 @@
 use crate::models::{AppState, AppStatus, FullTelemetry};
 use amud_protocol::{AgentTelemetry, NetworkTelemetry};
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use tokio::sync::watch;
 
@@ -21,6 +21,16 @@ fn empty_full_telemetry() -> FullTelemetry {
         agent_connected: false,
         smart_home: None,
     }
+}
+
+fn read_rwlock<T: Clone>(lock: &RwLock<T>) -> T {
+    lock.read()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .clone()
+}
+
+fn read_agent_connected(lock: &RwLock<bool>) -> bool {
+    *lock.read().unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
 impl Default for WsTelemetryBundle {
@@ -47,11 +57,11 @@ impl WsTelemetryBundle {
     }
 
     pub(crate) fn from_state(state: &AppState) -> Self {
-        let system = state.latest_telemetry.read().unwrap().clone();
-        let streams = state.media_streams.read().unwrap().clone();
-        let app_statuses = state.app_statuses.read().unwrap().clone();
-        let agent_connected = *state.agent_connected.read().unwrap();
-        let smart_home = state.smart_home_telemetry.read().unwrap().clone();
+        let system = read_rwlock(&state.latest_telemetry);
+        let streams = read_rwlock(&state.media_streams);
+        let app_statuses = read_rwlock(&state.app_statuses);
+        let agent_connected = read_agent_connected(&state.agent_connected);
+        let smart_home = read_rwlock(&state.smart_home_telemetry);
 
         let network = system.network.clone().unwrap_or_default();
 

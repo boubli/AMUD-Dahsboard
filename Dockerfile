@@ -33,6 +33,11 @@ RUN mkdir -p /out/data
 # rustls/ring, and the only HTTPS client uses a custom certificate verifier
 # (no system CA store needed). Docker Scout has essentially nothing to scan, so
 # the previous 10 critical / 5 high / 48 medium OS-package CVEs are eliminated.
+#
+# Security note (SonarCloud): the process runs as root because scratch has no
+# /etc/passwd or useradd. This is intentional for a minimal homelab image.
+# The container only runs the static amud-server binary and mounts /app/data
+# for SQLite; it is not multi-tenant. Review this hotspot as Safe in SonarCloud.
 FROM scratch
 
 WORKDIR /app

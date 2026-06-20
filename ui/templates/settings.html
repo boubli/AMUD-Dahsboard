@@ -1415,25 +1415,28 @@
                 if (!Array.isArray(data)) {
                     throw new Error(data?.error || 'Unexpected audit log response');
                 }
-                tbody.innerHTML = '';
+                tbody.replaceChildren();
                 if (!data.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);">No audit entries yet. Sign out and sign back in, or change a setting — new actions are recorded from this point forward.</td></tr>';
+                    setTableMessage(tbody, 5, 'No audit entries yet. Sign out and sign back in, or change a setting — new actions are recorded from this point forward.', { style: 'color:var(--text-muted);' });
                     return;
                 }
                 data.forEach(entry => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-size:0.8rem; white-space:nowrap;">${escapeHtml(entry.created_at || '')}</td>
-                        <td>${escapeHtml(entry.username || '')}</td>
-                        <td><code style="font-size:0.75rem;">${escapeHtml(entry.action || '')}</code></td>
-                        <td>${escapeHtml(entry.target || '')}</td>
-                        <td style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(entry.details || '')}</td>
-                    `;
+                    appendTableCell(tr, entry.created_at || '', { style: 'font-size:0.8rem; white-space:nowrap;' });
+                    appendTableCell(tr, entry.username || '');
+                    const actionTd = document.createElement('td');
+                    const actionCode = document.createElement('code');
+                    actionCode.style.fontSize = '0.75rem';
+                    actionCode.textContent = entry.action || '';
+                    actionTd.appendChild(actionCode);
+                    tr.appendChild(actionTd);
+                    appendTableCell(tr, entry.target || '');
+                    appendTableCell(tr, entry.details || '', { style: 'font-size:0.8rem; color:var(--text-muted);' });
                     tbody.appendChild(tr);
                 });
             } catch (e) {
                 console.error(e);
-                tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger);">${escapeHtml(e.message)}</td></tr>`;
+                setTableMessage(tbody, 5, e.message || 'Failed to load audit log', { style: 'color:var(--danger);' });
             }
         }
 
@@ -1464,13 +1467,28 @@
                 const cleanLatest = latestVersion.replace(/^v/, "").trim();
 
                 if (semverCompare(cleanLatest, cleanCurrent) > 0) {
-                    statusContainer.innerHTML = `<span class="badge" style="background: rgba(210,153,34,0.15); color: #d29922; font-weight: 500; border: 1px solid rgba(210,153,34,0.4); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.35rem;"><i data-lucide="sparkles" style="width: 0.95rem; height: 0.95rem;"></i> Update Available: ${latestVersion}</span>`;
+                    statusContainer.replaceChildren();
+                    const span = document.createElement('span');
+                    span.className = 'badge';
+                    span.style.cssText = 'background: rgba(210,153,34,0.15); color: #d29922; font-weight: 500; border: 1px solid rgba(210,153,34,0.4); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.35rem;';
+                    span.textContent = `Update Available: ${latestVersion}`;
+                    statusContainer.appendChild(span);
                 } else {
-                    statusContainer.innerHTML = `<span class="badge" style="background: rgba(46,160,67,0.15); color: #58a6ff; font-weight: 500; border: 1px solid rgba(46,160,67,0.4); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.35rem;"><i data-lucide="check" style="width: 0.95rem; height: 0.95rem;"></i> Up to date</span>`;
+                    statusContainer.replaceChildren();
+                    const span = document.createElement('span');
+                    span.className = 'badge';
+                    span.style.cssText = 'background: rgba(46,160,67,0.15); color: #58a6ff; font-weight: 500; border: 1px solid rgba(46,160,67,0.4); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.35rem;';
+                    span.textContent = 'Up to date';
+                    statusContainer.appendChild(span);
                 }
                 if (window.lucide) window.lucide.createIcons();
             } catch (err) {
-                statusContainer.innerHTML = `<span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 0.25rem 0.5rem; border-radius: 4px;">Unable to check for updates</span>`;
+                statusContainer.replaceChildren();
+                const span = document.createElement('span');
+                span.className = 'badge';
+                span.style.cssText = 'background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 0.25rem 0.5rem; border-radius: 4px;';
+                span.textContent = 'Unable to check for updates';
+                statusContainer.appendChild(span);
             }
         }
 
@@ -1481,16 +1499,23 @@
                 const { ok, data } = await parseApiResponse(res);
                 if (!ok) throw new Error(data.error || 'Failed to load categories');
                 const tbody = document.getElementById('categories-table-body');
-                tbody.innerHTML = '';
+                tbody.replaceChildren();
                 data.forEach(c => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${escapeHtml(c.name)}</strong></td>
-                        <td><div style="width:20px; height:20px; border-radius:4px; background:${escapeHtml(c.color)};" title="${escapeHtml(c.color)}"></div></td>
-                        <td>${Number(c.sort_order)}</td>
-                        <td style="text-align:right;" class="actions-cell"></td>
-                    `;
-                    const cell = tr.querySelector('.actions-cell');
+                    appendTableCell(tr, c.name, { strong: true });
+                    const colorTd = document.createElement('td');
+                    const swatch = document.createElement('div');
+                    swatch.style.width = '20px';
+                    swatch.style.height = '20px';
+                    swatch.style.borderRadius = '4px';
+                    swatch.style.background = c.color || '';
+                    swatch.title = c.color || '';
+                    colorTd.appendChild(swatch);
+                    tr.appendChild(colorTd);
+                    appendTableCell(tr, String(Number(c.sort_order)));
+                    const actionsTd = document.createElement('td');
+                    actionsTd.style.textAlign = 'right';
+                    actionsTd.className = 'actions-cell';
 
                     const btnEdit = document.createElement('button');
                     btnEdit.type = 'button';
@@ -1509,8 +1534,9 @@
                     btnDel.textContent = 'Del';
                     btnDel.addEventListener('click', () => deleteCategory(Number(c.id)));
 
-                    cell.appendChild(btnEdit);
-                    cell.appendChild(btnDel);
+                    actionsTd.appendChild(btnEdit);
+                    actionsTd.appendChild(btnDel);
+                    tr.appendChild(actionsTd);
                     tbody.appendChild(tr);
                 });
             } catch (e) {
@@ -1575,17 +1601,16 @@
                 const { ok, data } = await parseApiResponse(res);
                 if (!ok) throw new Error(data.error || 'Failed to load WOL devices');
                 const tbody = document.getElementById('wol-table-body');
-                tbody.innerHTML = '';
+                tbody.replaceChildren();
                 data.forEach(dev => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${escapeHtml(dev.name)}</strong></td>
-                        <td><code style="font-size:0.75rem;">${escapeHtml(dev.mac_address)}</code></td>
-                        <td>${escapeHtml(dev.ip_address || '—')}</td>
-                        <td><code style="font-size:0.75rem;">${escapeHtml(dev.icon || 'cpu')}</code></td>
-                        <td style="text-align:right;" class="actions-cell"></td>
-                    `;
-                    const cell = tr.querySelector('.actions-cell');
+                    appendTableCell(tr, dev.name, { strong: true });
+                    appendTableCell(tr, dev.mac_address, { code: true });
+                    appendTableCell(tr, dev.ip_address || '—');
+                    appendTableCell(tr, dev.icon || 'cpu', { code: true });
+                    const actionsTd = document.createElement('td');
+                    actionsTd.style.textAlign = 'right';
+                    actionsTd.className = 'actions-cell';
 
                     const btnDel = document.createElement('button');
                     btnDel.type = 'button';
@@ -1595,7 +1620,8 @@
                     btnDel.textContent = 'Del';
                     btnDel.addEventListener('click', () => deleteWolDevice(Number(dev.id)));
 
-                    cell.appendChild(btnDel);
+                    actionsTd.appendChild(btnDel);
+                    tr.appendChild(actionsTd);
                     tbody.appendChild(tr);
                 });
             } catch (e) {
@@ -1625,16 +1651,34 @@
                 const { ok, data } = await parseApiResponse(res);
                 if (!ok) throw new Error(data.error || 'Failed to load webhooks');
                 const tbody = document.getElementById('webhooks-table-body');
-                tbody.innerHTML = '';
+                tbody.replaceChildren();
                 data.forEach(w => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${escapeHtml(w.name)}</strong></td>
-                        <td><span style="font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:0.2rem 0.4rem; border-radius:4px;">${Number(String(w.event_types || '').split(',').filter(Boolean).length)} events</span></td>
-                        <td>${w.is_active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--danger);">Disabled</span>'}</td>
-                        <td style="text-align:right;" class="actions-cell"></td>
-                    `;
-                    const cell = tr.querySelector('.actions-cell');
+                    appendTableCell(tr, w.name, { strong: true });
+                    const eventsTd = document.createElement('td');
+                    const eventsBadge = document.createElement('span');
+                    eventsBadge.style.fontSize = '0.75rem';
+                    eventsBadge.style.color = 'var(--text-muted)';
+                    eventsBadge.style.background = 'rgba(255,255,255,0.05)';
+                    eventsBadge.style.padding = '0.2rem 0.4rem';
+                    eventsBadge.style.borderRadius = '4px';
+                    eventsBadge.textContent = `${Number(String(w.event_types || '').split(',').filter(Boolean).length)} events`;
+                    eventsTd.appendChild(eventsBadge);
+                    tr.appendChild(eventsTd);
+                    const statusTd = document.createElement('td');
+                    const statusSpan = document.createElement('span');
+                    if (w.is_active) {
+                        statusSpan.style.color = 'var(--success)';
+                        statusSpan.textContent = 'Active';
+                    } else {
+                        statusSpan.style.color = 'var(--danger)';
+                        statusSpan.textContent = 'Disabled';
+                    }
+                    statusTd.appendChild(statusSpan);
+                    tr.appendChild(statusTd);
+                    const actionsTd = document.createElement('td');
+                    actionsTd.style.textAlign = 'right';
+                    actionsTd.className = 'actions-cell';
 
                     const btnTest = document.createElement('button');
                     btnTest.type = 'button';
@@ -1662,9 +1706,10 @@
                     btnDel.textContent = 'Del';
                     btnDel.addEventListener('click', () => deleteWebhook(Number(w.id)));
 
-                    cell.appendChild(btnTest);
-                    cell.appendChild(btnEdit);
-                    cell.appendChild(btnDel);
+                    actionsTd.appendChild(btnTest);
+                    actionsTd.appendChild(btnEdit);
+                    actionsTd.appendChild(btnDel);
+                    tr.appendChild(actionsTd);
                     tbody.appendChild(tr);
                 });
             } catch (e) {
@@ -1757,17 +1802,26 @@
                 const res = await fetch('/api/users');
                 const data = await res.json();
                 const tbody = document.getElementById('users-table-body');
-                tbody.innerHTML = '';
+                tbody.replaceChildren();
                 data.forEach(u => {
                     const tr = document.createElement('tr');
-                    const roleBadge = u.role === 'Admin' ? '<span style="color:var(--accent-color); font-weight:600;">Admin</span>' : '<span style="color:var(--text-muted);">Guest</span>';
-                    tr.innerHTML = `
-                        <td>${Number(u.id)}</td>
-                        <td><strong>${escapeHtml(u.username)}</strong></td>
-                        <td>${roleBadge}</td>
-                        <td style="text-align:right;" class="actions-cell"></td>
-                    `;
-                    const cell = tr.querySelector('.actions-cell');
+                    appendTableCell(tr, String(Number(u.id)));
+                    appendTableCell(tr, u.username, { strong: true });
+                    const roleTd = document.createElement('td');
+                    const roleSpan = document.createElement('span');
+                    if (u.role === 'Admin') {
+                        roleSpan.style.color = 'var(--accent-color)';
+                        roleSpan.style.fontWeight = '600';
+                        roleSpan.textContent = 'Admin';
+                    } else {
+                        roleSpan.style.color = 'var(--text-muted)';
+                        roleSpan.textContent = 'Guest';
+                    }
+                    roleTd.appendChild(roleSpan);
+                    tr.appendChild(roleTd);
+                    const actionsTd = document.createElement('td');
+                    actionsTd.style.textAlign = 'right';
+                    actionsTd.className = 'actions-cell';
 
                     const btnEdit = document.createElement('button');
                     btnEdit.type = 'button';
@@ -1786,8 +1840,9 @@
                     btnDel.textContent = 'Del';
                     btnDel.addEventListener('click', () => deleteUser(Number(u.id), u.username));
 
-                    cell.appendChild(btnEdit);
-                    cell.appendChild(btnDel);
+                    actionsTd.appendChild(btnEdit);
+                    actionsTd.appendChild(btnDel);
+                    tr.appendChild(actionsTd);
                     tbody.appendChild(tr);
                 });
             } catch (e) { console.error(e); }

@@ -1,7 +1,5 @@
 use axum::http::HeaderMap;
 use rusqlite::{params, Connection, ErrorCode};
-use std::thread;
-use std::time::Duration;
 
 use crate::security::client_ip;
 
@@ -46,14 +44,9 @@ pub(crate) fn record_audit(
     let mut last_err = None;
     for attempt in 0..3 {
         match db.execute(sql, params![username, action, target, details, ip]) {
-            Ok(_) => {
-                eprintln!(
-                    "[AUDIT] user={username} action={action} target={target} details={details} ip={ip}"
-                );
-                return;
-            }
+            Ok(_) => return,
             Err(e) if e.sqlite_error_code() == Some(ErrorCode::DatabaseBusy) && attempt < 2 => {
-                thread::sleep(Duration::from_millis(25 * (attempt as u64 + 1)));
+                std::thread::yield_now();
                 last_err = Some(e);
             }
             Err(e) => {

@@ -11,19 +11,10 @@ pub async fn dashboard_handler(
     let settings = state.settings_cache.read().unwrap().clone();
 
     let branding = branding_from_settings(&settings);
-    let app_name = branding.app_name.as_str();
     let tagline = branding
         .tagline
         .as_deref()
         .unwrap_or("Homelab Operations Cockpit");
-    let custom_bg_url = branding.custom_bg_url.as_str();
-    let app_logo = branding.app_logo.as_str();
-    let accent_color = branding.accent_color.as_str();
-    let glass_blur = branding.glass_blur.as_str();
-    let glass_opacity = branding.glass_opacity.as_str();
-    let bento_radius = branding.bento_radius.as_str();
-    let overlay_theme = branding.overlay_theme.as_str();
-    let custom_overlay_color = branding.custom_overlay_color.as_str();
     let grid_columns = branding.grid_columns.as_deref().unwrap_or("3");
     let grid_columns_n: usize = grid_columns.parse().unwrap_or(3).clamp(2, 5);
     let weather_lat = settings
@@ -134,23 +125,49 @@ pub async fn dashboard_handler(
         <button onclick="dismissUpdateBanner()" class="btn-update-dismiss">&times;</button>
     </div>
 </div>"#,
-                    app_version_formatted, cached.latest
+                    escape_html(&app_version_formatted),
+                    escape_html(&cached.latest)
                 );
             }
         }
     }
 
+    let safe_app_name = escape_html(&branding.app_name);
+    let safe_tagline = escape_html(tagline);
+    let safe_app_logo_css = safe_css_url(&branding.app_logo);
+    let safe_accent = branding.accent_color.clone();
+    let safe_glass_blur = branding
+        .glass_blur
+        .parse::<u16>()
+        .map(|n| n.to_string())
+        .unwrap_or_else(|_| "16".to_string());
+    let safe_glass_opacity = branding
+        .glass_opacity
+        .parse::<f64>()
+        .map(|n| n.to_string())
+        .unwrap_or_else(|_| "0.45".to_string());
+    let safe_bento_radius = branding
+        .bento_radius
+        .parse::<u16>()
+        .map(|n| n.to_string())
+        .unwrap_or_else(|_| "16".to_string());
+    let safe_overlay_color = safe_accent_hex(&branding.custom_overlay_color);
+    let safe_weather_lat = safe_weather_coord(weather_lat);
+    let safe_weather_lon = safe_weather_coord(weather_lon);
+    let safe_csrf_meta = escape_html(&csrf_token);
+    let safe_app_version = escape_html(&app_version_formatted);
+
     let mut result = index_tmpl
         .replace("/* ROOT_CSS */", &root_css)
-        .replace("{{app_name}}", app_name)
-        .replace("{{tagline}}", tagline)
+        .replace("{{app_name}}", &safe_app_name)
+        .replace("{{tagline}}", &safe_tagline)
         .replace(
             "{{proxmox_enabled}}",
             if proxmox_enabled { "true" } else { "false" },
         )
-        .replace("{{custom_bg_url}}", custom_bg_url);
+        .replace("{{custom_bg_url}}", &safe_css_url(&branding.custom_bg_url));
 
-    if app_logo.is_empty() {
+    if branding.app_logo.is_empty() {
         result = result.replace(
             "{{if app_logo}}style=\"background-image: url('{{app_logo}}');\"{{end}}",
             "",
@@ -158,15 +175,15 @@ pub async fn dashboard_handler(
     } else {
         result = result
             .replace("{{if app_logo}}", "")
-            .replace("{{app_logo}}", app_logo)
+            .replace("{{app_logo}}", &safe_app_logo_css)
             .replace("{{end}}", "");
     }
 
     let result = result
-        .replace("{{accent_color}}", accent_color)
-        .replace("{{glass_blur_intensity}}", glass_blur)
-        .replace("{{glass_opacity}}", glass_opacity)
-        .replace("{{bento_radius}}", bento_radius)
+        .replace("{{accent_color}}", &safe_accent)
+        .replace("{{glass_blur_intensity}}", &safe_glass_blur)
+        .replace("{{glass_opacity}}", &safe_glass_opacity)
+        .replace("{{bento_radius}}", &safe_bento_radius)
         .replace("<!-- APPS_GRID -->", &apps_html)
         .replace("<!-- WOL_SECTION -->", &wol_html)
         .replace("<!-- STREAMS_ROW -->", &streams_html)
@@ -174,11 +191,11 @@ pub async fn dashboard_handler(
         .replace("<!-- SUPPORT_SECTION -->", &support_html)
         .replace("<!-- AUTH_BUTTONS -->", &auth_buttons)
         .replace("{{username}}", &escape_html(username))
-        .replace("{{custom_overlay_color}}", custom_overlay_color)
-        .replace("{{weather_latitude}}", weather_lat)
-        .replace("{{weather_longitude}}", weather_lon)
+        .replace("{{custom_overlay_color}}", &safe_overlay_color)
+        .replace("{{weather_latitude}}", &safe_weather_lat)
+        .replace("{{weather_longitude}}", &safe_weather_lon)
         .replace("<!-- CATEGORY_OPTIONS -->", &category_options_html)
-        .replace("{{csrf_token}}", &csrf_token)
+        .replace("{{csrf_token}}", &safe_csrf_meta)
         .replace("{{telemetry_public}}", telemetry_public)
         .replace(
             "{{hide_telemetry}}",
@@ -187,10 +204,13 @@ pub async fn dashboard_handler(
         .replace("{{custom_css}}", custom_css)
         .replace("{{app_names_json}}", &app_names_json)
         .replace("{{is_admin}}", if is_admin { "true" } else { "false" })
-        .replace("{{app_version}}", &app_version_formatted)
-        .replace("{{update_status_class}}", &update_status_class)
+        .replace("{{app_version}}", &safe_app_version)
+        .replace(
+            "{{update_status_class}}",
+            &escape_html(&update_status_class),
+        )
         .replace("{{update_banner}}", &update_banner);
-    let result = apply_theme_placeholders(result, overlay_theme);
+    let result = apply_theme_placeholders(result, &branding.overlay_theme);
 
     Html(apply_csp_nonce(result, &csp.0))
 }
@@ -667,4 +687,16 @@ fn render_wol_devices(
         "#,
         cards
     )
+}
+
+fn safe_weather_coord(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+    if trimmed.parse::<f64>().is_ok() {
+        escape_html(trimmed)
+    } else {
+        String::new()
+    }
 }

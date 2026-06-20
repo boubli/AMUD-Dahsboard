@@ -15,7 +15,7 @@ fn escape_css_string(input: &str) -> String {
     out
 }
 
-fn safe_css_url(raw: &str) -> String {
+pub(crate) fn safe_css_url(raw: &str) -> String {
     let sanitized = crate::settings::sanitize_setting_url(raw);
     if sanitized.is_empty() {
         return String::new();
@@ -23,7 +23,7 @@ fn safe_css_url(raw: &str) -> String {
     escape_css_string(&sanitized)
 }
 
-fn safe_accent_hex(raw: &str) -> String {
+pub(crate) fn safe_accent_hex(raw: &str) -> String {
     if raw.starts_with('#')
         && raw.len() == 7
         && (1..7).all(|i| raw.as_bytes()[i].is_ascii_hexdigit())
