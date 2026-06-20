@@ -49,7 +49,15 @@ pub async fn dashboard_handler(
     let csrf_token = csrf_token_for_session(&headers, &state.sessions);
     let csrf_attr = escape_html(&csrf_token);
 
-    let db_categories = with_db(state.db.clone(), load_categories).await;
+    let (db_categories, apps, wol_devices) = with_db(state.db.clone(), |db| {
+        (
+            load_categories(db),
+            load_apps_from_db(db),
+            load_wol_devices_from_db(db),
+        )
+    })
+    .await;
+    
     let mut category_options_html = String::new();
     for (_id, cat_name) in &db_categories {
         category_options_html.push_str(&format!(
@@ -61,9 +69,6 @@ pub async fn dashboard_handler(
     if category_options_html.is_empty() {
         category_options_html = r#"<option value="General">General</option>"#.to_string();
     }
-
-    let apps = with_db(state.db.clone(), load_apps_from_db).await;
-    let wol_devices = with_db(state.db.clone(), load_wol_devices_from_db).await;
     let app_names_json = serde_json::to_string(
         &apps
             .iter()
@@ -196,20 +201,19 @@ fn render_apps_grid(
     csrf_token: &str,
     csrf_attr: &str,
     session: &Option<Session>,
-    grid_columns_n: usize,
+    _grid_columns_n: usize,
     logo_manifest: &HashMap<String, String>,
 ) -> String {
     if apps.is_empty() {
         return r#"
-        <div class="glass-panel app-card" style="grid-column: span 3; text-align: center; padding: 3rem 1rem;">
+        <div class="glass-panel app-card app-card--empty">
             <p style="font-weight: 600; color: var(--text-secondary);">No services configured yet</p>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Log in as Admin and click "Add App" to register your infrastructure.</p>
         </div>"#.to_string();
     }
 
-    let mut cols = vec![String::new(); grid_columns_n];
-    for (i, app) in apps.iter().enumerate() {
-        let col_idx = i % grid_columns_n;
+    let mut cards_html = String::new();
+    for app in apps.iter() {
 
         let lowercase_icon = app.icon.to_lowercase();
         let resolved_logo = resolve_logo_from_manifest(&app.icon, logo_manifest);
@@ -276,18 +280,7 @@ fn render_apps_grid(
                 </div>"#
                     .to_string()
             } else {
-                r#"
-                <div class="nested-metrics-grid">
-                    <div class="metric-block">
-                        <span class="metric-value">Bookmark</span>
-                        <span class="metric-label">Type</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">Linked</span>
-                        <span class="metric-label">Status</span>
-                    </div>
-                </div>"#
-                    .to_string()
+                String::new()
             }
         } else {
             "".to_string()
@@ -415,13 +408,10 @@ fn render_apps_grid(
             sub_metrics,
             integration_widget
         );
-        cols[col_idx].push_str(&card);
+        cards_html.push_str(&card);
     }
 
-    cols.into_iter()
-        .map(|col| format!(r#"<div class="bento-column">{}</div>"#, col))
-        .collect::<Vec<_>>()
-        .join("")
+    cards_html
 }
 
 fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
@@ -481,7 +471,7 @@ fn render_streams(apps: &[App], session: &Option<Session>) -> String {
                             <p class="stream-text-desc">Watch movies and TV shows.</p>
                         </div>
                     </div>
-                    <span class="stream-status-badge" data-stream-app="plex" data-stream-service="plex">CHECKING...</span>
+                    <span class="status-badge status-checking stream-status-badge" data-stream-app="plex" data-stream-service="plex">CHECKING...</span>
                 </div>
                 
                 <div class="stream-player">
@@ -513,7 +503,7 @@ fn render_streams(apps: &[App], session: &Option<Session>) -> String {
                             <p class="stream-text-desc">Watch movies and TV shows.</p>
                         </div>
                     </div>
-                    <span class="stream-status-badge" data-stream-app="jellyfin emby" data-stream-service="jellyfin">CHECKING...</span>
+                    <span class="status-badge status-checking stream-status-badge" data-stream-app="jellyfin emby" data-stream-service="jellyfin">CHECKING...</span>
                 </div>
                 
                 <div class="stream-player">
@@ -534,7 +524,7 @@ fn render_streams(apps: &[App], session: &Option<Session>) -> String {
         } else {
             "streams-row single-col"
         };
-        format!(r#"<section class="{}">{}</section>"#, cols_class, cards)
+        format!(r#"<section class="{}" data-filter-section="media">{}</section>"#, cols_class, cards)
     } else {
         String::new()
     }

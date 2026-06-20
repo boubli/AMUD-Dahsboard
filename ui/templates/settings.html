@@ -39,6 +39,7 @@
         body.settings-page {
             padding: 0;
             overflow: hidden;
+            color-scheme: dark;
         }
 
         .settings-sidebar {
@@ -792,24 +793,31 @@
                                 <i data-lucide="info" style="color: var(--accent-color); width: 1.2rem; height: 1.2rem;"></i>
                                 Version Information
                             </h3>
-                            <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="color: var(--text-muted);">Current Version</span>
-                                    <strong x-text="systemVersion ? systemVersion.current : '{{app_version}}'">v{{app_version}}</strong>
+                            <div class="sys-info-list">
+                                <div class="sys-info-row">
+                                    <span class="sys-info-label">Current Version</span>
+                                    <span class="sys-version-tag" x-text="systemVersion ? systemVersion.current : '{{app_version}}'">v{{app_version}}</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="color: var(--text-muted);">Deployment Type</span>
-                                    <span class="badge" 
-                                          style="padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500;"
-                                          :style="systemVersion && systemVersion.deployment_type === 'proxmox' ? 'background: rgba(210,153,34,0.15); color: #d29922; border: 1px solid rgba(210,153,34,0.4);' : (systemVersion && systemVersion.deployment_type === 'docker' ? 'background: rgba(58,166,255,0.15); color: #58a6ff; border: 1px solid rgba(58,166,255,0.4);' : 'background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid rgba(255,255,255,0.1);')"
+                                <div class="sys-info-row">
+                                    <span class="sys-info-label">Deployment Type</span>
+                                    <span class="pve-badge"
+                                          :class="{
+                                              'pve-badge--proxmox': systemVersion && systemVersion.deployment_type === 'proxmox',
+                                              'pve-badge--docker': systemVersion && systemVersion.deployment_type === 'docker',
+                                              'pve-badge--native': systemVersion && systemVersion.deployment_type !== 'proxmox' && systemVersion.deployment_type !== 'docker',
+                                              'pve-badge--pending': !systemVersion
+                                          }"
                                           x-text="systemVersion ? (systemVersion.deployment_type === 'proxmox' ? 'Proxmox LXC' : (systemVersion.deployment_type === 'docker' ? 'Docker Container' : 'Native Linux')) : 'Detecting...'">
                                     </span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="color: var(--text-muted);">Agent Status</span>
-                                    <span class="badge" 
-                                          style="padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500;"
-                                          :style="systemVersion && systemVersion.agent_connected ? 'background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.4);' : 'background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.4);'"
+                                <div class="sys-info-row">
+                                    <span class="sys-info-label">Agent Status</span>
+                                    <span class="pve-badge"
+                                          :class="{
+                                              'pve-badge--online': systemVersion && systemVersion.agent_connected,
+                                              'pve-badge--offline': systemVersion && !systemVersion.agent_connected,
+                                              'pve-badge--pending': !systemVersion
+                                          }"
                                           x-text="systemVersion ? (systemVersion.agent_connected ? 'Connected' : 'Disconnected') : 'Checking...'">
                                     </span>
                                 </div>
@@ -1213,12 +1221,15 @@
 
                 loadUpdateHistory() {
                     this.loadingHistory = true;
-                    fetch('/api/audit')
+                    fetch('/api/audit', { credentials: 'same-origin', cache: 'no-store' })
                         .then(res => {
                             if (!res.ok) throw new Error('Failed to fetch audit log');
                             return res.json();
                         })
                         .then(data => {
+                            if (!Array.isArray(data)) {
+                                throw new Error(data?.error || 'Unexpected audit log response');
+                            }
                             this.updateHistory = data.filter(entry => entry.action && entry.action.startsWith('system_update_'));
                         })
                         .catch(err => {
@@ -1396,13 +1407,17 @@
         async function loadAuditLog() {
             checkForUpdates();
             const tbody = document.getElementById('audit-table-body');
+            if (!tbody) return;
             try {
-                const res = await fetch('/api/audit');
+                const res = await fetch('/api/audit', { credentials: 'same-origin', cache: 'no-store' });
                 const { ok, data } = await parseApiResponse(res);
                 if (!ok) throw new Error(data.error || 'Failed to load audit log');
+                if (!Array.isArray(data)) {
+                    throw new Error(data?.error || 'Unexpected audit log response');
+                }
                 tbody.innerHTML = '';
                 if (!data.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);">No audit entries yet.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);">No audit entries yet. Sign out and sign back in, or change a setting — new actions are recorded from this point forward.</td></tr>';
                     return;
                 }
                 data.forEach(entry => {

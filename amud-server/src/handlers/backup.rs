@@ -8,7 +8,11 @@ pub async fn list_audit_handler(
         return *resp;
     }
 
-    let entries = with_db(state.db.clone(), |db| list_recent_audit(db, 200)).await;
+    let entries = with_db(state.db.clone(), |db| {
+        crate::audit::ensure_audit_log_table(db).ok();
+        list_recent_audit(db, 200)
+    })
+    .await;
     Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "application/json")
