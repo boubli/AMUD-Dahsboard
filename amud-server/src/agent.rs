@@ -49,7 +49,10 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
         tokio::spawn(async move {
             let accept_invalid = {
                 let cache = state.settings_cache.read().unwrap();
-                cache.get("accept_invalid_certs").map(|s| s == "1").unwrap_or(false)
+                cache
+                    .get("accept_invalid_certs")
+                    .map(|s| s == "1")
+                    .unwrap_or(false)
             };
             let event_filter = event.clone();
             let webhooks = with_db(state.db.clone(), move |db| {
@@ -61,7 +64,6 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
                 let name = wh.name;
                 let event = event.clone();
                 let status_str = status_str.clone();
-                let accept_invalid = accept_invalid;
                 tokio::spawn(async move {
                     send_webhook_notification(
                         url,

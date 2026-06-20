@@ -40,7 +40,10 @@ pub(crate) fn start_status_poller(
         loop {
             let accept_invalid = {
                 let cache = settings_cache.read().unwrap();
-                cache.get("accept_invalid_certs").map(|s| s == "1").unwrap_or(false)
+                cache
+                    .get("accept_invalid_certs")
+                    .map(|s| s == "1")
+                    .unwrap_or(false)
             };
             let client = reqwest::Client::builder()
                 .timeout(Duration::from_secs(4))
@@ -93,6 +96,7 @@ pub(crate) fn start_status_poller(
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn send_webhook_notification(
     url: String,
     name: String,
@@ -348,7 +352,10 @@ pub(crate) fn check_container_alerts(
     tokio::spawn(async move {
         let accept_invalid = {
             let cache = state.settings_cache.read().unwrap();
-            cache.get("accept_invalid_certs").map(|s| s == "1").unwrap_or(false)
+            cache
+                .get("accept_invalid_certs")
+                .map(|s| s == "1")
+                .unwrap_or(false)
         };
         let webhooks = crate::db::with_db(state.db.clone(), crate::db::load_active_webhooks).await;
         for (event_type, container_name, vmid, status_str, provider_str, _) in alert_jobs {
@@ -363,7 +370,6 @@ pub(crate) fn check_container_alerts(
                 let container_name = container_name.clone();
                 let status_str = status_str.clone();
                 let provider_str = provider_str.clone();
-                let accept_invalid = accept_invalid;
                 tokio::spawn(async move {
                     send_webhook_notification(
                         url,

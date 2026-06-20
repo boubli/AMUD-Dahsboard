@@ -73,14 +73,20 @@ pub(crate) fn sanitize_custom_css(value: &str) -> String {
                         temp_idx += 1;
                     }
                 }
-                
+
                 let mut tag_name = String::new();
                 while temp_idx < chars.len() && chars[temp_idx].is_alphabetic() {
                     tag_name.push(chars[temp_idx].to_ascii_lowercase());
                     temp_idx += 1;
                 }
-                
-                if tag_name == "style" || tag_name == "script" || tag_name == "iframe" || tag_name == "object" || tag_name == "html" || tag_name == "body" {
+
+                if tag_name == "style"
+                    || tag_name == "script"
+                    || tag_name == "iframe"
+                    || tag_name == "object"
+                    || tag_name == "html"
+                    || tag_name == "body"
+                {
                     i += 1;
                     continue;
                 }
@@ -140,10 +146,22 @@ mod tests {
 
     #[test]
     fn test_sanitize_custom_css() {
-        assert_eq!(sanitize_custom_css("body { color: red; }"), "body { color: red; }");
-        assert_eq!(sanitize_custom_css("div > p { color: blue; }"), "div > p { color: blue; }");
-        assert_eq!(sanitize_custom_css("@media (max-width < 600px) { }"), "@media (max-width < 600px) { }");
-        assert_eq!(sanitize_custom_css("</style><script>alert(1)</script>"), "/style>script>alert(1)/script>");
+        assert_eq!(
+            sanitize_custom_css("body { color: red; }"),
+            "body { color: red; }"
+        );
+        assert_eq!(
+            sanitize_custom_css("div > p { color: blue; }"),
+            "div > p { color: blue; }"
+        );
+        assert_eq!(
+            sanitize_custom_css("@media (max-width < 600px) { }"),
+            "@media (max-width < 600px) { }"
+        );
+        assert_eq!(
+            sanitize_custom_css("</style><script>alert(1)</script>"),
+            "/style>script>alert(1)/script>"
+        );
         assert_eq!(sanitize_custom_css("< sCrIpt >"), " sCrIpt >");
     }
 }

@@ -405,7 +405,10 @@ pub async fn test_webhook_handler(
         .await;
         let accept_invalid = {
             let cache = state.settings_cache.read().unwrap();
-            cache.get("accept_invalid_certs").map(|s| s == "1").unwrap_or(false)
+            cache
+                .get("accept_invalid_certs")
+                .map(|s| s == "1")
+                .unwrap_or(false)
         };
         let delivered = send_webhook_notification(
             url,

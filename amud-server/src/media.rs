@@ -216,7 +216,10 @@ pub(crate) fn start_media_poller(
             } else {
                 cached
             };
-            let accept_invalid = settings.get("accept_invalid_certs").map(|v| v == "1").unwrap_or(false);
+            let accept_invalid = settings
+                .get("accept_invalid_certs")
+                .map(|v| v == "1")
+                .unwrap_or(false);
             let client = reqwest::Client::builder()
                 .timeout(Duration::from_secs(4))
                 .danger_accept_invalid_certs(accept_invalid)
