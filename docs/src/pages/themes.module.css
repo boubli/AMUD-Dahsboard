@@ -113,7 +113,7 @@
 
 .previewPlaceholderLabel {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .paletteRow {
@@ -160,9 +160,9 @@
   font-size: 0.72rem;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(255, 107, 43, 0.12);
-  color: #ff6b2b;
-  border: 1px solid rgba(255, 107, 43, 0.2);
+  background: rgba(255, 107, 43, 0.22);
+  color: #ffd4b8;
+  border: 1px solid rgba(255, 107, 43, 0.35);
 }
 
 .actions {
@@ -184,8 +184,8 @@
 }
 
 .btnPrimary {
-  background: linear-gradient(135deg, #ff6b2b, #e55a1f);
-  color: #fff;
+  background: linear-gradient(135deg, #c2410c, #9a3412);
+  color: #ffffff;
   border-color: rgba(255, 107, 43, 0.5);
 }
 
@@ -205,9 +205,9 @@
 }
 
 .btnCopied {
-  background: rgba(16, 185, 129, 0.2) !important;
-  border-color: rgba(16, 185, 129, 0.4) !important;
-  color: #10b981 !important;
+  background: #047857 !important;
+  border-color: #065f46 !important;
+  color: #ecfdf5 !important;
 }
 
 .howTo {
@@ -241,14 +241,21 @@
   color: var(--ifm-color-secondary);
 }
 
+.footerNote {
+  text-align: center;
+  color: var(--ifm-font-color-base);
+  opacity: 0.78;
+  margin-bottom: 3rem;
+}
+
 .toast {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
   padding: 0.75rem 1.25rem;
   border-radius: 10px;
-  background: rgba(16, 185, 129, 0.95);
-  color: #fff;
+  background: #047857;
+  color: #ffffff;
   font-weight: 600;
   font-size: 0.9rem;
   z-index: 100;

@@ -12,6 +12,18 @@ import styles from './themes.module.css';
 
 type CopyKind = 'css' | 'wallpaper';
 
+type ThemePreviewProps = Readonly<{
+  theme: AmudTheme;
+}>;
+
+type ThemeCardProps = Readonly<{
+  theme: AmudTheme;
+  siteUrl: string;
+  baseUrl: string;
+  onCopy: (theme: AmudTheme, kind: CopyKind) => void;
+  copiedKey: string | null;
+}>;
+
 function themeWallpaperUrl(siteUrl: string, baseUrl: string, theme: AmudTheme): string | null {
   if (!theme.wallpaper) return null;
   const origin = siteUrl.replace(/\/$/, '');
@@ -19,14 +31,14 @@ function themeWallpaperUrl(siteUrl: string, baseUrl: string, theme: AmudTheme): 
   return `${origin}${base}${theme.wallpaper}`;
 }
 
-function ThemePreview({theme}: {theme: AmudTheme}) {
+function ThemePreview({theme}: ThemePreviewProps) {
   const imgSrc = useBaseUrl(theme.previewImage);
   const [imgError, setImgError] = useState(false);
-  const showPlaceholder = imgError && theme.id !== 'default';
+  const showImage = !imgError || theme.id === 'default';
 
   return (
     <div className={styles.preview}>
-      {!showPlaceholder ? (
+      {showImage ? (
         <img
           src={imgSrc}
           alt={`${theme.name} dashboard preview`}
@@ -68,19 +80,7 @@ function ThemePreview({theme}: {theme: AmudTheme}) {
   );
 }
 
-function ThemeCard({
-  theme,
-  siteUrl,
-  baseUrl,
-  onCopy,
-  copiedKey,
-}: {
-  theme: AmudTheme;
-  siteUrl: string;
-  baseUrl: string;
-  onCopy: (theme: AmudTheme, kind: CopyKind) => void;
-  copiedKey: string | null;
-}) {
+function ThemeCard({theme, siteUrl, baseUrl, onCopy, copiedKey}: ThemeCardProps) {
   const isDefault = theme.id === 'default';
   const wallpaperUrl = themeWallpaperUrl(siteUrl, baseUrl, theme);
 
@@ -159,7 +159,7 @@ export default function ThemesGallery(): ReactNode {
 
   const showToast = useCallback((message: string) => {
     setToast(message);
-    window.setTimeout(() => setToast(null), 2200);
+    globalThis.setTimeout(() => setToast(null), 2200);
   }, []);
 
   const handleCopy = useCallback(
@@ -180,13 +180,15 @@ export default function ThemesGallery(): ReactNode {
           setCopiedKey(`${theme.id}-css`);
           showToast('CSS copied — paste in Settings → Appearance → Custom CSS');
         }
-        window.setTimeout(() => setCopiedKey(null), 2000);
+        globalThis.setTimeout(() => setCopiedKey(null), 2000);
       } catch {
         showToast('Copy failed — try again');
       }
     },
     [siteConfig.baseUrl, siteConfig.url, showToast],
   );
+
+  const themeCountLabel = filtered.length === 1 ? 'theme' : 'themes';
 
   return (
     <Layout
@@ -233,7 +235,7 @@ export default function ThemesGallery(): ReactNode {
         </section>
 
         <p className={styles.resultCount}>
-          {filtered.length} theme{filtered.length !== 1 ? 's' : ''}
+          {filtered.length} {themeCountLabel}
           {query ? ` matching “${query}”` : ''}
         </p>
 
@@ -254,7 +256,7 @@ export default function ThemesGallery(): ReactNode {
           </div>
         )}
 
-        <p style={{textAlign: 'center', color: 'var(--ifm-color-secondary)', marginBottom: '3rem'}}>
+        <p className={styles.footerNote}>
           Want to build your own? See the{' '}
           <Link to="/docs/themes">CSS variable reference</Link> and{' '}
           <Link to="/docs/troubleshooting#recovering-from-broken-custom-css">recovery guide</Link>{' '}
@@ -262,7 +264,7 @@ export default function ThemesGallery(): ReactNode {
         </p>
       </main>
 
-      {toast && <div className={styles.toast} role="status">{toast}</div>}
+      {toast && <output className={styles.toast}>{toast}</output>}
     </Layout>
   );
 }
