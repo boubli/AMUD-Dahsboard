@@ -1,0 +1,30 @@
+/* AMUD Theme: One Dark — classic Atom editor palette */
+:root {
+    --accent-color: #61afef;
+    --accent-glow: rgba(97, 175, 239, 0.14);
+    --bg-card: rgba(40, 44, 52, 0.78);
+    --border-card: rgba(97, 175, 239, 0.10);
+    --border-hover: rgba(97, 175, 239, 0.26);
+    --text-primary: #abb2bf;
+    --text-secondary: #9da5b4;
+    --text-muted: #5c6370;
+    --success: #98c379;
+    --success-bg: rgba(152, 195, 121, 0.10);
+    --danger: #e06c75;
+    --danger-bg: rgba(224, 108, 117, 0.10);
+}
+
+body {
+    background-color: #282c34;
+    background-image:
+        linear-gradient(150deg, rgba(40, 44, 52, 0.96) 0%, rgba(33, 37, 43, 0.92) 100%),
+        var(--brand-bg-image);
+}
+
+.glass-panel {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.30);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 8px 26px rgba(97, 175, 239, 0.09);
+}

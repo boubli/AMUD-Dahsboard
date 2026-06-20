@@ -64,6 +64,11 @@ const config: Config = {
           label: 'Documentation',
         },
         {
+          to: '/themes',
+          label: 'Themes',
+          position: 'left',
+        },
+        {
           to: '/docs/changelog',
           label: 'Changelog',
           position: 'left',
@@ -101,6 +106,10 @@ const config: Config = {
             {
               label: 'Getting Started',
               to: '/docs/intro',
+            },
+            {
+              label: 'Custom Themes',
+              to: '/themes',
             },
             {
               label: 'Configuration',

@@ -24,6 +24,8 @@ backend/.env
 backend/uploads/*
 !backend/uploads/.gitkeep
 data/
+!docs/src/data/
+!docs/src/data/**
 mongo_data/
 
 # Relics

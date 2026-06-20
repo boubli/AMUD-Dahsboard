@@ -1,0 +1,34 @@
+/* AMUD Theme: Tokyo Night — deep blue city night */
+:root {
+    --accent-color: #7aa2f7;
+    --accent-glow: rgba(122, 162, 247, 0.14);
+    --bg-card: rgba(36, 40, 59, 0.78);
+    --border-card: rgba(122, 162, 247, 0.10);
+    --border-hover: rgba(122, 162, 247, 0.28);
+    --text-primary: #c0caf5;
+    --text-secondary: #a9b1d6;
+    --text-muted: #565f89;
+    --success: #9ece6a;
+    --success-bg: rgba(158, 206, 106, 0.10);
+    --danger: #f7768e;
+    --danger-bg: rgba(247, 118, 142, 0.10);
+}
+
+body {
+    background-color: #1a1b26;
+    background-image:
+        linear-gradient(135deg, rgba(26, 27, 38, 0.97) 0%, rgba(22, 22, 30, 0.93) 100%),
+        var(--brand-bg-image);
+}
+
+.glass-panel {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 8px 28px rgba(122, 162, 247, 0.10);
+}
+
+.header-title {
+    text-shadow: 0 0 20px rgba(122, 162, 247, 0.20);
+}

@@ -496,6 +496,21 @@
 
                         <div class="settings-block">
                             <h3><i data-lucide="code" style="color:var(--accent-color);"></i> Custom CSS</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+                                Browse ready-made themes on the
+                                <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Theme Gallery</a>.
+                                Copy CSS or use a theme URL below.
+                            </p>
+                            <div class="form-group" style="margin-bottom:1rem;">
+                                <label for="custom-css-url">Import from URL</label>
+                                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                                    <input type="url" id="custom-css-url" class="form-control" placeholder="https://boubli.github.io/AMUD-Dashboard/themes/dracula.css" style="flex:1; min-width:200px;" @keydown.enter.prevent="importCustomCssFromUrl()">
+                                    <button type="button" class="btn btn-secondary" @click="importCustomCssFromUrl()" style="white-space:nowrap;">
+                                        <i data-lucide="download"></i> Import
+                                    </button>
+                                </div>
+                                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem;">Paste a raw CSS URL (e.g. from the Theme Gallery), then click Import. Save to apply.</p>
+                            </div>
                             <div class="form-group">
                                 <label for="setting-custom-css">CSS Overrides</label>
                                 <textarea id="setting-custom-css" name="custom_css" class="form-control" rows="6" placeholder="body { ... }" style="font-family:monospace; resize:vertical;" @input="unsavedChanges = true">{{custom_css}}</textarea>
@@ -1211,6 +1226,28 @@
                         localStorage.setItem('amud_system_tab_visited', 'true');
                         this.loadSystemVersion();
                         this.loadUpdateHistory();
+                    }
+                },
+
+                async importCustomCssFromUrl() {
+                    const input = document.getElementById('custom-css-url');
+                    const textarea = document.getElementById('setting-custom-css');
+                    if (!input || !textarea) return;
+                    const url = input.value.trim();
+                    if (!url) {
+                        alert('Enter a CSS URL first (e.g. from the Theme Gallery).');
+                        return;
+                    }
+                    try {
+                        const res = await fetch(url, { cache: 'no-store' });
+                        if (!res.ok) throw new Error('Could not fetch CSS (' + res.status + ')');
+                        const css = await res.text();
+                        if (!css.trim()) throw new Error('URL returned empty content');
+                        textarea.value = css;
+                        this.unsavedChanges = true;
+                        input.value = '';
+                    } catch (err) {
+                        alert('Import failed: ' + (err.message || 'Unknown error'));
                     }
                 },
 
