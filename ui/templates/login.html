@@ -59,14 +59,14 @@
 
     <script nonce="{{csp_nonce}}">
         lucide.createIcons();
-        if (new URLSearchParams(window.location.search).get('error') === '1') {
+        if (new URLSearchParams(globalThis.window.location.search).get('error') === '1') {
             document.getElementById('error-message').style.display = 'block';
-            window.history.replaceState({}, document.title, "/login"); // Clean up URL
+            globalThis.window.history.replaceState({}, document.title, "/login");
         }
     </script>
     <script nonce="{{csp_nonce}}">
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
+            globalThis.window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/sw.js');
             });
         }

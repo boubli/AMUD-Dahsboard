@@ -9,6 +9,8 @@
 
 set -euo pipefail
 
+AWK_FIRST_FIELD='{print $1}'
+
 # Color Definitions
 RD="\033[01;31m"
 GN="\033[01;32m"
@@ -71,7 +73,7 @@ if [[ ! -d "/etc/pve" ]]; then
 fi
 
 # Gather configuration details for the info panel
-PVE_VERSION=$(pveversion 2>/dev/null | awk -F'/' '{print $2}' | awk -F'-' '{print $1}' || echo "Unknown")
+PVE_VERSION=$(pveversion 2>/dev/null | awk -F'/' '{print $2}' | awk -F'-' "$AWK_FIRST_FIELD" || echo "Unknown")
 KERNEL_VERSION=$(uname -r)
 CT_ID=$(pvesh get /cluster/nextid)
 CT_NAME="hydrivax-amud"
@@ -186,12 +188,12 @@ verify_release_asset() {
   local file="$1"
   local name="$2"
   local expected actual
-  expected=$(grep -E "[[:space:]/]${name}$" /tmp/amud-SHA256SUMS | awk '{print $1}' || true)
+  expected=$(grep -E "[[:space:]/]${name}$" /tmp/amud-SHA256SUMS | awk "$AWK_FIRST_FIELD" || true)
   if [[ -z "$expected" ]]; then
     msg_error "Checksum for ${name} not found in SHA256SUMS"
     exit 1
   fi
-  actual=$(sha256sum "$file" | awk '{print $1}' || true)
+  actual=$(sha256sum "$file" | awk "$AWK_FIRST_FIELD" || true)
   if [[ "$actual" != "$expected" ]]; then
     msg_error "Checksum verification failed for ${name}"
     exit 1
@@ -292,7 +294,7 @@ systemctl enable --now amud-agent
 msg_ok "Host telemetry agent is running and streaming metrics"
 
 # 10. Extract Guest IP & Output Completion Diagnostics
-CT_IP_ADDR=$(pct exec "$CT_ID" -- hostname -I | awk '{print $1}')
+CT_IP_ADDR=$(pct exec "$CT_ID" -- hostname -I | awk "$AWK_FIRST_FIELD")
 
 # Write dynamic login MOTD inside the guest LXC container
 TEMPLATE_MOTD=$(cat << 'EOF'

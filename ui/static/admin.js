@@ -56,7 +56,7 @@
             }
             button.replaceChildren();
             const icon = document.createElement('i');
-            icon.setAttribute('data-lucide', 'loader-2');
+            icon.dataset.lucide = 'loader-2';
             icon.className = 'animate-spin';
             icon.style.width = `${size}rem`;
             icon.style.height = `${size}rem`;
@@ -157,7 +157,10 @@
                 if (el) { el.value = url; el.dispatchEvent(new Event('input')); }
             } else if (type === 'appIcon' || type === 'editAppIcon') {
                 const el = document.querySelector('body');
-                const alpineData = typeof Alpine !== 'undefined' ? Alpine.$data(el) : null;
+                let alpineData = null;
+                if (typeof Alpine !== 'undefined') {
+                    alpineData = Alpine.$data(el);
+                }
                 if (alpineData) {
                     if (type === 'appIcon') alpineData.appIconUrl = url;
                     else alpineData.editApp.icon = url;
@@ -178,4 +181,4 @@
     global.setFilterEmptyMessage = setFilterEmptyMessage;
     global.amudUploadImage = amudUploadImage;
     global.handleFileUpload = handleFileUpload;
-})(typeof window !== 'undefined' ? window : globalThis);
+})(globalThis.window ?? globalThis);

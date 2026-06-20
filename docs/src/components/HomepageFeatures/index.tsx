@@ -73,7 +73,7 @@ const FeatureList: FeatureItem[] = [
   },
 ];
 
-function Feature({title, icon, description, className}: FeatureItem) {
+function Feature({title, icon, description, className}: Readonly<FeatureItem>) {
   return (
     <div className={clsx('glass-card bento-item', className)}>
       <div className="bento-icon-wrapper">

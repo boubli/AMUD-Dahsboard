@@ -9,6 +9,7 @@
 set -euo pipefail
 
 REPO="boubli/AMUD-Dashboard"
+AMUD_AGENT_SERVICE="/etc/systemd/system/amud-agent.service"
 CT_ID=""
 SERVER_WAS_RUNNING=false
 AGENT_WAS_RUNNING=false
@@ -176,13 +177,13 @@ sync_agent_ipc_secret() {
     update_env 'BIND_ADDR' '0.0.0.0'
   "
   pct exec "$ct_id" </dev/null -- systemctl daemon-reload
-  if [[ -f "/etc/systemd/system/amud-agent.service" ]]; then
-    ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "AMUD_AGENT_SECRET" "$secret"
+  if [[ -f "$AMUD_AGENT_SERVICE" ]]; then
+    ensure_local_systemd_env "$AMUD_AGENT_SERVICE" "AMUD_AGENT_SECRET" "$secret"
     local pve_node
-    pve_node=$(read_local_systemd_env "/etc/systemd/system/amud-agent.service" "PVE_NODE")
+    pve_node=$(read_local_systemd_env "$AMUD_AGENT_SERVICE" "PVE_NODE")
     if [[ -z "$pve_node" ]]; then
       pve_node=$(hostname)
-      ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "PVE_NODE" "$pve_node"
+      ensure_local_systemd_env "$AMUD_AGENT_SERVICE" "PVE_NODE" "$pve_node"
     fi
     systemctl daemon-reload
   fi
@@ -303,9 +304,9 @@ if [[ -f "/usr/local/bin/amud-agent" ]]; then
 
   if [[ -n "$CT_ID" ]] && [[ -n "${AMUD_AGENT_SECRET:-}" ]]; then
     sync_agent_ipc_secret "$CT_ID" "$AMUD_AGENT_SECRET"
-  elif [[ -f "/etc/systemd/system/amud-agent.service" ]] && [[ -z "$(read_local_systemd_env /etc/systemd/system/amud-agent.service AMUD_AGENT_SECRET)" ]]; then
+  elif [[ -f "$AMUD_AGENT_SERVICE" ]] && [[ -z "$(read_local_systemd_env "$AMUD_AGENT_SERVICE" AMUD_AGENT_SECRET)" ]]; then
     NEW_SECRET=$(generate_agent_secret)
-    ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "AMUD_AGENT_SECRET" "$NEW_SECRET"
+    ensure_local_systemd_env "$AMUD_AGENT_SERVICE" "AMUD_AGENT_SECRET" "$NEW_SECRET"
     systemctl daemon-reload
     msg_warn "Generated AMUD_AGENT_SECRET for host agent. Configure the same value on the dashboard server."
   fi
