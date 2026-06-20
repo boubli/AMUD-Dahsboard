@@ -38,9 +38,11 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 | Rose Pine | Elegant rose & pine |
 | Solarized Dark | Low-contrast scientific |
 
-Preview screenshots live in [`docs/static/themes/assets/`](https://github.com/boubli/AMUD-Dashboard/tree/main/docs/static/themes/assets) and are shown on the [Theme Gallery](/themes). Add PNGs named `AMUD-Theme-{Name}.png` so users can see each theme before copying the CSS.
+Preview screenshots live in `docs/static/themes/assets/` and are shown on the [Theme Gallery](/themes).
 
-Open the [Theme Gallery](/themes) for search, previews, and one-click **Copy CSS**.
+Each theme also includes a **bundled 2K wallpaper** in `docs/static/themes/wallpapers/` — stable on GitHub Pages. In the gallery, click **Copy wallpaper** and paste into **Settings → Appearance → Wallpaper**.
+
+Open the [Theme Gallery](/themes) for search, previews, **Copy CSS**, and **Copy wallpaper**.
 
 ---
 

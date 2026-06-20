@@ -11,15 +11,19 @@ export type AmudTheme = {
   description: string;
   tags: string[];
   cssFile: string;
-  /** Preview PNG in docs/static/themes/assets/ */
+  /** Dashboard screenshot in docs/static/themes/assets/ */
   previewImage: string;
+  /** Bundled 2K wallpaper in docs/static/themes/wallpapers/ */
+  wallpaper?: string;
   palette: ThemePalette;
   inspiration?: string;
   inspirationUrl?: string;
 };
 
-/** Preview assets in docs/static/themes/assets/ */
+/** Preview screenshots in docs/static/themes/assets/ */
 const preview = (filename: string) => `themes/assets/${filename}`;
+/** 2560px wallpapers shipped in docs/static/themes/wallpapers/ */
+const wallpaper = (id: string) => `themes/wallpapers/${id}.jpg`;
 
 export const AMUD_THEMES: AmudTheme[] = [
   {
@@ -30,6 +34,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['default', 'orange', 'glass', 'built-in'],
     cssFile: '',
     previewImage: 'img/AMUD-Dashboard.png',
+    wallpaper: wallpaper('default'),
     palette: {
       background: '#0b0e14',
       card: 'rgba(15,20,25,0.45)',
@@ -45,6 +50,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'purple', 'hacker', 'dracula'],
     cssFile: 'themes/dracula.css',
     previewImage: preview('AMUD-Theme-Dracula.png'),
+    wallpaper: wallpaper('dracula'),
     palette: {
       background: '#282a36',
       card: '#44475a',
@@ -62,6 +68,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'blue', 'arctic', 'nord', 'professional'],
     cssFile: 'themes/nord.css',
     previewImage: preview('AMUD-Theme-Nord.png'),
+    wallpaper: wallpaper('nord'),
     palette: {
       background: '#2e3440',
       card: '#3b4252',
@@ -79,6 +86,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'neon', 'pink', 'cyberpunk', 'sci-fi'],
     cssFile: 'themes/cyberpunk-neon.css',
     previewImage: preview('AMUD-Theme-Neon.png'),
+    wallpaper: wallpaper('cyberpunk-neon'),
     palette: {
       background: '#0a0a0f',
       card: '#12121a',
@@ -94,6 +102,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'warm', 'amber', 'orange', 'cozy'],
     cssFile: 'themes/sunset-warm.css',
     previewImage: preview('AMUD-Theme-Sunset-Warm.png'),
+    wallpaper: wallpaper('sunset-warm'),
     palette: {
       background: '#1a1410',
       card: '#2a2018',
@@ -109,6 +118,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'pastel', 'purple', 'catppuccin', 'soft'],
     cssFile: 'themes/catppuccin-mocha.css',
     previewImage: preview('AMUD-Theme-Catppuccin-Mocha.png'),
+    wallpaper: wallpaper('catppuccin-mocha'),
     palette: {
       background: '#1e1e2e',
       card: '#313244',
@@ -126,6 +136,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'retro', 'warm', 'gruvbox', 'terminal'],
     cssFile: 'themes/gruvbox-dark.css',
     previewImage: preview('AMUD-Theme-Gruvbox-Dark.png'),
+    wallpaper: wallpaper('gruvbox-dark'),
     palette: {
       background: '#282828',
       card: '#3c3836',
@@ -143,6 +154,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'blue', 'purple', 'tokyo', 'night'],
     cssFile: 'themes/tokyo-night.css',
     previewImage: preview('AMUD-Theme-Tokyo-Night.png'),
+    wallpaper: wallpaper('tokyo-night'),
     palette: {
       background: '#1a1b26',
       card: '#24283b',
@@ -160,6 +172,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'blue', 'atom', 'one-dark', 'developer'],
     cssFile: 'themes/one-dark.css',
     previewImage: preview('AMUD-Theme-One-Dark.png'),
+    wallpaper: wallpaper('one-dark'),
     palette: {
       background: '#282c34',
       card: '#2c313a',
@@ -177,6 +190,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'green', 'forest', 'everforest', 'calm'],
     cssFile: 'themes/everforest.css',
     previewImage: preview('AMUD-Theme-Everforest.png'),
+    wallpaper: wallpaper('everforest'),
     palette: {
       background: '#2d353b',
       card: '#343f44',
@@ -194,6 +208,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'green', 'monokai', 'developer', 'high-contrast'],
     cssFile: 'themes/monokai.css',
     previewImage: preview('AMUD-Theme-Monokai.png'),
+    wallpaper: wallpaper('monokai'),
     palette: {
       background: '#272822',
       card: '#3e3d32',
@@ -211,6 +226,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'rose', 'pine', 'elegant', 'muted'],
     cssFile: 'themes/rose-pine.css',
     previewImage: preview('AMUD-Theme-Rose-Pine.png'),
+    wallpaper: wallpaper('rose-pine'),
     palette: {
       background: '#191724',
       card: '#1f1d2e',
@@ -228,6 +244,7 @@ export const AMUD_THEMES: AmudTheme[] = [
     tags: ['dark', 'blue', 'solarized', 'low-contrast', 'scientific'],
     cssFile: 'themes/solarized-dark.css',
     previewImage: preview('AMUD-Theme-Solarized-Dark.png'),
+    wallpaper: wallpaper('solarized-dark'),
     palette: {
       background: '#002b36',
       card: '#073642',

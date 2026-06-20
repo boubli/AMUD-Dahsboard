@@ -10,6 +10,15 @@ import {
 } from '@site/src/data/themes';
 import styles from './themes.module.css';
 
+type CopyKind = 'css' | 'wallpaper';
+
+function themeWallpaperUrl(siteUrl: string, baseUrl: string, theme: AmudTheme): string | null {
+  if (!theme.wallpaper) return null;
+  const origin = siteUrl.replace(/\/$/, '');
+  const base = baseUrl.startsWith('/') ? baseUrl : `/${baseUrl}`;
+  return `${origin}${base}${theme.wallpaper}`;
+}
+
 function ThemePreview({theme}: {theme: AmudTheme}) {
   const imgSrc = useBaseUrl(theme.previewImage);
   const [imgError, setImgError] = useState(false);
@@ -61,14 +70,19 @@ function ThemePreview({theme}: {theme: AmudTheme}) {
 
 function ThemeCard({
   theme,
+  siteUrl,
+  baseUrl,
   onCopy,
-  copiedId,
+  copiedKey,
 }: {
   theme: AmudTheme;
-  onCopy: (theme: AmudTheme) => void;
-  copiedId: string | null;
+  siteUrl: string;
+  baseUrl: string;
+  onCopy: (theme: AmudTheme, kind: CopyKind) => void;
+  copiedKey: string | null;
 }) {
   const isDefault = theme.id === 'default';
+  const wallpaperUrl = themeWallpaperUrl(siteUrl, baseUrl, theme);
 
   return (
     <article className={styles.card}>
@@ -104,14 +118,26 @@ function ThemeCard({
               How to reset
             </Link>
           ) : (
-            <button
-              type="button"
-              className={`${styles.btn} ${styles.btnPrimary} ${
-                copiedId === theme.id ? styles.btnCopied : ''
-              }`}
-              onClick={() => onCopy(theme)}>
-              {copiedId === theme.id ? 'Copied!' : 'Copy CSS'}
-            </button>
+            <>
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnPrimary} ${
+                  copiedKey === `${theme.id}-css` ? styles.btnCopied : ''
+                }`}
+                onClick={() => onCopy(theme, 'css')}>
+                {copiedKey === `${theme.id}-css` ? 'Copied!' : 'Copy CSS'}
+              </button>
+              {wallpaperUrl && (
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnSecondary} ${
+                    copiedKey === `${theme.id}-wallpaper` ? styles.btnCopied : ''
+                  }`}
+                  onClick={() => onCopy(theme, 'wallpaper')}>
+                  {copiedKey === `${theme.id}-wallpaper` ? 'Copied!' : 'Copy wallpaper'}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -123,7 +149,7 @@ export default function ThemesGallery(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   const [query, setQuery] = useState('');
   const [toast, setToast] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -137,33 +163,42 @@ export default function ThemesGallery(): ReactNode {
   }, []);
 
   const handleCopy = useCallback(
-    async (theme: AmudTheme) => {
-      if (!theme.cssFile) return;
+    async (theme: AmudTheme, kind: CopyKind) => {
       try {
-        const res = await fetch(`${siteConfig.baseUrl}${theme.cssFile}`);
-        if (!res.ok) throw new Error('Failed to load theme CSS');
-        const css = await res.text();
-        await navigator.clipboard.writeText(css);
-        setCopiedId(theme.id);
-        showToast('CSS copied — paste in Settings → Appearance → Custom CSS');
-        window.setTimeout(() => setCopiedId(null), 2000);
+        if (kind === 'wallpaper') {
+          const url = themeWallpaperUrl(siteConfig.url, siteConfig.baseUrl, theme);
+          if (!url) return;
+          await navigator.clipboard.writeText(url);
+          setCopiedKey(`${theme.id}-wallpaper`);
+          showToast('Wallpaper URL copied — paste in Settings → Appearance → Wallpaper');
+        } else {
+          if (!theme.cssFile) return;
+          const res = await fetch(`${siteConfig.baseUrl}${theme.cssFile}`);
+          if (!res.ok) throw new Error('Failed to load theme CSS');
+          const css = await res.text();
+          await navigator.clipboard.writeText(css);
+          setCopiedKey(`${theme.id}-css`);
+          showToast('CSS copied — paste in Settings → Appearance → Custom CSS');
+        }
+        window.setTimeout(() => setCopiedKey(null), 2000);
       } catch {
-        showToast('Copy failed — open the theme docs and copy CSS manually');
+        showToast('Copy failed — try again');
       }
     },
-    [siteConfig.baseUrl, showToast],
+    [siteConfig.baseUrl, siteConfig.url, showToast],
   );
 
   return (
     <Layout
       title="Theme Gallery"
-      description="Browse AMUD dashboard themes with preview screenshots. Copy CSS and paste it into Settings.">
+      description="Browse AMUD dashboard themes with preview screenshots and bundled 2K wallpapers. Copy CSS and paste it into Settings.">
       <main className="container margin-vert--lg">
         <header className={styles.hero}>
           <h1 className={styles.heroTitle}>Custom Themes Gallery</h1>
           <p className={styles.heroSubtitle}>
-            Preview each theme with a screenshot, then <strong>Copy CSS</strong> and paste it into{' '}
-            <strong>Settings → Appearance → Custom CSS</strong> on your dashboard.
+            Each card shows a <strong>dashboard preview screenshot</strong>. Copy the theme CSS,
+            and optionally the matching <strong>2K wallpaper</strong> hosted on this site (won&apos;t
+            break like random image links).
           </p>
           <div className={styles.searchBar}>
             <span className={styles.searchIcon} aria-hidden>
@@ -183,15 +218,16 @@ export default function ThemesGallery(): ReactNode {
         <section className={styles.howTo}>
           <h2>How to apply a theme</h2>
           <ol>
-            <li>Browse the gallery below — each card shows a preview of how the theme looks.</li>
-            <li>Click <strong>Copy CSS</strong> on the theme you want.</li>
+            <li>Browse the gallery — preview screenshots show how each theme looks on AMUD.</li>
+            <li>Click <strong>Copy CSS</strong> and paste into <strong>Settings → Appearance → Custom CSS</strong>.</li>
             <li>
-              Open your AMUD dashboard → <strong>Settings → Appearance → Custom CSS</strong>, paste
-              the CSS, and click <strong>Save</strong>.
+              Optional: click <strong>Copy wallpaper</strong> and paste into{' '}
+              <strong>Settings → Appearance → Wallpaper</strong> for a matching 2K background.
             </li>
+            <li>Click <strong>Save</strong> on your dashboard.</li>
             <li>
               For the full theme effect, reset the built-in accent color to default or remove{' '}
-              <code>--accent-color</code> from the pasted CSS — UI branding overrides custom CSS.
+              <code>--accent-color</code> from the pasted CSS.
             </li>
           </ol>
         </section>
@@ -209,8 +245,10 @@ export default function ThemesGallery(): ReactNode {
               <ThemeCard
                 key={theme.id}
                 theme={theme}
+                siteUrl={siteConfig.url}
+                baseUrl={siteConfig.baseUrl}
                 onCopy={handleCopy}
-                copiedId={copiedId}
+                copiedKey={copiedKey}
               />
             ))}
           </div>
