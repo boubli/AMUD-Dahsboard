@@ -99,6 +99,42 @@ pub async fn dashboard_handler(
     let proxmox_enabled =
         std::env::var("AMUD_ENABLE_PROXMOX").unwrap_or_else(|_| "false".to_string()) == "true";
 
+    let app_version = option_env!("GIT_TAG").unwrap_or(env!("CARGO_PKG_VERSION"));
+    let app_version_formatted = if app_version.starts_with('v') {
+        app_version.to_string()
+    } else {
+        format!("v{}", app_version)
+    };
+
+    let mut update_banner = String::new();
+    let mut update_status_class = String::new();
+
+    if is_admin {
+        let cache = {
+            let lock = crate::handlers::RELEASE_CACHE.read().unwrap();
+            lock.clone()
+        };
+
+        if let Some(cached) = cache {
+            if crate::handlers::semver_newer(&app_version_formatted, &cached.latest) {
+                update_status_class = "update-available".to_string();
+                update_banner = format!(
+                    r#"<div id="update-banner" class="update-banner">
+    <div class="update-banner-content">
+        <span class="update-banner-dot animate-pulse"></span>
+        <span class="update-banner-text">A new update is available! You are running <strong>{}</strong>, latest is <strong>{}</strong>.</span>
+    </div>
+    <div class="update-banner-actions">
+        <a href="/admin/settings?tab=system" class="btn-update-banner">Go to System &rarr;</a>
+        <button onclick="dismissUpdateBanner()" class="btn-update-dismiss">&times;</button>
+    </div>
+</div>"#,
+                    app_version_formatted, cached.latest
+                );
+            }
+        }
+    }
+
     let mut result = index_tmpl
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", app_name)
@@ -145,7 +181,10 @@ pub async fn dashboard_handler(
         )
         .replace("{{custom_css}}", custom_css)
         .replace("{{app_names_json}}", &app_names_json)
-        .replace("{{is_admin}}", if is_admin { "true" } else { "false" });
+        .replace("{{is_admin}}", if is_admin { "true" } else { "false" })
+        .replace("{{app_version}}", &app_version_formatted)
+        .replace("{{update_status_class}}", &update_status_class)
+        .replace("{{update_banner}}", &update_banner);
     let result = apply_theme_placeholders(result, overlay_theme);
 
     Html(apply_csp_nonce(result, &csp.0))

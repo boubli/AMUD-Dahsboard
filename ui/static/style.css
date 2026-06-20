@@ -1308,3 +1308,164 @@ input[type="color"].form-control {
     font-size: 0.72rem;
     font-weight: 500;
 }
+
+/* System Updates Styles */
+.update-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1.25rem;
+    background: linear-gradient(135deg, rgba(210, 153, 34, 0.12), rgba(245, 158, 11, 0.08));
+    border-b: 1px solid rgba(210, 153, 34, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-size: 0.88rem;
+    transition: all 0.3s ease;
+}
+
+.update-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #fce3b6;
+}
+
+.update-banner-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f59e0b;
+    box-shadow: 0 0 10px #f59e0b;
+    display: inline-block;
+    animation: pulse-dot 1.8s infinite ease-in-out;
+}
+
+.update-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btn-update-banner {
+    background: rgba(210, 153, 34, 0.15);
+    border: 1px solid rgba(210, 153, 34, 0.4);
+    color: #fff;
+    padding: 0.35rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-update-banner:hover {
+    background: rgba(210, 153, 34, 0.3);
+    border-color: rgba(210, 153, 34, 0.6);
+    transform: translateY(-1px);
+}
+
+.btn-update-dismiss {
+    background: none;
+    border: none;
+    color: #d29922;
+    cursor: pointer;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.1rem 0.3rem;
+    transition: color 0.2s ease;
+}
+
+.btn-update-dismiss:hover {
+    color: #fff;
+}
+
+.dashboard-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: right;
+}
+
+.version-badge {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    opacity: 0.65;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.version-badge:hover {
+    opacity: 1;
+}
+
+.version-badge.update-available {
+    color: #f59e0b;
+    opacity: 1;
+    font-weight: 600;
+    animation: pulse-glow 2s infinite ease-in-out;
+}
+
+/* System Tab Badges & Cards */
+.badge-success {
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #22c55e !important;
+    border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+
+.badge-failed {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #ef4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.badge-info {
+    background: rgba(58, 166, 255, 0.15) !important;
+    color: #58a6ff !important;
+    border: 1px solid rgba(58, 166, 255, 0.3) !important;
+}
+
+.update-available-card {
+    background: rgba(245, 158, 11, 0.02) !important;
+}
+
+.up-to-date-card {
+    background: rgba(34, 197, 94, 0.01) !important;
+}
+
+/* Small loading spinner */
+.spinner-small {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--accent-color);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    vertical-align: middle;
+}
+
+/* Animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { text-shadow: 0 0 6px rgba(245, 158, 11, 0.3); }
+    50% { text-shadow: 0 0 14px rgba(245, 158, 11, 0.8); }
+}
+
+.pulse-dot {
+    animation: pulse-dot 1.8s infinite ease-in-out;
+}
+

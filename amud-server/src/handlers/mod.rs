@@ -6,6 +6,7 @@ mod categories;
 mod dashboard;
 mod imports;
 mod pages;
+mod system;
 mod users;
 mod webhook_routes;
 
@@ -16,6 +17,7 @@ pub use backup::*;
 pub use categories::*;
 pub use dashboard::*;
 pub use pages::*;
+pub use system::*;
 pub use users::*;
 pub use webhook_routes::*;
 

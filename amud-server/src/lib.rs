@@ -358,6 +358,8 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/webhooks/delete", post(delete_webhook_handler))
         .route("/api/webhooks/test", post(test_webhook_handler))
         .route("/api/audit", get(list_audit_handler))
+        .route("/api/system/version", get(system_version_handler))
+        .route("/api/system/update", post(system_update_handler))
         .route("/api/users", get(list_users_handler).post(add_user_handler))
         .route("/api/users/edit", post(edit_user_handler))
         .route("/api/users/delete", post(delete_user_handler))

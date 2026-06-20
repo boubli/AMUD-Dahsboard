@@ -30,6 +30,7 @@
     <style id="amud-custom-css">{{custom_css}}</style>
 </head>
 <body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '' } }">
+    {{update_banner}}
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
@@ -174,6 +175,10 @@
 
         <!-- Support / Donation Card (optional) -->
         <!-- SUPPORT_SECTION -->
+
+        <footer class="dashboard-footer">
+            <span class="version-badge {{update_status_class}}">v{{app_version}}</span>
+        </footer>
     </div>
 
 
@@ -348,6 +353,26 @@
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+
+        function checkUpdateBannerDismissal() {
+            const banner = document.getElementById('update-banner');
+            if (!banner) return;
+            const dismissedUntil = localStorage.getItem('amud_update_dismissed_until');
+            if (dismissedUntil && Date.now() < parseInt(dismissedUntil, 10)) {
+                banner.style.display = 'none';
+            }
+        }
+        
+        function dismissUpdateBanner() {
+            const banner = document.getElementById('update-banner');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            const hideUntil = Date.now() + 24 * 60 * 60 * 1000;
+            localStorage.setItem('amud_update_dismissed_until', hideUntil.toString());
+        }
+
+        document.addEventListener('DOMContentLoaded', checkUpdateBannerDismissal);
 
         const isAdmin = "{{is_admin}}" === "true";
         const knownAppNames = new Set({{app_names_json}});
