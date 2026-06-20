@@ -563,7 +563,7 @@ fn render_support_section(settings: &HashMap<String, String>) -> String {
 fn render_wol_devices(
     devices: &[crate::models::WolDevice],
     is_admin: bool,
-    csrf_attr: &str,
+    _csrf_attr: &str,
 ) -> String {
     if devices.is_empty() {
         return String::new();

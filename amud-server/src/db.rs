@@ -326,15 +326,6 @@ pub(crate) fn load_webhooks_json(db: &Connection) -> Vec<serde_json::Value> {
     list
 }
 
-pub(crate) fn fetch_app_mac_address(db: &Connection, id: i64) -> Option<String> {
-    db.query_row(
-        "SELECT mac_address FROM apps WHERE id = ?",
-        params![id],
-        |row| row.get(0),
-    )
-    .ok()
-}
-
 pub(crate) fn fetch_wol_device_mac_address(db: &Connection, id: i64) -> Option<String> {
     db.query_row(
         "SELECT mac_address FROM wol_devices WHERE id = ?",

@@ -712,6 +712,7 @@ pub async fn delete_wol_device_handler(
                 .map(|s| s.username.clone())
                 .unwrap_or_default();
             let headers = headers.clone();
+            let audit_id_str = id_str.clone();
             with_db(state.db.clone(), move |db| {
                 if delete_wol_device(db, id).is_ok() {
                     record_audit_blocking(
@@ -719,7 +720,7 @@ pub async fn delete_wol_device_handler(
                         &headers,
                         &admin_user,
                         "wol_device_delete",
-                        &id_str,
+                        &audit_id_str,
                         "",
                     );
                 }
