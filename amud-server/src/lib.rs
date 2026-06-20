@@ -301,7 +301,7 @@ pub async fn run() {
     tokio::spawn(start_ha_polling(state.clone()));
 
     start_media_poller(shared_db.clone(), settings_cache.clone(), media_streams);
-    start_status_poller(shared_db.clone(), app_statuses);
+    start_status_poller(shared_db.clone(), settings_cache.clone(), app_statuses);
 
     let app = build_app_router(state);
 

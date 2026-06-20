@@ -19,6 +19,8 @@ pub struct AuthProofMessage {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigRequest {
     pub request: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pve_token_configured: Option<bool>,
 }
 
 /// SHA-256(secret ‖ nonce) — the raw secret never crosses the socket.

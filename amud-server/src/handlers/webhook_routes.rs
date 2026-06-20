@@ -403,6 +403,10 @@ pub async fn test_webhook_handler(
             );
         })
         .await;
+        let accept_invalid = {
+            let cache = state.settings_cache.read().unwrap();
+            cache.get("accept_invalid_certs").map(|s| s == "1").unwrap_or(false)
+        };
         let delivered = send_webhook_notification(
             url,
             name,
@@ -411,6 +415,7 @@ pub async fn test_webhook_handler(
             999,
             "running",
             "Docker",
+            accept_invalid,
         )
         .await;
 

@@ -209,12 +209,6 @@ pub(crate) fn start_media_poller(
     media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
 ) {
     tokio::spawn(async move {
-        let client = reqwest::Client::builder()
-            .timeout(Duration::from_secs(4))
-            .danger_accept_invalid_certs(true)
-            .build()
-            .unwrap_or_else(|_| reqwest::Client::new());
-
         loop {
             let cached = settings_cache.read().unwrap().clone();
             let settings = if cached.is_empty() {
@@ -222,6 +216,12 @@ pub(crate) fn start_media_poller(
             } else {
                 cached
             };
+            let accept_invalid = settings.get("accept_invalid_certs").map(|v| v == "1").unwrap_or(false);
+            let client = reqwest::Client::builder()
+                .timeout(Duration::from_secs(4))
+                .danger_accept_invalid_certs(accept_invalid)
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new());
             let db_for_blocking = db.clone();
             let apps = tokio::task::spawn_blocking(move || {
                 let db = db_for_blocking.lock().unwrap();

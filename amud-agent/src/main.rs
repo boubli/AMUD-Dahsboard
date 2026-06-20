@@ -608,6 +608,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
     let req = ConfigRequest {
         request: "get_config".to_string(),
+        pve_token_configured: Some(pve_token_from_env().is_some()),
     };
     if let Ok(mut serialized) = serde_json::to_vec(&req) {
         serialized.push(b'\n');

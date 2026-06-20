@@ -47,6 +47,10 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
         let event = event_type.to_string();
         let status_str = status_text.to_string();
         tokio::spawn(async move {
+            let accept_invalid = {
+                let cache = state.settings_cache.read().unwrap();
+                cache.get("accept_invalid_certs").map(|s| s == "1").unwrap_or(false)
+            };
             let event_filter = event.clone();
             let webhooks = with_db(state.db.clone(), move |db| {
                 load_active_webhooks_for_event(db, &event_filter)
@@ -57,6 +61,7 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
                 let name = wh.name;
                 let event = event.clone();
                 let status_str = status_str.clone();
+                let accept_invalid = accept_invalid;
                 tokio::spawn(async move {
                     send_webhook_notification(
                         url,
@@ -66,6 +71,7 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
                         0,
                         &status_str,
                         "System",
+                        accept_invalid,
                     )
                     .await;
                 });
@@ -235,13 +241,17 @@ pub(crate) fn process_agent_line(
 
     if let Ok(req) = serde_json::from_str::<amud_protocol::ConfigRequest>(line) {
         if req.request == "get_config" {
-            let token = state
-                .settings_cache
-                .read()
-                .unwrap()
-                .get("pve_api_token")
-                .cloned()
-                .unwrap_or_default();
+            let token = if req.pve_token_configured.unwrap_or(false) {
+                String::new()
+            } else {
+                state
+                    .settings_cache
+                    .read()
+                    .unwrap()
+                    .get("pve_api_token")
+                    .cloned()
+                    .unwrap_or_default()
+            };
             let config_payload = pve_config_payload(&token);
             if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
                 serialized.push(b'\n');

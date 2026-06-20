@@ -33,17 +33,21 @@ pub(crate) fn normalize_webhook_event_types(raw: &str) -> Option<String> {
 
 pub(crate) fn start_status_poller(
     db: Arc<Mutex<Connection>>,
+    settings_cache: Arc<RwLock<HashMap<String, String>>>,
     app_statuses: Arc<RwLock<HashMap<String, AppStatus>>>,
 ) {
     tokio::spawn(async move {
-        let client = reqwest::Client::builder()
-            .timeout(Duration::from_secs(4))
-            .redirect(reqwest::redirect::Policy::none())
-            .danger_accept_invalid_certs(true)
-            .build()
-            .unwrap_or_else(|_| reqwest::Client::new());
-
         loop {
+            let accept_invalid = {
+                let cache = settings_cache.read().unwrap();
+                cache.get("accept_invalid_certs").map(|s| s == "1").unwrap_or(false)
+            };
+            let client = reqwest::Client::builder()
+                .timeout(Duration::from_secs(4))
+                .redirect(reqwest::redirect::Policy::none())
+                .danger_accept_invalid_certs(accept_invalid)
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new());
             let db_for_blocking = db.clone();
             let apps = tokio::task::spawn_blocking(move || {
                 let db = db_for_blocking.lock().unwrap();
@@ -97,6 +101,7 @@ pub(crate) async fn send_webhook_notification(
     vmid: i64,
     status: &str,
     provider: &str,
+    accept_invalid_certs: bool,
 ) -> bool {
     if !url_allowed_for_webhook(&url) {
         eprintln!("Webhook '{}' blocked: URL failed SSRF policy check", name);
@@ -106,6 +111,7 @@ pub(crate) async fn send_webhook_notification(
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(10))
         .redirect(reqwest::redirect::Policy::none())
+        .danger_accept_invalid_certs(accept_invalid_certs)
         .build()
         .unwrap_or_else(|_| reqwest::Client::new());
     let is_discord = url.contains("discord.com/api/webhooks/");
@@ -340,6 +346,10 @@ pub(crate) fn check_container_alerts(
 
     let state = state.clone();
     tokio::spawn(async move {
+        let accept_invalid = {
+            let cache = state.settings_cache.read().unwrap();
+            cache.get("accept_invalid_certs").map(|s| s == "1").unwrap_or(false)
+        };
         let webhooks = crate::db::with_db(state.db.clone(), crate::db::load_active_webhooks).await;
         for (event_type, container_name, vmid, status_str, provider_str, _) in alert_jobs {
             for wh in &webhooks {
@@ -353,6 +363,7 @@ pub(crate) fn check_container_alerts(
                 let container_name = container_name.clone();
                 let status_str = status_str.clone();
                 let provider_str = provider_str.clone();
+                let accept_invalid = accept_invalid;
                 tokio::spawn(async move {
                     send_webhook_notification(
                         url,
@@ -362,6 +373,7 @@ pub(crate) fn check_container_alerts(
                         vmid,
                         &status_str,
                         &provider_str,
+                        accept_invalid,
                     )
                     .await;
                 });

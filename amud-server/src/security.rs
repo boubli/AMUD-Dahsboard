@@ -100,21 +100,26 @@ fn is_blocked_health_target(ip: std::net::IpAddr) -> bool {
 }
 
 pub(crate) fn client_ip(headers: &axum::http::HeaderMap) -> String {
-    headers
-        .get("x-forwarded-for")
-        .and_then(|v| v.to_str().ok())
-        .and_then(|s| s.split(',').next())
-        .map(str::trim)
-        .filter(|s| !s.is_empty())
-        .or_else(|| {
-            headers
-                .get("x-real-ip")
-                .and_then(|v| v.to_str().ok())
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-        })
-        .unwrap_or("unknown")
-        .to_string()
+    let trust_proxy = std::env::var("AMUD_TRUST_PROXY").unwrap_or_default() == "1" || cfg!(test);
+    if trust_proxy {
+        headers
+            .get("x-forwarded-for")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.split(',').next())
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .or_else(|| {
+                headers
+                    .get("x-real-ip")
+                    .and_then(|v| v.to_str().ok())
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty())
+            })
+            .unwrap_or("unknown")
+            .to_string()
+    } else {
+        "127.0.0.1".to_string()
+    }
 }
 
 pub(crate) struct RateLimitConfig {

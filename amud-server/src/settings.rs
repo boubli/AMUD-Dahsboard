@@ -56,11 +56,40 @@ pub(crate) fn setting_key_allowed(key: &str) -> bool {
 }
 
 pub(crate) fn sanitize_custom_css(value: &str) -> String {
-    value
-        .replace("</style", "")
-        .replace("</STYLE", "")
-        .replace("<script", "")
-        .replace("<SCRIPT", "")
+    let mut cleaned = String::new();
+    let chars: Vec<char> = value.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] == '<' {
+            let mut temp_idx = i + 1;
+            while temp_idx < chars.len() && chars[temp_idx].is_whitespace() {
+                temp_idx += 1;
+            }
+            if temp_idx < chars.len() {
+                let is_slash = chars[temp_idx] == '/';
+                if is_slash {
+                    temp_idx += 1;
+                    while temp_idx < chars.len() && chars[temp_idx].is_whitespace() {
+                        temp_idx += 1;
+                    }
+                }
+                
+                let mut tag_name = String::new();
+                while temp_idx < chars.len() && chars[temp_idx].is_alphabetic() {
+                    tag_name.push(chars[temp_idx].to_ascii_lowercase());
+                    temp_idx += 1;
+                }
+                
+                if tag_name == "style" || tag_name == "script" || tag_name == "iframe" || tag_name == "object" || tag_name == "html" || tag_name == "body" {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        cleaned.push(chars[i]);
+        i += 1;
+    }
+    cleaned
 }
 
 /// Integration base URLs must be empty or absolute http(s).
@@ -104,3 +133,17 @@ pub(crate) const DONATION_LINKS: [(&str, &str, &str); 3] = [
     ),
     ("https://ko-fi.com/Youssefboubli", "Ko-fi", "coffee"),
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sanitize_custom_css() {
+        assert_eq!(sanitize_custom_css("body { color: red; }"), "body { color: red; }");
+        assert_eq!(sanitize_custom_css("div > p { color: blue; }"), "div > p { color: blue; }");
+        assert_eq!(sanitize_custom_css("@media (max-width < 600px) { }"), "@media (max-width < 600px) { }");
+        assert_eq!(sanitize_custom_css("</style><script>alert(1)</script>"), "/style>script>alert(1)/script>");
+        assert_eq!(sanitize_custom_css("< sCrIpt >"), " sCrIpt >");
+    }
+}
