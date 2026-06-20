@@ -344,7 +344,13 @@ pub(crate) fn fetch_wol_device_mac_address(db: &Connection, id: i64) -> Option<S
     .ok()
 }
 
-pub(crate) fn insert_wol_device(db: &Connection, name: &str, mac: &str, ip: &str, icon: &str) -> Result<i64, rusqlite::Error> {
+pub(crate) fn insert_wol_device(
+    db: &Connection,
+    name: &str,
+    mac: &str,
+    ip: &str,
+    icon: &str,
+) -> Result<i64, rusqlite::Error> {
     db.execute(
         "INSERT INTO wol_devices (name, mac_address, ip_address, icon) VALUES (?, ?, ?, ?)",
         params![name, mac, ip, icon],
@@ -356,7 +362,6 @@ pub(crate) fn delete_wol_device(db: &Connection, id: i64) -> Result<(), rusqlite
     db.execute("DELETE FROM wol_devices WHERE id = ?", params![id])?;
     Ok(())
 }
-
 
 pub(crate) fn fetch_webhook_by_id(db: &Connection, id: i64) -> Option<(String, String)> {
     db.query_row(

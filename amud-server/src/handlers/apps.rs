@@ -189,8 +189,6 @@ fn parse_mac(mac: &str) -> Option<Vec<u8>> {
     None
 }
 
-
-
 pub async fn upload_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
@@ -605,7 +603,10 @@ pub async fn wake_app_handler(
 
     if let Some(id_str) = form.get("id") {
         if let Ok(id) = id_str.parse::<i64>() {
-            let mac_str = with_db(state.db.clone(), move |db| fetch_wol_device_mac_address(db, id)).await;
+            let mac_str = with_db(state.db.clone(), move |db| {
+                fetch_wol_device_mac_address(db, id)
+            })
+            .await;
             if let Some(mac_str) = mac_str {
                 if let Some(mac_bytes) = parse_mac(&mac_str) {
                     let mut magic_packet = vec![0xFF; 6];
@@ -669,11 +670,21 @@ pub async fn add_wol_device_handler(
     let icon = form.get("icon").cloned().unwrap_or_default();
 
     if !name.is_empty() && !mac_address.is_empty() {
-        let admin_user = session.as_ref().map(|s| s.username.clone()).unwrap_or_default();
+        let admin_user = session
+            .as_ref()
+            .map(|s| s.username.clone())
+            .unwrap_or_default();
         let headers = headers.clone();
         with_db(state.db.clone(), move |db| {
             if insert_wol_device(db, &name, &mac_address, &ip_address, &icon).is_ok() {
-                record_audit_blocking(db, &headers, &admin_user, "wol_device_create", &name, &mac_address);
+                record_audit_blocking(
+                    db,
+                    &headers,
+                    &admin_user,
+                    "wol_device_create",
+                    &name,
+                    &mac_address,
+                );
             }
         })
         .await;
@@ -696,11 +707,21 @@ pub async fn delete_wol_device_handler(
 
     if let Some(id_str) = form.get("id") {
         if let Ok(id) = id_str.parse::<i64>() {
-            let admin_user = session.as_ref().map(|s| s.username.clone()).unwrap_or_default();
+            let admin_user = session
+                .as_ref()
+                .map(|s| s.username.clone())
+                .unwrap_or_default();
             let headers = headers.clone();
             with_db(state.db.clone(), move |db| {
                 if delete_wol_device(db, id).is_ok() {
-                    record_audit_blocking(db, &headers, &admin_user, "wol_device_delete", &id_str, "");
+                    record_audit_blocking(
+                        db,
+                        &headers,
+                        &admin_user,
+                        "wol_device_delete",
+                        &id_str,
+                        "",
+                    );
                 }
             })
             .await;

@@ -571,11 +571,18 @@ fn render_wol_devices(
 
     let mut cards = String::new();
     for dev in devices {
-        let icon_name = if dev.icon.trim().is_empty() { "cpu" } else { &dev.icon };
+        let icon_name = if dev.icon.trim().is_empty() {
+            "cpu"
+        } else {
+            &dev.icon
+        };
         let ip_info = if dev.ip_address.trim().is_empty() {
             "".to_string()
         } else {
-            format!(r#"<span class="wol-ip" style="font-size:0.75rem; color:var(--text-muted);">({})</span>"#, escape_html(&dev.ip_address))
+            format!(
+                r#"<span class="wol-ip" style="font-size:0.75rem; color:var(--text-muted);">({})</span>"#,
+                escape_html(&dev.ip_address)
+            )
         };
 
         let action_btn = if is_admin {
