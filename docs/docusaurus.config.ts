@@ -64,6 +64,16 @@ const config: Config = {
           label: 'Documentation',
         },
         {
+          to: '/docs/changelog',
+          label: 'Changelog',
+          position: 'left',
+        },
+        {
+          to: '/docs/roadmap',
+          label: 'Roadmap',
+          position: 'left',
+        },
+        {
           to: '/docs/donate',
           label: 'Donate',
           position: 'right',
@@ -114,7 +124,15 @@ const config: Config = {
               href: 'https://github.com/boubli/AMUD-Dashboard/issues',
             },
             {
-              label: 'Releases & Changelogs',
+              label: 'Changelog',
+              to: '/docs/changelog',
+            },
+            {
+              label: 'Roadmap',
+              to: '/docs/roadmap',
+            },
+            {
+              label: 'GitHub Releases (binaries)',
               href: 'https://github.com/boubli/AMUD-Dashboard/releases',
             },
           ],
