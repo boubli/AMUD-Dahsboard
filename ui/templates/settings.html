@@ -325,59 +325,59 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">General</div>
-                <button class="nav-item" :class="{ 'active': activeTab === 'branding' }" @click="switchTab('branding')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'branding' }" @click="switchTab('branding')">
                     <i data-lucide="layout-template"></i> Branding
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'appearance' }" @click="switchTab('appearance')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'appearance' }" @click="switchTab('appearance')">
                     <i data-lucide="palette"></i> Appearance
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'weather' }" @click="switchTab('weather')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'weather' }" @click="switchTab('weather')">
                     <i data-lucide="cloud-sun"></i> Weather
                 </button>
                 <button x-show="proxmoxEnabled" class="nav-item" :class="{ 'active': activeTab === 'proxmox' }" @click="switchTab('proxmox')">
                     <i data-lucide="server"></i> Proxmox VE
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'integrations' }" @click="switchTab('integrations')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'integrations' }" @click="switchTab('integrations')">
                     <i data-lucide="plug"></i> Integrations
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'smarthome' }" @click="switchTab('smarthome')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'smarthome' }" @click="switchTab('smarthome')">
                     <i data-lucide="home"></i> Smart Home
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'donation' }" @click="switchTab('donation')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'donation' }" @click="switchTab('donation')">
                     <i data-lucide="heart"></i> Support
                 </button>
             </div>
             <div class="nav-section">
                 <div class="nav-section-title">Management</div>
-                <button class="nav-item" :class="{ 'active': activeTab === 'categories' }" @click="switchTab('categories')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'categories' }" @click="switchTab('categories')">
                     <i data-lucide="tag"></i> Categories
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'webhooks' }" @click="switchTab('webhooks')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'webhooks' }" @click="switchTab('webhooks')">
                     <i data-lucide="bell"></i> Webhook Alerts
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'users' }" @click="switchTab('users')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'users' }" @click="switchTab('users')">
                     <i data-lucide="users"></i> User Management
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'wol' }" @click="switchTab('wol')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'wol' }" @click="switchTab('wol')">
                     <i data-lucide="zap"></i> Power & WOL
                 </button>
             </div>
 
             <div class="nav-section">
                 <div class="nav-section-title">Account</div>
-                <button class="nav-item" :class="{ 'active': activeTab === 'security' }" @click="switchTab('security')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'security' }" @click="switchTab('security')">
                     <i data-lucide="shield-check"></i> Security
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'backup' }" @click="switchTab('backup')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'backup' }" @click="switchTab('backup')">
                     <i data-lucide="database"></i> Data & Backup
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'system' }" @click="switchTab('system')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'system' }" @click="switchTab('system')">
                     <span class="system-nav-wrapper" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                         <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="cpu"></i> System</span>
                         <span x-show="updateAvailable && !systemTabVisited" class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 8px #f59e0b; display: inline-block;"></span>
                     </span>
                 </button>
-                <button class="nav-item" :class="{ 'active': activeTab === 'audit' }" @click="switchTab('audit')">
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'audit' }" @click="switchTab('audit')">
                     <i data-lucide="scroll-text"></i> Audit Log
                 </button>
             </div>
@@ -401,12 +401,12 @@
                         <div class="settings-block">
                             <h3><i data-lucide="layout-template" style="color:var(--accent-color);"></i> Dashboard Identity</h3>
                             <div class="form-group">
-                                <label>Dashboard Title</label>
-                                <input type="text" name="app_name" class="form-control" value="{{app_name}}" placeholder="AMUD">
+                                <label for="setting-app-name">Dashboard Title</label>
+                                <input type="text" id="setting-app-name" name="app_name" class="form-control" value="{{app_name}}" placeholder="AMUD">
                             </div>
                             <div class="form-group" style="margin-top:1rem;">
-                                <label>Tagline / Slogan</label>
-                                <input type="text" name="tagline" class="form-control" value="{{tagline}}" placeholder="Homelab Operations Cockpit">
+                                <label for="setting-tagline">Tagline / Slogan</label>
+                                <input type="text" id="setting-tagline" name="tagline" class="form-control" value="{{tagline}}" placeholder="Homelab Operations Cockpit">
                             </div>
                         </div>
                     </div>
@@ -419,8 +419,8 @@
                         <div class="settings-block">
                             <h3><i data-lucide="image" style="color:var(--accent-color);"></i> Wallpaper & Logos</h3>
                             <div class="form-group">
-                                <label>Wallpaper Background (URL or Upload)</label>
-                                <input type="text" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="/static/wallpaper.png">
+                                <label for="setting-custom-bg-url">Wallpaper Background (URL or Upload)</label>
+                                <input type="text" id="setting-custom-bg-url" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="/static/wallpaper.png">
                                 <div class="upload-zone" @click="$refs.bgFileInput.click()" style="margin-top:0.5rem;">
                                     <input type="file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
                                     <i data-lucide="upload-cloud"></i>
@@ -428,8 +428,8 @@
                                 </div>
                             </div>
                             <div class="form-group" style="margin-top:1.5rem;">
-                                <label>Dashboard Logo (URL or Upload)</label>
-                                <input type="text" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
+                                <label for="setting-app-logo">Dashboard Logo (URL or Upload)</label>
+                                <input type="text" id="setting-app-logo" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
                                 <div class="upload-zone" @click="$refs.logoFileInput.click()" style="margin-top:0.5rem;">
                                     <input type="file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
                                     <i data-lucide="upload-cloud"></i>
@@ -442,11 +442,11 @@
                             <h3><i data-lucide="palette" style="color:var(--accent-color);"></i> Color & Theme</h3>
                             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                 <div class="form-group">
-                                    <label>Accent Color</label>
-                                    <input type="color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
+                                    <label for="setting-accent-color">Accent Color</label>
+                                    <input type="color" id="setting-accent-color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
                                 </div>
                                 <div class="form-group">
-                                    <label>Wallpaper Overlay Tint Theme</label>
+                                    <label for="overlay-theme-select">Wallpaper Overlay Tint Theme</label>
                                     <select name="overlay_theme" id="overlay-theme-select" class="form-control" style="height:3rem; cursor:pointer;" @change="toggleCustomOverlay()">
                                         <option value="cyber" {{eq_cyber}}>Cyber (Vibrant Violet/Blue - Default)</option>
                                         <option value="aurora" {{eq_aurora}}>Aurora (Mystic Teal/Emerald)</option>
@@ -458,20 +458,20 @@
                                 </div>
                             </div>
                             <div class="form-group" id="custom-overlay-group" style="margin-top:1rem; display:none;">
-                                <label>Custom Overlay Color</label>
-                                <input type="color" name="custom_overlay_color" class="form-control" value="{{custom_overlay_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
+                                <label for="setting-custom-overlay-color">Custom Overlay Color</label>
+                                <input type="color" id="setting-custom-overlay-color" name="custom_overlay_color" class="form-control" value="{{custom_overlay_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
                             </div>
                         </div>
 
                         <div class="settings-block">
                             <h3><i data-lucide="sliders" style="color:var(--accent-color);"></i> Glass & Layout Parameters</h3>
                             <div class="form-group">
-                                <label>Corner Bento Radius (px)</label>
-                                <input type="range" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
+                                <label for="setting-bento-radius">Corner Bento Radius (px)</label>
+                                <input type="range" id="setting-bento-radius" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
                             </div>
                             <div class="form-group" style="margin-top:1.5rem;">
-                                <label>Dashboard App Columns</label>
-                                <select name="grid_columns" class="form-control">
+                                <label for="setting-grid-columns">Dashboard App Columns</label>
+                                <select id="setting-grid-columns" name="grid_columns" class="form-control">
                                     <option value="2" {{eq_grid_2}}>2 columns</option>
                                     <option value="3" {{eq_grid_3}}>3 columns</option>
                                     <option value="4" {{eq_grid_4}}>4 columns</option>
@@ -480,20 +480,20 @@
                                 <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Controls the main app card grid on desktop screens.</p>
                             </div>
                             <div class="form-group" style="margin-top:1.5rem;">
-                                <label>Glass Panel Opacity</label>
-                                <input type="range" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
+                                <label for="setting-glass-opacity">Glass Panel Opacity</label>
+                                <input type="range" id="setting-glass-opacity" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
                             </div>
                             <div class="form-group" style="margin-top:1.5rem;">
-                                <label>Glass Blur Strength (px)</label>
-                                <input type="range" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
+                                <label for="setting-glass-blur">Glass Blur Strength (px)</label>
+                                <input type="range" id="setting-glass-blur" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
                             </div>
                         </div>
 
                         <div class="settings-block">
                             <h3><i data-lucide="code" style="color:var(--accent-color);"></i> Custom CSS</h3>
                             <div class="form-group">
-                                <label>CSS Overrides</label>
-                                <textarea name="custom_css" class="form-control" rows="6" placeholder="body { ... }" style="font-family:monospace; resize:vertical;" @input="unsavedChanges = true">{{custom_css}}</textarea>
+                                <label for="setting-custom-css">CSS Overrides</label>
+                                <textarea id="setting-custom-css" name="custom_css" class="form-control" rows="6" placeholder="body { ... }" style="font-family:monospace; resize:vertical;" @input="unsavedChanges = true">{{custom_css}}</textarea>
                             </div>
                         </div>
                     </div>
@@ -508,12 +508,12 @@
                             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Set manual coordinates for accurate weather. Leave blank to auto-detect via IP geolocation.</p>
                             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                 <div class="form-group">
-                                    <label>Latitude</label>
-                                    <input type="text" name="weather_latitude" class="form-control" value="{{weather_latitude}}" placeholder="e.g. 33.5731">
+                                    <label for="setting-weather-latitude">Latitude</label>
+                                    <input type="text" id="setting-weather-latitude" name="weather_latitude" class="form-control" value="{{weather_latitude}}" placeholder="e.g. 33.5731">
                                 </div>
                                 <div class="form-group">
-                                    <label>Longitude</label>
-                                    <input type="text" name="weather_longitude" class="form-control" value="{{weather_longitude}}" placeholder="e.g. -7.5898">
+                                    <label for="setting-weather-longitude">Longitude</label>
+                                    <input type="text" id="setting-weather-longitude" name="weather_longitude" class="form-control" value="{{weather_longitude}}" placeholder="e.g. -7.5898">
                                 </div>
                             </div>
                         </div>
@@ -527,7 +527,7 @@
                         <div class="settings-block">
                             <h3><i data-lucide="server" style="color:var(--accent-color);"></i> API Configuration</h3>
                             <div class="form-group">
-                                <label>PVE API Token</label>
+                                <label for="pve_api_token">PVE API Token</label>
                                 <input type="password" name="pve_api_token" id="pve_api_token" class="form-control" value="" placeholder="{{pve_api_token_placeholder}}" style="font-family: monospace;" @input="unsavedChanges = true">
                             </div>
                             <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
@@ -547,24 +547,24 @@
                         <div class="settings-block">
                             <h3><i data-lucide="tv" style="color:var(--accent-color);"></i> Jellyfin / Emby</h3>
                             <div class="form-group">
-                                <label>Jellyfin URL</label>
-                                <input type="url" name="jellyfin_url" class="form-control" value="{{jellyfin_url}}" placeholder="http://jellyfin.local:8096">
+                                <label for="setting-jellyfin-url">Jellyfin URL</label>
+                                <input type="url" id="setting-jellyfin-url" name="jellyfin_url" class="form-control" value="{{jellyfin_url}}" placeholder="http://jellyfin.local:8096">
                             </div>
                             <div class="form-group" style="margin-top:1rem;">
-                                <label>Jellyfin API Key</label>
-                                <input type="password" name="jellyfin_api_key" class="form-control" value="" placeholder="{{jellyfin_api_key_placeholder}}">
+                                <label for="setting-jellyfin-api-key">Jellyfin API Key</label>
+                                <input type="password" id="setting-jellyfin-api-key" name="jellyfin_api_key" class="form-control" value="" placeholder="{{jellyfin_api_key_placeholder}}">
                             </div>
                         </div>
 
                         <div class="settings-block">
                             <h3><i data-lucide="play" style="color:var(--accent-color);"></i> Plex</h3>
                             <div class="form-group">
-                                <label>Plex URL</label>
-                                <input type="url" name="plex_url" class="form-control" value="{{plex_url}}" placeholder="http://plex.local:32400">
+                                <label for="setting-plex-url">Plex URL</label>
+                                <input type="url" id="setting-plex-url" name="plex_url" class="form-control" value="{{plex_url}}" placeholder="http://plex.local:32400">
                             </div>
                             <div class="form-group" style="margin-top:1rem;">
-                                <label>Plex Token</label>
-                                <input type="password" name="plex_token" class="form-control" value="" placeholder="{{plex_token_placeholder}}">
+                                <label for="setting-plex-token">Plex Token</label>
+                                <input type="password" id="setting-plex-token" name="plex_token" class="form-control" value="" placeholder="{{plex_token_placeholder}}">
                             </div>
                         </div>
                     </div>
@@ -577,12 +577,12 @@
                         <div class="settings-block">
                             <h3><i data-lucide="home" style="color:var(--accent-color);"></i> Home Assistant Config</h3>
                             <div class="form-group">
-                                <label>Home Assistant URL</label>
-                                <input type="url" name="ha_url" class="form-control" value="{{ha_url}}" placeholder="http://homeassistant.local:8123">
+                                <label for="setting-ha-url">Home Assistant URL</label>
+                                <input type="url" id="setting-ha-url" name="ha_url" class="form-control" value="{{ha_url}}" placeholder="http://homeassistant.local:8123">
                             </div>
                             <div class="form-group" style="margin-top:1rem;">
-                                <label>Long-Lived Access Token</label>
-                                <input type="password" name="ha_token" class="form-control" value="" placeholder="{{ha_token_placeholder}}">
+                                <label for="setting-ha-token">Long-Lived Access Token</label>
+                                <input type="password" id="setting-ha-token" name="ha_token" class="form-control" value="" placeholder="{{ha_token_placeholder}}">
                             </div>
                         </div>
                     </div>
@@ -595,23 +595,23 @@
                         <div class="settings-block">
                             <h3><i data-lucide="heart" style="color:var(--accent-color);"></i> Visibility</h3>
                             <div class="form-group">
-                                <label>Show Support card on the dashboard</label>
-                                <select name="donate_enabled" class="form-control" style="height:3rem; cursor:pointer;">
+                                <label for="setting-donate-enabled">Show Support card on the dashboard</label>
+                                <select id="setting-donate-enabled" name="donate_enabled" class="form-control" style="height:3rem; cursor:pointer;">
                                     <option value="1" {{eq_donate_on}}>Enabled</option>
                                     <option value="0" {{eq_donate_off}}>Disabled</option>
                                 </select>
                             </div>
                             <div class="form-group" style="margin-top:1.5rem;">
-                                <label>Guest system telemetry visibility</label>
-                                <select name="telemetry_public" class="form-control" style="height:3rem; cursor:pointer;">
+                                <label for="setting-telemetry-public">Guest system telemetry visibility</label>
+                                <select id="setting-telemetry-public" name="telemetry_public" class="form-control" style="height:3rem; cursor:pointer;">
                                     <option value="0" {{eq_telemetry_off}}>Hide CPU/RAM/network from anonymous guests</option>
                                     <option value="1" {{eq_telemetry_on}}>Show basic CPU/RAM/network to guests</option>
                                 </select>
                                 <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Guests always receive only coarse app availability badges (ONLINE/OFFLINE). Container names, VMIDs, latency, CPU/RAM/disk details, streams, and admin controls stay hidden.</p>
                             </div>
                             <div class="form-group" style="margin-top:1.5rem;">
-                                <label>TLS Verification for Integrations</label>
-                                <select name="accept_invalid_certs" class="form-control" style="height:3rem; cursor:pointer;">
+                                <label for="setting-accept-invalid-certs">TLS Verification for Integrations</label>
+                                <select id="setting-accept-invalid-certs" name="accept_invalid_certs" class="form-control" style="height:3rem; cursor:pointer;">
                                     <option value="0" {{eq_accept_invalid_certs_off}}>Verify TLS certificates (Secure)</option>
                                     <option value="1" {{eq_accept_invalid_certs_on}}>Accept self-signed/invalid TLS certificates (Local Dev)</option>
                                 </select>
@@ -649,7 +649,7 @@
             <div x-show="activeTab === 'categories'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                     <h1 class="settings-page-title" style="margin:0;">Categories</h1>
-                    <button class="btn btn-primary" @click="openAddCategoryModal()"><i data-lucide="plus"></i> New Category</button>
+                    <button type="button" class="btn btn-primary" @click="openAddCategoryModal()"><i data-lucide="plus"></i> New Category</button>
                 </div>
                 <p class="settings-page-subtitle">Manage app grouping and colored tags.</p>
                 
@@ -674,7 +674,7 @@
             <div x-show="activeTab === 'wol'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                     <h1 class="settings-page-title" style="margin:0;">Power & Wake-on-LAN</h1>
-                    <button class="btn btn-primary" @click="openAddWolModal()"><i data-lucide="plus"></i> New Device</button>
+                    <button type="button" class="btn btn-primary" @click="openAddWolModal()"><i data-lucide="plus"></i> New Device</button>
                 </div>
                 <p class="settings-page-subtitle">Configure hardware devices that can be woken up remotely using magic packets.</p>
                 
@@ -700,7 +700,7 @@
             <div x-show="activeTab === 'webhooks'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                     <h1 class="settings-page-title" style="margin:0;">Webhook Alerts</h1>
-                    <button class="btn btn-primary" @click="openAddWebhookModal()"><i data-lucide="plus"></i> New Webhook</button>
+                    <button type="button" class="btn btn-primary" @click="openAddWebhookModal()"><i data-lucide="plus"></i> New Webhook</button>
                 </div>
                 <p class="settings-page-subtitle">Configure automated notifications for container state changes.</p>
                 
@@ -725,7 +725,7 @@
             <div x-show="activeTab === 'users'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                     <h1 class="settings-page-title" style="margin:0;">User Management</h1>
-                    <button class="btn btn-primary" @click="openAddUserModal()"><i data-lucide="user-plus"></i> New User</button>
+                    <button type="button" class="btn btn-primary" @click="openAddUserModal()"><i data-lucide="user-plus"></i> New User</button>
                 </div>
                 <p class="settings-page-subtitle">Manage access roles, create guests, or provision admins.</p>
                 
@@ -755,19 +755,19 @@
                     <h3><i data-lucide="shield-check" style="color:var(--accent-color);"></i> Change Credentials</h3>
                     
                     <div class="form-group">
-                        <label>Change Username</label>
+                        <label for="cred-new-username">Change Username</label>
                         <input type="text" id="cred-new-username" class="form-control" placeholder="Enter new username (leave blank to keep current)">
                     </div>
                     <div class="form-group" style="margin-top:1rem;">
-                        <label>Old Password <span style="color:var(--danger);">*</span></label>
+                        <label for="cred-old-password">Old Password <span style="color:var(--danger);">*</span></label>
                         <input type="password" id="cred-old-password" class="form-control" placeholder="Current password (required)">
                     </div>
                     <div class="form-group" style="margin-top:1rem;">
-                        <label>New Password</label>
+                        <label for="cred-new-password">New Password</label>
                         <input type="password" id="cred-new-password" class="form-control" placeholder="New password (leave blank to keep current)">
                     </div>
                     <div class="form-group" style="margin-top:1rem;">
-                        <label>Repeat New Password</label>
+                        <label for="cred-repeat-password">Repeat New Password</label>
                         <input type="password" id="cred-repeat-password" class="form-control" placeholder="Repeat new password">
                     </div>
 
@@ -856,7 +856,7 @@
                                     <div style="margin-top: 0.75rem;">
                                         <!-- Proxmox / Native Linux: One-Click Update -->
                                         <template x-if="systemVersion.deployment_type !== 'docker'">
-                                            <button @click="triggerSystemUpdate()" class="btn btn-primary" style="width: 100%; justify-content: center; background: #d29922; border-color: #d29922;">
+                                            <button type="button" @click="triggerSystemUpdate()" class="btn btn-primary" style="width: 100%; justify-content: center; background: #d29922; border-color: #d29922;">
                                                 <i data-lucide="arrow-up-circle"></i> Update Now
                                             </button>
                                         </template>
@@ -881,7 +881,7 @@
                                     <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">
                                         No updates available at this time.
                                     </p>
-                                    <button @click="loadSystemVersion(true)" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 4px; background: rgba(255,255,255,0.02);">
+                                    <button type="button" @click="loadSystemVersion(true)" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 4px; background: rgba(255,255,255,0.02);">
                                         <i data-lucide="refresh-cw" style="width: 0.85rem; height: 0.85rem;"></i> Check Again
                                     </button>
                                 </div>
@@ -890,7 +890,7 @@
                             <div x-show="!checkingVersion && !systemVersion && systemError" style="color: var(--danger); font-size: 0.9rem; padding: 0.5rem 0;">
                                 <p>Failed to check for updates:</p>
                                 <code x-text="systemError" style="display: block; background: rgba(255,0,0,0.05); color: #ef4444; border: 1px solid rgba(255,0,0,0.1); padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-top: 0.5rem; font-family: monospace;"></code>
-                                <button @click="loadSystemVersion()" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.8rem; background: rgba(255,255,255,0.02);">
+                                <button type="button" @click="loadSystemVersion()" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.8rem; background: rgba(255,255,255,0.02);">
                                     Try Again
                                 </button>
                             </div>
@@ -1004,20 +1004,20 @@
         <h3 style="margin-bottom:1.5rem;" x-text="catEditing ? 'Edit Category' : 'Add Category'"></h3>
         <input type="hidden" id="cat-id">
         <div class="form-group">
-            <label>Name</label>
+            <label for="cat-name">Name</label>
             <input type="text" id="cat-name" class="form-control" required>
         </div>
         <div class="form-group" style="margin-top:1rem;">
-            <label>Color</label>
+            <label for="cat-color">Color</label>
             <input type="color" id="cat-color" class="form-control" style="height:3rem; padding:0.2rem;" value="#64748b">
         </div>
         <div class="form-group" style="margin-top:1rem;">
-            <label>Sort Order (Lower = First)</label>
+            <label for="cat-order">Sort Order (Lower = First)</label>
             <input type="number" id="cat-order" class="form-control" value="0">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
-            <button class="btn btn-secondary" @click="catModalOpen = false">Cancel</button>
-            <button class="btn btn-primary" @click="saveCategory()">Save</button>
+            <button type="button" class="btn btn-secondary" @click="catModalOpen = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="saveCategory()">Save</button>
         </div>
     </div>
 
@@ -1027,15 +1027,15 @@
         <h3 style="margin-bottom:1.5rem;" x-text="whEditing ? 'Edit Webhook' : 'Add Webhook'"></h3>
         <input type="hidden" id="wh-id">
         <div class="form-group">
-            <label>Name</label>
+            <label for="wh-name">Name</label>
             <input type="text" id="wh-name" class="form-control" required placeholder="e.g. Discord Alerts">
         </div>
         <div class="form-group" style="margin-top:1rem;">
-            <label>Webhook URL <span x-show="whEditing" style="font-weight:normal; font-size:0.75rem;">(Leave blank to keep current)</span></label>
+            <label for="wh-url">Webhook URL <span x-show="whEditing" style="font-weight:normal; font-size:0.75rem;">(Leave blank to keep current)</span></label>
             <input type="text" id="wh-url" class="form-control" placeholder="https://discord.com/api/webhooks/...">
         </div>
         <div class="form-group" style="margin-top:1rem;">
-            <label>Subscribe to Events</label>
+            <label for="wh-events">Subscribe to Events</label>
             <select id="wh-events" class="form-control" multiple style="height:auto; padding:0.5rem;">
                 <option value="container_started" selected>Container Started (🟢)</option>
                 <option value="container_stopped" selected>Container Stopped (🔴)</option>
@@ -1045,11 +1045,11 @@
         </div>
         <div class="form-group" style="margin-top:1rem; display:flex; align-items:center; gap:0.5rem;">
             <input type="checkbox" id="wh-active" checked style="width:1.2rem; height:1.2rem; accent-color:var(--accent-color);">
-            <label style="margin:0;">Active / Enabled</label>
+            <label for="wh-active" style="margin:0;">Active / Enabled</label>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
-            <button class="btn btn-secondary" @click="whModalOpen = false">Cancel</button>
-            <button class="btn btn-primary" @click="saveWebhook()">Save</button>
+            <button type="button" class="btn btn-secondary" @click="whModalOpen = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="saveWebhook()">Save</button>
         </div>
     </div>
 
@@ -1059,15 +1059,15 @@
         <h3 style="margin-bottom:1.5rem;" x-text="usrEditing ? 'Edit User' : 'Add User'"></h3>
         <input type="hidden" id="usr-id">
         <div class="form-group">
-            <label>Username</label>
+            <label for="usr-name">Username</label>
             <input type="text" id="usr-name" class="form-control" required autocomplete="off">
         </div>
         <div class="form-group" style="margin-top:1rem;">
-            <label>Password <span x-show="usrEditing" style="font-weight:normal; font-size:0.75rem;">(Leave blank to keep current)</span></label>
+            <label for="usr-pass">Password <span x-show="usrEditing" style="font-weight:normal; font-size:0.75rem;">(Leave blank to keep current)</span></label>
             <input type="password" id="usr-pass" class="form-control" autocomplete="new-password">
         </div>
         <div class="form-group" style="margin-top:1rem;">
-            <label>Role</label>
+            <label for="usr-role">Role</label>
             <select id="usr-role" class="form-control">
                 <option value="Guest">Guest (Read Only)</option>
                 <option value="Admin">Admin (Full Access)</option>
@@ -1075,8 +1075,8 @@
         </div>
         <p id="usr-error-msg" style="display:none; color:var(--danger); font-size:0.85rem; margin-top:1rem;"></p>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
-            <button class="btn btn-secondary" @click="usrModalOpen = false">Cancel</button>
-            <button class="btn btn-primary" @click="saveUser()">Save User</button>
+            <button type="button" class="btn btn-secondary" @click="usrModalOpen = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="saveUser()">Save User</button>
         </div>
     </div>
 
@@ -1087,20 +1087,20 @@
         <form action="/api/wol/add" method="POST" style="margin:0;">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <div class="form-group">
-                <label>Name</label>
-                <input type="text" name="name" class="form-control" placeholder="e.g. NAS Server" required autocomplete="off">
+                <label for="wol-name">Name</label>
+                <input type="text" id="wol-name" name="name" class="form-control" placeholder="e.g. NAS Server" required autocomplete="off">
             </div>
             <div class="form-group" style="margin-top:1rem;">
-                <label>MAC Address</label>
-                <input type="text" name="mac_address" class="form-control" placeholder="e.g. 00:11:22:33:44:55" required autocomplete="off">
+                <label for="wol-mac-address">MAC Address</label>
+                <input type="text" id="wol-mac-address" name="mac_address" class="form-control" placeholder="e.g. 00:11:22:33:44:55" required autocomplete="off">
             </div>
             <div class="form-group" style="margin-top:1rem;">
-                <label>IP Address (Optional)</label>
-                <input type="text" name="ip_address" class="form-control" placeholder="e.g. 192.168.1.100" autocomplete="off">
+                <label for="wol-ip-address">IP Address (Optional)</label>
+                <input type="text" id="wol-ip-address" name="ip_address" class="form-control" placeholder="e.g. 192.168.1.100" autocomplete="off">
             </div>
             <div class="form-group" style="margin-top:1rem;">
-                <label>Icon (Lucide name, Optional)</label>
-                <input type="text" name="icon" class="form-control" placeholder="e.g. server, monitor, cpu" autocomplete="off">
+                <label for="wol-icon">Icon (Lucide name, Optional)</label>
+                <input type="text" id="wol-icon" name="icon" class="form-control" placeholder="e.g. server, monitor, cpu" autocomplete="off">
             </div>
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
                 <button type="button" class="btn btn-secondary" @click="wolModalOpen = false">Cancel</button>
@@ -2072,7 +2072,7 @@
             <div x-show="updateProgressError" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 0.75rem; margin-top: 1rem; color: #ef4444; font-size: 0.85rem;">
                 <strong style="display: block; margin-bottom: 0.25rem;">Update Failed:</strong>
                 <span x-text="updateProgressError"></span>
-                <button @click="updatingSystem = false" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.8rem; width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                <button type="button" @click="updatingSystem = false" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.8rem; width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
                     Close
                 </button>
             </div>
@@ -2096,7 +2096,7 @@
             <p style="margin: 0.1rem 0 0 0; font-size: 0.8rem; color: var(--text-muted);" x-text="toastMessage"></p>
         </div>
         <a :href="'https://github.com/boubli/AMUD-Dashboard/releases/tag/' + toastVersion" target="_blank" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px; color: #fff; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">What's New</a>
-        <button @click="showToast = false" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0 0.25rem;">&times;</button>
+        <button type="button" @click="showToast = false" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0 0.25rem;">&times;</button>
     </div>
 
     <script nonce="{{csp_nonce}}">

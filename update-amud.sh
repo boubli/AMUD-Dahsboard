@@ -51,10 +51,10 @@ failure_trap() {
   local line_no=$1
   echo -e "\n" >&2
   msg_error "Update failed on line ${line_no} (exit ${exit_code}). Attempting to restore services..."
-  if [ -n "$CT_ID" ] && [ "$SERVER_WAS_RUNNING" = true ]; then
+  if [[ -n "$CT_ID" ]] && [[ "$SERVER_WAS_RUNNING" = true ]]; then
     pct exec "$CT_ID" -- systemctl start amud >/dev/null 2>&1 || true
   fi
-  if [ "$AGENT_WAS_RUNNING" = true ]; then
+  if [[ "$AGENT_WAS_RUNNING" = true ]]; then
     systemctl start amud-agent >/dev/null 2>&1 || true
   fi
   exit "$exit_code"
@@ -93,12 +93,12 @@ verify_release_asset() {
   local name="$2"
   local expected actual
   expected=$(grep -E "[[:space:]/]${name}$" /tmp/AMUD-SHA256SUMS | awk '{print $1}' || true)
-  if [ -z "$expected" ]; then
+  if [[ -z "$expected" ]]; then
     msg_error "Checksum for ${name} not found in SHA256SUMS"
     exit 1
   fi
   actual=$(sha256sum "$file" | awk '{print $1}' || true)
-  if [ "$actual" != "$expected" ]; then
+  if [[ "$actual" != "$expected" ]]; then
     msg_error "Checksum verification failed for ${name}"
     exit 1
   fi
@@ -148,7 +148,7 @@ read_container_agent_secret() {
   local ct_id="$1"
   local secret
   secret=$(pct exec "$ct_id" -- bash -c 'grep -E "^Environment=AMUD_AGENT_SECRET=" /etc/systemd/system/amud.service 2>/dev/null | head -n1 | sed "s/^Environment=AMUD_AGENT_SECRET=//"' 2>/dev/null || true)
-  if [ -n "$secret" ]; then
+  if [[ -n "$secret" ]]; then
     echo "$secret"
     return
   fi
@@ -176,11 +176,11 @@ sync_agent_ipc_secret() {
     update_env 'BIND_ADDR' '0.0.0.0'
   "
   pct exec "$ct_id" </dev/null -- systemctl daemon-reload
-  if [ -f "/etc/systemd/system/amud-agent.service" ]; then
+  if [[ -f "/etc/systemd/system/amud-agent.service" ]]; then
     ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "AMUD_AGENT_SECRET" "$secret"
     local pve_node
     pve_node=$(read_local_systemd_env "/etc/systemd/system/amud-agent.service" "PVE_NODE")
-    if [ -z "$pve_node" ]; then
+    if [[ -z "$pve_node" ]]; then
       pve_node=$(hostname)
       ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "PVE_NODE" "$pve_node"
     fi
@@ -210,7 +210,7 @@ header_info
 
 msg_info "Querying latest release from GitHub API"
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
-if [ -z "$LATEST_RELEASE" ]; then
+if [[ -z "$LATEST_RELEASE" ]]; then
   msg_error "Could not fetch the latest release version from GitHub API"
   exit 1
 fi
@@ -225,7 +225,7 @@ download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/am
 verify_release_asset /tmp/amud-server amud-server
 download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/ui.tar.gz" "/tmp/ui.tar.gz" "UI templates/assets"
 verify_release_asset /tmp/ui.tar.gz ui.tar.gz
-if [ -f "/usr/local/bin/amud-agent" ]; then
+if [[ -f "/usr/local/bin/amud-agent" ]]; then
   download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent" "/tmp/amud-agent" "host agent release binary"
   verify_release_asset /tmp/amud-agent amud-agent
 fi
@@ -233,7 +233,7 @@ msg_ok "Release assets downloaded and verified"
 
 CT_ID=$(pct list 2>/dev/null | awk '$3 == "amud-dashboard" || $3 == "hydrivax-amud" {print $1}' | head -n1 || true)
 
-if [ -n "$CT_ID" ]; then
+if [[ -n "$CT_ID" ]]; then
   echo -e "\n  ${INFO}  Updating AMUD Dashboard Server inside LXC container $CT_ID..."
 
   if pct exec "$CT_ID" -- systemctl is-active --quiet amud 2>/dev/null; then
@@ -242,7 +242,7 @@ if [ -n "$CT_ID" ]; then
 
   msg_info "Resolving agent IPC shared secret"
   AMUD_AGENT_SECRET=$(read_container_agent_secret "$CT_ID")
-  if [ -z "$AMUD_AGENT_SECRET" ]; then
+  if [[ -z "$AMUD_AGENT_SECRET" ]]; then
     AMUD_AGENT_SECRET=$(generate_agent_secret)
     msg_warn "No existing agent IPC secret found. Generated a new shared secret."
   fi
@@ -280,7 +280,7 @@ else
   echo -e "  ${WARNING}  AMUD LXC container (amud-dashboard or hydrivax-amud) not found. Skipping server update."
 fi
 
-if [ -f "/usr/local/bin/amud-agent" ]; then
+if [[ -f "/usr/local/bin/amud-agent" ]]; then
   echo -e "\n  ${INFO}  Updating amud-agent on Proxmox host..."
 
   if systemctl is-active --quiet amud-agent 2>/dev/null; then
@@ -291,7 +291,7 @@ if [ -f "/usr/local/bin/amud-agent" ]; then
   systemctl stop amud-agent || true
   msg_ok "Stopped amud-agent service"
 
-  if [ ! -f /tmp/amud-agent ]; then
+  if [[ ! -f /tmp/amud-agent ]]; then
     msg_info "Downloading host agent release binary"
     download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent" "/tmp/amud-agent" "host agent release binary"
     verify_release_asset /tmp/amud-agent amud-agent
@@ -301,9 +301,9 @@ if [ -f "/usr/local/bin/amud-agent" ]; then
   install -m 755 /tmp/amud-agent /usr/local/bin/amud-agent
   msg_ok "Host agent release binary installed"
 
-  if [ -n "$CT_ID" ] && [ -n "${AMUD_AGENT_SECRET:-}" ]; then
+  if [[ -n "$CT_ID" ]] && [[ -n "${AMUD_AGENT_SECRET:-}" ]]; then
     sync_agent_ipc_secret "$CT_ID" "$AMUD_AGENT_SECRET"
-  elif [ -f "/etc/systemd/system/amud-agent.service" ] && [ -z "$(read_local_systemd_env /etc/systemd/system/amud-agent.service AMUD_AGENT_SECRET)" ]; then
+  elif [[ -f "/etc/systemd/system/amud-agent.service" ]] && [[ -z "$(read_local_systemd_env /etc/systemd/system/amud-agent.service AMUD_AGENT_SECRET)" ]]; then
     NEW_SECRET=$(generate_agent_secret)
     ensure_local_systemd_env "/etc/systemd/system/amud-agent.service" "AMUD_AGENT_SECRET" "$NEW_SECRET"
     systemctl daemon-reload
@@ -319,7 +319,7 @@ else
   echo -e "\n  ${WARNING}  amud-agent binary not found at /usr/local/bin/amud-agent. Skipping host agent update."
 fi
 
-if [ -n "$CT_ID" ]; then
+if [[ -n "$CT_ID" ]]; then
   verify_agent_connection "$CT_ID" || true
 fi
 

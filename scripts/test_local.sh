@@ -6,10 +6,10 @@ echo "=== AMUD Rust Integration Test Script ==="
 # Clean up previous runs
 cleanup() {
     echo "Cleaning up test processes and sockets..."
-    if [ -n "$AGENT_PID" ]; then
+    if [[ -n "$AGENT_PID" ]]; then
         kill "$AGENT_PID" 2>/dev/null || true
     fi
-    if [ -n "$SERVER_PID" ]; then
+    if [[ -n "$SERVER_PID" ]]; then
         kill "$SERVER_PID" 2>/dev/null || true
     fi
     rm -f /tmp/amud.sock

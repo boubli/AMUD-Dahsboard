@@ -62,7 +62,7 @@ header_info
 # 1. Stop and Destroy the LXC Container
 CT_ID=$(pct list 2>/dev/null | awk '$3 == "amud-dashboard" || $3 == "hydrivax-amud" {print $1}' | head -n1 || true)
 
-if [ -n "$CT_ID" ]; then
+if [[ -n "$CT_ID" ]]; then
     CT_NAME=$(pct list 2>/dev/null | awk -v id="$CT_ID" '$1 == id {print $3}' || echo "amud-dashboard")
     echo -e "  ${INFO}  Found AMUD LXC container (ID: $CT_ID, Name: $CT_NAME). Stopping and destroying..."
     

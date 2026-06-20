@@ -122,7 +122,7 @@ pub async fn dashboard_handler(
     </div>
     <div class="update-banner-actions">
         <a href="/admin/settings?tab=system" class="btn-update-banner">Go to System &rarr;</a>
-        <button onclick="dismissUpdateBanner()" class="btn-update-dismiss">&times;</button>
+        <button type="button" onclick="dismissUpdateBanner()" class="btn-update-dismiss">&times;</button>
     </div>
 </div>"#,
                     escape_html(&app_version_formatted),
@@ -366,7 +366,7 @@ fn render_apps_grid(
                             </div>
                             <div class="metric-block" style="flex-direction: row; justify-content: center; gap: 0.5rem; align-items: center;">
                                 <span class="metric-value" style="font-size: 0.8rem; text-transform: uppercase;" x-text="integrationData.status"></span>
-                                <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; height: auto;" @click="fetch('/api/apps/{}/integration/action', {{ method: 'POST', headers: {{'Content-Type': 'application/json', 'X-CSRF-Token': '{}'}}, body: JSON.stringify({{action: 'disable'}}) }}).then(() => fetch('/api/apps/{}/integration').then(r=>r.json()).then(d=>integrationData=d))">Disable</button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; height: auto;" @click="fetch('/api/apps/{}/integration/action', {{ method: 'POST', headers: {{'Content-Type': 'application/json', 'X-CSRF-Token': '{}'}}, body: JSON.stringify({{action: 'disable'}}) }}).then(() => fetch('/api/apps/{}/integration').then(r=>r.json()).then(d=>integrationData=d))">Disable</button>
                             </div>
                         </div>
                     </template>
@@ -497,7 +497,7 @@ fn render_streams(apps: &[App], session: &Option<Session>) -> String {
                     <div class="stream-controls-row">
                         <span class="stream-track-title" id="plex-track">No Active Streams</span>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <button class="stream-play-btn"><i data-lucide="play" style="width:0.85rem; height:0.85rem;"></i></button>
+                            <button type="button" class="stream-play-btn"><i data-lucide="play" style="width:0.85rem; height:0.85rem;"></i></button>
                             <span id="plex-timer">-</span>
                         </div>
                     </div>
@@ -561,7 +561,7 @@ fn render_category_tabs(apps: &[App]) -> String {
     }
 
     let mut category_tabs_html = format!(
-        r#"<button class="filter-tab active" @click="filterCategory('all', $el)">All <span class="filter-count">{}</span></button>"#,
+        r#"<button type="button" class="filter-tab active" @click="filterCategory('all', $el)">All <span class="filter-count">{}</span></button>"#,
         apps.len()
     );
     for cat in categories.iter() {
@@ -573,7 +573,7 @@ fn render_category_tabs(apps: &[App]) -> String {
             .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
             .collect();
         category_tabs_html.push_str(&format!(
-            r#"<button class="filter-tab" @click="filterCategory('{}', $el)">{} <span class="filter-count">{}</span></button>"#,
+            r#"<button type="button" class="filter-tab" @click="filterCategory('{}', $el)">{} <span class="filter-count">{}</span></button>"#,
             escape_html(&cat_slug), escape_html(cat), count
         ));
     }

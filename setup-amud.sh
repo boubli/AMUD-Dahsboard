@@ -64,7 +64,7 @@ EOF
 }
 
 # 1. Host Execution Pre-checks
-if [ ! -d "/etc/pve" ]; then
+if [[ ! -d "/etc/pve" ]]; then
     echo -e "\n  ${CROSS}  This script must be executed directly on a Proxmox VE host shell.\n" >&2
     exit 1
 fi
@@ -114,7 +114,7 @@ pveam update >/dev/null 2>&1 || true
 msg_ok "pveam templates index updated"
 
 TEMPLATE_PATH="$TEMPLATE_DIR/$TEMPLATE_FILE"
-if [ ! -f "$TEMPLATE_PATH" ]; then
+if [[ ! -f "$TEMPLATE_PATH" ]]; then
     msg_info "Downloading template $TEMPLATE_FILE"
     pveam download local "system/$TEMPLATE_FILE" >/dev/null
     msg_ok "Downloaded template $TEMPLATE_FILE"
@@ -174,7 +174,7 @@ msg_info "Querying latest release from GitHub API"
 REPO="boubli/AMUD-Dashboard"
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
 
-if [ -z "$LATEST_RELEASE" ]; then
+if [[ -z "$LATEST_RELEASE" ]]; then
     LATEST_RELEASE="v1.0.0"
 fi
 msg_ok "Targeting release: $LATEST_RELEASE"
@@ -190,12 +190,12 @@ verify_release_asset() {
   local name="$2"
   local expected actual
   expected=$(grep -E "[[:space:]/]${name}$" /tmp/amud-SHA256SUMS | awk '{print $1}' || true)
-  if [ -z "$expected" ]; then
+  if [[ -z "$expected" ]]; then
     msg_error "Checksum for ${name} not found in SHA256SUMS"
     exit 1
   fi
   actual=$(sha256sum "$file" | awk '{print $1}' || true)
-  if [ "$actual" != "$expected" ]; then
+  if [[ "$actual" != "$expected" ]]; then
     msg_error "Checksum verification failed for ${name}"
     exit 1
   fi
@@ -252,12 +252,12 @@ sleep 4
 BOOTSTRAP_PASS=""
 for i in {1..5}; do
   BOOTSTRAP_PASS=$(pct exec "$CT_ID" -- journalctl -u amud --no-pager 2>/dev/null | grep 'Password:' | awk -F'Password: ' '{print $2}' | tr -d ' \r\n' || true)
-  if [ -n "$BOOTSTRAP_PASS" ]; then
+  if [[ -n "$BOOTSTRAP_PASS" ]]; then
     break
   fi
   sleep 2
 done
-if [ -n "$BOOTSTRAP_PASS" ]; then
+if [[ -n "$BOOTSTRAP_PASS" ]]; then
   msg_ok "Bootstrap password retrieved successfully"
 else
   msg_warn "Could not retrieve bootstrap password from systemd logs"

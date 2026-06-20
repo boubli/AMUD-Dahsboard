@@ -47,6 +47,77 @@
         tbody.appendChild(tr);
     }
 
+    function setButtonLoading(button, loading, sizeRem) {
+        if (!button) return;
+        const size = sizeRem || '0.75';
+        if (loading) {
+            if (!button._amudOrigNodes) {
+                button._amudOrigNodes = Array.from(button.childNodes).map((node) => node.cloneNode(true));
+            }
+            button.replaceChildren();
+            const icon = document.createElement('i');
+            icon.setAttribute('data-lucide', 'loader-2');
+            icon.className = 'animate-spin';
+            icon.style.width = `${size}rem`;
+            icon.style.height = `${size}rem`;
+            button.appendChild(icon);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+        if (!button._amudOrigNodes) return;
+        button.replaceChildren(...button._amudOrigNodes.map((node) => node.cloneNode(true)));
+        delete button._amudOrigNodes;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function createMetricBlock(value, label, options) {
+        const opts = options || {};
+        const block = document.createElement('div');
+        block.className = 'metric-block';
+        const valueEl = document.createElement('span');
+        valueEl.className = 'metric-value';
+        if (opts.valueStyle) valueEl.setAttribute('style', opts.valueStyle);
+        valueEl.textContent = value == null ? '' : String(value);
+        const labelEl = document.createElement('span');
+        labelEl.className = 'metric-label';
+        labelEl.textContent = label == null ? '' : String(label);
+        block.appendChild(valueEl);
+        block.appendChild(labelEl);
+        return block;
+    }
+
+    function setMetricsGrid(grid, blocks) {
+        if (!grid) return;
+        grid.replaceChildren();
+        blocks.forEach((block) => {
+            grid.appendChild(createMetricBlock(block.value, block.label, block));
+        });
+        grid.dataset.amudLiveMetrics = '1';
+    }
+
+    function shouldUpdateLxcMetrics(grid) {
+        if (!grid) return false;
+        if (grid.closest('.integration-widget')) return false;
+        if (grid.id === 'ha-metrics-grid') return false;
+        return true;
+    }
+
+    function setFilterEmptyMessage(container) {
+        if (!container) return;
+        container.replaceChildren();
+        const line1 = document.createElement('p');
+        line1.style.fontWeight = '600';
+        line1.style.color = 'var(--text-secondary)';
+        line1.textContent = 'No apps in this category';
+        const line2 = document.createElement('p');
+        line2.style.fontSize = '0.8rem';
+        line2.style.color = 'var(--text-muted)';
+        line2.style.marginTop = '0.5rem';
+        line2.textContent = 'Switch tabs or add services under this category.';
+        container.appendChild(line1);
+        container.appendChild(line2);
+    }
+
     function amudUploadImage(file, onSuccess, onError) {
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
@@ -100,6 +171,11 @@
     global.escapeHtml = escapeHtml;
     global.appendTableCell = appendTableCell;
     global.setTableMessage = setTableMessage;
+    global.setButtonLoading = setButtonLoading;
+    global.createMetricBlock = createMetricBlock;
+    global.setMetricsGrid = setMetricsGrid;
+    global.shouldUpdateLxcMetrics = shouldUpdateLxcMetrics;
+    global.setFilterEmptyMessage = setFilterEmptyMessage;
     global.amudUploadImage = amudUploadImage;
     global.handleFileUpload = handleFileUpload;
 })(typeof window !== 'undefined' ? window : globalThis);
