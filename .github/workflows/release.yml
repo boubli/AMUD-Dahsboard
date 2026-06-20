@@ -34,7 +34,7 @@ jobs:
 
       - name: Build Projects in Release Mode
         run: |
-          cargo build --release
+          GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release
 
       - name: Package UI Templates and Assets
         run: |
