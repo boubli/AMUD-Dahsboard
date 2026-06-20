@@ -11,17 +11,19 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
-## v1.4.2.1 — Host app mapping + telemetry polish
+## v1.4.2.2 — Dashboard telemetry only (no System page)
 
-**2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.1) · [Compare v1.4.2.0…v1.4.2.1](https://github.com/boubli/AMUD-Dashboard/compare/v1.4.2.0...v1.4.2.1)
+**2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.2) · [Compare v1.4.1.0…v1.4.2.2](https://github.com/boubli/AMUD-Dashboard/compare/v1.4.1.0...v1.4.2.2)
+
+**Removed**
+- `/telemetry` page and **System** topbar button (dashboard telemetry row stays on the home page).
 
 **Host apps**
 - Host-based services like Beszel/Filebrowser now get fallback telemetry even when not running as LXC.
 - Proxmox app status is driven by host agent connectivity to avoid false OFFLINE badge states.
 
 **Telemetry UI**
-- Dashboard top telemetry row now shows CPU, RAM, GPU (when available), Disk, and Bandwidth clearly.
-- `/telemetry` page now includes richer details and a live services table in AMUD style.
+- Dashboard top telemetry row shows CPU, RAM, GPU (when available), Disk, and Bandwidth.
 
 **Dashboard UX**
 - Guest (not logged in) app cards are compacted to avoid oversized rows.

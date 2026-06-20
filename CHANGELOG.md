@@ -8,9 +8,12 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
-## [v1.4.2.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.1) — 2026-06-20
+## [v1.4.2.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.2) — 2026-06-20
 
-Telemetry and host-app status polish with AMUD-native UI behavior.
+Host telemetry and status polish on the main dashboard only.
+
+### Removed
+- Dedicated `/telemetry` page and **System** topbar button
 
 ### Fixed
 - Host-based apps (e.g. Beszel, Filebrowser) now map correctly even when they are not LXC containers
@@ -18,8 +21,7 @@ Telemetry and host-app status polish with AMUD-native UI behavior.
 - Dashboard app matching improved via normalized aliases and URL-derived tokens
 
 ### Improved
-- Dashboard top telemetry row now clearly shows CPU, RAM, GPU (when available), Disk, and Bandwidth
-- `/telemetry` page now includes richer host details and live services table while keeping AMUD visual style
+- Dashboard top telemetry row shows CPU, RAM, GPU (when available), Disk, and Bandwidth
 - Guest (not logged in) app cards render in compact mode to avoid oversized empty cards
 
 ---

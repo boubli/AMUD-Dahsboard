@@ -449,11 +449,6 @@ fn render_apps_grid(
 
 fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
     if let Some(ref sess) = session {
-        let telemetry_btn = r#"
-            <a href="/telemetry" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
-                <i data-lucide="activity" style="width:0.95rem; height:0.95rem;"></i> System
-            </a>
-        "#;
         let admin_settings_btn = if sess.role == "Admin" {
             r#"
             <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '' };" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
@@ -469,7 +464,6 @@ fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
         format!(
             r#"
             {}
-            {}
             <form action="/logout" method="POST" style="margin:0; display:inline-flex;">
                 <input type="hidden" name="csrf_token" value="{}">
                 <button type="submit" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; font-weight:600; font-size:0.82rem; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); display:inline-flex; align-items:center; gap:0.35rem; background:rgba(255,255,255,0.02); cursor:pointer;">
@@ -477,7 +471,6 @@ fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
                 </button>
             </form>
             "#,
-            telemetry_btn,
             admin_settings_btn,
             csrf_attr,
             escape_html(&sess.username)
