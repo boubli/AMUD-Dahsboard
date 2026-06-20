@@ -28,3 +28,10 @@ pub(crate) fn is_jellyfin_app(app: &App) -> bool {
         || app_field_matches_service(&app.url, TOKENS)
         || app_field_matches_service(&app.icon, TOKENS)
 }
+
+pub(crate) fn is_proxmox_app(app: &App) -> bool {
+    const TOKENS: &[&str] = &["proxmox", "pve"];
+    app_field_matches_service(&app.name, TOKENS)
+        || app_field_matches_service(&app.url, TOKENS)
+        || app_field_matches_service(&app.icon, TOKENS)
+}

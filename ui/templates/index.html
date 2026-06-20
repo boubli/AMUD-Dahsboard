@@ -91,14 +91,7 @@
             </div>
         </div>
 
-        <!-- Category Filters Tabs -->
-        <div class="category-filters-wrapper">
-            <div class="category-filters" id="category-tabs-container">
-                <!-- CATEGORY_TABS -->
-            </div>
-        </div>
-
-        <!-- Top Row: Telemetry Micro-bars -->
+        <!-- Top Row: Telemetry Micro-bars (host CPU, disk, network) -->
         <section class="telemetry-row" id="telemetry-section">
             <!-- PVE Host Stats -->
             <div class="glass-panel telemetry-card" id="pve-card">
@@ -161,7 +154,14 @@
             </div>
         </section>
 
-        <!-- Second Row: Active Media Streams -->
+        <!-- Category Filters Tabs -->
+        <div class="category-filters-wrapper">
+            <div class="category-filters" id="category-tabs-container">
+                <!-- CATEGORY_TABS -->
+            </div>
+        </div>
+
+        <!-- Second Row: Media / Proxmox stream cards -->
         <!-- STREAMS_ROW -->
 
         <!-- Wake-on-LAN Row -->
@@ -622,11 +622,42 @@
         }, 20000);
 
         function findContainerByNames(containers, names) {
-            return containers.find(lxc => names.some(name =>
+            const tokens = names
+                .flatMap(n => String(n || '').toLowerCase().split(/\s+/))
+                .filter(Boolean);
+            return containers.find(lxc => tokens.some(name =>
                 lxc.name.toLowerCase() === name ||
                 name.includes(lxc.name.toLowerCase()) ||
                 lxc.name.toLowerCase().includes(name)
             ));
+        }
+
+        function containerNamesForCard(card) {
+            const aliases = card.getAttribute('data-container-aliases') || '';
+            const appName = card.getAttribute('data-app-name') || '';
+            return [appName, ...aliases.split(/\s+/).filter(Boolean)];
+        }
+
+        function setDashboardText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        }
+
+        function setDashboardBar(id, pct) {
+            const el = document.getElementById(id);
+            if (el) el.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+        }
+
+        function updateHostTelemetry(sys) {
+            if (!sys) return;
+            setDashboardText('val-pve-cpu', `CPU ${sys.cpu_usage ?? 0}%`);
+            setDashboardBar('bar-pve-cpu', sys.cpu_usage ?? 0);
+            setDashboardText('val-pve-mem', `Mem ${sys.ram_usage ?? 0}%`);
+
+            const freeGb = (sys.disk_total_gb ?? 0) - (sys.disk_used_gb ?? 0);
+            setDashboardText('val-nas-free', `${freeGb.toFixed(1)} GB Free`);
+            setDashboardBar('bar-nas-usage', sys.disk_usage ?? 0);
+            setDashboardText('val-nas-used', `${(sys.disk_used_gb ?? 0).toFixed(1)} GB Used`);
         }
 
         function updateStreamStatusBadges(containers) {
@@ -687,6 +718,53 @@
             });
         }
 
+        function updateProxmoxHostCard(sys, agentConnected) {
+            const card = document.getElementById('proxmox-host-card');
+            if (!card) return;
+            const badge = card.querySelector('[data-proxmox-badge]');
+            const summary = document.getElementById('proxmox-host-summary');
+            const nodeHint = document.getElementById('proxmox-host-node');
+            const metrics = document.getElementById('proxmox-host-metrics');
+            const emptyMetrics = [
+                { value: '—', label: 'Containers' },
+                { value: '—', label: 'CPU' },
+                { value: '—', label: 'Mem' },
+            ];
+
+            if (agentConnected !== true) {
+                if (badge) styleStatusBadge(badge, agentConnected === false ? 'offline' : 'checking');
+                if (summary) {
+                    summary.textContent = agentConnected === false
+                        ? 'Agent unreachable — is amud-agent running on the Proxmox host?'
+                        : 'Waiting for agent telemetry…';
+                }
+                if (nodeHint) nodeHint.textContent = agentConnected === false ? 'Offline' : '—';
+                if (metrics) setMetricsGrid(metrics, emptyMetrics);
+                return;
+            }
+
+            const containers = (sys && sys.lxc_containers) ? sys.lxc_containers : [];
+            const running = containers.filter(c => c.status === 'running').length;
+            const total = containers.length;
+            const cpu = sys && typeof sys.cpu_usage === 'number' ? `${sys.cpu_usage}%` : '—';
+            const mem = sys && typeof sys.ram_usage === 'number' ? `${sys.ram_usage}%` : '—';
+
+            if (badge) styleStatusBadge(badge, 'running');
+            if (summary) {
+                summary.textContent = total
+                    ? `${running} running · ${total} containers on node`
+                    : 'Connected to Proxmox node';
+            }
+            if (nodeHint) nodeHint.textContent = total ? `${running}/${total} up` : 'Live';
+            if (metrics) {
+                setMetricsGrid(metrics, [
+                    { value: total ? `${running} / ${total}` : '—', label: 'Containers' },
+                    { value: cpu, label: 'CPU' },
+                    { value: mem, label: 'Mem' },
+                ]);
+            }
+        }
+
         function updateMediaStream(service, stream) {
             const normalized = service === 'plex' ? 'plex' : 'jellyfin';
             const track = document.getElementById(`${normalized}-track`);
@@ -710,36 +788,15 @@
                 // Update system metrics micro-bars
                 if (data.system) {
                     const sys = data.system;
-                    document.getElementById('val-pve-cpu').innerText = `CPU ${sys.cpu_usage}%`;
-                    document.getElementById('bar-pve-cpu').style.width = `${sys.cpu_usage}%`;
-                    document.getElementById('val-pve-mem').innerText = `Mem ${sys.ram_usage}%`;
-                    
-                    document.getElementById('val-nas-free').innerText = `${(sys.disk_total_gb - sys.disk_used_gb).toFixed(1)} GB Free`;
-                    document.getElementById('bar-nas-usage').style.width = `${sys.disk_usage}%`;
-                    document.getElementById('val-nas-used').innerText = `${sys.disk_used_gb.toFixed(1)} GB Used`;
+                    updateHostTelemetry(sys);
+                    updateProxmoxHostCard(sys, data.agent_connected === true);
 
                     // Update LXC matching custom apps
                     if (sys.lxc_containers && sys.lxc_containers.length > 0) {
                         updateStreamStatusBadges(sys.lxc_containers);
                         const appCards = document.querySelectorAll('.app-card');
                         appCards.forEach(card => {
-                            const appName = card.getAttribute('data-app-name');
-                            if (!appName) return;
-
-                            if (appName.includes('proxmox')) {
-                                const metricsGrid = card.querySelector('.nested-metrics-grid');
-                                if (metricsGrid) {
-                                    const running = sys.lxc_containers.filter(lxc => lxc.status === 'running').length;
-                                    const total = sys.lxc_containers.length;
-                                    setMetricsGrid(metricsGrid, [
-                                        { value: `${running} / ${total}`, label: 'Containers' },
-                                        { value: `${sys.cpu_usage}%`, label: 'CPU' },
-                                        { value: `${sys.ram_usage}%`, label: 'Mem' },
-                                    ]);
-                                }
-                            }
-
-                            const match = findContainerByNames(sys.lxc_containers, [appName]);
+                            const match = findContainerByNames(sys.lxc_containers, containerNamesForCard(card));
 
                             if (match) {
                                 // Update container controls if they exist (only for admin)
@@ -778,7 +835,7 @@
                                     }
                                 }
 
-                                const metricsGrid = card.querySelector('.nested-metrics-grid');
+                                const metricsGrid = card.querySelector('[data-lxc-metrics]');
                                 if (shouldUpdateLxcMetrics(metricsGrid)) {
                                     const cpuPct = match.cpu ? `${(match.cpu * 100).toFixed(1)}%` : '0%';
                                     const ramPct = match.mem && match.maxmem
@@ -796,6 +853,8 @@
                             }
                         });
                     }
+                } else if (typeof data.agent_connected === 'boolean') {
+                    updateProxmoxHostCard({}, data.agent_connected === true);
                 }
 
                 if (data.app_statuses) {
@@ -805,10 +864,10 @@
                 // Update network metrics
                 if (data.network) {
                     const net = data.network;
-                    document.getElementById('val-net-int-tx').innerText = `${net.internal_tx} TX`;
-                    document.getElementById('val-net-int-rx').innerText = `${net.internal_rx} RX`;
-                    document.getElementById('val-net-ext-tx').innerText = `${net.external_tx} TX`;
-                    document.getElementById('val-net-ext-rx').innerText = `${net.external_rx} RX`;
+                    setDashboardText('val-net-int-tx', `${net.internal_tx} TX`);
+                    setDashboardText('val-net-int-rx', `${net.internal_rx} RX`);
+                    setDashboardText('val-net-ext-tx', `${net.external_tx} TX`);
+                    setDashboardText('val-net-ext-rx', `${net.external_rx} RX`);
                 }
 
                 // Agent connectivity indicator
@@ -816,6 +875,9 @@
                     document.querySelectorAll('.telemetry-card').forEach(card => {
                         card.classList.toggle('agent-offline', !data.agent_connected);
                     });
+                    if (!data.system) {
+                        updateProxmoxHostCard({}, data.agent_connected);
+                    }
                 }
 
                 // Update active media playbacks

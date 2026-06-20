@@ -81,7 +81,7 @@ pub async fn dashboard_handler(
     let wol_html = render_wol_devices(&wol_devices, is_admin, &csrf_attr);
 
     let auth_buttons = render_auth_buttons(&session, &csrf_attr);
-    let streams_html = render_streams(&apps, &session);
+    let streams_html = render_streams(&apps, &session, is_admin, &csrf_attr, logo_manifest.as_ref());
     let category_tabs_html = render_category_tabs(&apps);
     let support_html = render_support_section(&settings);
 
@@ -234,6 +234,9 @@ fn render_apps_grid(
 
     let mut cards_html = String::new();
     for app in apps.iter() {
+        if is_proxmox_app(app) {
+            continue;
+        }
         let lowercase_icon = app.icon.to_lowercase();
         let resolved_logo = resolve_logo_from_manifest(&app.icon, logo_manifest);
         let brand_logo = if !resolved_logo.is_empty() {
@@ -254,34 +257,11 @@ fn render_apps_grid(
             status_title, status_title
         );
 
-        let cat_slug: String = app
-            .category
-            .to_lowercase()
-            .replace(' ', "-")
-            .chars()
-            .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
-            .collect();
+        let cat_slug = category_slug(&app.category);
 
         let name_lower = app.name.to_lowercase();
         let sub_metrics = if session.is_some() {
-            if name_lower.contains("proxmox") {
-                r#"
-                <div class="nested-metrics-grid cols-3">
-                    <div class="metric-block">
-                        <span class="metric-value">—</span>
-                        <span class="metric-label">VMs</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">—</span>
-                        <span class="metric-label">CPU</span>
-                    </div>
-                    <div class="metric-block">
-                        <span class="metric-value">—</span>
-                        <span class="metric-label">Mem</span>
-                    </div>
-                </div>"#
-                    .to_string()
-            } else if name_lower.contains("home") && name_lower.contains("assistant") {
+            if name_lower.contains("home") && name_lower.contains("assistant") {
                 r#"
                 <div class="nested-metrics-grid cols-3" id="ha-metrics-grid">
                     <div class="metric-block">
@@ -299,7 +279,18 @@ fn render_apps_grid(
                 </div>"#
                     .to_string()
             } else {
-                String::new()
+                r#"
+                <div class="nested-metrics-grid cols-2" data-lxc-metrics>
+                    <div class="metric-block">
+                        <span class="metric-value">—</span>
+                        <span class="metric-label">CPU</span>
+                    </div>
+                    <div class="metric-block">
+                        <span class="metric-value">—</span>
+                        <span class="metric-label">RAM</span>
+                    </div>
+                </div>"#
+                    .to_string()
             }
         } else {
             "".to_string()
@@ -392,9 +383,15 @@ fn render_apps_grid(
             "".to_string()
         };
 
+        let mut alias_tokens = vec![name_lower.clone()];
+        if !lowercase_icon.is_empty() && lowercase_icon != name_lower {
+            alias_tokens.push(lowercase_icon);
+        }
+        let container_aliases = alias_tokens.join(" ");
+
         let card = format!(
             r#"
-            <div class="glass-panel app-card" data-app-name="{}" data-category="{}" {}>
+            <div class="glass-panel app-card" data-app-name="{}" data-category="{}" data-container-aliases="{}" {}>
                 <div class="app-card-header">
                     <a href="{}" target="_blank" rel="noopener noreferrer" class="app-card-identity" style="text-decoration:none; color:inherit;">
                         <div class="app-card-icon">
@@ -416,6 +413,7 @@ fn render_apps_grid(
             </div>"#,
             escape_html(&name_lower),
             escape_html(&cat_slug),
+            escape_html(&container_aliases),
             alpine_init,
             escape_html(&app.url),
             escape_html(&brand_logo),
@@ -470,14 +468,54 @@ fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
     }
 }
 
-fn render_streams(apps: &[App], session: &Option<Session>) -> String {
+fn category_slug(category: &str) -> String {
+    category
+        .to_lowercase()
+        .replace(' ', "-")
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
+        .collect()
+}
+
+fn render_streams(
+    apps: &[App],
+    session: &Option<Session>,
+    is_admin: bool,
+    csrf_attr: &str,
+    logo_manifest: &HashMap<String, String>,
+) -> String {
+    if session.is_none() {
+        return String::new();
+    }
+
     let has_plex = apps.iter().any(is_plex_app);
     let has_jellyfin = apps.iter().any(is_jellyfin_app);
+    let proxmox_app = apps.iter().find(|a| is_proxmox_app(a));
+    let has_proxmox = proxmox_app.is_some();
 
-    if session.is_some() && (has_plex || has_jellyfin) {
-        let mut cards = String::new();
-        if has_plex {
-            cards.push_str(r#"
+    if !has_plex && !has_jellyfin && !has_proxmox {
+        return String::new();
+    }
+
+    let mut html = String::new();
+
+    if let Some(app) = proxmox_app {
+        let cat = if app.category.is_empty() {
+            "infrastructure".to_string()
+        } else {
+            category_slug(&app.category)
+        };
+        html.push_str(&format!(
+            r#"<section class="streams-row single-col" data-filter-section="{}">{}</section>"#,
+            escape_html(&cat),
+            render_proxmox_stream_card(app, is_admin, csrf_attr, logo_manifest)
+        ));
+    }
+
+    let mut media_cards = String::new();
+
+    if has_plex {
+        media_cards.push_str(r#"
             <!-- Plex stream card -->
             <div class="glass-panel stream-card">
                 <div class="stream-main">
@@ -507,9 +545,9 @@ fn render_streams(apps: &[App], session: &Option<Session>) -> String {
                 </div>
             </div>
             "#);
-        }
-        if has_jellyfin {
-            cards.push_str(r#"
+    }
+    if has_jellyfin {
+        media_cards.push_str(r#"
             <!-- Jellyfin/Emby stream card -->
             <div class="glass-panel stream-card">
                 <div class="stream-main">
@@ -536,20 +574,122 @@ fn render_streams(apps: &[App], session: &Option<Session>) -> String {
                 </div>
             </div>
             "#);
-        }
+    }
 
-        let cols_class = if has_plex && has_jellyfin {
+    if has_plex || has_jellyfin {
+        let media_count = (has_plex as u8) + (has_jellyfin as u8);
+        let cols_class = if media_count > 1 {
             "streams-row"
         } else {
             "streams-row single-col"
         };
-        format!(
+        html.push_str(&format!(
             r#"<section class="{}" data-filter-section="media">{}</section>"#,
-            cols_class, cards
+            cols_class, media_cards
+        ));
+    }
+
+    html
+}
+
+fn render_proxmox_stream_card(
+    app: &App,
+    is_admin: bool,
+    csrf_attr: &str,
+    logo_manifest: &HashMap<String, String>,
+) -> String {
+    let lowercase_icon = app.icon.to_lowercase();
+    let resolved_logo = resolve_logo_from_manifest(&app.icon, logo_manifest);
+    let brand_logo = if !resolved_logo.is_empty() {
+        resolved_logo
+    } else if !lowercase_icon.is_empty() {
+        fallback_brand_logo(&lowercase_icon)
+    } else {
+        "/static/logos/proxmox.svg".to_string()
+    };
+
+    let desc = if app.description.trim().is_empty() {
+        "Hypervisor node — containers, CPU, and memory at a glance.".to_string()
+    } else {
+        app.description.clone()
+    };
+
+    let admin_actions = if is_admin {
+        let mut app_for_json = app.clone();
+        if !app_for_json.api_key.is_empty() {
+            app_for_json.api_key = "Configured — leave blank to keep unchanged".to_string();
+        }
+        let app_json = serde_json::to_string(&app_for_json).unwrap_or_default();
+        let escaped_json = app_json
+            .replace('&', "&amp;")
+            .replace('"', "&quot;")
+            .replace('\'', "&#39;");
+        format!(
+            r#"<div style="display: inline-flex; align-items: center; gap: 0.25rem; margin-left: 0.35rem;">
+                <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);">
+                    <i data-lucide="edit-2"></i>
+                </button>
+                <form action="/apps/delete" method="POST" style="margin: 0; display: inline-flex; align-items: center;">
+                    <input type="hidden" name="id" value="{}">
+                    <input type="hidden" name="csrf_token" value="{}">
+                    <button type="submit" class="btn-delete-app" title="Delete application">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </form>
+            </div>"#,
+            escaped_json, app.id, csrf_attr
         )
     } else {
         String::new()
-    }
+    };
+
+    format!(
+        r#"
+            <!-- Proxmox host stream card -->
+            <div class="glass-panel stream-card" id="proxmox-host-card" data-proxmox-host="true">
+                <div class="stream-main">
+                    <a href="{url}" target="_blank" rel="noopener noreferrer" class="stream-meta" style="text-decoration:none; color:inherit;">
+                        <div class="stream-icon stream-icon--logo">
+                            <img src="{logo}" alt="" onerror="this.src='/static/logos/proxmox.svg'">
+                        </div>
+                        <div>
+                            <h2 class="stream-text-title">{name}</h2>
+                            <p class="stream-text-desc">{desc}</p>
+                        </div>
+                    </a>
+                    <div style="display:flex; align-items:center; gap:0.35rem; flex-shrink:0;">
+                        <span class="status-badge status-checking stream-status-badge" data-proxmox-badge title="Proxmox agent telemetry">CHECKING...</span>
+                        {admin_actions}
+                    </div>
+                </div>
+                <div class="stream-player">
+                    <div class="stream-controls-row">
+                        <span class="stream-track-title" id="proxmox-host-summary" style="color: var(--text-muted);">Waiting for agent telemetry…</span>
+                        <span id="proxmox-host-node">—</span>
+                    </div>
+                    <div class="nested-metrics-grid cols-3 stream-host-metrics" id="proxmox-host-metrics">
+                        <div class="metric-block">
+                            <span class="metric-value">—</span>
+                            <span class="metric-label">Containers</span>
+                        </div>
+                        <div class="metric-block">
+                            <span class="metric-value">—</span>
+                            <span class="metric-label">CPU</span>
+                        </div>
+                        <div class="metric-block">
+                            <span class="metric-value">—</span>
+                            <span class="metric-label">Mem</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        "#,
+        url = escape_html(&app.url),
+        logo = escape_html(&brand_logo),
+        name = escape_html(&app.name),
+        desc = escape_html(&desc),
+        admin_actions = admin_actions,
+    )
 }
 
 fn render_category_tabs(apps: &[App]) -> String {
