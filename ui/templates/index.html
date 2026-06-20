@@ -753,6 +753,14 @@
             if (gpuCard) {
                 gpuCard.style.display = hasGpu ? '' : 'none';
             }
+            const telemetryRow = document.getElementById('telemetry-section');
+            if (telemetryRow) {
+                if (hasGpu) {
+                    telemetryRow.classList.add('has-gpu');
+                } else {
+                    telemetryRow.classList.remove('has-gpu');
+                }
+            }
             if (hasGpu) {
                 const gpuPct = sys.gpu_usage ?? 0;
                 const gpuMemPct = sys.gpu_mem_usage ?? 0;

@@ -169,8 +169,12 @@ body::-webkit-scrollbar-button {
 /* Row 1: Telemetry micro-bars */
 .telemetry-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
     gap: 1rem;
+}
+
+.telemetry-row.has-gpu {
+    grid-template-columns: repeat(6, 1fr);
 }
 
 .telemetry-card--host {
@@ -1347,35 +1351,6 @@ input[type="color"].form-control {
     transform: translateY(-1px);
 }
 
-.btn-ctrl.start {
-    color: var(--success);
-    background: rgba(16, 185, 129, 0.08);
-    border-color: rgba(16, 185, 129, 0.18);
-}
-
-.btn-ctrl.stop {
-    color: var(--danger);
-    background: rgba(239, 68, 68, 0.08);
-    border-color: rgba(239, 68, 68, 0.18);
-}
-
-.btn-ctrl.restart {
-    color: var(--accent-color);
-    background: var(--accent-glow);
-    border-color: color-mix(in srgb, var(--accent-color) 28%, transparent);
-}
-
-.btn-ctrl.start:hover:not(:disabled) {
-    background: rgba(16, 185, 129, 0.15);
-}
-
-.btn-ctrl.stop:hover:not(:disabled) {
-    background: rgba(239, 68, 68, 0.15);
-}
-
-.btn-ctrl.restart:hover:not(:disabled) {
-    background: var(--accent-glow);
-}
 
 .btn-ctrl:disabled {
     opacity: 0.4;
