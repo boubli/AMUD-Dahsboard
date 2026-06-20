@@ -57,7 +57,7 @@ pub async fn dashboard_handler(
         )
     })
     .await;
-    
+
     let mut category_options_html = String::new();
     for (_id, cat_name) in &db_categories {
         category_options_html.push_str(&format!(
@@ -214,7 +214,6 @@ fn render_apps_grid(
 
     let mut cards_html = String::new();
     for app in apps.iter() {
-
         let lowercase_icon = app.icon.to_lowercase();
         let resolved_logo = resolve_logo_from_manifest(&app.icon, logo_manifest);
         let brand_logo = if !resolved_logo.is_empty() {
@@ -524,7 +523,10 @@ fn render_streams(apps: &[App], session: &Option<Session>) -> String {
         } else {
             "streams-row single-col"
         };
-        format!(r#"<section class="{}" data-filter-section="media">{}</section>"#, cols_class, cards)
+        format!(
+            r#"<section class="{}" data-filter-section="media">{}</section>"#,
+            cols_class, cards
+        )
     } else {
         String::new()
     }

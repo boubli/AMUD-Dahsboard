@@ -45,19 +45,14 @@ pub(crate) fn record_audit(
 
     let mut last_err = None;
     for attempt in 0..3 {
-        match db.execute(
-            sql,
-            params![username, action, target, details, ip],
-        ) {
+        match db.execute(sql, params![username, action, target, details, ip]) {
             Ok(_) => {
                 eprintln!(
                     "[AUDIT] user={username} action={action} target={target} details={details} ip={ip}"
                 );
                 return;
             }
-            Err(e)
-                if e.sqlite_error_code() == Some(ErrorCode::DatabaseBusy) && attempt < 2 =>
-            {
+            Err(e) if e.sqlite_error_code() == Some(ErrorCode::DatabaseBusy) && attempt < 2 => {
                 thread::sleep(Duration::from_millis(25 * (attempt as u64 + 1)));
                 last_err = Some(e);
             }
