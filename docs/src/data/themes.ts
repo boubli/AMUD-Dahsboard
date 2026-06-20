@@ -239,11 +239,6 @@ export const AMUD_THEMES: AmudTheme[] = [
   },
 ];
 
-export function themeCssUrl(baseUrl: string, theme: AmudTheme): string | null {
-  if (!theme.cssFile) return null;
-  return `${baseUrl}${theme.cssFile}`;
-}
-
 export function themeSearchText(theme: AmudTheme): string {
   return [
     theme.name,

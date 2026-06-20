@@ -100,15 +100,13 @@ AMUD polls Home Assistant using the lightweight **Template API** (`POST /api/tem
 
 Make the dashboard truly yours by overriding the default styling.
 
-1. Open **Settings → Customization**.
-2. Either:
-   - **Paste CSS** directly into the Custom CSS field, or
-   - **Import from URL** — paste a raw CSS link (e.g. from the [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)) and click **Import**.
-3. Click **Save**. The CSS is injected into the dashboard for all users immediately.
+1. Open **Settings → Appearance → Custom CSS**.
+2. Copy CSS from the [Theme Gallery](/themes) (preview screenshots help you pick a theme), or write your own.
+3. Paste into the Custom CSS field and click **Save**. Changes apply immediately for all users.
 
 *(Note: If invalid CSS breaks the layout, see [Troubleshooting](./troubleshooting.md) for recovery.)*
 
-Browse and search ready-made themes on the **[Theme Gallery](/themes)** — copy CSS or use the GitHub Pages URL with **Import from URL**. See also the [CSS variable reference](./themes.md).
+Browse themes with preview screenshots on the **[Theme Gallery](/themes)** — click **Copy CSS**, paste, and save. See also the [CSS variable reference](./themes.md).
 
 ---
 

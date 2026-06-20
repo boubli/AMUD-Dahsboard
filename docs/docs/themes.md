@@ -4,10 +4,10 @@ sidebar_position: 6
 
 # Custom Themes
 
-AMUD supports full visual customization through **Custom CSS injection**. Paste CSS into **Settings → Customization → Custom CSS**, or import a theme directly from a URL.
+AMUD supports full visual customization through **Custom CSS injection**. Copy CSS from the gallery and paste it into **Settings → Appearance → Custom CSS**.
 
 :::tip Interactive Gallery
-Browse, search, and preview all themes on the **[Theme Gallery](/themes)** page. Each theme has **Copy CSS** and **Copy URL** buttons — use the URL with **Import from URL** in dashboard settings.
+Browse, search, and **preview** all themes on the **[Theme Gallery](/themes)** page. Each card shows a screenshot so you can see how the theme looks before applying it. Click **Copy CSS**, then paste into your dashboard settings.
 :::
 
 :::tip Combining with Built-in Settings
@@ -22,27 +22,25 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 
 ## Available Themes
 
-| Theme | Style | CSS URL |
-|-------|-------|---------|
-| AMUD Default | Built-in orange glass | *(no CSS — leave field empty)* |
-| Dracula | Dark purple hacker | `…/themes/dracula.css` |
-| Nord | Arctic blue, calm | `…/themes/nord.css` |
-| Cyberpunk Neon | Neon pink on black | `…/themes/cyberpunk-neon.css` |
-| Sunset Warm | Amber golden-hour | `…/themes/sunset-warm.css` |
-| Catppuccin Mocha | Soft pastel lavender | `…/themes/catppuccin-mocha.css` |
-| Gruvbox Dark | Warm retro terminal | `…/themes/gruvbox-dark.css` |
-| Tokyo Night | Deep blue city night | `…/themes/tokyo-night.css` |
-| One Dark | Classic Atom palette | `…/themes/one-dark.css` |
-| Everforest | Muted green forest | `…/themes/everforest.css` |
-| Monokai | Neon green developer | `…/themes/monokai.css` |
-| Rose Pine | Elegant rose & pine | `…/themes/rose-pine.css` |
-| Solarized Dark | Low-contrast scientific | `…/themes/solarized-dark.css` |
+| Theme | Style |
+|-------|-------|
+| AMUD Default | Built-in orange glass — leave Custom CSS empty |
+| Dracula | Dark purple hacker |
+| Nord | Arctic blue, calm |
+| Cyberpunk Neon | Neon pink on black |
+| Sunset Warm | Amber golden-hour |
+| Catppuccin Mocha | Soft pastel lavender |
+| Gruvbox Dark | Warm retro terminal |
+| Tokyo Night | Deep blue city night |
+| One Dark | Classic Atom palette |
+| Everforest | Muted green forest |
+| Monokai | Neon green developer |
+| Rose Pine | Elegant rose & pine |
+| Solarized Dark | Low-contrast scientific |
 
-Base URL: `https://boubli.github.io/AMUD-Dashboard/`
+Preview screenshots live in [`docs/static/themes/assets/`](https://github.com/boubli/AMUD-Dashboard/tree/main/docs/static/themes/assets) and are shown on the [Theme Gallery](/themes). Add PNGs named `AMUD-Theme-{Name}.png` so users can see each theme before copying the CSS.
 
-Preview screenshots live in [`docs/static/themes/assets/`](https://github.com/boubli/AMUD-Dashboard/tree/main/docs/static/themes/assets) and are shown on the [Theme Gallery](/themes). Add PNGs named `AMUD-Theme-{Name}.png` for new themes.
-
-Open the [Theme Gallery](/themes) for search, previews, and one-click copy.
+Open the [Theme Gallery](/themes) for search, previews, and one-click **Copy CSS**.
 
 ---
 
