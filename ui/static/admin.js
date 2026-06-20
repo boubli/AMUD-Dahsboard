@@ -3,8 +3,8 @@
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
 
-    function amudCsrfHeaders(extra) {
-        return Object.assign({ 'X-CSRF-Token': amudCsrfToken() }, extra || {});
+    function amudCsrfHeaders(extra = {}) {
+        return { 'X-CSRF-Token': amudCsrfToken(), ...extra };
     }
 
     function escapeHtml(value) {
@@ -47,9 +47,9 @@
         tbody.appendChild(tr);
     }
 
-    function setButtonLoading(button, loading, sizeRem) {
+    function setButtonLoading(button, loading, sizeRem = '0.75') {
         if (!button) return;
-        const size = sizeRem || '0.75';
+        const size = sizeRem;
         if (loading) {
             if (!button._amudOrigNodes) {
                 button._amudOrigNodes = Array.from(button.childNodes).map((node) => node.cloneNode(true));

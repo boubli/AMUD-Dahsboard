@@ -31,8 +31,8 @@ sleep 2
 
 # Verify server started
 if ! kill -0 "$SERVER_PID" 2>/dev/null; then
-    echo "Error: Rust web server failed to start. Logs:"
-    cat server.log
+    echo "Error: Rust web server failed to start. Logs:" >&2
+    cat server.log >&2
     exit 1
 fi
 
@@ -45,8 +45,8 @@ sleep 3
 
 # Verify agent is running
 if ! kill -0 "$AGENT_PID" 2>/dev/null; then
-    echo "Error: Rust agent failed to start. Logs:"
-    cat agent.log
+    echo "Error: Rust agent failed to start. Logs:" >&2
+    cat agent.log >&2
     exit 1
 fi
 
@@ -57,8 +57,8 @@ RESPONSE=$(curl -s http://localhost:8000/)
 if echo "$RESPONSE" | grep -q "AMUD"; then
     echo "Success: Home page responded with AMUD branding variables!"
 else
-    echo "Error: Render verification failed. Web page response:"
-    echo "$RESPONSE"
+    echo "Error: Render verification failed. Web page response:" >&2
+    echo "$RESPONSE" >&2
     exit 1
 fi
 

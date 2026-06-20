@@ -15,7 +15,8 @@ GitHub Actions → failed **SonarCloud Code Analysis** run → **See analysis de
 | 3 | `audit.rs` | Logging / user data | **Fixed** — removed verbose success logs with user fields |
 | 4 | `dashboard.rs` | Template injection | **Fixed** — `escape_html`, `safe_css_url`, `safe_accent_hex` on branding fields |
 | 5 | `settings.html` | DOM XSS / `innerHTML` | **Fixed** — `textContent` / `createElement` via `admin.js` helpers |
-| 6–9 | Sonar UI | Other new-code hotspots | Review each in UI; fix or mark Safe with one-line justification |
+| 6–8 | `.github/workflows/*.yml` | Actions pinned by tag | **Fixed** — all `uses:` refs pinned to full commit SHA |
+| 9 | `Dockerfile` line ~41 | `FROM scratch` runs as root | **Safe** — static musl binary, minimal homelab image; comment in Dockerfile |
 
 ## Quality Gate targets
 

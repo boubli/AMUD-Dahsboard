@@ -460,7 +460,7 @@ body::-webkit-scrollbar-button {
 .status-badge.status-offline,
 .status-badge.down {
     background: linear-gradient(180deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.07) 100%);
-    color: #f87171;
+    color: #fecaca;
     border-color: rgba(239, 68, 68, 0.45);
 }
 
@@ -471,7 +471,7 @@ body::-webkit-scrollbar-button {
 
 .status-badge.status-online {
     background: linear-gradient(180deg, rgba(33, 191, 75, 0.2) 0%, rgba(33, 191, 75, 0.07) 100%);
-    color: #3ddc73;
+    color: #86efac;
     border-color: rgba(33, 191, 75, 0.45);
 }
 
@@ -781,9 +781,9 @@ body::-webkit-scrollbar-button {
 }
 
 .settings-tabs .tab-btn.active {
-    background: rgba(255, 255, 255, 0.06) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
-    color: #fff !important;
+    color: #f3f4f6 !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -1507,19 +1507,19 @@ input[type="color"].form-control {
 /* System Tab Badges & Cards */
 .badge-success {
     background: rgba(34, 197, 94, 0.15) !important;
-    color: #22c55e !important;
+    color: #4ade80 !important;
     border: 1px solid rgba(34, 197, 94, 0.3) !important;
 }
 
 .badge-failed {
     background: rgba(239, 68, 68, 0.15) !important;
-    color: #ef4444 !important;
+    color: #fca5a5 !important;
     border: 1px solid rgba(239, 68, 68, 0.3) !important;
 }
 
 .badge-info {
     background: rgba(58, 166, 255, 0.15) !important;
-    color: #58a6ff !important;
+    color: #93c5fd !important;
     border: 1px solid rgba(58, 166, 255, 0.3) !important;
 }
 
@@ -1549,7 +1549,7 @@ input[type="color"].form-control {
 
 .pve-badge--proxmox {
     background: linear-gradient(180deg, rgba(229, 160, 36, 0.2) 0%, rgba(229, 160, 36, 0.07) 100%);
-    color: #f0b429;
+    color: #fde047;
     border: 1px solid rgba(229, 160, 36, 0.5);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
@@ -1561,7 +1561,7 @@ input[type="color"].form-control {
 
 .pve-badge--docker {
     background: linear-gradient(180deg, rgba(36, 150, 243, 0.18) 0%, rgba(36, 150, 243, 0.07) 100%);
-    color: #64b5f6;
+    color: #90caf9;
     border: 1px solid rgba(36, 150, 243, 0.45);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
@@ -1573,7 +1573,7 @@ input[type="color"].form-control {
 
 .pve-badge--native {
     background: linear-gradient(180deg, rgba(148, 163, 184, 0.16) 0%, rgba(148, 163, 184, 0.06) 100%);
-    color: #94a3b8;
+    color: #cbd5e1;
     border: 1px solid rgba(148, 163, 184, 0.4);
 }
 
@@ -1583,7 +1583,7 @@ input[type="color"].form-control {
 
 .pve-badge--online {
     background: linear-gradient(180deg, rgba(33, 191, 75, 0.2) 0%, rgba(33, 191, 75, 0.07) 100%);
-    color: #3ddc73;
+    color: #86efac;
     border: 1px solid rgba(33, 191, 75, 0.5);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
@@ -1596,7 +1596,7 @@ input[type="color"].form-control {
 
 .pve-badge--offline {
     background: linear-gradient(180deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.07) 100%);
-    color: #f87171;
+    color: #fecaca;
     border: 1px solid rgba(239, 68, 68, 0.45);
 }
 

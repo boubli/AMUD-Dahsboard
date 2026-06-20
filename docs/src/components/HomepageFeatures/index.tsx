@@ -94,8 +94,8 @@ export default function HomepageFeatures(): ReactNode {
     <section className={styles.features} style={{ padding: '6rem 0' }}>
       <div className="container">
         <div className="bento-grid">
-          {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
+          {FeatureList.map((props) => (
+            <Feature key={props.title} {...props} />
           ))}
         </div>
       </div>
