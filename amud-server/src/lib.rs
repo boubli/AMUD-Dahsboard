@@ -320,6 +320,8 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/login", get(login_page).post(login_handler))
         .route("/logout", post(logout_handler))
         .route("/ws", get(ws_handler))
+        .route("/health", get(health_handler))
+        .route("/ready", get(ready_handler))
         .route(
             "/admin/settings",
             get(settings_page_handler).post(settings_handler),

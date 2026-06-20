@@ -534,3 +534,23 @@ pub async fn system_update_handler(
         }
     }
 }
+
+pub async fn health_handler() -> impl IntoResponse {
+    api_json(StatusCode::OK, json!({"status": "UP"}))
+}
+
+pub async fn ready_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let db_ok = with_db(state.db.clone(), |conn| {
+        conn.execute("SELECT 1", []).is_ok()
+    })
+    .await;
+
+    if db_ok {
+        api_json(StatusCode::OK, json!({"status": "READY"}))
+    } else {
+        api_json(
+            StatusCode::SERVICE_UNAVAILABLE,
+            json!({"status": "NOT_READY", "error": "Database query failed"}),
+        )
+    }
+}
