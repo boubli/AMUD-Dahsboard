@@ -1,7 +1,30 @@
 use axum::http::HeaderMap;
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, ErrorCode};
+use std::thread;
+use std::time::Duration;
 
 use crate::security::client_ip;
+
+/// Idempotent schema guard for databases upgraded from releases before audit_log existed.
+pub(crate) fn ensure_audit_log_table(db: &Connection) -> Result<(), rusqlite::Error> {
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS audit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        username TEXT NOT NULL,
+        action TEXT NOT NULL,
+        target TEXT NOT NULL,
+        details TEXT NOT NULL DEFAULT '',
+        client_ip TEXT NOT NULL DEFAULT ''
+    );",
+        [],
+    )?;
+    let _ = db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at);",
+        [],
+    );
+    Ok(())
+}
 
 pub(crate) fn record_audit(
     db: &Connection,
@@ -11,20 +34,44 @@ pub(crate) fn record_audit(
     details: &str,
     headers: &HeaderMap,
 ) {
+    if let Err(e) = ensure_audit_log_table(db) {
+        eprintln!("[AUDIT] failed to ensure audit_log table: {e}");
+        return;
+    }
+
     let ip = client_ip(headers);
-    db.execute(
-        "INSERT INTO audit_log (created_at, username, action, target, details, client_ip)
-         VALUES (datetime('now'), ?, ?, ?, ?, ?)",
-        params![username, action, target, details, ip],
-    )
-    .ok();
-    eprintln!(
-        "[AUDIT] user={} action={} target={} details={} ip={}",
-        username, action, target, details, ip
-    );
+    let sql = "INSERT INTO audit_log (created_at, username, action, target, details, client_ip)
+         VALUES (datetime('now'), ?1, ?2, ?3, ?4, ?5)";
+
+    let mut last_err = None;
+    for attempt in 0..3 {
+        match db.execute(sql, params![username, action, target, details, ip]) {
+            Ok(_) => {
+                eprintln!(
+                    "[AUDIT] user={username} action={action} target={target} details={details} ip={ip}"
+                );
+                return;
+            }
+            Err(e) if e.sqlite_error_code() == Some(ErrorCode::DatabaseBusy) && attempt < 2 => {
+                thread::sleep(Duration::from_millis(25 * (attempt as u64 + 1)));
+                last_err = Some(e);
+            }
+            Err(e) => {
+                eprintln!("[AUDIT] insert failed: {e}");
+                return;
+            }
+        }
+    }
+    if let Some(e) = last_err {
+        eprintln!("[AUDIT] insert failed after retries: {e}");
+    }
 }
 
 pub(crate) fn list_recent_audit(db: &Connection, limit: i64) -> Vec<serde_json::Value> {
+    if ensure_audit_log_table(db).is_err() {
+        return Vec::new();
+    }
+
     let mut out = Vec::new();
     let Ok(mut stmt) = db.prepare(
         "SELECT id, created_at, username, action, target, details, client_ip

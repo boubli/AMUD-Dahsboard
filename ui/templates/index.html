@@ -473,18 +473,38 @@
                 element.classList.add('active');
             }
 
-            document.querySelectorAll('.app-card').forEach(card => {
+            document.querySelectorAll('.app-card:not(.filter-empty-msg)').forEach(card => {
                 if (category === 'all') {
                     card.style.display = 'flex';
                 } else {
                     const cardCat = card.getAttribute('data-category');
-                    if (cardCat === category) {
-                        card.style.display = 'flex';
-                    } else {
-                        card.style.display = 'none';
-                    }
+                    card.style.display = cardCat === category ? 'flex' : 'none';
                 }
             });
+
+            document.querySelectorAll('[data-filter-section]').forEach(section => {
+                const sectionCat = section.getAttribute('data-filter-section');
+                section.style.display = (category === 'all' || sectionCat === category) ? '' : 'none';
+            });
+
+            const grid = document.querySelector('.bento-grid');
+            if (!grid) return;
+
+            let emptyMsg = grid.querySelector('.filter-empty-msg');
+            const visibleCount = [...grid.querySelectorAll('.app-card:not(.filter-empty-msg)')]
+                .filter(card => card.style.display !== 'none').length;
+
+            if (visibleCount === 0 && category !== 'all') {
+                if (!emptyMsg) {
+                    emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'glass-panel app-card filter-empty-msg';
+                    emptyMsg.innerHTML = '<p style="font-weight:600;color:var(--text-secondary);">No apps in this category</p><p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;">Switch tabs or add services under this category.</p>';
+                    grid.appendChild(emptyMsg);
+                }
+                emptyMsg.style.display = 'flex';
+            } else if (emptyMsg) {
+                emptyMsg.style.display = 'none';
+            }
         }
 
         // Trigger container actions (start/stop/restart) for Admin
@@ -622,11 +642,7 @@
                 const match = findContainerByNames(containers, names);
                 if (!match) return;
 
-                const isRunning = match.status === 'running';
-                badge.innerText = match.status.toUpperCase();
-                badge.style.color = isRunning ? '#10b981' : '#ef4444';
-                badge.style.background = isRunning ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
-                badge.style.borderColor = isRunning ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+                styleStatusBadge(badge, match.status);
             });
         }
 

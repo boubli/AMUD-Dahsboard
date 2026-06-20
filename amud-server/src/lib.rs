@@ -58,8 +58,12 @@ fn start_action_results_cleanup(action_results: Arc<RwLock<HashMap<String, Actio
 pub async fn run() {
     println!("AMUD Server starting up in Rust...");
 
-    fs::create_dir_all("data").ok();
     let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "data/amud.db".to_string());
+    if let Some(parent) = std::path::Path::new(&db_path).parent() {
+        fs::create_dir_all(parent).ok();
+    } else {
+        fs::create_dir_all("data").ok();
+    }
     secrets::init_secrets_key(&db_path).expect("Failed to initialize AMUD secrets encryption key");
     let conn = Connection::open(&db_path).expect("Failed to open SQLite database");
     conn.execute_batch(
@@ -185,6 +189,15 @@ pub async fn run() {
         client_ip TEXT NOT NULL DEFAULT ''
     );",
         [],
+    )
+    .unwrap();
+
+    conn.execute_batch(
+        "CREATE INDEX IF NOT EXISTS idx_apps_category ON apps(category);
+         CREATE INDEX IF NOT EXISTS idx_categories_sort ON categories(sort_order, name);
+         CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at);
+         CREATE INDEX IF NOT EXISTS idx_webhooks_is_active ON webhooks(is_active);
+         CREATE INDEX IF NOT EXISTS idx_wol_devices_mac ON wol_devices(mac_address);",
     )
     .unwrap();
 

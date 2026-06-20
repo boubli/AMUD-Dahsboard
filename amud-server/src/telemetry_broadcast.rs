@@ -53,19 +53,10 @@ impl WsTelemetryBundle {
         let agent_connected = *state.agent_connected.read().unwrap();
         let smart_home = state.smart_home_telemetry.read().unwrap().clone();
 
-        let full = FullTelemetry {
-            system: system.clone(),
-            network: system.network.clone().unwrap_or_default(),
-            streams,
-            app_statuses: app_statuses.clone(),
-            agent_connected,
-            smart_home: Some(smart_home),
-        };
+        let network = system.network.clone().unwrap_or_default();
 
-        let mut guest_system = system.clone();
-        guest_system.lxc_containers.clear();
         let guest_app_statuses: HashMap<String, AppStatus> = app_statuses
-            .into_iter()
+            .iter()
             .map(|(name, status)| {
                 let public_status = if status.status.eq_ignore_ascii_case("ONLINE") {
                     "ONLINE"
@@ -73,7 +64,7 @@ impl WsTelemetryBundle {
                     "OFFLINE"
                 };
                 (
-                    name,
+                    name.clone(),
                     AppStatus {
                         status: public_status.to_string(),
                         latency_ms: None,
@@ -81,9 +72,22 @@ impl WsTelemetryBundle {
                 )
             })
             .collect();
+
+        let mut guest_system = system.clone();
+        guest_system.lxc_containers.clear();
+
+        let full = FullTelemetry {
+            system,
+            network: network.clone(),
+            streams,
+            app_statuses,
+            agent_connected,
+            smart_home: Some(smart_home),
+        };
+
         let guest_public = FullTelemetry {
             system: guest_system,
-            network: system.network.clone().unwrap_or_default(),
+            network,
             streams: HashMap::new(),
             app_statuses: guest_app_statuses.clone(),
             agent_connected: false,
