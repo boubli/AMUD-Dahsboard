@@ -330,6 +330,7 @@ pub async fn run() {
 pub fn build_app_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/", get(dashboard_handler))
+        .route("/telemetry", get(telemetry_page_handler))
         .route("/login", get(login_page).post(login_handler))
         .route("/logout", post(logout_handler))
         .route("/ws", get(ws_handler))

@@ -200,3 +200,53 @@ pub async fn settings_page_handler(
 
     Html(apply_csp_nonce(result, &csp.0))
 }
+
+pub async fn telemetry_page_handler(
+    Extension(csp): Extension<CspNonce>,
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    let settings = state.settings_cache.read().unwrap().clone();
+
+    let branding = branding_from_settings(&settings);
+    let root_css = build_root_css(&branding);
+    let custom_css = settings.get("custom_css").map(|s| s.as_str()).unwrap_or("");
+
+    let telemetry_public = settings
+        .get("telemetry_public")
+        .map(|s| s.as_str())
+        .unwrap_or("0");
+    let hide_telemetry = match &session {
+        None => telemetry_public != "1",
+        Some(s) if s.role == "Guest" => telemetry_public != "1",
+        _ => false,
+    };
+
+    let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
+    let username = session
+        .as_ref()
+        .map(|s| s.username.as_str())
+        .unwrap_or("guest");
+    let app_version = option_env!("GIT_TAG").unwrap_or(env!("CARGO_PKG_VERSION"));
+    let safe_app_name = escape_html(branding.app_name.as_str());
+
+    let tmpl = include_str!("../../../ui/templates/telemetry.html");
+    let result = tmpl
+        .replace("/* ROOT_CSS */", &root_css)
+        .replace("{{app_name}}", &safe_app_name)
+        .replace("{{custom_css}}", custom_css)
+        .replace("{{username}}", &escape_html(username))
+        .replace("{{app_version}}", &escape_html(app_version))
+        .replace("{{is_admin}}", if is_admin { "true" } else { "false" })
+        .replace(
+            "{{admin_settings_display}}",
+            if is_admin { "inline-flex" } else { "none" },
+        )
+        .replace(
+            "{{hide_telemetry}}",
+            if hide_telemetry { "true" } else { "false" },
+        );
+
+    Html(apply_csp_nonce(result, &csp.0))
+}

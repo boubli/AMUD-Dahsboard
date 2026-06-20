@@ -234,9 +234,6 @@ fn render_apps_grid(
 
     let mut cards_html = String::new();
     for app in apps.iter() {
-        if is_proxmox_app(app) {
-            continue;
-        }
         let lowercase_icon = app.icon.to_lowercase();
         let resolved_logo = resolve_logo_from_manifest(&app.icon, logo_manifest);
         let brand_logo = if !resolved_logo.is_empty() {
@@ -433,6 +430,11 @@ fn render_apps_grid(
 
 fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
     if let Some(ref sess) = session {
+        let telemetry_btn = r#"
+            <a href="/telemetry" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
+                <i data-lucide="activity" style="width:0.95rem; height:0.95rem;"></i> System
+            </a>
+        "#;
         let admin_settings_btn = if sess.role == "Admin" {
             r#"
             <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '' };" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
@@ -448,6 +450,7 @@ fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
         format!(
             r#"
             {}
+            {}
             <form action="/logout" method="POST" style="margin:0; display:inline-flex;">
                 <input type="hidden" name="csrf_token" value="{}">
                 <button type="submit" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; font-weight:600; font-size:0.82rem; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); display:inline-flex; align-items:center; gap:0.35rem; background:rgba(255,255,255,0.02); cursor:pointer;">
@@ -455,6 +458,7 @@ fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
                 </button>
             </form>
             "#,
+            telemetry_btn,
             admin_settings_btn,
             csrf_attr,
             escape_html(&sess.username)
@@ -480,9 +484,9 @@ fn category_slug(category: &str) -> String {
 fn render_streams(
     apps: &[App],
     session: &Option<Session>,
-    is_admin: bool,
-    csrf_attr: &str,
-    logo_manifest: &HashMap<String, String>,
+    _is_admin: bool,
+    _csrf_attr: &str,
+    _logo_manifest: &HashMap<String, String>,
 ) -> String {
     if session.is_none() {
         return String::new();
@@ -490,27 +494,12 @@ fn render_streams(
 
     let has_plex = apps.iter().any(is_plex_app);
     let has_jellyfin = apps.iter().any(is_jellyfin_app);
-    let proxmox_app = apps.iter().find(|a| is_proxmox_app(a));
-    let has_proxmox = proxmox_app.is_some();
 
-    if !has_plex && !has_jellyfin && !has_proxmox {
+    if !has_plex && !has_jellyfin {
         return String::new();
     }
 
     let mut html = String::new();
-
-    if let Some(app) = proxmox_app {
-        let cat = if app.category.is_empty() {
-            "infrastructure".to_string()
-        } else {
-            category_slug(&app.category)
-        };
-        html.push_str(&format!(
-            r#"<section class="streams-row single-col" data-filter-section="{}">{}</section>"#,
-            escape_html(&cat),
-            render_proxmox_stream_card(app, is_admin, csrf_attr, logo_manifest)
-        ));
-    }
 
     let mut media_cards = String::new();
 
@@ -592,6 +581,7 @@ fn render_streams(
     html
 }
 
+#[allow(dead_code)]
 fn render_proxmox_stream_card(
     app: &App,
     is_admin: bool,

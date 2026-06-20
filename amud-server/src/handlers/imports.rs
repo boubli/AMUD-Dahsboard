@@ -1,6 +1,6 @@
 pub(crate) use super::{api_json, apply_csp_nonce, check_api_rate_limit};
 pub(crate) use crate::agent::pve_config_payload;
-pub(crate) use crate::apps::{is_jellyfin_app, is_plex_app, is_proxmox_app};
+pub(crate) use crate::apps::{is_jellyfin_app, is_plex_app};
 pub(crate) use crate::audit::list_recent_audit;
 pub(crate) use crate::auth::{
     clear_failed_logins, csrf_forbidden_response, csrf_token_for_session, expired_session_cookie,

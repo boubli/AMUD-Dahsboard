@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{app_name}} · System Telemetry</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http:; script-src 'self' 'nonce-{{csp_nonce}}'; connect-src 'self' ws: wss:;">
+
+    <link rel="stylesheet" href="/static/style.css">
+    <script nonce="{{csp_nonce}}" src="/static/lucide.min.js"></script>
+    <style>
+        .telemetry-page {
+            padding: 2rem;
+        }
+        .telemetry-page .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .telemetry-chart-card {
+            padding: 1rem 1.15rem;
+        }
+        .telemetry-chart-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .telemetry-chart-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+        }
+        .telemetry-chart-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+        .telemetry-chart-value {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .telemetry-canvas {
+            width: 100%;
+            height: 140px;
+            display: block;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.16);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .telemetry-foot {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-top: 0.65rem;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            flex-wrap: wrap;
+        }
+        .telemetry-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+        }
+        .telemetry-hidden {
+            padding: 1.25rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        @media (min-width: 1100px) {
+            .telemetry-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <style id="amud-root-css">/* ROOT_CSS */</style>
+    <style id="amud-custom-css">{{custom_css}}</style>
+</head>
+<body class="telemetry-page">
+    <div class="wallpaper-bg" style="background-image: var(--brand-bg-image);"></div>
+    <div class="wallpaper-overlay"></div>
+
+    <div class="dashboard-container">
+        <header class="topbar">
+            <div class="brand-section">
+                <a href="/" class="glass-panel" style="padding:0.5rem 0.75rem; border-radius:10px; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02);">
+                    <i data-lucide="arrow-left" style="width:1rem; height:1rem;"></i> Dashboard
+                </a>
+                <div style="margin-left:0.6rem;">
+                    <div style="font-weight:800; letter-spacing:0.08em; text-transform:uppercase;">System Telemetry</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);">{{app_name}} · {{username}}</div>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap: 1rem;">
+                <div id="ws-status-pill" class="ws-status-pill ws-connecting" title="Live telemetry connection">
+                    <span class="ws-status-dot"></span>
+                    <span id="ws-status-text">Connecting</span>
+                </div>
+                <a href="/admin/settings" style="display: {{admin_settings_display}};" class="glass-panel" title="Settings" aria-label="Settings"
+                   style="padding:0.5rem 0.75rem; border-radius:10px; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02);">
+                    <i data-lucide="settings" style="width:1rem; height:1rem;"></i> Settings
+                </a>
+            </div>
+        </header>
+
+        <div id="telemetry-hidden" class="glass-panel telemetry-hidden" style="display:none;">
+            <div style="font-weight:700; margin-bottom:0.25rem;">Telemetry hidden</div>
+            <div>Anonymous/Guest telemetry is disabled by the admin.</div>
+        </div>
+
+        <section class="telemetry-grid" id="telemetry-grid">
+            <div class="glass-panel telemetry-chart-card">
+                <div class="telemetry-chart-header">
+                    <div>
+                        <div class="telemetry-chart-title">CPU Usage</div>
+                        <div class="telemetry-chart-subtitle" id="cpu-model">Detecting CPU…</div>
+                    </div>
+                    <div class="telemetry-chart-value" id="cpu-val">0%</div>
+                </div>
+                <canvas id="chart-cpu" class="telemetry-canvas" height="140"></canvas>
+                <div class="telemetry-foot">
+                    <span class="telemetry-pill"><i data-lucide="cpu" style="width:0.9rem; height:0.9rem;"></i> <span id="cpu-cores">—</span></span>
+                    <span class="telemetry-pill"><i data-lucide="thermometer" style="width:0.9rem; height:0.9rem;"></i> <span id="cpu-temp">—</span></span>
+                </div>
+            </div>
+
+            <div class="glass-panel telemetry-chart-card">
+                <div class="telemetry-chart-header">
+                    <div>
+                        <div class="telemetry-chart-title">Memory Usage</div>
+                        <div class="telemetry-chart-subtitle">Host RAM</div>
+                    </div>
+                    <div class="telemetry-chart-value" id="mem-val">0%</div>
+                </div>
+                <canvas id="chart-mem" class="telemetry-canvas" height="140"></canvas>
+                <div class="telemetry-foot">
+                    <span class="telemetry-pill"><i data-lucide="memory-stick" style="width:0.9rem; height:0.9rem;"></i> <span id="mem-gb">0.0 / 0.0 GB</span></span>
+                </div>
+            </div>
+
+            <div class="glass-panel telemetry-chart-card">
+                <div class="telemetry-chart-header">
+                    <div>
+                        <div class="telemetry-chart-title">Disk Usage</div>
+                        <div class="telemetry-chart-subtitle">Host storage</div>
+                    </div>
+                    <div class="telemetry-chart-value" id="disk-val">0%</div>
+                </div>
+                <canvas id="chart-disk" class="telemetry-canvas" height="140"></canvas>
+                <div class="telemetry-foot">
+                    <span class="telemetry-pill"><i data-lucide="hard-drive" style="width:0.9rem; height:0.9rem;"></i> <span id="disk-gb">0.0 / 0.0 GB</span></span>
+                </div>
+            </div>
+
+            <div class="glass-panel telemetry-chart-card" id="gpu-card" style="display:none;">
+                <div class="telemetry-chart-header">
+                    <div>
+                        <div class="telemetry-chart-title">GPU Usage</div>
+                        <div class="telemetry-chart-subtitle" id="gpu-name">—</div>
+                    </div>
+                    <div class="telemetry-chart-value" id="gpu-val">0%</div>
+                </div>
+                <canvas id="chart-gpu" class="telemetry-canvas" height="140"></canvas>
+                <div class="telemetry-foot">
+                    <span class="telemetry-pill"><i data-lucide="monitor" style="width:0.9rem; height:0.9rem;"></i> <span id="gpu-vram">VRAM —</span></span>
+                    <span class="telemetry-pill"><i data-lucide="layers" style="width:0.9rem; height:0.9rem;"></i> <span id="gpu-mem-val">Mem 0%</span></span>
+                </div>
+            </div>
+
+            <div class="glass-panel telemetry-chart-card">
+                <div class="telemetry-chart-header">
+                    <div>
+                        <div class="telemetry-chart-title">Bandwidth</div>
+                        <div class="telemetry-chart-subtitle">Internal + External</div>
+                    </div>
+                    <div class="telemetry-chart-value" id="net-val">—</div>
+                </div>
+                <canvas id="chart-net" class="telemetry-canvas" height="140"></canvas>
+                <div class="telemetry-foot">
+                    <span class="telemetry-pill"><i data-lucide="arrow-up" style="width:0.9rem; height:0.9rem;"></i> <span id="net-tx">—</span></span>
+                    <span class="telemetry-pill"><i data-lucide="arrow-down" style="width:0.9rem; height:0.9rem;"></i> <span id="net-rx">—</span></span>
+                </div>
+            </div>
+        </section>
+
+        <div style="margin-top: 1rem; font-size:0.75rem; color:var(--text-muted); text-align:center;">
+            AMUD Dashboard {{app_version}}
+        </div>
+    </div>
+
+    <script nonce="{{csp_nonce}}">
+        lucide.createIcons();
+
+        const isAdmin = "{{is_admin}}" === "true";
+        const hideTelemetry = "{{hide_telemetry}}" === "true";
+
+        function setText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        }
+
+        function setVisible(id, visible) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = visible ? "" : "none";
+        }
+
+        const HISTORY_LEN = 180; // ~9 minutes at 3s server broadcast; agent 5s
+        const history = {
+            cpu: [],
+            mem: [],
+            disk: [],
+            gpu: [],
+            net: [],
+        };
+
+        function push(arr, v) {
+            const n = Number(v);
+            if (Number.isNaN(n)) return;
+            arr.push(n);
+            if (arr.length > HISTORY_LEN) arr.shift();
+        }
+
+        function getCanvasSize(canvas) {
+            const rect = canvas.getBoundingClientRect();
+            const width = Math.max(1, Math.floor(rect.width));
+            const height = Math.max(1, Math.floor(rect.height || canvas.height));
+            if (canvas.width !== width) canvas.width = width;
+            if (canvas.height !== height) canvas.height = height;
+            return { width, height };
+        }
+
+        function drawArea(canvasId, data, color) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const { width, height } = getCanvasSize(canvas);
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (!data || data.length < 2) return;
+
+            const max = Math.max(1, ...data);
+            const min = Math.min(0, ...data);
+            const span = Math.max(1, max - min);
+
+            const xStep = width / Math.max(1, (HISTORY_LEN - 1));
+
+            // line
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            data.forEach((value, idx) => {
+                const x = idx * xStep;
+                const y = height - ((value - min) / span) * (height - 6) - 3;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // fill
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, color.replace('1)', '0.30)'));
+            gradient.addColorStop(1, color.replace('1)', '0.00)'));
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            data.forEach((value, idx) => {
+                const x = idx * xStep;
+                const y = height - ((value - min) / span) * (height - 6) - 3;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.lineTo((data.length - 1) * xStep, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function setWsStatus(connected) {
+            const pill = document.getElementById('ws-status-pill');
+            const text = document.getElementById('ws-status-text');
+            if (!pill || !text) return;
+            pill.classList.remove('ws-connecting', 'ws-live', 'ws-dead');
+            pill.classList.add(connected ? 'ws-live' : 'ws-dead');
+            text.textContent = connected ? 'Live' : 'Disconnected';
+        }
+
+        if (hideTelemetry) {
+            setVisible('telemetry-grid', false);
+            setVisible('telemetry-hidden', true);
+        }
+
+        function parseRate(rateText) {
+            // rateText from agent is already human readable (e.g. "1.2 MB/s"). We'll use a rough number for charts.
+            const s = String(rateText || '').trim();
+            const m = s.match(/^([\d.]+)\s*([KMG]?B)\/s$/i);
+            if (!m) return 0;
+            const v = parseFloat(m[1]);
+            const unit = (m[2] || 'B').toUpperCase();
+            const mult = unit === 'GB' ? 1024 * 1024 * 1024 : unit === 'MB' ? 1024 * 1024 : unit === 'KB' ? 1024 : 1;
+            return v * mult;
+        }
+
+        function formatBytesPerSec(bytes) {
+            if (!bytes || bytes <= 0) return '—';
+            const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+            let v = bytes;
+            let idx = 0;
+            while (v >= 1024 && idx < units.length - 1) {
+                v /= 1024;
+                idx++;
+            }
+            return `${v.toFixed(v < 10 && idx > 0 ? 1 : 0)} ${units[idx]}`;
+        }
+
+        function onTelemetry(payload) {
+            const sys = payload?.system || {};
+            const net = payload?.network || {};
+
+            const cpuPct = sys.cpu_usage ?? 0;
+            const memPct = sys.ram_usage ?? 0;
+            const diskPct = sys.disk_usage ?? 0;
+
+            setText('cpu-val', `${cpuPct}%`);
+            setText('mem-val', `${memPct}%`);
+            setText('disk-val', `${diskPct}%`);
+
+            const cpuModel = (sys.cpu_model || '').trim();
+            setText('cpu-model', cpuModel || 'Host CPU');
+            setText('cpu-cores', sys.cpu_cores ? `${sys.cpu_cores} cores` : '—');
+            setText('cpu-temp', sys.cpu_temp ? `${Number(sys.cpu_temp).toFixed(0)}°C` : '—');
+
+            setText('mem-gb', `${Number(sys.ram_used_gb ?? 0).toFixed(1)} / ${Number(sys.ram_total_gb ?? 0).toFixed(1)} GB`);
+            setText('disk-gb', `${Number(sys.disk_used_gb ?? 0).toFixed(1)} / ${Number(sys.disk_total_gb ?? 0).toFixed(1)} GB`);
+
+            push(history.cpu, cpuPct);
+            push(history.mem, memPct);
+            push(history.disk, diskPct);
+
+            drawArea('chart-cpu', history.cpu, 'rgba(45,212,191,1)');
+            drawArea('chart-mem', history.mem, 'rgba(59,130,246,1)');
+            drawArea('chart-disk', history.disk, 'rgba(168,85,247,1)');
+
+            const gpuName = (sys.gpu_name || '').trim();
+            const gpuUsage = sys.gpu_usage ?? -1;
+            const hasGpu = gpuName.length > 0 && gpuUsage >= 0;
+            setVisible('gpu-card', hasGpu);
+            if (hasGpu) {
+                const gpuPct = gpuUsage ?? 0;
+                const gpuMemPct = sys.gpu_mem_usage ?? 0;
+                setText('gpu-name', gpuName);
+                setText('gpu-val', `${gpuPct}%`);
+                setText('gpu-mem-val', gpuMemPct >= 0 ? `Mem ${gpuMemPct}%` : 'Mem —');
+                const vramUsed = sys.gpu_mem_used_mb ?? 0;
+                const vramTotal = sys.gpu_mem_total_mb ?? 0;
+                setText('gpu-vram', vramTotal > 0 ? `${(vramUsed / 1024).toFixed(1)}/${(vramTotal / 1024).toFixed(1)} GB` : 'VRAM —');
+                push(history.gpu, gpuPct);
+                drawArea('chart-gpu', history.gpu, 'rgba(139,92,246,1)');
+            }
+
+            const tx = parseRate(net.internal_tx) + parseRate(net.external_tx);
+            const rx = parseRate(net.internal_rx) + parseRate(net.external_rx);
+            const total = tx + rx;
+            setText('net-tx', formatBytesPerSec(tx));
+            setText('net-rx', formatBytesPerSec(rx));
+            setText('net-val', total > 0 ? `${formatBytesPerSec(total)}` : '—');
+            push(history.net, total);
+            drawArea('chart-net', history.net, 'rgba(16,185,129,1)');
+        }
+
+        function wsUrl() {
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            return `${proto}//${location.host}/ws`;
+        }
+
+        let ws;
+        function connect() {
+            ws = new WebSocket(wsUrl());
+            setWsStatus(false);
+            ws.addEventListener('open', () => setWsStatus(true));
+            ws.addEventListener('close', () => {
+                setWsStatus(false);
+                setTimeout(connect, 1500);
+            });
+            ws.addEventListener('error', () => setWsStatus(false));
+            ws.addEventListener('message', (ev) => {
+                try {
+                    const payload = JSON.parse(ev.data);
+                    onTelemetry(payload);
+                } catch (_) {}
+            });
+        }
+
+        if (!hideTelemetry) connect();
+    </script>
+</body>
+</html>
+

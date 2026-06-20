@@ -11,6 +11,22 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.4.2.0 — System Telemetry page + cleaner dashboard
+
+**2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.0) · [Compare v1.4.1.0…v1.4.2.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.4.1.0...v1.4.2.0)
+
+**New page**
+- Added `/telemetry` with AMUD-style host charts (CPU/RAM/Disk/Network + GPU when available).
+- Added a **System** button in the dashboard topbar.
+
+**Dashboard**
+- Main dashboard stays app-focused; host/GPU charts moved to `/telemetry`.
+
+**Proxmox**
+- Reverted Proxmox back to a normal app card (no special Proxmox stream card styling).
+
+---
+
 ## v1.4.1.0 — Proxmox card, host telemetry, and privacy settings
 
 **2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.1.0) · [Compare v1.4.0.0…v1.4.1.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.4.0.0...v1.4.1.0)

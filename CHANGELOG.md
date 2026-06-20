@@ -8,6 +8,20 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.4.2.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.0) — 2026-06-20
+
+New **System Telemetry** page and a cleaner main dashboard layout.
+
+### Added
+- `/telemetry` page with AMUD-style host charts (CPU/RAM/Disk/Network + GPU when available)
+- Dashboard topbar **System** button
+
+### Changed
+- Proxmox reverted to a normal app card (no special Proxmox stream card styling)
+- Main dashboard telemetry row simplified (host/GPU sparklines moved to `/telemetry`)
+
+---
+
 ## [v1.4.1.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.1.0) — 2026-06-20
 
 Proxmox card, host telemetry (CPU model + GPU), and settings fixes. See [release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.1.0).
