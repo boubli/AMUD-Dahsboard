@@ -384,11 +384,28 @@ fn render_apps_grid(
         if !lowercase_icon.is_empty() && lowercase_icon != name_lower {
             alias_tokens.push(lowercase_icon);
         }
+        let url_lower = app.url.to_lowercase();
+        for token in url_lower
+            .split(|c: char| !c.is_ascii_alphanumeric())
+            .filter(|t| t.len() >= 3)
+        {
+            if !alias_tokens.iter().any(|t| t == token) {
+                alias_tokens.push(token.to_string());
+            }
+        }
         let container_aliases = alias_tokens.join(" ");
+        let is_host_agent_app = alias_tokens.iter().any(|t| {
+            t == "proxmox" || t == "pve" || t == "beszel" || t == "filebrowser"
+        });
+        let guest_compact_class = if session.is_none() {
+            " app-card--guest-compact"
+        } else {
+            ""
+        };
 
         let card = format!(
             r#"
-            <div class="glass-panel app-card" data-app-name="{}" data-category="{}" data-container-aliases="{}" {}>
+            <div class="glass-panel app-card{}" data-app-name="{}" data-category="{}" data-container-aliases="{}" data-host-agent-app="{}" {}>
                 <div class="app-card-header">
                     <a href="{}" target="_blank" rel="noopener noreferrer" class="app-card-identity" style="text-decoration:none; color:inherit;">
                         <div class="app-card-icon">
@@ -408,9 +425,11 @@ fn render_apps_grid(
                 {}
                 {}
             </div>"#,
+            guest_compact_class,
             escape_html(&name_lower),
             escape_html(&cat_slug),
             escape_html(&container_aliases),
+            if is_host_agent_app { "true" } else { "false" },
             alpine_init,
             escape_html(&app.url),
             escape_html(&brand_logo),

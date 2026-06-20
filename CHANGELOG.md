@@ -8,17 +8,19 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
-## [v1.4.2.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.0) — 2026-06-20
+## [v1.4.2.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.1) — 2026-06-20
 
-New **System Telemetry** page and a cleaner main dashboard layout.
+Telemetry and host-app status polish with AMUD-native UI behavior.
 
-### Added
-- `/telemetry` page with AMUD-style host charts (CPU/RAM/Disk/Network + GPU when available)
-- Dashboard topbar **System** button
+### Fixed
+- Host-based apps (e.g. Beszel, Filebrowser) now map correctly even when they are not LXC containers
+- Proxmox card status now follows host agent connectivity (no false OFFLINE from URL check)
+- Dashboard app matching improved via normalized aliases and URL-derived tokens
 
-### Changed
-- Proxmox reverted to a normal app card (no special Proxmox stream card styling)
-- Main dashboard telemetry row simplified (host/GPU sparklines moved to `/telemetry`)
+### Improved
+- Dashboard top telemetry row now clearly shows CPU, RAM, GPU (when available), Disk, and Bandwidth
+- `/telemetry` page now includes richer host details and live services table while keeping AMUD visual style
+- Guest (not logged in) app cards render in compact mode to avoid oversized empty cards
 
 ---
 

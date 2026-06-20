@@ -451,6 +451,33 @@ body::-webkit-scrollbar-button {
     min-height: 7.5rem;
 }
 
+.app-card--guest-compact {
+    min-height: auto;
+    padding: 0.78rem 0.9rem;
+    gap: 0.45rem;
+}
+
+.app-card--guest-compact .app-card-identity {
+    gap: 0.6rem;
+}
+
+.app-card--guest-compact .app-card-icon {
+    width: 1.95rem;
+    height: 1.95rem;
+}
+
+.app-card--guest-compact .app-card-icon img {
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
+.app-card--guest-compact .app-card-desc {
+    margin-top: 0.02rem;
+    font-size: 0.72rem;
+    line-height: 1.15;
+    opacity: 0.82;
+}
+
 .app-card--empty,
 .filter-empty-msg {
     grid-column: 1 / -1;

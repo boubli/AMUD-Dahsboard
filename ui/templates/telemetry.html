@@ -81,6 +81,44 @@
             text-align: center;
             color: var(--text-secondary);
         }
+        .telemetry-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.65rem;
+            margin-top: 1rem;
+        }
+        .telemetry-detail-card {
+            padding: 0.75rem 0.8rem;
+        }
+        .telemetry-detail-k {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .telemetry-detail-v {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 0.88rem;
+            margin-top: 0.25rem;
+        }
+        .telemetry-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .telemetry-table th,
+        .telemetry-table td {
+            padding: 0.55rem 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            text-align: left;
+        }
+        .telemetry-table th {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
         @media (min-width: 1100px) {
             .telemetry-grid {
                 grid-template-columns: 1fr;
@@ -111,8 +149,8 @@
                     <span class="ws-status-dot"></span>
                     <span id="ws-status-text">Connecting</span>
                 </div>
-                <a href="/admin/settings" style="display: {{admin_settings_display}};" class="glass-panel" title="Settings" aria-label="Settings"
-                   style="padding:0.5rem 0.75rem; border-radius:10px; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02);">
+                <a href="/admin/settings" class="glass-panel" title="Settings" aria-label="Settings"
+                   style="padding:0.5rem 0.75rem; border-radius:10px; text-decoration:none; display:{{admin_settings_display}}; align-items:center; gap:0.4rem; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02);">
                     <i data-lucide="settings" style="width:1rem; height:1rem;"></i> Settings
                 </a>
             </div>
@@ -196,6 +234,66 @@
                     <span class="telemetry-pill"><i data-lucide="arrow-down" style="width:0.9rem; height:0.9rem;"></i> <span id="net-rx">—</span></span>
                 </div>
             </div>
+        </section>
+
+        <section id="telemetry-details" class="glass-panel telemetry-chart-card" style="margin-top:1rem;">
+            <div class="telemetry-chart-header">
+                <div>
+                    <div class="telemetry-chart-title">Host Details</div>
+                    <div class="telemetry-chart-subtitle">Live telemetry details in AMUD format</div>
+                </div>
+                <div class="telemetry-chart-value" id="host-status">Waiting...</div>
+            </div>
+
+            <div class="telemetry-detail-grid">
+                <div class="glass-panel telemetry-detail-card">
+                    <div class="telemetry-detail-k">CPU Model</div>
+                    <div class="telemetry-detail-v" id="detail-cpu-model">—</div>
+                </div>
+                <div class="glass-panel telemetry-detail-card">
+                    <div class="telemetry-detail-k">CPU Cores</div>
+                    <div class="telemetry-detail-v" id="detail-cpu-cores">—</div>
+                </div>
+                <div class="glass-panel telemetry-detail-card">
+                    <div class="telemetry-detail-k">CPU Temp</div>
+                    <div class="telemetry-detail-v" id="detail-cpu-temp">—</div>
+                </div>
+                <div class="glass-panel telemetry-detail-card">
+                    <div class="telemetry-detail-k">RAM</div>
+                    <div class="telemetry-detail-v" id="detail-ram">—</div>
+                </div>
+                <div class="glass-panel telemetry-detail-card">
+                    <div class="telemetry-detail-k">Disk</div>
+                    <div class="telemetry-detail-v" id="detail-disk">—</div>
+                </div>
+                <div class="glass-panel telemetry-detail-card">
+                    <div class="telemetry-detail-k">Bandwidth</div>
+                    <div class="telemetry-detail-v" id="detail-bandwidth">—</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-panel telemetry-chart-card" style="margin-top:1rem;">
+            <div class="telemetry-chart-header">
+                <div>
+                    <div class="telemetry-chart-title">System Services (LXC / Docker)</div>
+                    <div class="telemetry-chart-subtitle">From host agent containers telemetry</div>
+                </div>
+                <div class="telemetry-chart-value" id="services-count">0 services</div>
+            </div>
+            <table class="telemetry-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>CPU</th>
+                        <th>RAM</th>
+                    </tr>
+                </thead>
+                <tbody id="services-tbody">
+                    <tr><td colspan="4" style="color:var(--text-muted);">Waiting for telemetry...</td></tr>
+                </tbody>
+            </table>
         </section>
 
         <div style="margin-top: 1rem; font-size:0.75rem; color:var(--text-muted); text-align:center;">
@@ -303,6 +401,14 @@
         if (hideTelemetry) {
             setVisible('telemetry-grid', false);
             setVisible('telemetry-hidden', true);
+            setWsStatus(false);
+            const pill = document.getElementById('ws-status-pill');
+            const text = document.getElementById('ws-status-text');
+            if (pill && text) {
+                pill.classList.remove('ws-live', 'ws-connecting');
+                pill.classList.add('ws-dead');
+                text.textContent = 'Restricted';
+            }
         }
 
         function parseRate(rateText) {
@@ -331,6 +437,7 @@
         function onTelemetry(payload) {
             const sys = payload?.system || {};
             const net = payload?.network || {};
+            const containers = Array.isArray(sys.lxc_containers) ? sys.lxc_containers : [];
 
             const cpuPct = sys.cpu_usage ?? 0;
             const memPct = sys.ram_usage ?? 0;
@@ -344,9 +451,14 @@
             setText('cpu-model', cpuModel || 'Host CPU');
             setText('cpu-cores', sys.cpu_cores ? `${sys.cpu_cores} cores` : '—');
             setText('cpu-temp', sys.cpu_temp ? `${Number(sys.cpu_temp).toFixed(0)}°C` : '—');
+            setText('detail-cpu-model', cpuModel || '—');
+            setText('detail-cpu-cores', sys.cpu_cores ? `${sys.cpu_cores}` : '—');
+            setText('detail-cpu-temp', sys.cpu_temp ? `${Number(sys.cpu_temp).toFixed(0)}°C` : '—');
 
             setText('mem-gb', `${Number(sys.ram_used_gb ?? 0).toFixed(1)} / ${Number(sys.ram_total_gb ?? 0).toFixed(1)} GB`);
             setText('disk-gb', `${Number(sys.disk_used_gb ?? 0).toFixed(1)} / ${Number(sys.disk_total_gb ?? 0).toFixed(1)} GB`);
+            setText('detail-ram', `${Number(sys.ram_used_gb ?? 0).toFixed(1)} / ${Number(sys.ram_total_gb ?? 0).toFixed(1)} GB`);
+            setText('detail-disk', `${Number(sys.disk_used_gb ?? 0).toFixed(1)} / ${Number(sys.disk_total_gb ?? 0).toFixed(1)} GB`);
 
             push(history.cpu, cpuPct);
             push(history.mem, memPct);
@@ -379,8 +491,32 @@
             setText('net-tx', formatBytesPerSec(tx));
             setText('net-rx', formatBytesPerSec(rx));
             setText('net-val', total > 0 ? `${formatBytesPerSec(total)}` : '—');
+            setText('detail-bandwidth', `${formatBytesPerSec(tx)} up / ${formatBytesPerSec(rx)} down`);
             push(history.net, total);
             drawArea('chart-net', history.net, 'rgba(16,185,129,1)');
+
+            setText('host-status', payload?.agent_connected ? 'Connected' : 'Disconnected');
+
+            const tbody = document.getElementById('services-tbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (!containers.length) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td colspan="4" style="color:var(--text-muted);">No container telemetry reported</td>';
+                    tbody.appendChild(tr);
+                } else {
+                    containers.forEach(c => {
+                        const tr = document.createElement('tr');
+                        const cpu = typeof c.cpu === 'number' ? `${(c.cpu * 100).toFixed(1)}%` : '—';
+                        const ram = (typeof c.mem === 'number' && typeof c.maxmem === 'number' && c.maxmem > 0)
+                            ? `${((c.mem / c.maxmem) * 100).toFixed(1)}%`
+                            : '—';
+                        tr.innerHTML = `<td>${c.name || '—'}</td><td>${(c.status || 'unknown').toUpperCase()}</td><td>${cpu}</td><td>${ram}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+            setText('services-count', `${containers.length} services`);
         }
 
         function wsUrl() {

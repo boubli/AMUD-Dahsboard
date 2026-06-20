@@ -91,65 +91,75 @@
             </div>
         </div>
 
-        <!-- Top Row: Telemetry Micro-bars (host CPU, disk, network) -->
+        <!-- Top Row: Telemetry quick stats -->
         <section class="telemetry-row" id="telemetry-section">
-            <!-- PVE Host Stats -->
             <div class="glass-panel telemetry-card" id="pve-card">
                 <div class="telemetry-header">
-                    <span class="telemetry-title">System</span>
-                    <span class="telemetry-value" id="val-pve-cpu">CPU 0%</span>
+                    <span class="telemetry-title">CPU</span>
+                    <span class="telemetry-value" id="val-pve-cpu">0%</span>
                 </div>
                 <div class="telemetry-bar-container">
                     <div class="telemetry-bar-fill" id="bar-pve-cpu" style="width: 0%;"></div>
                 </div>
                 <div class="telemetry-subinfo">
-                    <span>Host Agent CPU Stats</span>
-                    <span id="val-pve-mem">Mem 0%</span>
+                    <span id="val-cpu-model">Host CPU</span>
+                    <span id="val-cpu-temp">—</span>
                 </div>
             </div>
 
-            <!-- Disk storage stats -->
+            <div class="glass-panel telemetry-card">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">RAM</span>
+                    <span class="telemetry-value" id="val-pve-mem">0%</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-pve-mem" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span id="val-ram-used">0.0 GB Used</span>
+                    <span id="val-ram-total">0.0 GB Total</span>
+                </div>
+            </div>
+
+            <div class="glass-panel telemetry-card" id="gpu-card" style="display:none;">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">GPU</span>
+                    <span class="telemetry-value" id="val-gpu-usage">0%</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-gpu-usage" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span id="val-gpu-name">—</span>
+                    <span id="val-gpu-vram">VRAM —</span>
+                </div>
+            </div>
+
             <div class="glass-panel telemetry-card">
                 <div class="telemetry-header">
                     <span class="telemetry-title">Disk</span>
-                    <span class="telemetry-value" id="val-nas-free">0 GB Free</span>
+                    <span class="telemetry-value" id="val-nas-used">0 GB Used</span>
                 </div>
                 <div class="telemetry-bar-container">
                     <div class="telemetry-bar-fill" id="bar-nas-usage" style="width: 0%;"></div>
                 </div>
                 <div class="telemetry-subinfo">
-                    <span id="val-nas-used">0 GB Used</span>
-                    <span>Disk Capacity</span>
+                    <span id="val-nas-free">0 GB Free</span>
+                    <span id="val-disk-total">0 GB Total</span>
                 </div>
             </div>
 
-            <!-- Network Internal stats -->
             <div class="glass-panel telemetry-card">
                 <div class="telemetry-header">
-                    <span class="telemetry-title">Internal</span>
-                    <span class="telemetry-value" id="val-net-int-tx">— TX</span>
+                    <span class="telemetry-title">Bandwidth</span>
+                    <span class="telemetry-value" id="val-net-total">—</span>
                 </div>
                 <div class="telemetry-bar-container">
-                    <div class="telemetry-bar-fill" id="bar-net-int" style="width: 0%;"></div>
+                    <div class="telemetry-bar-fill" id="bar-net-total" style="width: 0%;"></div>
                 </div>
                 <div class="telemetry-subinfo">
-                    <span>vmbr1</span>
-                    <span id="val-net-int-rx">— RX</span>
-                </div>
-            </div>
-
-            <!-- Network External stats -->
-            <div class="glass-panel telemetry-card">
-                <div class="telemetry-header">
-                    <span class="telemetry-title">External</span>
-                    <span class="telemetry-value" id="val-net-ext-tx">— TX</span>
-                </div>
-                <div class="telemetry-bar-container">
-                    <div class="telemetry-bar-fill" id="bar-net-ext" style="width: 0%;"></div>
-                </div>
-                <div class="telemetry-subinfo">
-                    <span>enp5s0</span>
-                    <span id="val-net-ext-rx">— RX</span>
+                    <span id="val-net-up">↑ —</span>
+                    <span id="val-net-down">↓ —</span>
                 </div>
             </div>
         </section>
@@ -621,15 +631,23 @@
             }
         }, 20000);
 
+        function normalizeToken(value) {
+            return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
         function findContainerByNames(containers, names) {
             const tokens = names
-                .flatMap(n => String(n || '').toLowerCase().split(/\s+/))
+                .flatMap(n => String(n || '').toLowerCase().split(/[^a-z0-9]+/))
+                .map(normalizeToken)
                 .filter(Boolean);
-            return containers.find(lxc => tokens.some(name =>
-                lxc.name.toLowerCase() === name ||
-                name.includes(lxc.name.toLowerCase()) ||
-                lxc.name.toLowerCase().includes(name)
-            ));
+            return containers.find(lxc => {
+                const cname = normalizeToken(lxc.name);
+                return tokens.some(name =>
+                    cname === name ||
+                    name.includes(cname) ||
+                    cname.includes(name)
+                );
+            });
         }
 
         function containerNamesForCard(card) {
@@ -648,16 +666,57 @@
             if (el) el.style.width = `${Math.max(0, Math.min(100, pct))}%`;
         }
 
+        function parseRateToBps(rateText) {
+            const s = String(rateText || '').trim();
+            const m = s.match(/^([\d.]+)\s*([KMG]?B)\/s$/i);
+            if (!m) return 0;
+            const v = parseFloat(m[1]);
+            const unit = (m[2] || 'B').toUpperCase();
+            const mult = unit === 'GB' ? 1024 * 1024 * 1024 : unit === 'MB' ? 1024 * 1024 : unit === 'KB' ? 1024 : 1;
+            return v * mult;
+        }
+
+        function formatRateFromBps(bytes) {
+            if (!bytes || bytes <= 0) return '—';
+            const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+            let value = bytes;
+            let idx = 0;
+            while (value >= 1024 && idx < units.length - 1) {
+                value /= 1024;
+                idx++;
+            }
+            return `${value.toFixed(value < 10 && idx > 0 ? 1 : 0)} ${units[idx]}`;
+        }
+
         function updateHostTelemetry(sys) {
             if (!sys) return;
-            setDashboardText('val-pve-cpu', `CPU ${sys.cpu_usage ?? 0}%`);
+            setDashboardText('val-pve-cpu', `${sys.cpu_usage ?? 0}%`);
             setDashboardBar('bar-pve-cpu', sys.cpu_usage ?? 0);
-            setDashboardText('val-pve-mem', `Mem ${sys.ram_usage ?? 0}%`);
+            setDashboardText('val-pve-mem', `${sys.ram_usage ?? 0}%`);
+            setDashboardBar('bar-pve-mem', sys.ram_usage ?? 0);
+            setDashboardText('val-cpu-model', sys.cpu_model ? String(sys.cpu_model).slice(0, 22) : 'Host CPU');
+            setDashboardText('val-cpu-temp', (sys.cpu_temp && sys.cpu_temp > 0) ? `${Number(sys.cpu_temp).toFixed(0)}°C` : '—');
+            setDashboardText('val-ram-used', `${(sys.ram_used_gb ?? 0).toFixed(1)} GB Used`);
+            setDashboardText('val-ram-total', `${(sys.ram_total_gb ?? 0).toFixed(1)} GB Total`);
 
             const freeGb = (sys.disk_total_gb ?? 0) - (sys.disk_used_gb ?? 0);
             setDashboardText('val-nas-free', `${freeGb.toFixed(1)} GB Free`);
             setDashboardBar('bar-nas-usage', sys.disk_usage ?? 0);
             setDashboardText('val-nas-used', `${(sys.disk_used_gb ?? 0).toFixed(1)} GB Used`);
+            setDashboardText('val-disk-total', `${(sys.disk_total_gb ?? 0).toFixed(1)} GB Total`);
+
+            const gpuName = (sys.gpu_name || '').trim();
+            const hasGpu = gpuName.length > 0 && (sys.gpu_usage ?? -1) >= 0;
+            const gpuCard = document.getElementById('gpu-card');
+            if (gpuCard) gpuCard.style.display = hasGpu ? '' : 'none';
+            if (hasGpu) {
+                setDashboardText('val-gpu-usage', `${sys.gpu_usage ?? 0}%`);
+                setDashboardBar('bar-gpu-usage', sys.gpu_usage ?? 0);
+                setDashboardText('val-gpu-name', gpuName.slice(0, 18));
+                const used = (sys.gpu_mem_used_mb ?? 0) / 1024;
+                const total = (sys.gpu_mem_total_mb ?? 0) / 1024;
+                setDashboardText('val-gpu-vram', total > 0 ? `VRAM ${used.toFixed(1)}/${total.toFixed(1)} GB` : 'VRAM —');
+            }
         }
 
         function updateStreamStatusBadges(containers) {
@@ -743,14 +802,16 @@
                     const sys = data.system;
                     updateHostTelemetry(sys);
 
-                    // Update LXC matching custom apps
-                    if (sys.lxc_containers && sys.lxc_containers.length > 0) {
-                        updateStreamStatusBadges(sys.lxc_containers);
-                        const appCards = document.querySelectorAll('.app-card');
-                        appCards.forEach(card => {
-                            const match = findContainerByNames(sys.lxc_containers, containerNamesForCard(card));
+                    const containers = (sys.lxc_containers && sys.lxc_containers.length > 0) ? sys.lxc_containers : [];
+                    if (containers.length > 0) {
+                        updateStreamStatusBadges(containers);
+                    }
+                    const appCards = document.querySelectorAll('.app-card');
+                    appCards.forEach(card => {
+                        const match = findContainerByNames(containers, containerNamesForCard(card));
+                        const isHostAgentApp = card.getAttribute('data-host-agent-app') === 'true';
 
-                            if (match) {
+                        if (match) {
                                 // Update container controls if they exist (only for admin)
                                 const ctrlContainer = card.querySelector('.container-controls');
                                 if (ctrlContainer) {
@@ -802,9 +863,26 @@
                                         { value: ramPct, label: 'RAM' },
                                     ]);
                                 }
+                        }
+                        if (!match && isHostAgentApp) {
+                            const badgeContainer = card.querySelector('.app-card-badges');
+                            if (badgeContainer) {
+                                const existingBadge = badgeContainer.querySelector('.status-badge');
+                                if (existingBadge && !existingBadge.classList.contains('ms')) {
+                                    existingBadge.dataset.containerManaged = 'true';
+                                    existingBadge.title = 'Proxmox host agent status';
+                                    styleStatusBadge(existingBadge, data.agent_connected ? 'running' : 'offline');
+                                }
                             }
-                        });
-                    }
+                            const metricsGrid = card.querySelector('[data-lxc-metrics]');
+                            if (shouldUpdateLxcMetrics(metricsGrid)) {
+                                setMetricsGrid(metricsGrid, [
+                                    { value: `${sys.cpu_usage ?? 0}%`, label: 'CPU' },
+                                    { value: `${sys.ram_usage ?? 0}%`, label: 'RAM' },
+                                ]);
+                            }
+                        }
+                    });
                 } else if (typeof data.agent_connected === 'boolean') {
                     // no-op: Proxmox host card removed (Proxmox stays as a normal app card)
                 }
@@ -816,10 +894,13 @@
                 // Update network metrics
                 if (data.network) {
                     const net = data.network;
-                    setDashboardText('val-net-int-tx', `${net.internal_tx} TX`);
-                    setDashboardText('val-net-int-rx', `${net.internal_rx} RX`);
-                    setDashboardText('val-net-ext-tx', `${net.external_tx} TX`);
-                    setDashboardText('val-net-ext-rx', `${net.external_rx} RX`);
+                    const tx = parseRateToBps(net.internal_tx) + parseRateToBps(net.external_tx);
+                    const rx = parseRateToBps(net.internal_rx) + parseRateToBps(net.external_rx);
+                    const total = tx + rx;
+                    setDashboardText('val-net-up', `↑ ${formatRateFromBps(tx)}`);
+                    setDashboardText('val-net-down', `↓ ${formatRateFromBps(rx)}`);
+                    setDashboardText('val-net-total', formatRateFromBps(total));
+                    setDashboardBar('bar-net-total', Math.min(100, total / (125 * 1024 * 1024) * 100));
                 }
 
                 // Agent connectivity indicator
