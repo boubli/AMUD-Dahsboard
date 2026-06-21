@@ -16,9 +16,7 @@
   <rect width="1280" height="720" fill="url(#bg)"/>
   <rect width="1280" height="720" fill="url(#glow)"/>
   <rect x="48" y="48" width="1184" height="624" rx="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
-  <g transform="translate(640 250)"><rect x="-55" y="-20" width="110" height="90" rx="14" fill="none" stroke="url(#accent)" stroke-width="8"/>
-      <circle cx="0" cy="-5" r="22" fill="#1f2937" stroke="#ff6b2b" stroke-width="3"/>
-      <rect x="-12" y="35" width="24" height="28" rx="6" fill="#1f2937" stroke="#ff6b2b" stroke-width="3"/></g>
+  <g transform="translate(640 250)"><rect x="-55" y="-20" width="110" height="90" rx="14" fill="none" stroke="url(#accent)" stroke-width="8"/> <circle cx="0" cy="-5" r="22" fill="#1f2937" stroke="#ff6b2b" stroke-width="3"/> <rect x="-12" y="35" width="24" height="28" rx="6" fill="#1f2937" stroke="#ff6b2b" stroke-width="3"/></g>
   <text x="640" y="500" text-anchor="middle" fill="#f4f4f5" font-family="system-ui,Segoe UI,sans-serif" font-size="42" font-weight="700">Homelab Security</text>
   <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">Auth, TLS, and network boundaries</text>
   <text x="640" y="640" text-anchor="middle" fill="#ff6b2b" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em">AMUD DASHBOARD BLOG</text>

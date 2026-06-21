@@ -1,5 +1,5 @@
 /**
- * Sync image: frontmatter in all blog posts from blog-covers.ts
+ * Sync image: frontmatter in all blog posts from blog-cover-map.json
  * Run from docs/: node scripts/sync-blog-cover-frontmatter.mjs
  */
 import fs from 'node:fs';
@@ -8,44 +8,16 @@ import {fileURLToPath} from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const blogDir = path.join(__dirname, '..', 'blog');
-
-const COVERS = {
-  'why-i-ditched-heavy-dashboards': 'img/AMUD-Dashboard.png',
-  'proxmox-one-command-install': 'img/blog/proxmox.svg',
-  'zero-yaml-sqlite': 'img/blog/sqlite.svg',
-  'realtime-telemetry-no-shell-scripts': 'img/amud-architecture.svg',
-  'lxc-status-badges': 'img/blog/lxc.svg',
-  'docker-homelab-35mb': 'img/blog/docker.svg',
-  'plex-jellyfin-live-badges': 'img/blog/plex.svg',
-  'home-assistant-dashboard-card': 'img/blog/homeassistant.svg',
-  'twelve-free-themes': 'img/blog/themes-grid.svg',
-  'securing-homelab-dashboard': 'img/blog/security.svg',
-  'reverse-proxy-websockets': 'img/blog/nginx.svg',
-  'amud-vs-heimdall-homepage-homarr': 'img/blog/comparison.svg',
-  'bare-metal-linux-install': 'img/blog/linux.svg',
-  'backup-amud-db': 'img/blog/backup.svg',
-  'fix-checking-badge': 'img/AMUD-Dashboard.png',
-  'admin-vs-guest': 'img/blog/admin-cockpit.png',
-  'wall-mounted-dashboard': 'img/blog/tablet.svg',
-  'portainer-deploy': 'img/blog/portainer.svg',
-  'why-rust-for-homelab-daemon': 'img/blog/rust.svg',
-  'contribute-to-amud': 'img/blog/opensource.svg',
-  'why-two-binaries': 'img/amud-architecture.svg',
-  'migrated-from-homepage': 'img/AMUD-Dashboard.png',
-  'sqlite-wal-not-postgres': 'img/blog/sqlite.svg',
-  'encrypted-secrets-at-rest': 'img/blog/encryption.svg',
-};
-
-function readSlug(content) {
-  const match = content.match(/^slug:\s*(\S+)\s*$/m);
-  if (match) return match[1];
-  const fileMatch = content.match(/^---\n([\s\S]*?)\n---/);
-  return null;
-}
+const COVERS = JSON.parse(
+  fs.readFileSync(
+    path.join(__dirname, '..', 'src', 'data', 'blog-cover-map.json'),
+    'utf8',
+  ),
+);
 
 for (const file of fs.readdirSync(blogDir).filter((f) => f.endsWith('.md'))) {
   const filePath = path.join(blogDir, file);
-  let content = fs.readFileSync(filePath, 'utf8');
+  const content = fs.readFileSync(filePath, 'utf8');
   if (!content.startsWith('---')) continue;
 
   const slugMatch = content.match(/^slug:\s*(\S+)\s*$/m);

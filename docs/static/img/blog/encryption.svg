@@ -16,10 +16,7 @@
   <rect width="1280" height="720" fill="url(#bg)"/>
   <rect width="1280" height="720" fill="url(#glow)"/>
   <rect x="48" y="48" width="1184" height="624" rx="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
-  <g transform="translate(640 250)"><rect x="-60" y="-45" width="120" height="90" rx="12" fill="#111827" stroke="#ff6b2b" stroke-width="3"/>
-      <text x="0" y="8" text-anchor="middle" fill="#ff9f5a" font-size="20" font-weight="800">AES</text>
-      <circle cx="55" cy="-30" r="20" fill="#1f2937" stroke="#22c55e" stroke-width="3"/>
-      <path d="M47 -30 L53 -22 L65 -38" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round"/></g>
+  <g transform="translate(640 250)"><rect x="-60" y="-45" width="120" height="90" rx="12" fill="#111827" stroke="#ff6b2b" stroke-width="3"/> <text x="0" y="8" text-anchor="middle" fill="#ff9f5a" font-size="20" font-weight="800">AES</text> <circle cx="55" cy="-30" r="20" fill="#1f2937" stroke="#22c55e" stroke-width="3"/> <path d="M47 -30 L53 -22 L65 -38" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round"/></g>
   <text x="640" y="500" text-anchor="middle" fill="#f4f4f5" font-family="system-ui,Segoe UI,sans-serif" font-size="42" font-weight="700">Encrypted Secrets</text>
   <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">AES-GCM at rest in SQLite</text>
   <text x="640" y="640" text-anchor="middle" fill="#ff6b2b" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em">AMUD DASHBOARD BLOG</text>

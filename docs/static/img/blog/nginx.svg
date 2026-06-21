@@ -16,11 +16,7 @@
   <rect width="1280" height="720" fill="url(#bg)"/>
   <rect width="1280" height="720" fill="url(#glow)"/>
   <rect x="48" y="48" width="1184" height="624" rx="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
-  <g transform="translate(640 250)"><rect x="-120" y="-40" width="90" height="80" rx="10" fill="#1f2937" stroke="#ff6b2b" stroke-width="2"/>
-      <text x="-75" y="8" text-anchor="middle" fill="#f4f4f5" font-size="16" font-weight="700">Nginx</text>
-      <path d="M-20 0 H40" stroke="#ff6b2b" stroke-width="4" marker-end="url(#arrow)"/>
-      <rect x="50" y="-40" width="90" height="80" rx="10" fill="#111827" stroke="#ff9f5a" stroke-width="2"/>
-      <text x="95" y="8" text-anchor="middle" fill="#ff9f5a" font-size="14" font-weight="700">AMUD</text></g>
+  <g transform="translate(640 250)"><rect x="-120" y="-40" width="90" height="80" rx="10" fill="#1f2937" stroke="#ff6b2b" stroke-width="2"/> <text x="-75" y="8" text-anchor="middle" fill="#f4f4f5" font-size="16" font-weight="700">Nginx</text> <path d="M-20 0 H40" stroke="#ff6b2b" stroke-width="4"/> <rect x="50" y="-40" width="90" height="80" rx="10" fill="#111827" stroke="#ff9f5a" stroke-width="2"/> <text x="95" y="8" text-anchor="middle" fill="#ff9f5a" font-size="14" font-weight="700">AMUD</text></g>
   <text x="640" y="500" text-anchor="middle" fill="#f4f4f5" font-family="system-ui,Segoe UI,sans-serif" font-size="42" font-weight="700">Reverse Proxy</text>
   <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">Nginx + WebSocket upgrades</text>
   <text x="640" y="640" text-anchor="middle" fill="#ff6b2b" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em">AMUD DASHBOARD BLOG</text>

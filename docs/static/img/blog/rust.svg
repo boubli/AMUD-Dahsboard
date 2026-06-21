@@ -16,9 +16,7 @@
   <rect width="1280" height="720" fill="url(#bg)"/>
   <rect width="1280" height="720" fill="url(#glow)"/>
   <rect x="48" y="48" width="1184" height="624" rx="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
-  <g transform="translate(640 250)"><circle cx="0" cy="0" r="72" fill="#1f2937" stroke="#ff6b2b" stroke-width="3"/>
-      <path d="M-35 25 L0 -45 L35 25 L20 25 L20 45 L-20 45 L-20 25 Z" fill="url(#accent)"/>
-      <circle cx="28" cy="-28" r="14" fill="#0b0e14" stroke="#ff6b2b" stroke-width="3"/></g>
+  <g transform="translate(640 250)"><circle cx="0" cy="0" r="72" fill="#1f2937" stroke="#ff6b2b" stroke-width="3"/> <path d="M-35 25 L0 -45 L35 25 L20 25 L20 45 L-20 45 L-20 25 Z" fill="url(#accent)"/> <circle cx="28" cy="-28" r="14" fill="#0b0e14" stroke="#ff6b2b" stroke-width="3"/></g>
   <text x="640" y="500" text-anchor="middle" fill="#f4f4f5" font-family="system-ui,Segoe UI,sans-serif" font-size="42" font-weight="700">Why Rust</text>
   <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">Static binaries, low idle RAM</text>
   <text x="640" y="640" text-anchor="middle" fill="#ff6b2b" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em">AMUD DASHBOARD BLOG</text>

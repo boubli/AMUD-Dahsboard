@@ -16,9 +16,7 @@
   <rect width="1280" height="720" fill="url(#bg)"/>
   <rect width="1280" height="720" fill="url(#glow)"/>
   <rect x="48" y="48" width="1184" height="624" rx="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
-  <g transform="translate(640 250)"><path d="M0 -70 L78 10 L48 10 L48 70 L-48 70 L-48 10 L-78 10 Z" fill="#41bdf5" opacity="0.9"/>
-      <rect x="-55" y="20" width="110" height="48" rx="8" fill="#1f2937" stroke="#ff6b2b" stroke-width="2"/>
-      <text x="0" y="52" text-anchor="middle" fill="#f4f4f5" font-size="20" font-weight="600">23.4°C · 12 lights</text></g>
+  <g transform="translate(640 250)"><path d="M0 -70 L78 10 L48 10 L48 70 L-48 70 L-48 10 L-78 10 Z" fill="#41bdf5" opacity="0.9"/> <rect x="-55" y="20" width="110" height="48" rx="8" fill="#1f2937" stroke="#ff6b2b" stroke-width="2"/> <text x="0" y="52" text-anchor="middle" fill="#f4f4f5" font-size="20" font-weight="600">23.4°C · 12 lights</text></g>
   <text x="640" y="500" text-anchor="middle" fill="#f4f4f5" font-family="system-ui,Segoe UI,sans-serif" font-size="42" font-weight="700">Home Assistant</text>
   <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">Stats on your dashboard cards</text>
   <text x="640" y="640" text-anchor="middle" fill="#ff6b2b" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em">AMUD DASHBOARD BLOG</text>
