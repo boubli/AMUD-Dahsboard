@@ -201,7 +201,8 @@ pub async fn settings_page_handler(
         .replace(
             "{{eq_theme_light}}",
             crate::templates::theme_eq_attr(&branding.theme_mode, "light"),
-        );
+        )
+        .replace("{{theme_mode}}", &escape_html(&branding.theme_mode));
     let result = apply_theme_placeholders(result, overlay_theme);
 
     Html(apply_csp_nonce(result, &csp.0))

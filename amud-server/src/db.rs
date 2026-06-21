@@ -577,15 +577,53 @@ pub(crate) fn load_settings_snapshot(db: &Arc<Mutex<Connection>>) -> HashMap<Str
     settings
 }
 
-pub(crate) fn update_app_order(db: &Connection, ids: &[i64]) -> Result<(), rusqlite::Error> {
-    let tx = db.unchecked_transaction()?;
+pub(crate) fn next_app_sort_order(db: &Connection) -> i64 {
+    db.query_row(
+        "SELECT COALESCE(MAX(sort_order), -1) + 1 FROM apps",
+        [],
+        |row| row.get(0),
+    )
+    .unwrap_or(0)
+}
+
+pub(crate) fn update_app_order(db: &Connection, ids: &[i64]) -> Result<(), String> {
+    if ids.is_empty() {
+        return Ok(());
+    }
+
+    let total: i64 = db
+        .query_row("SELECT COUNT(*) FROM apps", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+    if ids.len() as i64 != total {
+        return Err("Reorder payload must include every app exactly once".into());
+    }
+
+    let mut seen = std::collections::HashSet::with_capacity(ids.len());
+    for id in ids {
+        if !seen.insert(*id) {
+            return Err("Duplicate app id in reorder payload".into());
+        }
+        let exists: i64 = db
+            .query_row(
+                "SELECT COUNT(*) FROM apps WHERE id = ?",
+                params![id],
+                |row| row.get(0),
+            )
+            .map_err(|e| e.to_string())?;
+        if exists == 0 {
+            return Err(format!("Unknown app id in reorder payload: {id}"));
+        }
+    }
+
+    let tx = db.unchecked_transaction().map_err(|e| e.to_string())?;
     for (i, id) in ids.iter().enumerate() {
         tx.execute(
             "UPDATE apps SET sort_order = ? WHERE id = ?",
             params![i as i64, id],
-        )?;
+        )
+        .map_err(|e| e.to_string())?;
     }
-    tx.commit()
+    tx.commit().map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -596,12 +634,53 @@ mod tests {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(
             "CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT, color TEXT, sort_order INTEGER);
-             CREATE TABLE apps (id INTEGER PRIMARY KEY, name TEXT, url TEXT, icon TEXT, description TEXT, category TEXT, node_tag TEXT, mac_address TEXT);
+             CREATE TABLE apps (id INTEGER PRIMARY KEY, name TEXT, url TEXT, icon TEXT, description TEXT, category TEXT, node_tag TEXT, mac_address TEXT, sort_order INTEGER DEFAULT 0, card_span TEXT DEFAULT '1x1');
              INSERT INTO categories (name, color, sort_order) VALUES ('General', '#000', 0);
              INSERT INTO categories (name, color, sort_order) VALUES ('Media', '#111', 1);",
         )
         .unwrap();
         conn
+    }
+
+    fn insert_test_app(db: &Connection, name: &str, sort_order: i64) -> i64 {
+        db.execute(
+            "INSERT INTO apps (name, url, category, node_tag, sort_order, card_span) VALUES (?, ?, 'General', 'Local', ?, '1x1')",
+            params![name, format!("http://{name}.local"), sort_order],
+        )
+        .unwrap();
+        db.last_insert_rowid()
+    }
+
+    #[test]
+    fn next_app_sort_order_appends_after_max() {
+        let db = test_db();
+        assert_eq!(next_app_sort_order(&db), 0);
+        insert_test_app(&db, "a", 0);
+        assert_eq!(next_app_sort_order(&db), 1);
+        insert_test_app(&db, "b", 5);
+        assert_eq!(next_app_sort_order(&db), 6);
+    }
+
+    #[test]
+    fn update_app_order_rejects_incomplete_payload() {
+        let db = test_db();
+        let a = insert_test_app(&db, "a", 0);
+        let _b = insert_test_app(&db, "b", 1);
+        assert!(update_app_order(&db, &[a]).is_err());
+    }
+
+    #[test]
+    fn update_app_order_reorders_all_apps() {
+        let db = test_db();
+        let a = insert_test_app(&db, "a", 0);
+        let b = insert_test_app(&db, "b", 1);
+        update_app_order(&db, &[b, a]).unwrap();
+        let first: i64 = db
+            .query_row("SELECT id FROM apps ORDER BY sort_order ASC LIMIT 1", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(first, b);
     }
 
     #[test]

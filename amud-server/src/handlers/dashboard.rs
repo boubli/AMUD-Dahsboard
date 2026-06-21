@@ -210,6 +210,14 @@ pub async fn dashboard_handler(
         .replace("{{custom_css}}", custom_css)
         .replace("{{app_names_json}}", &app_names_json)
         .replace("{{is_admin}}", if is_admin { "true" } else { "false" })
+        .replace(
+            "{{admin_drag_script}}",
+            if is_admin {
+                r#"<script src="/static/drag.js"></script>"#
+            } else {
+                ""
+            },
+        )
         .replace("{{app_version}}", &safe_app_version)
         .replace(
             "{{update_status_class}}",
@@ -493,7 +501,7 @@ fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
     if let Some(ref sess) = session {
         let admin_settings_btn = if sess.role == "Admin" {
             r#"
-            <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '' };" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
+            <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '', card_span: '1x1' };" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
                 <i data-lucide="plus" style="width:0.95rem; height:0.95rem;"></i> Add App
             </button>
             <a href="/admin/settings" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">

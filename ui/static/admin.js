@@ -169,6 +169,32 @@
         });
     }
 
+    function amudShowToast(message, type) {
+        const tone = type || 'error';
+        let el = document.getElementById('amud-toast');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'amud-toast';
+            el.setAttribute('role', 'status');
+            el.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;z-index:3000;max-width:380px;padding:0.85rem 1rem;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,0.35);font-size:0.85rem;line-height:1.4;color:#fff;';
+            document.body.appendChild(el);
+        }
+        const colors = {
+            error: { bg: '#7f1d1d', border: '#ef4444' },
+            warning: { bg: '#78350f', border: '#f59e0b' },
+            success: { bg: '#14532d', border: '#22c55e' },
+        };
+        const palette = colors[tone] || colors.error;
+        el.style.background = palette.bg;
+        el.style.borderLeft = '4px solid ' + palette.border;
+        el.textContent = message;
+        el.style.display = 'block';
+        clearTimeout(el._hideTimer);
+        el._hideTimer = setTimeout(function() {
+            el.style.display = 'none';
+        }, 4500);
+    }
+
     global.amudCsrfToken = amudCsrfToken;
     global.amudCsrfHeaders = amudCsrfHeaders;
     global.escapeHtml = escapeHtml;
@@ -181,4 +207,5 @@
     global.setFilterEmptyMessage = setFilterEmptyMessage;
     global.amudUploadImage = amudUploadImage;
     global.handleFileUpload = handleFileUpload;
+    global.amudShowToast = amudShowToast;
 })(globalThis.window ?? globalThis);

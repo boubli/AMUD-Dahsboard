@@ -249,3 +249,125 @@ async fn test_telemetry_redaction_guest() {
     assert!(body_str.contains("Configured — leave blank to keep unchanged"));
     assert!(!body_str.contains(original_raw_key));
 }
+
+fn insert_admin_session(state: &Arc<AppState>) -> String {
+    let session_token = "admin-session-reorder";
+    let admin_session = Session {
+        username: "admin".to_string(),
+        role: "Admin".to_string(),
+        expires_at_epoch: amud_server::auth::now_epoch_secs() + 3600,
+        csrf_token: "csrf-reorder-abc".to_string(),
+    };
+    state
+        .sessions
+        .write()
+        .unwrap()
+        .insert(session_token.to_string(), admin_session);
+    session_token.to_string()
+}
+
+#[tokio::test]
+async fn test_reorder_apps_success() {
+    let state = setup_test_state();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, sort_order) VALUES (1, 'A', 'http://a', 0)",
+            [],
+        )
+        .unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, sort_order) VALUES (2, 'B', 'http://b', 1)",
+            [],
+        )
+        .unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, sort_order) VALUES (3, 'C', 'http://c', 2)",
+            [],
+        )
+        .unwrap();
+    }
+
+    let session_token = insert_admin_session(&state);
+    let app = build_app_router(state.clone());
+
+    let payload = r#"{"ids":[3,1,2],"csrf_token":"csrf-reorder-abc"}"#;
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/apps/reorder")
+                .header(header::CONTENT_TYPE, "application/json")
+                .header(header::COOKIE, format!("amud_session={}", session_token))
+                .body(Body::from(payload))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let db = state.db.lock().unwrap();
+    let order: Vec<(i64, i64)> = db
+        .prepare("SELECT id, sort_order FROM apps ORDER BY sort_order ASC")
+        .unwrap()
+        .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+        .unwrap()
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
+
+    assert_eq!(order, vec![(3, 0), (1, 1), (2, 2)]);
+}
+
+#[tokio::test]
+async fn test_reorder_apps_rejects_unknown_id() {
+    let state = setup_test_state();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, sort_order) VALUES (1, 'A', 'http://a', 0)",
+            [],
+        )
+        .unwrap();
+    }
+
+    let session_token = insert_admin_session(&state);
+    let app = build_app_router(state);
+
+    let payload = r#"{"ids":[1,99],"csrf_token":"csrf-reorder-abc"}"#;
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/apps/reorder")
+                .header(header::CONTENT_TYPE, "application/json")
+                .header(header::COOKIE, format!("amud_session={}", session_token))
+                .body(Body::from(payload))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn test_reorder_apps_forbidden_for_guest() {
+    let state = setup_test_state();
+    let app = build_app_router(state);
+
+    let payload = r#"{"ids":[1],"csrf_token":"any"}"#;
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/apps/reorder")
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(payload))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+}

@@ -42,18 +42,15 @@ pub async fn add_app_handler(
         let headers = headers.clone();
         let card_span = form
             .get("card_span")
-            .cloned()
+            .map(|s| sanitize_card_span(s))
             .unwrap_or_else(|| "1x1".to_string());
-        let valid_span = match card_span.as_str() {
-            "2x1" | "1x2" => card_span,
-            _ => "1x1".to_string(),
-        };
         with_db(state.db.clone(), move |db| {
             let category = crate::db::resolve_app_category(db, &category_input);
+            let sort_order = crate::db::next_app_sort_order(db);
             if db
                 .execute(
-                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, card_span) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, valid_span],
+                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, sort_order, card_span],
                 )
                 .is_ok()
             {
@@ -150,12 +147,8 @@ pub async fn edit_app_handler(
                 let headers = headers.clone();
                 let card_span = form
                     .get("card_span")
-                    .cloned()
+                    .map(|s| sanitize_card_span(s))
                     .unwrap_or_else(|| "1x1".to_string());
-                let valid_span = match card_span.as_str() {
-                    "2x1" | "1x2" => card_span,
-                    _ => "1x1".to_string(),
-                };
                 with_db(state.db.clone(), move |db| {
                     let category = crate::db::resolve_app_category(db, &category_input);
                     let final_api_key = if api_key.trim().is_empty() || api_key == "Configured — leave blank to keep unchanged" {
@@ -168,7 +161,7 @@ pub async fn edit_app_handler(
                     if db
                         .execute(
                             "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ?, card_span = ? WHERE id = ?",
-                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, valid_span, id],
+                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, card_span, id],
                         )
                         .is_ok()
                     {
@@ -785,9 +778,9 @@ pub async fn reorder_apps_handler(
 
     match result {
         Ok(()) => api_json(StatusCode::OK, serde_json::json!({"success": true})).into_response(),
-        Err(_) => api_json(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            serde_json::json!({"error": "Failed to reorder"}),
+        Err(error) => api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"success": false, "error": error}),
         )
         .into_response(),
     }

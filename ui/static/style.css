@@ -1951,6 +1951,104 @@ input[type="color"].form-control {
     pointer-events: none;
 }
 
+/* Settings page wallpaper layers (behind layout chrome) */
+.wallpaper-bg,
+.wallpaper-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.wallpaper-bg {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.wallpaper-overlay {
+    background: var(
+        --brand-overlay-gradient,
+        linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)
+    );
+}
+
+body.settings-page {
+    padding: 0;
+    overflow: hidden;
+    background-image: none;
+}
+
+:root[data-theme="light"] body.settings-page {
+    background-color: #f0f2f5;
+}
+
+:root[data-theme="light"] .wallpaper-overlay {
+    opacity: 0.55;
+}
+
+:root[data-theme="light"] .wallpaper-bg {
+    opacity: 0.45;
+}
+
+/* Live preview mini-scene on settings Appearance tab */
+.preview-scene {
+    position: relative;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    min-height: 220px;
+    border: 1px solid var(--border-card);
+    background: #0a0b10;
+}
+
+.preview-scene-wallpaper,
+.preview-scene-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.preview-scene-wallpaper {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.preview-scene-overlay {
+    background: var(--brand-overlay-gradient);
+}
+
+.preview-scene-body {
+    position: relative;
+    z-index: 1;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.preview-grid-demo {
+    display: grid;
+    gap: 0.45rem;
+    grid-template-columns: repeat(var(--preview-grid-cols, 3), 1fr);
+}
+
+.preview-grid-cell {
+    height: 2.25rem;
+    border-radius: calc(var(--radius-xl, 16px) * 0.65);
+    background: var(--preview-bg, rgba(15, 20, 25, 0.45));
+    border: 1px solid var(--border-card);
+    backdrop-filter: blur(var(--preview-blur, 16px));
+    -webkit-backdrop-filter: blur(var(--preview-blur, 16px));
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 0 12px var(--accent-glow);
+}
+
+.preview-grid-cell.is-accent {
+    background: color-mix(in srgb, var(--preview-accent, var(--accent-color)) 22%, var(--preview-bg, rgba(15, 20, 25, 0.45)));
+    border-color: color-mix(in srgb, var(--preview-accent, var(--accent-color)) 45%, transparent);
+}
+
 /* Ambient floating orbs — pure CSS background effects */
 body::before,
 body::after {
@@ -2092,9 +2190,15 @@ body::after {
 
 :root[data-theme="light"] body {
     background-color: #f0f2f5;
+    background-image: none;
     color: var(--text-primary);
     color-scheme: light;
     scrollbar-color: rgba(0, 0, 0, 0.16) rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] body::before,
+:root[data-theme="light"] body::after {
+    display: none;
 }
 
 /* Light mode glass panels */
@@ -2118,15 +2222,6 @@ body::after {
     background: linear-gradient(135deg, #1e293b 60%, var(--accent-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-}
-
-/* Light mode floating orbs — softer */
-:root[data-theme="light"] body::before {
-    opacity: 0.15;
-}
-
-:root[data-theme="light"] body::after {
-    opacity: 0.12;
 }
 
 /* Light mode greeting shimmer */
@@ -2258,7 +2353,40 @@ body::after {
 }
 
 :root[data-theme="light"] .filter-tab.active {
-    color: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+:root[data-theme="light"] .health-status-hint {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+:root[data-theme="light"] .drag-handle {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .app-card.dragging {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18), 0 0 24px var(--accent-glow);
+}
+
+:root[data-theme="light"] .greeting-subtitle,
+:root[data-theme="light"] .clock-date {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="light"] body.settings-page {
+    color-scheme: light;
+}
+
+:root[data-theme="light"] .preview-scene {
+    background: #e2e8f0;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .preview-scene-overlay {
+    opacity: 0.35;
 }
 
 /* Light mode nested metrics */

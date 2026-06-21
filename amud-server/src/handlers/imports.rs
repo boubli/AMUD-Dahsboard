@@ -20,8 +20,9 @@ pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};
 pub(crate) use crate::models::{AppState, Session};
 pub(crate) use crate::security::url_allowed_for_webhook;
 pub(crate) use crate::settings::{
-    sanitize_custom_css, sanitize_integration_url, sanitize_setting_url, setting_key_allowed,
-    DONATION_LINKS, DONATION_MESSAGE, SECRET_SETTING_KEYS,
+    sanitize_card_span, sanitize_custom_css, sanitize_integration_url, sanitize_setting_url,
+    sanitize_theme_mode, setting_key_allowed, DONATION_LINKS, DONATION_MESSAGE,
+    SECRET_SETTING_KEYS,
 };
 pub(crate) use crate::templates::{
     apply_theme_placeholders, branding_from_settings, build_root_css, escape_html, normalize_url,

@@ -20,7 +20,7 @@
     <!-- Lucide Vector Icons -->
     <script src="/static/vendor/lucide.min.js"></script>
     <script src="/static/admin.js"></script>
-    <script src="/static/drag.js"></script>
+    {{admin_drag_script}}
 
     <!-- Inline variables setup for clean database variable override -->
     <style>
@@ -411,6 +411,7 @@
         document.addEventListener('DOMContentLoaded', checkUpdateBannerDismissal);
 
         const isAdmin = "{{is_admin}}" === "true";
+        window.activeCategoryFilter = 'all';
         const knownAppNames = new Set({{app_names_json}});
         let latestAppStatuses = {};
 
@@ -502,6 +503,8 @@
 
         // Client-side category filtering
         function filterCategory(category, element) {
+            window.activeCategoryFilter = category;
+            document.dispatchEvent(new CustomEvent('amud:category-filter', { detail: { category: category } }));
             document.querySelectorAll('.filter-tab').forEach(tab => {
                 tab.classList.remove('active');
             });

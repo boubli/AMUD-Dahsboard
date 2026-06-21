@@ -21,6 +21,7 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("ha_url", "");
     s.insert("ha_token", "");
     s.insert("custom_css", "");
+    s.insert("theme_mode", "dark");
 
     s
 }
@@ -125,6 +126,22 @@ pub(crate) fn sanitize_setting_url(value: &str) -> String {
     String::new()
 }
 
+/// Light/dark only — invalid values fall back to dark.
+pub(crate) fn sanitize_theme_mode(value: &str) -> String {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "light" => "light".to_string(),
+        _ => "dark".to_string(),
+    }
+}
+
+/// Bento card span — unknown values become 1x1.
+pub(crate) fn sanitize_card_span(value: &str) -> String {
+    match value.trim() {
+        "2x1" | "1x2" => value.trim().to_string(),
+        _ => "1x1".to_string(),
+    }
+}
+
 // Donation links are locked to the author; toggle via show_donation setting.
 pub(crate) const DONATION_MESSAGE: &str = "AMUD is completely free and you already have every feature unlocked. A donation is not required and unlocks nothing extra - it is simply a kind way to support continued development. Thank you!";
 pub(crate) const DONATION_LINKS: [(&str, &str, &str); 3] = [
@@ -164,5 +181,23 @@ mod tests {
             "/style>script>alert(1)/script>"
         );
         assert_eq!(sanitize_custom_css("< sCrIpt >"), " sCrIpt >");
+    }
+
+    #[test]
+    fn test_sanitize_theme_mode() {
+        assert_eq!(sanitize_theme_mode("light"), "light");
+        assert_eq!(sanitize_theme_mode("LIGHT"), "light");
+        assert_eq!(sanitize_theme_mode("dark"), "dark");
+        assert_eq!(sanitize_theme_mode("invalid"), "dark");
+        assert_eq!(sanitize_theme_mode(""), "dark");
+    }
+
+    #[test]
+    fn test_sanitize_card_span() {
+        assert_eq!(sanitize_card_span("1x1"), "1x1");
+        assert_eq!(sanitize_card_span("2x1"), "2x1");
+        assert_eq!(sanitize_card_span("1x2"), "1x2");
+        assert_eq!(sanitize_card_span("2x2"), "1x1");
+        assert_eq!(sanitize_card_span(""), "1x1");
     }
 }
