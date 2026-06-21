@@ -609,6 +609,34 @@ ls -la /opt/amud/run
 
 ---
 
+## Audit Log Empty
+
+**Symptom:** Settings → **Audit** shows no entries even after you sign out, sign back in, or save settings.
+
+**Checks:**
+
+```bash
+# Row count in the database (replace <CT_ID> with your container ID)
+pct exec <CT_ID> -- sqlite3 /opt/amud/data/amud.db "SELECT COUNT(*) FROM audit_log;"
+
+# Server-side audit errors
+pct exec <CT_ID> -- journalctl -u amud --no-pager -n 100 | grep -i AUDIT
+```
+
+**Common fixes:**
+
+- **Sign out and sign back in**, then change a setting and click **Save** — only actions after v1.4+ are recorded; older history is not backfilled.
+- **Database permissions** — if you restored or copied `amud.db` manually, ensure the service user can write:
+
+```bash
+pct exec <CT_ID> -- chown amud:amud /opt/amud/data/amud.db
+pct exec <CT_ID> -- systemctl restart amud
+```
+
+- **Binary/UI mismatch** — run `update-amud.sh` on the Proxmox host so both `amud-server` and UI templates update together, then restart the service.
+
+---
+
 ## Recovering from Broken Custom CSS
 
 **Symptom:** You entered custom CSS into the Settings menu that caused the dashboard to become entirely unusable (e.g., hiding the body, breaking the grid, making buttons unclickable), and now you cannot reach the Settings menu to fix it.

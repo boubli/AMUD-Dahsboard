@@ -8,18 +8,23 @@ pub async fn list_audit_handler(
         return *resp;
     }
 
-    let entries = with_db(state.db.clone(), |db| {
-        crate::audit::ensure_audit_log_table(db).ok();
-        list_recent_audit(db, 200)
-    })
-    .await;
-    Response::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "application/json")
-        .body(Body::from(
-            serde_json::to_string(&entries).unwrap_or_else(|_| "[]".to_string()),
-        ))
-        .unwrap()
+    let result = with_db(state.db.clone(), |db| list_recent_audit(db, 200)).await;
+    match result {
+        Ok(entries) => Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "application/json")
+            .body(Body::from(
+                serde_json::to_string(&entries).unwrap_or_else(|_| "[]".to_string()),
+            ))
+            .unwrap(),
+        Err(message) => Response::builder()
+            .status(StatusCode::SERVICE_UNAVAILABLE)
+            .header("Content-Type", "application/json")
+            .body(Body::from(
+                serde_json::json!({ "error": message }).to_string(),
+            ))
+            .unwrap(),
+    }
 }
 
 pub async fn export_backup_handler(

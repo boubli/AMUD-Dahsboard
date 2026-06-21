@@ -277,6 +277,14 @@ pub async fn run() {
         std::process::exit(1);
     }
 
+    match audit::ensure_audit_log_schema(&conn) {
+        Ok(()) => match audit::audit_health_check(&conn) {
+            Ok(count) => println!("Audit log ready ({count} existing entries)"),
+            Err(e) => eprintln!("[AUDIT] health check failed: {e}"),
+        },
+        Err(e) => eprintln!("[AUDIT] schema setup failed: {e}"),
+    }
+
     let shared_db = Arc::new(Mutex::new(conn));
     let sessions = Arc::new(RwLock::new(HashMap::<String, Session>::new()));
     let latest_telemetry = Arc::new(RwLock::new(AgentTelemetry::default()));

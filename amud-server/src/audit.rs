@@ -24,6 +24,45 @@ pub(crate) fn ensure_audit_log_table(db: &Connection) -> Result<(), rusqlite::Er
     Ok(())
 }
 
+fn audit_table_has_column(db: &Connection, column: &str) -> bool {
+    let Ok(mut stmt) = db.prepare("PRAGMA table_info(audit_log)") else {
+        return false;
+    };
+    let Ok(mut rows) = stmt.query([]) else {
+        return false;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if row.get::<_, String>(1).ok().as_deref() == Some(column) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Ensures audit_log exists and has all expected columns (handles partial upgrades).
+pub(crate) fn ensure_audit_log_schema(db: &Connection) -> Result<(), rusqlite::Error> {
+    ensure_audit_log_table(db)?;
+    if !audit_table_has_column(db, "details") {
+        let _ = db.execute(
+            "ALTER TABLE audit_log ADD COLUMN details TEXT NOT NULL DEFAULT ''",
+            [],
+        );
+    }
+    if !audit_table_has_column(db, "client_ip") {
+        db.execute(
+            "ALTER TABLE audit_log ADD COLUMN client_ip TEXT NOT NULL DEFAULT ''",
+            [],
+        )?;
+    }
+    Ok(())
+}
+
+pub(crate) fn audit_health_check(db: &Connection) -> Result<i64, String> {
+    ensure_audit_log_schema(db).map_err(|e| format!("schema setup failed: {e}"))?;
+    db.query_row("SELECT COUNT(*) FROM audit_log", [], |row| row.get(0))
+        .map_err(|e| format!("count query failed: {e}"))
+}
+
 pub(crate) fn record_audit(
     db: &Connection,
     username: &str,
@@ -32,8 +71,8 @@ pub(crate) fn record_audit(
     details: &str,
     headers: &HeaderMap,
 ) {
-    if let Err(e) = ensure_audit_log_table(db) {
-        eprintln!("[AUDIT] failed to ensure audit_log table: {e}");
+    if let Err(e) = ensure_audit_log_schema(db) {
+        eprintln!("[AUDIT] failed to ensure audit_log schema: {e}");
         return;
     }
 
@@ -50,32 +89,36 @@ pub(crate) fn record_audit(
                 last_err = Some(e);
             }
             Err(e) => {
-                eprintln!("[AUDIT] insert failed: {e}");
+                eprintln!("[AUDIT] insert failed (action={action}, user={username}): {e}");
                 return;
             }
         }
     }
     if let Some(e) = last_err {
-        eprintln!("[AUDIT] insert failed after retries: {e}");
+        eprintln!("[AUDIT] insert failed after retries (action={action}): {e}");
     }
 }
 
-pub(crate) fn list_recent_audit(db: &Connection, limit: i64) -> Vec<serde_json::Value> {
-    if ensure_audit_log_table(db).is_err() {
-        return Vec::new();
-    }
+pub(crate) fn list_recent_audit(
+    db: &Connection,
+    limit: i64,
+) -> Result<Vec<serde_json::Value>, String> {
+    ensure_audit_log_schema(db).map_err(|e| format!("audit log unavailable: {e}"))?;
 
     let mut out = Vec::new();
-    let Ok(mut stmt) = db.prepare(
-        "SELECT id, created_at, username, action, target, details, client_ip
+    let mut stmt = db
+        .prepare(
+            "SELECT id, created_at, username, action, target, details, client_ip
          FROM audit_log ORDER BY id DESC LIMIT ?",
-    ) else {
-        return out;
-    };
-    let Ok(mut rows) = stmt.query(params![limit]) else {
-        return out;
-    };
-    while let Ok(Some(row)) = rows.next() {
+        )
+        .map_err(|e| format!("audit log query prepare failed: {e}"))?;
+    let mut rows = stmt
+        .query(params![limit])
+        .map_err(|e| format!("audit log query failed: {e}"))?;
+    while let Some(row) = rows
+        .next()
+        .map_err(|e| format!("audit log read failed: {e}"))?
+    {
         out.push(serde_json::json!({
             "id": row.get::<_, i64>(0).unwrap_or(0),
             "created_at": row.get::<_, String>(1).unwrap_or_default(),
@@ -86,5 +129,5 @@ pub(crate) fn list_recent_audit(db: &Connection, limit: i64) -> Vec<serde_json::
             "client_ip": row.get::<_, String>(6).unwrap_or_default(),
         }));
     }
-    out
+    Ok(out)
 }

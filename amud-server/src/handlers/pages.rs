@@ -24,8 +24,6 @@ pub async fn settings_page_handler(
     let glass_opacity = branding.glass_opacity.as_str();
     let bento_radius = branding.bento_radius.as_str();
     let grid_columns = branding.grid_columns.as_deref().unwrap_or("3");
-    let overlay_theme = branding.overlay_theme.as_str();
-    let custom_overlay_color = branding.custom_overlay_color.as_str();
     let weather_latitude = settings
         .get("weather_latitude")
         .map(|s| s.as_str())
@@ -136,7 +134,6 @@ pub async fn settings_page_handler(
         .replace("{{custom_css}}", custom_css)
         .replace("{{csrf_token}}", &csrf_token)
         .replace("{{username}}", &escape_html(username))
-        .replace("{{custom_overlay_color}}", custom_overlay_color)
         .replace(
             "{{eq_donate_on}}",
             if donate_enabled == "1" {
@@ -203,7 +200,6 @@ pub async fn settings_page_handler(
             crate::templates::theme_eq_attr(&branding.theme_mode, "light"),
         )
         .replace("{{theme_mode}}", &escape_html(&branding.theme_mode));
-    let result = apply_theme_placeholders(result, overlay_theme);
 
     Html(apply_csp_nonce(result, &csp.0))
 }

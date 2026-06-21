@@ -157,7 +157,6 @@ pub async fn dashboard_handler(
         .parse::<u16>()
         .map(|n| n.to_string())
         .unwrap_or_else(|_| "16".to_string());
-    let safe_overlay_color = safe_accent_hex(&branding.custom_overlay_color);
     let safe_weather_lat = safe_weather_coord(weather_lat);
     let safe_weather_lon = safe_weather_coord(weather_lon);
     let safe_csrf_meta = escape_html(&csrf_token);
@@ -197,7 +196,6 @@ pub async fn dashboard_handler(
         .replace("<!-- SUPPORT_SECTION -->", &support_html)
         .replace("<!-- AUTH_BUTTONS -->", &auth_buttons)
         .replace("{{username}}", &escape_html(username))
-        .replace("{{custom_overlay_color}}", &safe_overlay_color)
         .replace("{{weather_latitude}}", &safe_weather_lat)
         .replace("{{weather_longitude}}", &safe_weather_lon)
         .replace("<!-- CATEGORY_OPTIONS -->", &category_options_html)
@@ -251,8 +249,6 @@ pub async fn dashboard_handler(
             if is_video_bg { "has-video-bg" } else { "" },
         )
         .replace("{{video_bg_element}}", &video_bg_element);
-
-    let result = apply_theme_placeholders(result, &branding.overlay_theme);
 
     Html(apply_csp_nonce(result, &csp.0))
 }
@@ -841,7 +837,7 @@ fn render_wol_devices(
 
         cards.push_str(&format!(
             r#"
-            <div class="glass-panel wol-card" style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; border-radius:var(--bento-radius); background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.04); min-width:240px; flex:1;">
+            <div class="glass-panel wol-card" style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; border-radius:var(--radius-xl); background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.04); min-width:240px; flex:1;">
                 <div style="display:flex; align-items:center; gap:0.75rem;">
                     <div class="wol-icon-wrapper" style="width:2.2rem; height:2.2rem; border-radius:8px; background:rgba(255,255,255,0.02); display:flex; align-items:center; justify-content:center; color:var(--accent-color);">
                         <i data-lucide="{}"></i>

@@ -371,3 +371,50 @@ async fn test_reorder_apps_forbidden_for_guest() {
 
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
 }
+
+#[tokio::test]
+async fn test_settings_save_records_audit_entry() {
+    let state = setup_test_state();
+    let session_token = insert_admin_session(&state);
+
+    let app = build_app_router(state.clone());
+    let payload = "accent_color=%23cf6427&csrf_token=csrf-reorder-abc";
+    let save_response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/admin/settings")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, format!("amud_session={session_token}"))
+                .body(Body::from(payload))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(save_response.status(), StatusCode::SEE_OTHER);
+
+    let audit_app = build_app_router(state);
+    let audit_response = audit_app
+        .oneshot(
+            Request::builder()
+                .uri("/api/audit")
+                .header(header::COOKIE, format!("amud_session={session_token}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(audit_response.status(), StatusCode::OK);
+    let body_bytes = axum::body::to_bytes(audit_response.into_body(), 64 * 1024)
+        .await
+        .unwrap();
+    let entries: Vec<serde_json::Value> = serde_json::from_slice(&body_bytes).unwrap();
+    assert!(
+        entries.iter().any(|entry| {
+            entry.get("action").and_then(|v| v.as_str()) == Some("settings_update")
+        }),
+        "expected settings_update audit entry, got: {entries:?}"
+    );
+}

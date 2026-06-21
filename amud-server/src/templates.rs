@@ -63,42 +63,8 @@ pub(crate) fn normalize_url(raw: &str) -> String {
     }
 }
 
-pub(crate) fn get_overlay_gradient(theme: &str, custom_color: Option<&str>) -> String {
-    match theme.to_lowercase().as_str() {
-        "aurora" => "linear-gradient(135deg, rgba(4, 15, 15, 0.88) 0%, rgba(6, 24, 20, 0.82) 100%)"
-            .to_string(),
-        "crimson" => {
-            "linear-gradient(135deg, rgba(18, 8, 8, 0.88) 0%, rgba(12, 10, 15, 0.82) 100%)"
-                .to_string()
-        }
-        "obsidian" => {
-            "linear-gradient(135deg, rgba(10, 10, 12, 0.92) 0%, rgba(15, 15, 18, 0.88) 100%)"
-                .to_string()
-        }
-        "sunset" => "linear-gradient(135deg, rgba(20, 8, 12, 0.88) 0%, rgba(8, 10, 20, 0.82) 100%)"
-            .to_string(),
-        "custom" => {
-            if let Some(hex) = custom_color {
-                if hex.starts_with('#') && hex.len() == 7 {
-                    if let (Ok(r), Ok(g), Ok(b)) = (
-                        u8::from_str_radix(&hex[1..3], 16),
-                        u8::from_str_radix(&hex[3..5], 16),
-                        u8::from_str_radix(&hex[5..7], 16),
-                    ) {
-                        return format!(
-                            "linear-gradient(135deg, rgba({}, {}, {}, 0.88) 0%, rgba({}, {}, {}, 0.82) 100%)",
-                            r / 2, g / 2, b / 2, r / 3, g / 3, b / 3
-                        );
-                    }
-                }
-            }
-            "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)"
-                .to_string()
-        }
-        _ => "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)"
-            .to_string(),
-    }
-}
+pub(crate) const DEFAULT_OVERLAY_GRADIENT: &str =
+    "linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)";
 
 pub(crate) fn accent_glow_from_hex(accent_color: &str) -> String {
     if accent_color.starts_with('#') && accent_color.len() == 7 {
@@ -131,8 +97,6 @@ pub(crate) struct BrandingVars {
     pub glass_opacity: String,
     pub bento_radius: String,
     pub grid_columns: Option<String>,
-    pub overlay_theme: String,
-    pub custom_overlay_color: String,
     pub theme_mode: String,
 }
 
@@ -190,14 +154,6 @@ pub(crate) fn branding_from_settings(settings: &HashMap<String, String>) -> Bran
             .cloned()
             .unwrap_or_else(|| "16".to_string()),
         grid_columns,
-        overlay_theme: settings
-            .get("overlay_theme")
-            .cloned()
-            .unwrap_or_else(|| "cyber".to_string()),
-        custom_overlay_color: settings
-            .get("custom_overlay_color")
-            .cloned()
-            .unwrap_or_else(|| "#1a1a2e".to_string()),
         theme_mode: settings
             .get("theme_mode")
             .cloned()
@@ -220,8 +176,6 @@ pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
     };
     let opacity_f: f64 = vars.glass_opacity.parse().unwrap_or(0.45);
     let accent_glow = accent_glow_from_hex(&vars.accent_color);
-    let overlay_gradient =
-        get_overlay_gradient(&vars.overlay_theme, Some(&vars.custom_overlay_color));
     let tagline = vars.tagline.as_deref().unwrap_or("");
     let grid_columns = vars.grid_columns.as_deref().unwrap_or("3");
 
@@ -251,15 +205,19 @@ pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
         vars.bento_radius,
         grid_columns,
         opacity_f,
-        overlay_gradient
+        DEFAULT_OVERLAY_GRADIENT
     )
 }
 
-pub(crate) fn apply_theme_placeholders(html: String, overlay_theme: &str) -> String {
-    html.replace("{{eq_cyber}}", theme_eq_attr(overlay_theme, "cyber"))
-        .replace("{{eq_aurora}}", theme_eq_attr(overlay_theme, "aurora"))
-        .replace("{{eq_crimson}}", theme_eq_attr(overlay_theme, "crimson"))
-        .replace("{{eq_sunset}}", theme_eq_attr(overlay_theme, "sunset"))
-        .replace("{{eq_obsidian}}", theme_eq_attr(overlay_theme, "obsidian"))
-        .replace("{{eq_custom}}", theme_eq_attr(overlay_theme, "custom"))
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn build_root_css_uses_default_overlay() {
+        let vars = branding_from_settings(&HashMap::new());
+        let css = build_root_css(&vars);
+        assert!(css.contains(DEFAULT_OVERLAY_GRADIENT));
+        assert!(!css.contains("overlay_theme"));
+    }
 }

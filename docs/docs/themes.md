@@ -11,7 +11,7 @@ Browse, search, and **preview** all themes on the **[Theme Gallery](/themes)** p
 :::
 
 :::tip Combining with Built-in Settings
-Themes work alongside built-in branding (accent color, background image, overlay theme, glass blur, etc.). If a theme sets `--accent-color` but you also pick a color in the UI, the UI setting wins because it is injected into `:root` after custom CSS. Reset built-in accent/overlay to defaults, or remove `--accent-color` from the theme CSS and control it from the UI.
+Themes work alongside built-in quick settings (accent color, wallpaper URL, glass blur, grid columns, etc.). If a theme sets `--accent-color` but you also pick a color in the UI, the UI setting wins because it is injected into `:root` after custom CSS. Remove `--accent-color` from the theme CSS to control accent from the UI, or leave Custom CSS empty and use quick controls only. Wallpaper tint and background styling come from theme CSS or your wallpaper URL.
 :::
 
 :::info Recovery

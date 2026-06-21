@@ -261,13 +261,21 @@ async fn download_file(
     Ok(hex::encode(hash_bytes))
 }
 
+fn checksum_entry_name(path: &str) -> String {
+    path.trim_start_matches('*')
+        .rsplit(['/', '\\'])
+        .next()
+        .unwrap_or(path)
+        .to_string()
+}
+
 fn parse_checksums(content: &str) -> std::collections::HashMap<String, String> {
     let mut map = std::collections::HashMap::new();
     for line in content.lines() {
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() >= 2 {
             let hash = parts[0].to_string();
-            let file = parts[1].trim_start_matches('*').to_string();
+            let file = checksum_entry_name(parts[1]);
             map.insert(file, hash);
         }
     }
@@ -552,5 +560,33 @@ pub async fn ready_handler(State(state): State<Arc<AppState>>) -> impl IntoRespo
             StatusCode::SERVICE_UNAVAILABLE,
             json!({"status": "NOT_READY", "error": "Database query failed"}),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_checksums;
+
+    #[test]
+    fn parse_checksums_accepts_basename_entries() {
+        let content = "abc123  amud-server\ndef456  ui.tar.gz\n";
+        let map = parse_checksums(content);
+        assert_eq!(map.get("amud-server"), Some(&"abc123".to_string()));
+        assert_eq!(map.get("ui.tar.gz"), Some(&"def456".to_string()));
+    }
+
+    #[test]
+    fn parse_checksums_accepts_release_workflow_paths() {
+        let content = "\
+09cfca48c100cbfc1f5064244f0f68bc75afdb6776f6970262a9df937f4d95f9  target/release/amud-server
+78a03ccde8a16cf8ed52e3ef3503abb8e87bef04ce12f60c7d2f8188cffa1687  target/release/amud-agent
+4077e56a14f54740ef8748316a1df65ac23473422acdafd1565ff5baff7aea63  ui.tar.gz
+";
+        let map = parse_checksums(content);
+        assert_eq!(
+            map.get("amud-server"),
+            Some(&"09cfca48c100cbfc1f5064244f0f68bc75afdb6776f6970262a9df937f4d95f9".to_string())
+        );
+        assert_eq!(map.get("ui.tar.gz").map(String::as_str), Some("4077e56a14f54740ef8748316a1df65ac23473422acdafd1565ff5baff7aea63"));
     }
 }

@@ -25,8 +25,8 @@ pub(crate) use crate::settings::{
     SECRET_SETTING_KEYS,
 };
 pub(crate) use crate::templates::{
-    apply_theme_placeholders, branding_from_settings, build_root_css, escape_html, normalize_url,
-    safe_accent_hex, safe_css_url, BrandingVars,
+    branding_from_settings, build_root_css, escape_html, normalize_url,
+    safe_css_url, BrandingVars,
 };
 pub(crate) use crate::webhooks::{normalize_webhook_event_types, send_webhook_notification};
 pub(crate) use axum::{

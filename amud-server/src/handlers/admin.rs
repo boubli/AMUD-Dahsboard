@@ -43,6 +43,8 @@ pub async fn settings_handler(
                 sanitize_integration_url(&val)
             } else if key == "theme_mode" {
                 sanitize_theme_mode(&val)
+            } else if key == "accent_color" {
+                crate::templates::safe_accent_hex(&val)
             } else if SECRET_SETTING_KEYS.contains(&key.as_str()) {
                 match setting_value_or_existing(db, &key, &val) {
                     Some(v) => v,
