@@ -1,0 +1,30 @@
+/* AMUD Theme: Solarized Dark — scientific low-contrast dark */
+:root {
+    --accent-color: #268bd2;
+    --accent-glow: rgba(38, 139, 210, 0.14);
+    --bg-card: rgba(7, 54, 66, 0.75);
+    --border-card: rgba(38, 139, 210, 0.10);
+    --border-hover: rgba(38, 139, 210, 0.26);
+    --text-primary: #93a1a1;
+    --text-secondary: #839496;
+    --text-muted: #586e75;
+    --success: #859900;
+    --success-bg: rgba(133, 153, 0, 0.10);
+    --danger: #dc322f;
+    --danger-bg: rgba(220, 50, 47, 0.10);
+}
+
+body {
+    background-color: #002b36;
+    background-image:
+        linear-gradient(160deg, rgba(0, 43, 54, 0.96) 0%, rgba(7, 54, 66, 0.92) 100%),
+        var(--brand-bg-image);
+}
+
+.glass-panel {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.30);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 8px 26px rgba(38, 139, 210, 0.09);
+}

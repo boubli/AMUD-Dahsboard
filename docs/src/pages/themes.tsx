@@ -10,7 +10,7 @@ import {
 } from '@site/src/data/themes';
 import styles from './themes.module.css';
 
-type CopyKind = 'css' | 'wallpaper';
+type CopyKind = 'css' | 'wallpaper' | 'download';
 
 type ThemePreviewProps = Readonly<{
   theme: AmudTheme;
@@ -137,6 +137,14 @@ function ThemeCard({theme, siteUrl, baseUrl, onCopy, copiedKey}: ThemeCardProps)
                   {copiedKey === `${theme.id}-wallpaper` ? 'Copied!' : 'Copy wallpaper'}
                 </button>
               )}
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnSecondary} ${
+                  copiedKey === `${theme.id}-download` ? styles.btnCopied : ''
+                }`}
+                onClick={() => onCopy(theme, 'download')}>
+                {copiedKey === `${theme.id}-download` ? 'Downloaded!' : 'Download CSS'}
+              </button>
             </>
           )}
         </div>
@@ -171,6 +179,20 @@ export default function ThemesGallery(): ReactNode {
           await navigator.clipboard.writeText(url);
           setCopiedKey(`${theme.id}-wallpaper`);
           showToast('Wallpaper URL copied — paste in Settings → Appearance → Wallpaper');
+        } else if (kind === 'download') {
+          if (!theme.cssFile) return;
+          const res = await fetch(`${siteConfig.baseUrl}${theme.cssFile}`);
+          if (!res.ok) throw new Error('Failed to load theme CSS');
+          const css = await res.text();
+          const blob = new Blob([css], {type: 'text/css'});
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = `${theme.id}.css`;
+          anchor.click();
+          URL.revokeObjectURL(url);
+          setCopiedKey(`${theme.id}-download`);
+          showToast(`Downloaded ${theme.id}.css — or load offline from your dashboard at /static/themes/`);
         } else {
           if (!theme.cssFile) return;
           const res = await fetch(`${siteConfig.baseUrl}${theme.cssFile}`);
@@ -198,9 +220,9 @@ export default function ThemesGallery(): ReactNode {
         <header className={styles.hero}>
           <h1 className={styles.heroTitle}>Custom Themes Gallery</h1>
           <p className={styles.heroSubtitle}>
-            Each card shows a <strong>dashboard preview screenshot</strong>. Copy the theme CSS,
-            and optionally the matching <strong>2K wallpaper</strong> hosted on this site (won&apos;t
-            break like random image links).
+            Each card shows a <strong>dashboard preview screenshot</strong>. Copy or download theme CSS,
+            or load bundled themes <strong>offline</strong> from your dashboard at{' '}
+            <code>/static/themes/</code> (Settings → Appearance).
           </p>
           <div className={styles.searchBar}>
             <span className={styles.searchIcon} aria-hidden>
@@ -220,8 +242,12 @@ export default function ThemesGallery(): ReactNode {
         <section className={styles.howTo}>
           <h2>How to apply a theme</h2>
           <ol>
-            <li>Browse the gallery — preview screenshots show how each theme looks on AMUD.</li>
-            <li>Click <strong>Copy CSS</strong> and paste into <strong>Settings → Appearance → Custom CSS</strong>.</li>
+            <li>
+              On your AMUD server (no internet needed): open <strong>Settings → Appearance</strong>,
+              pick a <strong>Bundled theme</strong>, click <strong>Load</strong>, then <strong>Save</strong>.
+            </li>
+            <li>Online: click <strong>Copy CSS</strong> or <strong>Download CSS</strong> from this gallery.</li>
+            <li>Paste into <strong>Settings → Appearance → Custom CSS</strong> (if not using bundled loader).</li>
             <li>
               Optional: click <strong>Copy wallpaper</strong> and paste into{' '}
               <strong>Settings → Appearance → Wallpaper</strong> for a matching 2K background.

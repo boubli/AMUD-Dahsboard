@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "description": "Bundled AMUD themes — load offline from Settings → Appearance without internet.",
+  "themes": [
+    {"id": "dracula", "name": "Dracula", "file": "dracula.css", "tags": ["dark", "purple"]},
+    {"id": "nord", "name": "Nord", "file": "nord.css", "tags": ["dark", "blue"]},
+    {"id": "cyberpunk-neon", "name": "Cyberpunk Neon", "file": "cyberpunk-neon.css", "tags": ["neon", "sci-fi"]},
+    {"id": "sunset-warm", "name": "Sunset Warm", "file": "sunset-warm.css", "tags": ["warm", "amber"]},
+    {"id": "catppuccin-mocha", "name": "Catppuccin Mocha", "file": "catppuccin-mocha.css", "tags": ["pastel"]},
+    {"id": "gruvbox-dark", "name": "Gruvbox Dark", "file": "gruvbox-dark.css", "tags": ["retro"]},
+    {"id": "tokyo-night", "name": "Tokyo Night", "file": "tokyo-night.css", "tags": ["blue", "night"]},
+    {"id": "one-dark", "name": "One Dark", "file": "one-dark.css", "tags": ["developer"]},
+    {"id": "everforest", "name": "Everforest", "file": "everforest.css", "tags": ["green"]},
+    {"id": "monokai", "name": "Monokai", "file": "monokai.css", "tags": ["developer"]},
+    {"id": "rose-pine", "name": "Rose Pine", "file": "rose-pine.css", "tags": ["elegant"]},
+    {"id": "solarized-dark", "name": "Solarized Dark", "file": "solarized-dark.css", "tags": ["scientific"]},
+    {"id": "terminal-phosphor", "name": "Terminal Phosphor", "file": "terminal-phosphor.css", "tags": ["advanced", "crt"]},
+    {"id": "vaporwave-grid", "name": "Vaporwave Grid", "file": "vaporwave-grid.css", "tags": ["advanced", "vaporwave"]},
+    {"id": "blueprint-tech", "name": "Blueprint Tech", "file": "blueprint-tech.css", "tags": ["advanced", "technical"]},
+    {"id": "luxury-gold", "name": "Luxury Gold", "file": "luxury-gold.css", "tags": ["advanced", "luxury"]},
+    {"id": "holographic-prism", "name": "Holographic Prism", "file": "holographic-prism.css", "tags": ["advanced", "animated"]},
+    {"id": "brutalist-mono", "name": "Brutalist Mono", "file": "brutalist-mono.css", "tags": ["advanced", "brutalist"]}
+  ]
+}

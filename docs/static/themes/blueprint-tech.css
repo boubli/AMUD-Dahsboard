@@ -1,0 +1,51 @@
+/* AMUD Theme: Blueprint Tech — engineering schematic */
+
+:root {
+    --accent-color: #38bdf8;
+    --accent-glow: rgba(56, 189, 248, 0.18);
+    --bg-card: rgba(10, 22, 40, 0.88);
+    --border-card: rgba(56, 189, 248, 0.35);
+    --border-hover: rgba(125, 211, 252, 0.6);
+    --text-primary: #e0f2fe;
+    --text-secondary: #7dd3fc;
+    --text-muted: #64748b;
+    --success: #4ade80;
+    --success-bg: rgba(74, 222, 128, 0.1);
+    --danger: #f87171;
+    --danger-bg: rgba(248, 113, 113, 0.1);
+    --radius-xl: 2px;
+}
+
+body {
+    background-color: #0a1628;
+    background-image:
+        linear-gradient(rgba(56, 189, 248, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.07) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.glass-panel {
+    border-style: dashed !important;
+    border-width: 1px !important;
+    backdrop-filter: blur(4px) !important;
+    box-shadow: none;
+}
+
+.header-title {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.95em;
+}
+
+.app-card-title,
+.settings-page-title {
+    letter-spacing: 0.08em;
+}
+
+.metric-label {
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+}

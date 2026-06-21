@@ -1,29 +1,34 @@
 # AMUD Custom Themes
 
-Dashboard theme CSS and preview screenshots for the [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes).
+Dashboard theme CSS for the [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes) and offline use on the dashboard at `/static/themes/`.
 
 ## Structure
 
 ```
-docs/static/themes/
-├── assets/                    # Dashboard preview screenshots (PNG)
-├── wallpapers/                # Bundled 2K theme wallpapers (JPG)
+docs/static/themes/          # Gallery + GitHub Pages
+ui/static/themes/            # Shipped with ui.tar.gz (offline)
+├── manifest.json              # Bundled theme list (ui only)
+├── assets/                    # Preview screenshots (PNG)
+├── wallpapers/                # 2K wallpapers (JPG, classic themes)
 ├── dracula.css
-├── nord.css
+├── terminal-phosphor.css      # Advanced layout themes
 └── …
 ```
 
 ## How users apply themes
 
-1. Open the Theme Gallery and preview themes with screenshots
-2. Click **Copy CSS** → paste in **Settings → Appearance → Custom CSS**
-3. Optional: **Copy wallpaper** → paste in **Settings → Appearance → Wallpaper**
+**Offline (no internet):** Settings → Appearance → **Bundled theme** → Load → Save.
+
+**Online gallery:** Copy CSS or Download CSS → paste in Custom CSS → Save.
+
+Optional: **Copy wallpaper** → paste in Wallpaper field.
 
 ## Add a new theme
 
-1. Add `your-theme.css` in this folder
-2. Add dashboard preview PNG to `assets/AMUD-Theme-Your-Theme.png`
-3. Add matching 2K wallpaper JPG to `wallpapers/your-theme.jpg`
-4. Register in `docs/src/data/themes.ts`
+1. Add `your-theme.css` to **both** `docs/static/themes/` and `ui/static/themes/`
+2. Add preview PNG to `assets/AMUD-Theme-Your-Theme.png`
+3. Optional wallpaper JPG in `wallpapers/`
+4. Add `docs/src/data/themes/definitions/your-theme.ts` and register in `definitions/index.ts`
+5. Add entry to `ui/static/themes/manifest.json`
 
-Push to `main` — the gallery deploys automatically via GitHub Actions.
+Push to `main` — gallery deploys via GitHub Actions; themes ship with the next release `ui.tar.gz`.

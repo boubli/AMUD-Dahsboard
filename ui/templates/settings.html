@@ -536,10 +536,22 @@
                                 <div class="settings-block" style="margin:0;">
                                     <h3><i data-lucide="code" style="color:var(--accent-color);"></i> Custom CSS</h3>
                                     <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
-                                        For full themes: browse the
-                                        <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Theme Gallery</a>,
-                                        click <strong>Copy CSS</strong>, paste below, and save. Or write your own CSS — wallpaper tint and colors can be controlled here instead of the quick controls above.
+                                        <strong>Offline:</strong> load a bundled theme from this server (no internet).
+                                        <strong> Online:</strong> browse the
+                                        <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Theme Gallery</a>
+                                        for previews, copy, or download. Save to apply to the dashboard.
                                     </p>
+                                    <div class="form-group" style="margin-bottom:1rem;">
+                                        <label for="bundled-theme-select">Bundled theme (offline)</label>
+                                        <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+                                            <select id="bundled-theme-select" class="form-control" style="flex:1; min-width:200px;">
+                                                <option value="">— Select a theme —</option>
+                                            </select>
+                                            <button type="button" id="btn-load-bundled-theme" class="btn btn-secondary" style="white-space:nowrap;">Load into editor</button>
+                                            <button type="button" id="btn-download-bundled-theme" class="btn btn-secondary" style="white-space:nowrap;">Download .css</button>
+                                        </div>
+                                        <p id="bundled-theme-status" style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;"></p>
+                                    </div>
                                     <div class="form-group">
                                         <label for="setting-custom-css">CSS Overrides</label>
                                         <textarea id="setting-custom-css" name="custom_css" class="form-control" rows="6" placeholder="body { ... }" style="font-family:monospace; resize:vertical;">{{custom_css}}</textarea>
@@ -1572,7 +1584,87 @@
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
             initLivePreview();
+            initBundledThemes();
         });
+
+        function initBundledThemes() {
+            const select = document.getElementById('bundled-theme-select');
+            const loadBtn = document.getElementById('btn-load-bundled-theme');
+            const downloadBtn = document.getElementById('btn-download-bundled-theme');
+            const statusEl = document.getElementById('bundled-theme-status');
+            const cssTextarea = document.getElementById('setting-custom-css');
+            if (!select || !loadBtn || !downloadBtn || !cssTextarea) return;
+
+            let manifest = { themes: [] };
+
+            function selectedTheme() {
+                const id = select.value;
+                return manifest.themes.find(function(t) { return t.id === id; });
+            }
+
+            function fetchThemeCss(file) {
+                return fetch('/static/themes/' + file, { cache: 'no-store' }).then(function(res) {
+                    if (!res.ok) throw new Error('Theme file not found');
+                    return res.text();
+                });
+            }
+
+            loadBtn.addEventListener('click', function() {
+                const theme = selectedTheme();
+                if (!theme) {
+                    if (statusEl) statusEl.textContent = 'Pick a theme first.';
+                    return;
+                }
+                fetchThemeCss(theme.file).then(function(css) {
+                    cssTextarea.value = css;
+                    cssTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (typeof window.amudRefreshLivePreview === 'function') {
+                        window.amudRefreshLivePreview();
+                    }
+                    if (statusEl) statusEl.textContent = 'Loaded “' + theme.name + '”. Click Save Changes to apply dashboard-wide.';
+                }).catch(function() {
+                    if (statusEl) statusEl.textContent = 'Failed to load theme — update AMUD to the latest ui.tar.gz.';
+                });
+            });
+
+            downloadBtn.addEventListener('click', function() {
+                const theme = selectedTheme();
+                if (!theme) {
+                    if (statusEl) statusEl.textContent = 'Pick a theme first.';
+                    return;
+                }
+                fetchThemeCss(theme.file).then(function(css) {
+                    const blob = new Blob([css], { type: 'text/css' });
+                    const url = URL.createObjectURL(blob);
+                    const anchor = document.createElement('a');
+                    anchor.href = url;
+                    anchor.download = theme.file;
+                    anchor.click();
+                    URL.revokeObjectURL(url);
+                    if (statusEl) statusEl.textContent = 'Downloaded ' + theme.file + '.';
+                }).catch(function() {
+                    if (statusEl) statusEl.textContent = 'Download failed.';
+                });
+            });
+
+            fetch('/static/themes/manifest.json', { cache: 'no-store' })
+                .then(function(res) { return res.ok ? res.json() : { themes: [] }; })
+                .then(function(data) {
+                    manifest = data && Array.isArray(data.themes) ? data : { themes: [] };
+                    manifest.themes.forEach(function(theme) {
+                        const opt = document.createElement('option');
+                        opt.value = theme.id;
+                        opt.textContent = theme.name + (theme.tags && theme.tags.indexOf('advanced') >= 0 ? ' ★' : '');
+                        select.appendChild(opt);
+                    });
+                    if (statusEl && manifest.themes.length) {
+                        statusEl.textContent = manifest.themes.length + ' themes available offline on this server.';
+                    }
+                })
+                .catch(function() {
+                    if (statusEl) statusEl.textContent = 'Bundled themes unavailable — reinstall ui.tar.gz from a recent release.';
+                });
+        }
 
         async function parseApiResponse(res) {
             const text = await res.text();
