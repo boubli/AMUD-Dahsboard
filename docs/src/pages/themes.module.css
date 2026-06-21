@@ -160,9 +160,9 @@
   font-size: 0.72rem;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(255, 107, 43, 0.22);
-  color: #ffd4b8;
-  border: 1px solid rgba(255, 107, 43, 0.35);
+  background: #352018;
+  color: #ffb07a;
+  border: 1px solid #5a3420;
 }
 
 .actions {

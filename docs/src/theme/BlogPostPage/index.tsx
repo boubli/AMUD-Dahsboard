@@ -15,10 +15,10 @@ import type {Props} from '@theme/BlogPostPage';
 function BlogPostPageContent({
   children,
   sidebar,
-}: {
+}: Readonly<{
   children: ReactNode;
   sidebar: Props['sidebar'];
-}): ReactNode {
+}>): ReactNode {
   const {metadata} = useBlogPost();
   const {nextItem, prevItem} = metadata;
   return (

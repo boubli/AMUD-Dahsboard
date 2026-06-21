@@ -16,7 +16,7 @@ function formatDate(iso: string): string {
   });
 }
 
-function ListCard({children}: {children: ReactNode}): ReactNode {
+function ListCard({children}: Readonly<{children: ReactNode}>): ReactNode {
   const {metadata, assets} = useBlogPost();
   const slug = metadata.slug;
   const coverPath =
