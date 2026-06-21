@@ -11,6 +11,31 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.5.0.0 — Visual upgrade, drag-and-drop, light mode
+
+**2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.0.0) · [Compare v1.4.2.2…v1.5.0.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.4.2.2...v1.5.0.0)
+
+**Visual upgrade**
+- Staggered card animations, hover micro-interactions, floating orbs, pulsing status badges, greeting shimmer.
+- Admin **drag-and-drop** card reorder (handle-only, CSRF + SQLite `sort_order`).
+- **Bento spans** per app (`1x1`, `2x1`, `1x2`); collapse on mobile.
+- **Light mode** with full token overrides on dashboard and settings.
+- **Video wallpaper** (`.mp4`/`.webm`/`.ogg`).
+- **Live settings preview** — accent, glass, wallpaper, overlay, grid columns, accent glow.
+
+**Docs & marketing**
+- Blog (24 posts), FAQ, `llms.txt`, theme gallery on GitHub Pages, JSON-LD SEO.
+- Card-grid blog UI with topic cover art; unified **AMUD Dashboard** branding.
+
+**Backend & polish**
+- `sanitize_theme_mode`, `sanitize_card_span`, reorder integration tests.
+- Drag: filter guard, error toasts, rollback, touch support; admin-only script load.
+- Light mode body/orb fixes; Sonar and CI rustfmt clean.
+
+**Upgrade:** `curl -sSL …/update-amud.sh | bash` — verify **Settings → System** shows `v1.5.0.0`.
+
+---
+
 ## v1.4.2.2 — Dashboard telemetry only (no System page)
 
 **2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.2) · [Compare v1.4.1.0…v1.4.2.2](https://github.com/boubli/AMUD-Dashboard/compare/v1.4.1.0...v1.4.2.2)

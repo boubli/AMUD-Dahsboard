@@ -6,7 +6,15 @@
 
 [![GitHub Release](https://img.shields.io/github/v/release/boubli/AMUD-Dashboard?style=flat-square)](https://github.com/boubli/AMUD-Dashboard/releases/latest)
 
-**[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
+**[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
+
+### What's new in v1.5.0.0
+
+- **Drag-and-drop** app card reorder (admin, handle-only)
+- **Bento spans** — wide/tall cards on the dashboard grid
+- **Light mode** + **video wallpaper** + **live settings preview**
+- Cinematic animations and glass polish throughout the UI
+- [Blog](https://boubli.github.io/AMUD-Dashboard/blog), [FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq), and [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes) on GitHub Pages
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

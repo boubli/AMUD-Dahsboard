@@ -8,6 +8,34 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.0.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.0.0) — 2026-06-20
+
+Major visual upgrade, drag-and-drop layout, light mode, and docs expansion.
+
+### Added
+- Cinematic dashboard animations (staggered cards, hover effects, ambient orbs, status pulse, greeting shimmer)
+- Admin drag-and-drop card reorder with CSRF-protected API and SQLite `sort_order`
+- Bento card spans (`1x1`, `2x1`, `1x2`) with mobile collapse
+- Light mode theme (`data-theme="light"`) across dashboard and settings
+- Video wallpaper support (`.mp4`, `.webm`, `.ogg`)
+- Live settings preview (accent, glass, wallpaper, overlay, grid columns, accent glow)
+- Docusaurus blog, FAQ, `llms.txt`, theme gallery, and JSON-LD SEO
+
+### Improved
+- Handle-only drag with category-filter guard, error toasts, rollback, and touch support
+- Settings wallpaper layers and theme mode on page load (no flash)
+- Light mode background polish and contrast fixes
+- Docker CI resilience; Sonar maintainability fixes
+
+### Fixed
+- New apps get `MAX(sort_order)+1`; reorder validates full app set
+- Add App modal preserves `card_span: '1x1'`
+- Admin-only `drag.js` loading
+
+See [release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.0.0).
+
+---
+
 ## [v1.4.2.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.4.2.2) — 2026-06-20
 
 Host telemetry and status polish on the main dashboard only.
