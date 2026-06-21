@@ -4,7 +4,7 @@ title: I Replaced Homepage YAML with a SQLite UI and I'm Not Going Back
 authors: [boubli]
 tags: [homelab, selfhosted]
 description: AMUD Dashboard stores your whole dashboard in amud.db. Edit in the browser, backup one file, never debug YAML indentation again.
-image: img/AMUD-Dashboard.png
+image: img/blog/sqlite.svg
 ---
 
 I lost a Saturday to a YAML space.

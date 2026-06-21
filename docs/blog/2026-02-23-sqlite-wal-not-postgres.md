@@ -4,7 +4,7 @@ title: Why AMUD Dashboard Uses SQLite Instead of Postgres (Yes, Really)
 authors: [boubli]
 tags: [rust, homelab]
 description: Embedded DB for embedded dashboard. WAL mode, single-file backup, no extra container for config storage.
-image: img/amud-architecture.svg
+image: img/blog/sqlite.svg
 ---
 
 "Why not Postgres?"

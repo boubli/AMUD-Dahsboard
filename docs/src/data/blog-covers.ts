@@ -1,37 +1,38 @@
-/** Cover image paths (relative to static/) for blog post cards. */
-const DEFAULT = 'img/AMUD-Dashboard.png';
+/** Cover image paths (relative to static/) — topic-specific, no random theme shots. */
+const DASHBOARD = 'img/AMUD-Dashboard.png';
 const ARCH = 'img/amud-architecture.svg';
-const NORD = 'themes/assets/AMUD-Theme-Nord.png';
-const DRACULA = 'themes/assets/AMUD-Theme-Dracula.png';
-const NEON = 'themes/assets/AMUD-Theme-Neon.png';
 
 const COVERS: Record<string, string> = {
-  'why-i-ditched-heavy-dashboards': DEFAULT,
-  'proxmox-one-command-install': ARCH,
-  'zero-yaml-sqlite': DEFAULT,
+  'why-i-ditched-heavy-dashboards': DASHBOARD,
+  'proxmox-one-command-install': 'img/blog/proxmox.svg',
+  'zero-yaml-sqlite': 'img/blog/sqlite.svg',
   'realtime-telemetry-no-shell-scripts': ARCH,
-  'lxc-status-badges': DEFAULT,
-  'docker-homelab-35mb': DEFAULT,
-  'plex-jellyfin-live-badges': DEFAULT,
-  'home-assistant-dashboard-card': DEFAULT,
-  'twelve-free-themes': NORD,
-  'securing-homelab-dashboard': DRACULA,
-  'reverse-proxy-websockets': DRACULA,
-  'amud-vs-heimdall-homepage-homarr': DEFAULT,
-  'bare-metal-linux': ARCH,
-  'backup-amud-db': DEFAULT,
-  'fix-checking-badge': DEFAULT,
-  'admin-vs-guest': NEON,
-  'wall-mounted-dashboard': NORD,
-  'portainer-deploy': DEFAULT,
-  'why-rust': ARCH,
-  'contribute-to-amud': DEFAULT,
+  'lxc-status-badges': 'img/blog/lxc.svg',
+  'docker-homelab-35mb': 'img/blog/docker.svg',
+  'plex-jellyfin-live-badges': 'img/blog/plex.svg',
+  'home-assistant-dashboard-card': 'img/blog/homeassistant.svg',
+  'twelve-free-themes': 'img/blog/themes-grid.svg',
+  'securing-homelab-dashboard': 'img/blog/security.svg',
+  'reverse-proxy-websockets': 'img/blog/nginx.svg',
+  'amud-vs-heimdall-homepage-homarr': 'img/blog/comparison.svg',
+  'bare-metal-linux-install': 'img/blog/linux.svg',
+  'backup-amud-db': 'img/blog/backup.svg',
+  'fix-checking-badge': DASHBOARD,
+  'admin-vs-guest': 'img/blog/admin-cockpit.png',
+  'wall-mounted-dashboard': 'img/blog/tablet.svg',
+  'portainer-deploy': 'img/blog/portainer.svg',
+  'why-rust-for-homelab-daemon': 'img/blog/rust.svg',
+  'contribute-to-amud': 'img/blog/opensource.svg',
   'why-two-binaries': ARCH,
-  'migrated-from-homepage': DEFAULT,
-  'sqlite-wal-not-postgres': ARCH,
-  'encrypted-secrets-at-rest': DRACULA,
+  'migrated-from-homepage': DASHBOARD,
+  'sqlite-wal-not-postgres': 'img/blog/sqlite.svg',
+  'encrypted-secrets-at-rest': 'img/blog/encryption.svg',
 };
 
 export function blogCoverForSlug(slug: string): string {
-  return COVERS[slug] ?? DEFAULT;
+  return COVERS[slug] ?? DASHBOARD;
+}
+
+export function blogCoverMap(): Readonly<Record<string, string>> {
+  return COVERS;
 }

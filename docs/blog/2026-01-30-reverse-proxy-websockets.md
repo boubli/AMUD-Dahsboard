@@ -4,7 +4,7 @@ title: Putting AMUD Dashboard Behind Nginx Without Breaking Live Metrics
 authors: [boubli]
 tags: [homelab, security]
 description: If your CPU graphs freeze at 0%, your reverse proxy probably isn't forwarding WebSocket upgrades. Fix inside.
-image: themes/assets/AMUD-Theme-Dracula.png
+image: img/blog/nginx.svg
 ---
 
 Deployed AMUD Dashboard behind Nginx, opened the page, everything looked fine except the CPU bar was stuck at 0% like the server was dead. Server wasn't dead. Nginx just ate the WebSocket upgrade.

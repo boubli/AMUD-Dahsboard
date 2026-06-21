@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b0e14"/>
+      <stop offset="100%" stop-color="#141a24"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#ff6b2b" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ff6b2b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ff6b2b"/>
+      <stop offset="100%" stop-color="#ff9f5a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <rect x="48" y="48" width="1184" height="624" rx="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+  <g transform="translate(640 250)"><rect x="-90" y="-70" width="180" height="140" rx="12" fill="#1f2937" stroke="#ff6b2b" stroke-width="3"/>
+      <rect x="-70" y="-45" width="140" height="18" rx="4" fill="#374151"/>
+      <rect x="-70" y="-18" width="100" height="10" rx="3" fill="#4b5563"/>
+      <rect x="-70" y="0" width="120" height="10" rx="3" fill="#4b5563"/>
+      <rect x="-70" y="18" width="80" height="10" rx="3" fill="#4b5563"/>
+      <path d="M55 -55 L95 -55 L95 55 L55 55 Z" fill="url(#accent)" opacity="0.9"/>
+      <text x="75" y="8" text-anchor="middle" fill="#0b0e14" font-size="28" font-weight="800">PVE</text></g>
+  <text x="640" y="500" text-anchor="middle" fill="#f4f4f5" font-family="system-ui,Segoe UI,sans-serif" font-size="42" font-weight="700">Proxmox Install</text>
+  <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">One-command LXC deployment</text>
+  <text x="640" y="640" text-anchor="middle" fill="#ff6b2b" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em">AMUD DASHBOARD BLOG</text>
+</svg>

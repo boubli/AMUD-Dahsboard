@@ -4,7 +4,7 @@ title: Deploying AMUD Dashboard Through Portainer (For Clickers Not SSHers)
 authors: [boubli]
 tags: [docker, homelab]
 description: Stack template, matching AMUD_AGENT_SECRET, Docker socket mount. GUI homelab crowd deserves dashboards too.
-image: img/AMUD-Dashboard.png
+image: img/blog/portainer.svg
 ---
 
 I live in SSH. Some of you live in Portainer. Both are valid.

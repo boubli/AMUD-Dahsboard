@@ -4,7 +4,7 @@ title: Guest Mode So Your Family Doesn't Stop the Plex Container
 authors: [boubli]
 tags: [homelab, security]
 description: Admin sees power controls. Guest sees links and optional telemetry. Kitchen tablet stays safe.
-image: themes/assets/AMUD-Theme-Neon.png
+image: img/blog/admin-cockpit.png
 ---
 
 Put a dashboard on a kitchen wall tablet. Someone will eventually tap the wrong button.

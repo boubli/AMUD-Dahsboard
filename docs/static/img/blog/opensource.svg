@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b0e14"/>
+      <stop offset="100%" stop-color="#141a24"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#ff6b2b" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ff6b2b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ff6b2b"/>
+      <stop offset="100%" stop-color="#ff9f5a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <rect x="48" y="48" width="1184" height="624" rx="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+  <g transform="translate(640 250)"><circle cx="0" cy="0" r="72" fill="#1f2937" stroke="#f4f4f5" stroke-width="3"/>
+      <path d="M0 20 C-35 20 -55 0 -55 -20 C-55 -42 -35 -55 0 -55 C35 -55 55 -42 55 -20 C55 0 35 20 0 20 Z" fill="#f4f4f5"/>
+      <circle cx="0" cy="-18" r="18" fill="#0b0e14"/>
+      <path d="M-55 -8 Q-72 10 -55 28" fill="none" stroke="#f4f4f5" stroke-width="8" stroke-linecap="round"/></g>
+  <text x="640" y="500" text-anchor="middle" fill="#f4f4f5" font-family="system-ui,Segoe UI,sans-serif" font-size="42" font-weight="700">Contribute</text>
+  <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">Issues, PRs, and homelab feedback</text>
+  <text x="640" y="640" text-anchor="middle" fill="#ff6b2b" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em">AMUD DASHBOARD BLOG</text>
+</svg>

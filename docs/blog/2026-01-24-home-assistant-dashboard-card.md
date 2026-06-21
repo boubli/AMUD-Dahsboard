@@ -4,7 +4,7 @@ title: Home Assistant Stats on Your Dashboard (Not Just a Link to :8123)
 authors: [boubli]
 tags: [integrations, homelab]
 description: Name your app card Home Assistant, drop in a long-lived token, get lights/switches/temp on the card.
-image: img/AMUD-Dashboard.png
+image: img/blog/homeassistant.svg
 ---
 
 I had a Home Assistant card that was literally just a URL. Useful, but my wall tablet deserved better.

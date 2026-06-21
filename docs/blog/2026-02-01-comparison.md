@@ -4,7 +4,7 @@ title: AMUD Dashboard vs Heimdall vs Homepage vs Homarr (I'll Be Honest)
 authors: [boubli]
 tags: [homelab, selfhosted]
 description: I built AMUD Dashboard so I'm biased. Here's when you'd still pick something else.
-image: img/AMUD-Dashboard.png
+image: img/blog/comparison.svg
 ---
 
 I built AMUD. I'm biased. Here's the honest comparison anyway.

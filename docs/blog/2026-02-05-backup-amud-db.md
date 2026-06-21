@@ -4,7 +4,7 @@ title: Back Up Your Entire Dashboard in One File
 authors: [boubli]
 tags: [homelab, selfhosted]
 description: amud.db is your whole config. Copy it. Don't forget .amud-secrets-key if you use encrypted integrations.
-image: img/AMUD-Dashboard.png
+image: img/blog/backup.svg
 ---
 
 I've seen people maintain elaborate backup scripts for YAML dashboards — git repos, env files, secret sidecars, three different paths.

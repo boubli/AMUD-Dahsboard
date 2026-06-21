@@ -4,7 +4,7 @@ title: Docker Homelab Monitoring in ~35MB RAM
 authors: [boubli]
 tags: [docker, homelab, selfhosted]
 description: Two containers, one shared socket volume, AMUD_DOCKER=1 on the agent. Not Proxmox-native but still lean.
-image: img/AMUD-Dashboard.png
+image: img/blog/docker.svg
 ---
 
 Not everyone runs Proxmox. Some of you are Docker-all-the-way-down and that's fine.

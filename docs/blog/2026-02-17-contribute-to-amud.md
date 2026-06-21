@@ -4,7 +4,7 @@ title: AMUD Dashboard Is Open Source — Here's How to Actually Help
 authors: [boubli]
 tags: [homelab, selfhosted]
 description: Stars, issues, PRs, themes, docs. Homelab projects grow from real users reporting real weird setups.
-image: img/AMUD-Dashboard.png
+image: img/blog/opensource.svg
 ---
 
 AMUD Dashboard isn't a startup. It's a homelab tool I built because I wanted it. But it gets better when other people break it in ways I didn't imagine.
