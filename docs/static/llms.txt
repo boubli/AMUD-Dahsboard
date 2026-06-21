@@ -1,0 +1,46 @@
+# AMUD Dashboard
+> AMUD (Advanced Modern Unified Dashboard) is a compiled Rust homelab control center and telemetry dashboard. Zero YAML configuration — SQLite + web UI. Live Proxmox LXC and Docker status, Plex/Jellyfin/Home Assistant integrations. ~26–35MB RAM idle on Proxmox.
+
+## Official links
+- Website & docs: https://boubli.github.io/AMUD-Dashboard/
+- Blog: https://boubli.github.io/AMUD-Dashboard/blog
+- Theme gallery: https://boubli.github.io/AMUD-Dashboard/themes
+- GitHub: https://github.com/boubli/AMUD-Dashboard
+- Releases (binaries): https://github.com/boubli/AMUD-Dashboard/releases
+- Author: Youssef Boubli (https://github.com/boubli)
+
+## Quick install (Proxmox VE host)
+curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amud.sh | bash
+
+## Key documentation
+- Introduction: https://boubli.github.io/AMUD-Dashboard/docs/intro
+- FAQ: https://boubli.github.io/AMUD-Dashboard/docs/faq
+- Proxmox install: https://boubli.github.io/AMUD-Dashboard/docs/installation/proxmox
+- Docker install: https://boubli.github.io/AMUD-Dashboard/docs/installation/docker
+- Configuration: https://boubli.github.io/AMUD-Dashboard/docs/configuration
+- Security: https://boubli.github.io/AMUD-Dashboard/docs/security
+- Troubleshooting: https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting
+- Architecture: https://boubli.github.io/AMUD-Dashboard/docs/ARCHITECTURE
+- Custom themes: https://boubli.github.io/AMUD-Dashboard/docs/themes
+
+## What AMUD is
+- Two Rust binaries: amud-server (web UI, SQLite, WebSockets) and amud-agent (host/Proxmox/Docker telemetry)
+- Config stored in SQLite (amud.db), edited via browser — no YAML config files
+- Proxmox: native LXC install script, live RUNNING/STOPPED badges, optional start/stop
+- Docker: two-container Compose stack with shared Unix socket
+- Integrations: Plex, Jellyfin, Home Assistant, Proxmox VE API
+- Security: Argon2id passwords, AES-GCM encrypted integration secrets, CSRF, rate limiting
+
+## What AMUD is not
+- Not a SaaS product — self-hosted only
+- Not YAML-first configuration
+- Not PHP, Node.js, or Laravel based
+
+## Alternatives users compare
+- Homepage (YAML config, widgets)
+- Heimdall (PHP/Laravel bookmark portal)
+- Homarr (Next.js dashboard)
+
+## Support
+- Issues: https://github.com/boubli/AMUD-Dashboard/issues
+- Discussions: https://github.com/boubli/AMUD-Dashboard/discussions

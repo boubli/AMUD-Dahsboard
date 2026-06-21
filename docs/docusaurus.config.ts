@@ -21,6 +21,67 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
 
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'description',
+        content:
+          'AMUD (Advanced Modern Unified Dashboard) — compiled Rust homelab dashboard. Zero YAML, live Proxmox and Docker telemetry, Plex/Jellyfin/Home Assistant. ~26MB RAM idle.',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'keywords',
+        content:
+          'AMUD, homelab dashboard, rust dashboard, proxmox dashboard, self-hosted, homepage alternative, heimdall alternative, homarr, zero yaml, sqlite',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {name: 'author', content: 'Youssef Boubli'},
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'alternate',
+        type: 'text/plain',
+        href: '/AMUD-Dashboard/llms.txt',
+        title: 'LLMs',
+      },
+    },
+    {
+      tagName: 'script',
+      attributes: {type: 'application/ld+json'},
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'AMUD Dashboard',
+        alternateName: 'AMUD',
+        description:
+          'Advanced Modern Unified Dashboard — compiled Rust homelab control center with zero-YAML SQLite configuration and live Proxmox/Docker telemetry.',
+        applicationCategory: 'SystemApplication',
+        operatingSystem: 'Linux',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+        author: {
+          '@type': 'Person',
+          name: 'Youssef Boubli',
+          email: 'bbb.vloger@gmail.com',
+          url: 'https://github.com/boubli',
+        },
+        url: 'https://boubli.github.io/AMUD-Dashboard/',
+        downloadUrl: 'https://github.com/boubli/AMUD-Dashboard/releases',
+        softwareHelp: 'https://boubli.github.io/AMUD-Dashboard/docs/faq',
+        codeRepository: 'https://github.com/boubli/AMUD-Dashboard',
+      }),
+    },
+  ],
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
@@ -35,7 +96,20 @@ const config: Config = {
           editUrl:
             'https://github.com/boubli/AMUD-Dashboard/tree/main/docs/',
         },
-        blog: false, // Disable the blog plugin
+        blog: {
+          routeBasePath: 'blog',
+          showReadingTime: true,
+          blogTitle: 'AMUD Blog',
+          blogDescription:
+            'Notes from building AMUD — a Rust homelab dashboard with zero YAML, live Proxmox telemetry, and way too much SQLite.',
+          postsPerPage: 12,
+          onUntruncatedBlogPosts: 'ignore',
+          feedOptions: {
+            type: 'all',
+            copyright: `Copyright © ${new Date().getFullYear()} AMUD Dashboard`,
+          },
+          editUrl: 'https://github.com/boubli/AMUD-Dashboard/tree/main/docs/',
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -62,6 +136,11 @@ const config: Config = {
           sidebarId: 'tutorialSidebar',
           position: 'left',
           label: 'Documentation',
+        },
+        {
+          to: '/blog',
+          label: 'Blog',
+          position: 'left',
         },
         {
           to: '/themes',
@@ -104,6 +183,10 @@ const config: Config = {
           title: 'Documentation',
           items: [
             {
+              label: 'Blog',
+              to: '/blog',
+            },
+            {
               label: 'Getting Started',
               to: '/docs/intro',
             },
@@ -114,6 +197,10 @@ const config: Config = {
             {
               label: 'Configuration',
               to: '/docs/configuration',
+            },
+            {
+              label: 'FAQ',
+              to: '/docs/faq',
             },
             {
               label: 'Troubleshooting',

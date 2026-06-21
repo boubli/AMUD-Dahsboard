@@ -1,19 +1,39 @@
-facebook:
-  label: Facebook
-  permalink: /facebook
-  description: Facebook tag description
+homelab:
+  label: Homelab
+  permalink: /homelab
+  description: Self-hosted homelab setups and workflows
 
-hello:
-  label: Hello
-  permalink: /hello
-  description: Hello tag description
+rust:
+  label: Rust
+  permalink: /rust
+  description: Rust architecture and implementation notes
 
-docusaurus:
-  label: Docusaurus
-  permalink: /docusaurus
-  description: Docusaurus tag description
+proxmox:
+  label: Proxmox
+  permalink: /proxmox
+  description: Proxmox VE installs, LXC, and API integration
 
-hola:
-  label: Hola
-  permalink: /hola
-  description: Hola tag description
+selfhosted:
+  label: Self-Hosted
+  permalink: /selfhosted
+  description: Self-hosted dashboards and services
+
+docker:
+  label: Docker
+  permalink: /docker
+  description: Docker and Compose deployments
+
+security:
+  label: Security
+  permalink: /security
+  description: Auth, secrets, and hardening
+
+themes:
+  label: Themes
+  permalink: /themes
+  description: Custom CSS and appearance
+
+integrations:
+  label: Integrations
+  permalink: /integrations
+  description: Plex, Jellyfin, Home Assistant, and more

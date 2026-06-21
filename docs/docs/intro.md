@@ -34,6 +34,8 @@ AMUD uses a decoupled client-server architecture to aggregate metrics and report
 
 ## Next Steps
 
+- [FAQ](./faq.md) — common questions (install, RAM, YAML, comparisons)
+- [Blog](/blog) — guides and homelab notes (canonical source for cross-posts)
 - [Dashboard Configuration](./configuration.md) — appearance, custom CSS, smart home, and media integrations
 - [Security](./security.md) — Argon2id passwords, sessions, rate limits, HTTPS cookies
 - [Troubleshooting](./troubleshooting.md) — upgrades, IPC auth, database backups, and CSS resets
