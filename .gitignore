@@ -56,6 +56,8 @@ AUDIT_TASKS.md
 
 # Local-only planning notes
 *.local.md
+assist/*-pr.md
+assist/*-notes.md
 docs/AMUD_AUDIT_TASKS.md
 docs/NEXT_SESSION*.md
 AUDIT_TASKS.md
