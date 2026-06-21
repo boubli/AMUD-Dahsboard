@@ -1982,6 +1982,7 @@ body.settings-page {
 
 :root[data-theme="light"] body.settings-page {
     background-color: #f0f2f5;
+    color-scheme: light;
 }
 
 :root[data-theme="light"] .wallpaper-overlay {
@@ -2374,10 +2375,6 @@ body::after {
 :root[data-theme="light"] .greeting-subtitle,
 :root[data-theme="light"] .clock-date {
     color: var(--text-secondary);
-}
-
-:root[data-theme="light"] body.settings-page {
-    color-scheme: light;
 }
 
 :root[data-theme="light"] .preview-scene {

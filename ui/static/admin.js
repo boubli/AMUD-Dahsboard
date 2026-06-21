@@ -169,8 +169,7 @@
         });
     }
 
-    function amudShowToast(message, type) {
-        const tone = type || 'error';
+    function amudShowToast(message, type = 'error') {
         let el = document.getElementById('amud-toast');
         if (!el) {
             el = document.createElement('div');
@@ -184,7 +183,7 @@
             warning: { bg: '#78350f', border: '#f59e0b' },
             success: { bg: '#14532d', border: '#22c55e' },
         };
-        const palette = colors[tone] || colors.error;
+        const palette = colors[type] || colors.error;
         el.style.background = palette.bg;
         el.style.borderLeft = '4px solid ' + palette.border;
         el.textContent = message;

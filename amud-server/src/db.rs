@@ -676,9 +676,11 @@ mod tests {
         let b = insert_test_app(&db, "b", 1);
         update_app_order(&db, &[b, a]).unwrap();
         let first: i64 = db
-            .query_row("SELECT id FROM apps ORDER BY sort_order ASC LIMIT 1", [], |r| {
-                r.get(0)
-            })
+            .query_row(
+                "SELECT id FROM apps ORDER BY sort_order ASC LIMIT 1",
+                [],
+                |r| r.get(0),
+            )
             .unwrap();
         assert_eq!(first, b);
     }
