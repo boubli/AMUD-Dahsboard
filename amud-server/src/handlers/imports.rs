@@ -14,7 +14,8 @@ pub(crate) use crate::db::{
     load_categories_json, load_users_json, load_webhooks_json, load_wol_devices_from_db,
     process_login, record_audit_blocking, refresh_settings_cache, secret_field_placeholder,
     secret_setting_configured, setting_value_or_existing, telemetry_public_from_cache,
-    update_category_by_id, with_db, CategoryDeleteError, DeleteUserError,
+    update_app_order, update_category_by_id, with_db, CategoryDeleteError,
+    DeleteUserError,
 };
 pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};
 pub(crate) use crate::models::{AppState, Session};

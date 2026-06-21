@@ -40,12 +40,17 @@ pub async fn add_app_handler(
             .map(|s| s.username.clone())
             .unwrap_or_default();
         let headers = headers.clone();
+        let card_span = form.get("card_span").cloned().unwrap_or_else(|| "1x1".to_string());
+        let valid_span = match card_span.as_str() {
+            "2x1" | "1x2" => card_span,
+            _ => "1x1".to_string(),
+        };
         with_db(state.db.clone(), move |db| {
             let category = crate::db::resolve_app_category(db, &category_input);
             if db
                 .execute(
-                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key],
+                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, card_span) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, valid_span],
                 )
                 .is_ok()
             {
@@ -140,6 +145,11 @@ pub async fn edit_app_handler(
                     .map(|s| s.username.clone())
                     .unwrap_or_default();
                 let headers = headers.clone();
+                let card_span = form.get("card_span").cloned().unwrap_or_else(|| "1x1".to_string());
+                let valid_span = match card_span.as_str() {
+                    "2x1" | "1x2" => card_span,
+                    _ => "1x1".to_string(),
+                };
                 with_db(state.db.clone(), move |db| {
                     let category = crate::db::resolve_app_category(db, &category_input);
                     let final_api_key = if api_key.trim().is_empty() || api_key == "Configured — leave blank to keep unchanged" {
@@ -151,8 +161,8 @@ pub async fn edit_app_handler(
                     };
                     if db
                         .execute(
-                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ? WHERE id = ?",
-                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, id],
+                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ?, card_span = ? WHERE id = ?",
+                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, valid_span, id],
                         )
                         .is_ok()
                     {
@@ -729,4 +739,41 @@ pub async fn delete_wol_device_handler(
         }
     }
     Redirect::to("/admin/settings").into_response()
+}
+
+pub async fn reorder_apps_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    body: String,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    #[derive(Deserialize)]
+    struct ReorderPayload {
+        ids: Vec<i64>,
+        csrf_token: String,
+    }
+
+    let Ok(payload) = serde_json::from_str::<ReorderPayload>(&body) else {
+        return api_json(StatusCode::BAD_REQUEST, serde_json::json!({"error": "Invalid payload"})).into_response();
+    };
+
+    let mut csrf_form = HashMap::new();
+    csrf_form.insert("csrf_token".to_string(), payload.csrf_token);
+
+    if !validate_csrf(&headers, &state.sessions, Some(&csrf_form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    let result = with_db(state.db.clone(), move |db| {
+        update_app_order(db, &payload.ids)
+    }).await;
+
+    match result {
+        Ok(()) => api_json(StatusCode::OK, serde_json::json!({"success": true})).into_response(),
+        Err(_) => api_json(StatusCode::INTERNAL_SERVER_ERROR, serde_json::json!({"error": "Failed to reorder"})).into_response(),
+    }
 }

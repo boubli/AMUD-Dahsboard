@@ -1838,3 +1838,572 @@ input[type="color"].form-control {
     animation: pulse-dot 1.8s infinite ease-in-out;
 }
 
+/* ============================================================
+   PHASE 1: CINEMATIC ANIMATIONS & VISUAL POLISH
+   ============================================================ */
+
+/* Card entrance animation — staggered cascade reveal */
+@keyframes fadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(24px) scale(0.97);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.app-card,
+.telemetry-card,
+.stream-card,
+.hero-section,
+.search-bar-wrapper,
+.category-filters-wrapper {
+    animation: fadeSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered delays for cascade effect */
+.topbar { animation: fadeSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.05s; }
+.hero-section { animation-delay: 0.1s; }
+.search-bar-wrapper { animation-delay: 0.15s; }
+.category-filters-wrapper { animation-delay: 0.2s; }
+
+.telemetry-card:nth-child(1) { animation-delay: 0.12s; }
+.telemetry-card:nth-child(2) { animation-delay: 0.18s; }
+.telemetry-card:nth-child(3) { animation-delay: 0.24s; }
+.telemetry-card:nth-child(4) { animation-delay: 0.30s; }
+.telemetry-card:nth-child(5) { animation-delay: 0.36s; }
+.telemetry-card:nth-child(6) { animation-delay: 0.42s; }
+
+.stream-card:nth-child(1) { animation-delay: 0.25s; }
+.stream-card:nth-child(2) { animation-delay: 0.32s; }
+
+.app-card:nth-child(1) { animation-delay: 0.15s; }
+.app-card:nth-child(2) { animation-delay: 0.2s; }
+.app-card:nth-child(3) { animation-delay: 0.25s; }
+.app-card:nth-child(4) { animation-delay: 0.3s; }
+.app-card:nth-child(5) { animation-delay: 0.35s; }
+.app-card:nth-child(6) { animation-delay: 0.4s; }
+.app-card:nth-child(7) { animation-delay: 0.43s; }
+.app-card:nth-child(8) { animation-delay: 0.46s; }
+.app-card:nth-child(9) { animation-delay: 0.49s; }
+.app-card:nth-child(n+10) { animation-delay: 0.52s; }
+
+/* Enhanced hover micro-interactions */
+.glass-panel:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transform: translateY(-3px);
+}
+
+.app-card.glass-panel {
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.app-card.glass-panel:hover {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow: 
+        0 16px 48px rgba(0, 0, 0, 0.35),
+        0 0 20px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Subtle accent border glow on card hover */
+.app-card.glass-panel:hover::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--accent-color), transparent 40%, transparent 60%, var(--accent-color));
+    opacity: 0.12;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.app-card {
+    position: relative;
+    overflow: visible;
+}
+
+/* Button spring hover */
+.filter-tab {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.filter-tab:hover {
+    transform: translateY(-2px) scale(1.03);
+}
+
+.btn {
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0) scale(0.97);
+}
+
+/* Ambient floating orbs — pure CSS background effects */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(100px);
+    opacity: 0.4;
+}
+
+body::before {
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--accent-color) 0%, transparent 70%);
+    top: -200px;
+    right: -150px;
+    animation: floatOrb1 25s ease-in-out infinite;
+}
+
+body::after {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+    bottom: -200px;
+    left: -100px;
+    animation: floatOrb2 30s ease-in-out infinite;
+}
+
+@keyframes floatOrb1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(-80px, 60px) scale(1.1); }
+    50% { transform: translate(-40px, 120px) scale(0.95); }
+    75% { transform: translate(60px, 40px) scale(1.05); }
+}
+
+@keyframes floatOrb2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(100px, -60px) scale(1.15); }
+    66% { transform: translate(40px, -120px) scale(0.9); }
+}
+
+/* Telemetry bar glow — pulsing at high usage */
+.telemetry-bar-fill {
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-color));
+    box-shadow: 0 0 8px var(--accent-glow);
+    transition: width 0.5s ease-out, box-shadow 0.5s ease;
+}
+
+/* Glass panel depth — inner glow + frosted noise */
+.glass-panel {
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Greeting title text shimmer */
+@keyframes textShimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.greeting-title {
+    background: linear-gradient(
+        90deg,
+        var(--text-primary) 0%,
+        var(--text-primary) 40%,
+        var(--accent-color) 50%,
+        var(--text-primary) 60%,
+        var(--text-primary) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: textShimmer 6s ease-in-out infinite;
+}
+
+/* Status badge pulse animation */
+.status-badge.status-online::before {
+    animation: statusPulse 2s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(33, 191, 75, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(33, 191, 75, 0); }
+}
+
+/* Clock subtle glow */
+.clock-time {
+    text-shadow: 0 0 30px var(--accent-glow);
+}
+
+/* ============================================================
+   PHASE 2: DRAG & DROP STYLES
+   ============================================================ */
+
+/* Drag handle — visible on admin hover */
+.drag-handle {
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2rem;
+    height: 0.35rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.2s ease, background 0.2s ease;
+    z-index: 5;
+}
+
+.app-card:hover .drag-handle {
+    opacity: 1;
+}
+
+.drag-handle:hover {
+    background: var(--accent-color);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Card being dragged */
+.app-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95) rotate(1deg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 30px var(--accent-glow);
+    z-index: 100;
+    transition: none;
+}
+
+/* Drop target indicator */
+.app-card.drag-over {
+    border-color: var(--accent-color) !important;
+    box-shadow: 
+        0 0 20px var(--accent-glow),
+        inset 0 0 20px var(--accent-glow) !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+/* Smooth reorder transition */
+.bento-grid.reordering .app-card {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), 
+                opacity 0.3s ease;
+}
+
+/* ============================================================
+   PHASE 3: PER-CARD SIZING (BENTO SPANS)
+   ============================================================ */
+
+.app-card.span-2 {
+    grid-column: span 2;
+}
+
+.app-card.span-tall {
+    grid-row: span 2;
+}
+
+/* Collapse spans on mobile */
+@media (max-width: 768px) {
+    .app-card.span-2,
+    .app-card.span-tall {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+}
+
+/* ============================================================
+   PHASE 5: LIGHT MODE
+   ============================================================ */
+
+:root[data-theme="light"] {
+    --bg-card: rgba(255, 255, 255, 0.65);
+    --border-card: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(0, 0, 0, 0.16);
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.1);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"] body {
+    background-color: #f0f2f5;
+    color: var(--text-primary);
+    color-scheme: light;
+    scrollbar-color: rgba(0, 0, 0, 0.16) rgba(0, 0, 0, 0.05);
+}
+
+/* Light mode glass panels */
+:root[data-theme="light"] .glass-panel {
+    background: var(--bg-card);
+    border-color: var(--border-card);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+:root[data-theme="light"] .glass-panel:hover {
+    border-color: var(--border-hover);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Light mode brand title */
+:root[data-theme="light"] .brand-title {
+    background: linear-gradient(135deg, #1e293b 60%, var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Light mode floating orbs — softer */
+:root[data-theme="light"] body::before {
+    opacity: 0.15;
+}
+
+:root[data-theme="light"] body::after {
+    opacity: 0.12;
+}
+
+/* Light mode greeting shimmer */
+:root[data-theme="light"] .greeting-title {
+    background: linear-gradient(
+        90deg,
+        #1e293b 0%,
+        #1e293b 40%,
+        var(--accent-color) 50%,
+        #1e293b 60%,
+        #1e293b 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Light mode status badges */
+:root[data-theme="light"] .status-badge.status-online {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+:root[data-theme="light"] .status-badge.status-offline,
+:root[data-theme="light"] .status-badge.down {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+:root[data-theme="light"] .status-badge.ms {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--text-secondary);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode modals and drawers */
+:root[data-theme="light"] .modal {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(248, 250, 252, 0.99));
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .modal-backdrop,
+:root[data-theme="light"] .drawer-backdrop {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="light"] .settings-drawer {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.99));
+}
+
+:root[data-theme="light"] .form-control {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+:root[data-theme="light"] select.form-control option {
+    background-color: #ffffff;
+    color: var(--text-primary);
+}
+
+:root[data-theme="light"] .btn-secondary {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+:root[data-theme="light"] .btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* Light mode scrollbar */
+:root[data-theme="light"] html::-webkit-scrollbar-thumb,
+:root[data-theme="light"] body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] html::-webkit-scrollbar-track,
+:root[data-theme="light"] body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* Light mode telemetry */
+:root[data-theme="light"] .telemetry-bar-container {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .stream-progress-track {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* Light mode clock */
+:root[data-theme="light"] .clock-time {
+    text-shadow: none;
+}
+
+/* Light mode support card */
+:root[data-theme="light"] .support-link {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+/* Light mode search */
+:root[data-theme="light"] .search-engine-select {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="light"] .search-engine-select option {
+    background-color: #ffffff;
+    color: var(--text-primary);
+}
+
+/* Light mode ws status pill */
+:root[data-theme="light"] .ws-status-pill {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-secondary);
+}
+
+/* Light mode filter tab active */
+:root[data-theme="light"] .filter-tab {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: var(--text-secondary);
+}
+
+:root[data-theme="light"] .filter-tab.active {
+    color: #ffffff;
+}
+
+/* Light mode nested metrics */
+:root[data-theme="light"] .nested-metrics-grid {
+    border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .metric-block {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+/* Light mode update banner */
+:root[data-theme="light"] .update-banner {
+    background: linear-gradient(135deg, rgba(255, 237, 186, 0.8), rgba(255, 243, 207, 0.6));
+    border-bottom-color: rgba(210, 153, 34, 0.3);
+}
+
+/* Light mode settings page */
+:root[data-theme="light"] .settings-sidebar {
+    background: rgba(255, 255, 255, 0.7);
+    border-right-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .settings-block {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .nav-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .nav-item.active {
+    background: var(--accent-glow);
+}
+
+/* Light mode container controls */
+:root[data-theme="light"] .container-controls {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .btn-ctrl {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: var(--text-secondary);
+}
+
+/* ============================================================
+   PHASE 6: VIDEO WALLPAPER SUPPORT
+   ============================================================ */
+
+.video-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* When video bg is present, remove body background-image */
+body.has-video-bg {
+    background-image: none !important;
+}
+
+/* Disable heavy animations on mobile for performance */
+@media (max-width: 768px) {
+    body::before,
+    body::after {
+        display: none;
+    }
+    
+    .greeting-title {
+        animation: none;
+    }
+    
+    .app-card.glass-panel:hover {
+        transform: translateY(-2px);
+    }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+    
+    body::before,
+    body::after {
+        display: none;
+    }
+}
+

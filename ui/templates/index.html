@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{theme_mode}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -20,6 +20,7 @@
     <!-- Lucide Vector Icons -->
     <script src="/static/vendor/lucide.min.js"></script>
     <script src="/static/admin.js"></script>
+    <script src="/static/drag.js"></script>
 
     <!-- Inline variables setup for clean database variable override -->
     <style>
@@ -29,7 +30,8 @@
     </style>
     <style id="amud-custom-css">{{custom_css}}</style>
 </head>
-<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '' } }">
+<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1' } }" class="{{video_bg_class}}">
+    {{video_bg_element}}
     {{update_banner}}
     <div class="dashboard-container">
         
@@ -241,6 +243,16 @@
             </div>
 
             <div class="form-group">
+                <label for="add-app-card-span">Card Layout Size</label>
+                <select id="add-app-card-span" name="card_span" x-model="newApp.card_span" class="form-control">
+                    <option value="1x1">1x1 Standard</option>
+                    <option value="2x1">2x1 Wide</option>
+                    <option value="1x2">1x2 Tall</option>
+                </select>
+                <p class="form-help">Choose the card dimensions for the Bento Grid layout.</p>
+            </div>
+
+            <div class="form-group">
                 <label for="add-app-node-tag">Node Tag</label>
                 <input type="text" id="add-app-node-tag" name="node_tag" class="form-control" placeholder="e.g. Local, PVE-1 (Defaults to Local)">
             </div>
@@ -322,6 +334,16 @@
                 <select id="edit-app-category" name="category" x-model="editApp.category" class="form-control">
                     <!-- CATEGORY_OPTIONS -->
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-app-card-span">Card Layout Size</label>
+                <select id="edit-app-card-span" name="card_span" x-model="editApp.card_span" class="form-control">
+                    <option value="1x1">1x1 Standard</option>
+                    <option value="2x1">2x1 Wide</option>
+                    <option value="1x2">1x2 Tall</option>
+                </select>
+                <p class="form-help">Choose the card dimensions for the Bento Grid layout.</p>
             </div>
 
             <div class="form-group">

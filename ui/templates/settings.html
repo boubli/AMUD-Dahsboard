@@ -419,91 +419,132 @@
                         <h1 class="settings-page-title">Appearance</h1>
                         <p class="settings-page-subtitle">Personalize your visual experience with themes, wallpapers, and glass effects.</p>
                         
-                        <div class="settings-block">
-                            <h3><i data-lucide="image" style="color:var(--accent-color);"></i> Wallpaper & Logos</h3>
-                            <div class="form-group">
-                                <label for="setting-custom-bg-url">Wallpaper Background (URL or Upload)</label>
-                                <input type="text" id="setting-custom-bg-url" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="/static/wallpaper.png">
-                                <div class="upload-zone" @click="$refs.bgFileInput.click()" style="margin-top:0.5rem;">
-                                    <label for="setting-bg-file" class="visually-hidden">Upload wallpaper image</label>
-                                    <input type="file" id="setting-bg-file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
-                                    <i data-lucide="upload-cloud"></i>
-                                    <span>Select wallpaper image</span>
+                        <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
+                            <div style="flex: 2; min-width: 320px; display: flex; flex-direction: column; gap: 2rem;">
+                                <div class="settings-block" style="margin:0;">
+                                    <h3><i data-lucide="image" style="color:var(--accent-color);"></i> Wallpaper & Logos</h3>
+                                    <div class="form-group">
+                                        <label for="setting-custom-bg-url">Wallpaper Background (URL or Upload)</label>
+                                        <input type="text" id="setting-custom-bg-url" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="/static/wallpaper.png">
+                                        <div class="upload-zone" @click="$refs.bgFileInput.click()" style="margin-top:0.5rem;">
+                                            <label for="setting-bg-file" class="visually-hidden">Upload wallpaper image</label>
+                                            <input type="file" id="setting-bg-file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
+                                            <i data-lucide="upload-cloud"></i>
+                                            <span>Select wallpaper image</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top:1.5rem;">
+                                        <label for="setting-app-logo">Dashboard Logo (URL or Upload)</label>
+                                        <input type="text" id="setting-app-logo" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
+                                        <div class="upload-zone" @click="$refs.logoFileInput.click()" style="margin-top:0.5rem;">
+                                            <label for="setting-logo-file" class="visually-hidden">Upload logo image</label>
+                                            <input type="file" id="setting-logo-file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
+                                            <i data-lucide="upload-cloud"></i>
+                                            <span>Select logo image</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-group" style="margin-top:1.5rem;">
-                                <label for="setting-app-logo">Dashboard Logo (URL or Upload)</label>
-                                <input type="text" id="setting-app-logo" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
-                                <div class="upload-zone" @click="$refs.logoFileInput.click()" style="margin-top:0.5rem;">
-                                    <label for="setting-logo-file" class="visually-hidden">Upload logo image</label>
-                                    <input type="file" id="setting-logo-file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
-                                    <i data-lucide="upload-cloud"></i>
-                                    <span>Select logo image</span>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="settings-block">
-                            <h3><i data-lucide="palette" style="color:var(--accent-color);"></i> Color & Theme</h3>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                <div class="form-group">
-                                    <label for="setting-accent-color">Accent Color</label>
-                                    <input type="color" id="setting-accent-color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
+                                <div class="settings-block" style="margin:0;">
+                                    <h3><i data-lucide="palette" style="color:var(--accent-color);"></i> Color & Theme</h3>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                        <div class="form-group">
+                                            <label for="setting-accent-color">Accent Color</label>
+                                            <input type="color" id="setting-accent-color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="overlay-theme-select">Wallpaper Overlay Tint Theme</label>
+                                            <select name="overlay_theme" id="overlay-theme-select" class="form-control" style="height:3rem; cursor:pointer;" @change="toggleCustomOverlay()">
+                                                <option value="cyber" {{eq_cyber}}>Cyber (Vibrant Violet/Blue - Default)</option>
+                                                <option value="aurora" {{eq_aurora}}>Aurora (Mystic Teal/Emerald)</option>
+                                                <option value="crimson" {{eq_crimson}}>Crimson (Blood Red/Charcoal)</option>
+                                                <option value="sunset" {{eq_sunset}}>Sunset (Deep Amber/Twilight Violet)</option>
+                                                <option value="obsidian" {{eq_obsidian}}>Obsidian (Monochrome Dark Slate)</option>
+                                                <option value="custom" {{eq_custom}}>Custom (Pick Your Own Color)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top:1rem;">
+                                        <div class="form-group">
+                                            <label for="theme-mode-select">Theme Mode</label>
+                                            <select name="theme_mode" id="theme-mode-select" class="form-control" style="height:3rem; cursor:pointer;">
+                                                <option value="dark" {{eq_theme_dark}}>Dark Mode</option>
+                                                <option value="light" {{eq_theme_light}}>Light Mode</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" id="custom-overlay-group" style="display:none;">
+                                            <label for="setting-custom-overlay-color">Custom Overlay Color</label>
+                                            <input type="color" id="setting-custom-overlay-color" name="custom_overlay_color" class="form-control" value="{{custom_overlay_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="overlay-theme-select">Wallpaper Overlay Tint Theme</label>
-                                    <select name="overlay_theme" id="overlay-theme-select" class="form-control" style="height:3rem; cursor:pointer;" @change="toggleCustomOverlay()">
-                                        <option value="cyber" {{eq_cyber}}>Cyber (Vibrant Violet/Blue - Default)</option>
-                                        <option value="aurora" {{eq_aurora}}>Aurora (Mystic Teal/Emerald)</option>
-                                        <option value="crimson" {{eq_crimson}}>Crimson (Blood Red/Charcoal)</option>
-                                        <option value="sunset" {{eq_sunset}}>Sunset (Deep Amber/Twilight Violet)</option>
-                                        <option value="obsidian" {{eq_obsidian}}>Obsidian (Monochrome Dark Slate)</option>
-                                        <option value="custom" {{eq_custom}}>Custom (Pick Your Own Color)</option>
-                                    </select>
+
+                                <div class="settings-block" style="margin:0;">
+                                    <h3><i data-lucide="sliders" style="color:var(--accent-color);"></i> Glass & Layout Parameters</h3>
+                                    <div class="form-group">
+                                        <label for="setting-bento-radius">Corner Bento Radius (px)</label>
+                                        <input type="range" id="setting-bento-radius" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
+                                    </div>
+                                    <div class="form-group" style="margin-top:1.5rem;">
+                                        <label for="setting-grid-columns">Dashboard App Columns</label>
+                                        <select id="setting-grid-columns" name="grid_columns" class="form-control">
+                                            <option value="2" {{eq_grid_2}}>2 columns</option>
+                                            <option value="3" {{eq_grid_3}}>3 columns</option>
+                                            <option value="4" {{eq_grid_4}}>4 columns</option>
+                                            <option value="5" {{eq_grid_5}}>5 columns</option>
+                                        </select>
+                                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Controls the main app card grid on desktop screens.</p>
+                                    </div>
+                                    <div class="form-group" style="margin-top:1.5rem;">
+                                        <label for="setting-glass-opacity">Glass Panel Opacity</label>
+                                        <input type="range" id="setting-glass-opacity" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
+                                    </div>
+                                    <div class="form-group" style="margin-top:1.5rem;">
+                                        <label for="setting-glass-blur">Glass Blur Strength (px)</label>
+                                        <input type="range" id="setting-glass-blur" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
+                                    </div>
+                                </div>
+
+                                <div class="settings-block" style="margin:0;">
+                                    <h3><i data-lucide="code" style="color:var(--accent-color);"></i> Custom CSS</h3>
+                                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+                                        Browse themes with preview screenshots on the
+                                        <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Theme Gallery</a>,
+                                        click <strong>Copy CSS</strong>, then paste below and save.
+                                    </p>
+                                    <div class="form-group">
+                                        <label for="setting-custom-css">CSS Overrides</label>
+                                        <textarea id="setting-custom-css" name="custom_css" class="form-control" rows="6" placeholder="body { ... }" style="font-family:monospace; resize:vertical;" @input="unsavedChanges = true">{{custom_css}}</textarea>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="form-group" id="custom-overlay-group" style="margin-top:1rem; display:none;">
-                                <label for="setting-custom-overlay-color">Custom Overlay Color</label>
-                                <input type="color" id="setting-custom-overlay-color" name="custom_overlay_color" class="form-control" value="{{custom_overlay_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
-                            </div>
-                        </div>
 
-                        <div class="settings-block">
-                            <h3><i data-lucide="sliders" style="color:var(--accent-color);"></i> Glass & Layout Parameters</h3>
-                            <div class="form-group">
-                                <label for="setting-bento-radius">Corner Bento Radius (px)</label>
-                                <input type="range" id="setting-bento-radius" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
-                            </div>
-                            <div class="form-group" style="margin-top:1.5rem;">
-                                <label for="setting-grid-columns">Dashboard App Columns</label>
-                                <select id="setting-grid-columns" name="grid_columns" class="form-control">
-                                    <option value="2" {{eq_grid_2}}>2 columns</option>
-                                    <option value="3" {{eq_grid_3}}>3 columns</option>
-                                    <option value="4" {{eq_grid_4}}>4 columns</option>
-                                    <option value="5" {{eq_grid_5}}>5 columns</option>
-                                </select>
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Controls the main app card grid on desktop screens.</p>
-                            </div>
-                            <div class="form-group" style="margin-top:1.5rem;">
-                                <label for="setting-glass-opacity">Glass Panel Opacity</label>
-                                <input type="range" id="setting-glass-opacity" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
-                            </div>
-                            <div class="form-group" style="margin-top:1.5rem;">
-                                <label for="setting-glass-blur">Glass Blur Strength (px)</label>
-                                <input type="range" id="setting-glass-blur" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
-                            </div>
-                        </div>
-
-                        <div class="settings-block">
-                            <h3><i data-lucide="code" style="color:var(--accent-color);"></i> Custom CSS</h3>
-                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
-                                Browse themes with preview screenshots on the
-                                <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Theme Gallery</a>,
-                                click <strong>Copy CSS</strong>, then paste below and save.
-                            </p>
-                            <div class="form-group">
-                                <label for="setting-custom-css">CSS Overrides</label>
-                                <textarea id="setting-custom-css" name="custom_css" class="form-control" rows="6" placeholder="body { ... }" style="font-family:monospace; resize:vertical;" @input="unsavedChanges = true">{{custom_css}}</textarea>
+                            <div style="flex: 1; min-width: 280px; position: sticky; top: 2rem; display: flex; flex-direction: column; gap: 2rem;" class="preview-container">
+                                <div class="settings-block" style="margin:0;">
+                                    <h3><i data-lucide="eye" style="color:var(--accent-color);"></i> Live Preview</h3>
+                                    <div class="glass-panel app-card preview-card" style="border-radius: var(--preview-radius, 16px); background: var(--preview-bg, rgba(15, 20, 25, 0.45)); backdrop-filter: blur(var(--preview-blur, 16px)); padding: 1.5rem; transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.08); position: relative; overflow: visible;">
+                                        <div class="drag-handle" style="opacity: 1; pointer-events: none;"></div>
+                                        
+                                        <div class="app-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                            <div class="app-card-identity" style="display: flex; align-items: center; gap: 0.75rem;">
+                                                <div class="app-card-icon" style="width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--preview-accent, #cf6427); display: flex; align-items: center; justify-content: center; color: white;">
+                                                    <i data-lucide="eye" style="width: 1.25rem; height: 1.25rem;"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 style="margin: 0; font-size: 1rem; color: var(--preview-text-primary, #ffffff);">Live Preview</h4>
+                                                    <p style="margin: 0; font-size: 0.75rem; color: var(--preview-text-secondary, #94a3b8);">Interactive demo card</p>
+                                                </div>
+                                            </div>
+                                            <span class="status-badge status-online" style="font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(33, 191, 75, 0.1); color: #21bf4b; border: 1px solid rgba(33, 191, 75, 0.2);">Online</span>
+                                        </div>
+                                        <div class="app-card-body" style="font-size: 0.85rem; color: var(--preview-text-secondary, #94a3b8); margin-bottom: 1rem; line-height: 1.4;">
+                                            Observe how changing values on the left alters the dashboard's design and this card in real-time.
+                                        </div>
+                                        <div class="app-card-footer" style="display: flex; gap: 0.5rem;">
+                                            <button type="button" class="btn btn-primary" style="flex: 1; padding: 0.5rem; font-size: 0.8rem; background: var(--preview-accent, #cf6427); border: none; color: white; border-radius: 6px; cursor: pointer;">Action Button</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1401,6 +1442,57 @@
             }
         }
 
+        function initLivePreview() {
+            const accentInput = document.getElementById('setting-accent-color');
+            const blurInput = document.getElementById('setting-glass-blur');
+            const opacityInput = document.getElementById('setting-glass-opacity');
+            const radiusInput = document.getElementById('setting-bento-radius');
+            const themeModeSelect = document.getElementById('theme-mode-select');
+            const preview = document.querySelector('.preview-card');
+
+            function updatePreview() {
+                if (!preview) return;
+                const accent = accentInput ? accentInput.value : '#cf6427';
+                const blur = blurInput ? blurInput.value : '16';
+                const opacity = opacityInput ? opacityInput.value : '0.45';
+                const radius = radiusInput ? radiusInput.value : '16';
+                const themeMode = themeModeSelect ? themeModeSelect.value : 'dark';
+
+                // Update page variables in real-time
+                document.documentElement.style.setProperty('--accent-color', accent);
+                document.documentElement.style.setProperty('--glass-blur-intensity', blur + 'px');
+                document.documentElement.style.setProperty('--glass-opacity', opacity);
+                document.documentElement.style.setProperty('--radius-xl', radius + 'px');
+                
+                // Update HTML tag data-theme
+                document.documentElement.setAttribute('data-theme', themeMode);
+
+                // Set preview specific styles
+                preview.style.setProperty('--preview-accent', accent);
+                preview.style.setProperty('--preview-blur', blur + 'px');
+                preview.style.setProperty('--preview-radius', radius + 'px');
+
+                if (themeMode === 'light') {
+                    preview.style.setProperty('--preview-bg', `rgba(255, 255, 255, ${opacity})`);
+                    preview.style.setProperty('--preview-text-primary', '#1e293b');
+                    preview.style.setProperty('--preview-text-secondary', '#475569');
+                    preview.style.borderColor = 'rgba(0, 0, 0, 0.08)';
+                } else {
+                    preview.style.setProperty('--preview-bg', `rgba(15, 20, 25, ${opacity})`);
+                    preview.style.setProperty('--preview-text-primary', '#ffffff');
+                    preview.style.setProperty('--preview-text-secondary', '#94a3b8');
+                    preview.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                }
+            }
+
+            [accentInput, blurInput, opacityInput, radiusInput, themeModeSelect].forEach(el => {
+                if (el) el.addEventListener('input', updatePreview);
+            });
+
+            // Initial call
+            updatePreview();
+        }
+
         function toggleCustomOverlay() {
             const sel = document.getElementById('overlay-theme-select').value;
             const cg = document.getElementById('custom-overlay-group');
@@ -1413,6 +1505,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
             toggleCustomOverlay();
+            initLivePreview();
         });
 
         async function parseApiResponse(res) {

@@ -26,6 +26,10 @@ pub struct App {
     pub(crate) integration_type: String,
     #[serde(default)]
     pub(crate) api_key: String,
+    #[serde(default)]
+    pub(crate) sort_order: i64,
+    #[serde(default)]
+    pub(crate) card_span: String,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

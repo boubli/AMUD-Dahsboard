@@ -102,6 +102,9 @@ pub async fn run() {
 
     let _ = conn.execute("ALTER TABLE apps ADD COLUMN api_key TEXT DEFAULT ''", []);
 
+    let _ = conn.execute("ALTER TABLE apps ADD COLUMN sort_order INTEGER DEFAULT 0", []);
+    let _ = conn.execute("ALTER TABLE apps ADD COLUMN card_span TEXT DEFAULT '1x1'", []);
+
     conn.execute(
         "CREATE TABLE IF NOT EXISTS wol_devices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -354,6 +357,7 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/apps", post(add_app_handler))
         .route("/apps/delete", post(delete_app_handler))
         .route("/apps/edit", post(edit_app_handler))
+        .route("/apps/reorder", post(reorder_apps_handler))
         .route("/apps/wake", post(wake_app_handler))
         .route("/apps/action", post(app_action_handler))
         .route("/api/wol", get(list_wol_devices_handler))

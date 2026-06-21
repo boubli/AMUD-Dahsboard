@@ -133,6 +133,7 @@ pub(crate) struct BrandingVars {
     pub grid_columns: Option<String>,
     pub overlay_theme: String,
     pub custom_overlay_color: String,
+    pub theme_mode: String,
 }
 
 pub(crate) fn branding_from_settings(settings: &HashMap<String, String>) -> BrandingVars {
@@ -197,6 +198,10 @@ pub(crate) fn branding_from_settings(settings: &HashMap<String, String>) -> Bran
             .get("custom_overlay_color")
             .cloned()
             .unwrap_or_else(|| "#1a1a2e".to_string()),
+        theme_mode: settings
+            .get("theme_mode")
+            .cloned()
+            .unwrap_or_else(|| "dark".to_string()),
     }
 }
 

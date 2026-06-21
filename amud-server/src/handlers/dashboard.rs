@@ -216,6 +216,27 @@ pub async fn dashboard_handler(
             &escape_html(&update_status_class),
         )
         .replace("{{update_banner}}", &update_banner);
+
+    // Theme mode (light/dark)
+    let theme_mode = &branding.theme_mode;
+    let result = result.replace("{{theme_mode}}", &escape_html(theme_mode));
+
+    // Video wallpaper support
+    let bg_url = &branding.custom_bg_url;
+    let is_video_bg = bg_url.ends_with(".mp4") || bg_url.ends_with(".webm");
+    let video_bg_element = if is_video_bg {
+        format!(
+            r#"<video class="video-bg" autoplay muted loop playsinline><source src="{}" type="video/{}"></video>"#,
+            escape_html(bg_url),
+            if bg_url.ends_with(".webm") { "webm" } else { "mp4" }
+        )
+    } else {
+        String::new()
+    };
+    let result = result
+        .replace("{{video_bg_class}}", if is_video_bg { "has-video-bg" } else { "" })
+        .replace("{{video_bg_element}}", &video_bg_element);
+
     let result = apply_theme_placeholders(result, &branding.overlay_theme);
 
     Html(apply_csp_nonce(result, &csp.0))
@@ -409,9 +430,15 @@ fn render_apps_grid(
             ""
         };
 
+        let span_class = match app.card_span.as_str() {
+            "2x1" => " span-2",
+            "1x2" => " span-tall",
+            _ => "",
+        };
+
         let card = format!(
             r#"
-            <div class="glass-panel app-card{}" data-app-name="{}" data-category="{}" data-container-aliases="{}" data-host-agent-app="{}" {}>
+            <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-container-aliases="{}" data-host-agent-app="{}" {}>
                 <div class="app-card-header">
                     <a href="{}" target="_blank" rel="noopener noreferrer" class="app-card-identity" style="text-decoration:none; color:inherit;">
                         <div class="app-card-icon">
@@ -432,7 +459,9 @@ fn render_apps_grid(
                 {}
             </div>"#,
             guest_compact_class,
+            span_class,
             escape_html(&name_lower),
+            app.id,
             escape_html(&cat_slug),
             escape_html(&container_aliases),
             if is_host_agent_app { "true" } else { "false" },

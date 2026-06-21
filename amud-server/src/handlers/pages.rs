@@ -193,6 +193,14 @@ pub async fn settings_page_handler(
             } else {
                 ""
             },
+        )
+        .replace(
+            "{{eq_theme_dark}}",
+            crate::templates::theme_eq_attr(&branding.theme_mode, "dark"),
+        )
+        .replace(
+            "{{eq_theme_light}}",
+            crate::templates::theme_eq_attr(&branding.theme_mode, "light"),
         );
     let result = apply_theme_placeholders(result, overlay_theme);
 

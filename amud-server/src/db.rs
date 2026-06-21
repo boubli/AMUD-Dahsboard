@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex, RwLock};
 pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
     let mut apps = Vec::new();
     let Ok(mut stmt) = db.prepare(
-        "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key FROM apps ORDER BY id DESC",
+        "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span FROM apps ORDER BY sort_order ASC, id ASC",
     ) else {
         return apps;
     };
@@ -34,6 +34,8 @@ pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
                     let raw_key = row.get::<_, String>(9).unwrap_or_default();
                     crate::secrets::decrypt_value(&raw_key).unwrap_or(raw_key)
                 },
+                sort_order: row.get(10).unwrap_or(0),
+                card_span: row.get(11).unwrap_or_else(|_| "1x1".to_string()),
             })
         })() {
             apps.push(app);
@@ -574,6 +576,18 @@ pub(crate) fn load_settings_snapshot(db: &Arc<Mutex<Connection>>) -> HashMap<Str
     }
     settings
 }
+
+pub(crate) fn update_app_order(db: &Connection, ids: &[i64]) -> Result<(), rusqlite::Error> {
+    let tx = db.unchecked_transaction()?;
+    for (i, id) in ids.iter().enumerate() {
+        tx.execute(
+            "UPDATE apps SET sort_order = ? WHERE id = ?",
+            params![i as i64, id],
+        )?;
+    }
+    tx.commit()
+}
+
 
 #[cfg(test)]
 mod tests {

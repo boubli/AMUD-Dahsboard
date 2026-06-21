@@ -38,6 +38,7 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "weather_latitude",
     "weather_longitude",
     "accept_invalid_certs",
+    "theme_mode",
 ];
 
 pub(crate) fn allowed_setting_keys() -> std::collections::HashSet<String> {
