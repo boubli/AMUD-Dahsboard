@@ -547,6 +547,8 @@ mod tests {
             mac_address: String::new(),
             integration_type: String::new(),
             api_key: String::new(),
+            sort_order: 0,
+            card_span: "1x1".to_string(),
         }
     }
 

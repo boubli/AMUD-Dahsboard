@@ -588,7 +588,6 @@ pub(crate) fn update_app_order(db: &Connection, ids: &[i64]) -> Result<(), rusql
     tx.commit()
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

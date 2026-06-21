@@ -40,7 +40,10 @@ pub async fn add_app_handler(
             .map(|s| s.username.clone())
             .unwrap_or_default();
         let headers = headers.clone();
-        let card_span = form.get("card_span").cloned().unwrap_or_else(|| "1x1".to_string());
+        let card_span = form
+            .get("card_span")
+            .cloned()
+            .unwrap_or_else(|| "1x1".to_string());
         let valid_span = match card_span.as_str() {
             "2x1" | "1x2" => card_span,
             _ => "1x1".to_string(),
@@ -145,7 +148,10 @@ pub async fn edit_app_handler(
                     .map(|s| s.username.clone())
                     .unwrap_or_default();
                 let headers = headers.clone();
-                let card_span = form.get("card_span").cloned().unwrap_or_else(|| "1x1".to_string());
+                let card_span = form
+                    .get("card_span")
+                    .cloned()
+                    .unwrap_or_else(|| "1x1".to_string());
                 let valid_span = match card_span.as_str() {
                     "2x1" | "1x2" => card_span,
                     _ => "1x1".to_string(),
@@ -758,7 +764,11 @@ pub async fn reorder_apps_handler(
     }
 
     let Ok(payload) = serde_json::from_str::<ReorderPayload>(&body) else {
-        return api_json(StatusCode::BAD_REQUEST, serde_json::json!({"error": "Invalid payload"})).into_response();
+        return api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"error": "Invalid payload"}),
+        )
+        .into_response();
     };
 
     let mut csrf_form = HashMap::new();
@@ -770,10 +780,15 @@ pub async fn reorder_apps_handler(
 
     let result = with_db(state.db.clone(), move |db| {
         update_app_order(db, &payload.ids)
-    }).await;
+    })
+    .await;
 
     match result {
         Ok(()) => api_json(StatusCode::OK, serde_json::json!({"success": true})).into_response(),
-        Err(_) => api_json(StatusCode::INTERNAL_SERVER_ERROR, serde_json::json!({"error": "Failed to reorder"})).into_response(),
+        Err(_) => api_json(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            serde_json::json!({"error": "Failed to reorder"}),
+        )
+        .into_response(),
     }
 }

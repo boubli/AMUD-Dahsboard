@@ -228,13 +228,20 @@ pub async fn dashboard_handler(
         format!(
             r#"<video class="video-bg" autoplay muted loop playsinline><source src="{}" type="video/{}"></video>"#,
             escape_html(bg_url),
-            if bg_url.ends_with(".webm") { "webm" } else { "mp4" }
+            if bg_url.ends_with(".webm") {
+                "webm"
+            } else {
+                "mp4"
+            }
         )
     } else {
         String::new()
     };
     let result = result
-        .replace("{{video_bg_class}}", if is_video_bg { "has-video-bg" } else { "" })
+        .replace(
+            "{{video_bg_class}}",
+            if is_video_bg { "has-video-bg" } else { "" },
+        )
         .replace("{{video_bg_element}}", &video_bg_element);
 
     let result = apply_theme_placeholders(result, &branding.overlay_theme);

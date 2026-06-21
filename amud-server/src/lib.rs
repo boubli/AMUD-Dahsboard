@@ -102,8 +102,14 @@ pub async fn run() {
 
     let _ = conn.execute("ALTER TABLE apps ADD COLUMN api_key TEXT DEFAULT ''", []);
 
-    let _ = conn.execute("ALTER TABLE apps ADD COLUMN sort_order INTEGER DEFAULT 0", []);
-    let _ = conn.execute("ALTER TABLE apps ADD COLUMN card_span TEXT DEFAULT '1x1'", []);
+    let _ = conn.execute(
+        "ALTER TABLE apps ADD COLUMN sort_order INTEGER DEFAULT 0",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE apps ADD COLUMN card_span TEXT DEFAULT '1x1'",
+        [],
+    );
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS wol_devices (

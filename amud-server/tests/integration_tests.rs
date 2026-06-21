@@ -34,7 +34,9 @@ fn setup_test_db() -> Connection {
             node_tag TEXT DEFAULT 'Local',
             mac_address TEXT DEFAULT '',
             integration_type TEXT DEFAULT '',
-            api_key TEXT DEFAULT ''
+            api_key TEXT DEFAULT '',
+            sort_order INTEGER DEFAULT 0,
+            card_span TEXT DEFAULT '1x1'
         );
         CREATE TABLE IF NOT EXISTS categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
