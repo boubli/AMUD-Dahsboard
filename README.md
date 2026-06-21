@@ -8,13 +8,13 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.0.0
+### What's new in v1.5.1.0
 
-- **Drag-and-drop** app card reorder (admin, handle-only)
-- **Bento spans** — wide/tall cards on the dashboard grid
-- **Light mode** + **video wallpaper** + **live settings preview**
-- Cinematic animations and glass polish throughout the UI
-- [Blog](https://boubli.github.io/AMUD-Dashboard/blog), [FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq), and [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes) on GitHub Pages
+- **Bundled themes** — apply 18 looks from Settings without copying CSS from the docs
+- **Appearance cleanup** — simpler quick colors, live Custom CSS preview, overlay presets removed
+- **Audit log** — reliable schema, clear errors, settings changes logged
+- **In-app updater** — SHA256 checksum lookup fixed for Proxmox installs
+- [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes) — six new advanced themes + Download CSS
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

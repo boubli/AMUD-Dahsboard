@@ -51,6 +51,7 @@ jobs:
       - name: Create GitHub Release and Upload Assets
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
+          body_path: .github/release-notes/${{ github.ref_name }}.md
           files: |
             target/release/amud-server
             target/release/amud-agent

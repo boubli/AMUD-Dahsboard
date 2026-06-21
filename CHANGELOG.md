@@ -8,6 +8,31 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.1.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.1.0) — 2026-06-21
+
+Appearance cleanup, offline bundled themes, audit log fixes, and in-app updater repair.
+
+### Added
+- Bundled theme picker in Settings (18 CSS files + manifest, works offline)
+- Six new advanced themes: Terminal Phosphor, Vaporwave Grid, Blueprint Tech, Luxury Gold, Holographic Prism, Brutalist Mono
+- Theme gallery **Download CSS** button; per-file theme definitions in docs
+- Pre-commit `cargo fmt` hook, `check-rust` scripts, and `rustfmt.toml`
+
+### Improved
+- Appearance tab simplified — overlay tint presets removed; quick colors + sliders + Custom CSS
+- Live preview scoped to mini scene; Custom CSS updates in real time
+- Audit log schema on startup, 503 on read failure, settings-save audit entry
+- Troubleshooting docs for audit log
+
+### Fixed
+- Proxmox in-app updater SHA256 lookup (basename matching in `SHA256SUMS`)
+- Release workflow checksum layout aligned with updater
+- CI rustfmt drift; Sonar theme re-export
+
+See [release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.1.0).
+
+---
+
 ## [v1.5.0.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.0.0) — 2026-06-20
 
 Major visual upgrade, drag-and-drop layout, light mode, and docs expansion.

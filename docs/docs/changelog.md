@@ -11,6 +11,27 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.5.1.0 — Appearance cleanup, offline themes, updater fix
+
+**2026-06-21** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.1.0) · [Compare v1.5.0.0…v1.5.1.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.0.0...v1.5.1.0)
+
+**Themes**
+- **Bundled theme** dropdown in Settings — 18 CSS files ship with the UI, no internet needed.
+- Six new advanced themes (Terminal Phosphor, Vaporwave Grid, Blueprint Tech, Luxury Gold, Holographic Prism, Brutalist Mono).
+- Gallery adds **Download CSS**; each theme is its own definition file in the docs repo.
+
+**Appearance**
+- Removed overlay tint presets; quick accent + light/dark, glass/layout sliders, Custom CSS + gallery link.
+- Live preview stays inside the mini scene; Custom CSS applies live.
+
+**Audit & updates**
+- Audit log schema ensured on boot; API returns 503 if unreadable; settings save writes audit rows.
+- In-app updater checksum lookup fixed for Proxmox (`SHA256SUMS` matched by basename).
+
+**Upgrade:** `curl -sSL …/update-amud.sh | bash` — verify **Settings → System** shows `v1.5.1.0`.
+
+---
+
 ## v1.5.0.0 — Visual upgrade, drag-and-drop, light mode
 
 **2026-06-20** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.0.0) · [Compare v1.4.2.2…v1.5.0.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.4.2.2...v1.5.0.0)
