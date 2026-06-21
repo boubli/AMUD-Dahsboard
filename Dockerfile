@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # Stage 1: Build stage
 FROM rust:1-slim AS builder
 
@@ -20,8 +22,21 @@ COPY . .
 ARG GIT_TAG
 ENV GIT_TAG=$GIT_TAG
 
-# Compile statically-linked release binaries.
-RUN cargo build --release --target x86_64-unknown-linux-musl
+# crates.io occasionally fails with curl HTTP/2 framing errors in CI; retry and
+# disable HTTP/2 multiplexing so cargo falls back to a more stable transport.
+ENV CARGO_NET_RETRY=10
+ENV CARGO_HTTP_MULTIPLEXING=false
+
+# Compile statically-linked release binaries (registry/git cached across builds).
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    set -e; \
+    for attempt in 1 2 3; do \
+      cargo build --release --target x86_64-unknown-linux-musl && exit 0; \
+      echo "cargo build attempt ${attempt} failed, retrying..."; \
+      sleep $((attempt * 15)); \
+    done; \
+    exit 1
 
 # Create the runtime data directory so it can be copied into the scratch image
 # (which has no shell to run `mkdir`).

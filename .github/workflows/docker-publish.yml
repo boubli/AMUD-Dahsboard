@@ -42,8 +42,9 @@ jobs:
           context: .
           push: true
           provenance: false
-          no-cache: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             GIT_TAG=${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
