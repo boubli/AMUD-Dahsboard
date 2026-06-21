@@ -1,8 +1,9 @@
 import THEME_DEFINITIONS from './definitions';
-import {createTheme, themeSearchText} from './helpers';
+import {createTheme} from './helpers';
 
 export type {AmudTheme, ThemeDefinition, ThemePalette} from './types';
-export {createTheme, themeSearchText};
+export {createTheme};
+export {themeSearchText} from './helpers';
 
 export const AMUD_THEMES = THEME_DEFINITIONS.map(createTheme);
 
