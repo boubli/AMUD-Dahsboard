@@ -587,6 +587,9 @@ mod tests {
             map.get("amud-server"),
             Some(&"09cfca48c100cbfc1f5064244f0f68bc75afdb6776f6970262a9df937f4d95f9".to_string())
         );
-        assert_eq!(map.get("ui.tar.gz").map(String::as_str), Some("4077e56a14f54740ef8748316a1df65ac23473422acdafd1565ff5baff7aea63"));
+        assert_eq!(
+            map.get("ui.tar.gz").map(String::as_str),
+            Some("4077e56a14f54740ef8748316a1df65ac23473422acdafd1565ff5baff7aea63")
+        );
     }
 }
