@@ -3,10 +3,13 @@ slug: plex-jellyfin-live-badges
 title: See What's Playing on Plex and Jellyfin Without Opening the App
 authors: [boubli]
 tags: [integrations, homelab]
-description: AMUD polls /Sessions and /status/sessions in the background. Your media cards show live stream titles.
+description: AMUD Dashboard polls /Sessions and /status/sessions in the background. Your media cards show live stream titles.
+image: img/AMUD-Dashboard.png
 ---
 
 "Is anyone watching something right now or can I restart the container?"
+
+<!-- truncate -->
 
 That's the question I wanted answered from the dashboard, not from opening Plex on my phone.
 

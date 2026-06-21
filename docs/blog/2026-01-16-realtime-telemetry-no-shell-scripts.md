@@ -3,10 +3,13 @@ slug: realtime-telemetry-no-shell-scripts
 title: Real-Time Homelab Telemetry Without Spawning Shell Scripts
 authors: [boubli]
 tags: [rust, homelab, proxmox]
-description: Most dashboards shell out to pvesh or docker stats every few seconds. AMUD reads /proc and talks to APIs natively in Rust.
+description: Most dashboards shell out to pvesh or docker stats every few seconds. AMUD Dashboard reads /proc and talks to APIs natively in Rust.
+image: img/amud-architecture.svg
 ---
 
 Here's a pattern I've seen in a lot of homelab monitoring glue:
+
+<!-- truncate -->
 
 ```bash
 while true; do
@@ -17,7 +20,7 @@ done
 
 It works until you realize you're forking a process every five seconds for a dashboard that sits on a wall tablet 99% of the time. On a busy host that's just noise.
 
-## What AMUD does instead
+## What AMUD Dashboard does instead
 
 **`amud-agent`** reads host metrics straight from `/proc` and `/sys`. No subprocess. For Proxmox it uses native HTTPS to the PVE API on port 8006 (`hyper` + `rustls`). For Docker it reads the daemon over the Unix socket (`hyperlocal`) — no `docker stats` CLI.
 

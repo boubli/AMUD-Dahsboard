@@ -1,14 +1,17 @@
 ---
 slug: portainer-deploy
-title: Deploying AMUD Through Portainer (For Clickers Not SSHers)
+title: Deploying AMUD Dashboard Through Portainer (For Clickers Not SSHers)
 authors: [boubli]
 tags: [docker, homelab]
 description: Stack template, matching AMUD_AGENT_SECRET, Docker socket mount. GUI homelab crowd deserves dashboards too.
+image: img/AMUD-Dashboard.png
 ---
 
 I live in SSH. Some of you live in Portainer. Both are valid.
 
-AMUD deploys as a stack: `amud_app` + `amud_agent` + `amud_run` volume.
+<!-- truncate -->
+
+AMUD Dashboard deploys as a stack: `amud_app` + `amud_agent` + `amud_run` volume.
 
 ## Portainer steps
 

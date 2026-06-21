@@ -4,11 +4,14 @@ title: Guest Mode So Your Family Doesn't Stop the Plex Container
 authors: [boubli]
 tags: [homelab, security]
 description: Admin sees power controls. Guest sees links and optional telemetry. Kitchen tablet stays safe.
+image: themes/assets/AMUD-Theme-Neon.png
 ---
 
 Put a dashboard on a kitchen wall tablet. Someone will eventually tap the wrong button.
 
-AMUD has **Admin** and **Guest** roles. Guests get links. Admins get the keys to the kingdom.
+<!-- truncate -->
+
+AMUD Dashboard has **Admin** and **Guest** roles. Guests get links. Admins get the keys to the kingdom.
 
 ## What guests can do
 

@@ -27,7 +27,7 @@ const config: Config = {
       attributes: {
         name: 'description',
         content:
-          'AMUD (Advanced Modern Unified Dashboard) — compiled Rust homelab dashboard. Zero YAML, live Proxmox and Docker telemetry, Plex/Jellyfin/Home Assistant. ~26MB RAM idle.',
+          'AMUD Dashboard (Advanced Modern Unified Dashboard) — compiled Rust homelab dashboard. Zero YAML, live Proxmox and Docker telemetry. ~26MB RAM idle.',
       },
     },
     {
@@ -35,7 +35,7 @@ const config: Config = {
       attributes: {
         name: 'keywords',
         content:
-          'AMUD, homelab dashboard, rust dashboard, proxmox dashboard, self-hosted, homepage alternative, heimdall alternative, homarr, zero yaml, sqlite',
+          'AMUD Dashboard, homelab dashboard, rust dashboard, proxmox dashboard, self-hosted, homepage alternative, heimdall alternative, homarr, zero yaml, sqlite',
       },
     },
     {
@@ -58,9 +58,9 @@ const config: Config = {
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
         name: 'AMUD Dashboard',
-        alternateName: 'AMUD',
+        alternateName: 'Advanced Modern Unified Dashboard',
         description:
-          'Advanced Modern Unified Dashboard — compiled Rust homelab control center with zero-YAML SQLite configuration and live Proxmox/Docker telemetry.',
+          'AMUD Dashboard is a compiled Rust homelab control center with zero-YAML SQLite configuration and live Proxmox/Docker telemetry.',
         applicationCategory: 'SystemApplication',
         operatingSystem: 'Linux',
         offers: {
@@ -99,9 +99,10 @@ const config: Config = {
         blog: {
           routeBasePath: 'blog',
           showReadingTime: true,
-          blogTitle: 'AMUD Blog',
+          blogSidebarCount: 0,
+          blogTitle: 'AMUD Dashboard Blog',
           blogDescription:
-            'Notes from building AMUD — a Rust homelab dashboard with zero YAML, live Proxmox telemetry, and way too much SQLite.',
+            'Homelab notes from building AMUD Dashboard — a Rust dashboard with zero YAML, live Proxmox telemetry, and way too much SQLite.',
           postsPerPage: 12,
           onUntruncatedBlogPosts: 'ignore',
           feedOptions: {
@@ -125,9 +126,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'AMUD',
+      title: 'AMUD Dashboard',
       logo: {
-        alt: 'AMUD Logo',
+        alt: 'AMUD Dashboard Logo',
         src: 'img/AMUD-logo.png',
       },
       items: [

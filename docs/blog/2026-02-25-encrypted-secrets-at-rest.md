@@ -1,14 +1,17 @@
 ---
 slug: encrypted-secrets-at-rest
-title: Where Your Plex Token Actually Lives in AMUD
+title: Where Your Plex Token Actually Lives in AMUD Dashboard
 authors: [boubli]
 tags: [security, rust]
 description: AES-GCM encrypted integration creds in SQLite, .amud-secrets-key on disk. What gets encrypted and what doesn't.
+image: themes/assets/AMUD-Theme-Dracula.png
 ---
 
 Storing `X-Plex-Token=abc123` in plain text in a yaml file on disk always felt wrong. Storing it in plain text in SQLite felt equally wrong.
 
-AMUD encrypts integration secrets **at rest** with AES-GCM. Plex, Jellyfin, Proxmox API tokens, Home Assistant tokens — encrypted blob in the database, not readable if someone copies `amud.db` without the key.
+<!-- truncate -->
+
+AMUD Dashboard encrypts integration secrets **at rest** with AES-GCM. Plex, Jellyfin, Proxmox API tokens, Home Assistant tokens — encrypted blob in the database, not readable if someone copies `amud.db` without the key.
 
 ## The keyfile
 

@@ -3,7 +3,8 @@ slug: why-i-ditched-heavy-dashboards
 title: Why I Ditched Heavy Dashboards and Built My Own in Pure Rust
 authors: [boubli]
 tags: [homelab, rust, selfhosted]
-description: AMUD started because my bookmark portal was eating 150MB of RAM and I was tired of YAML. Here's what I built instead.
+description: AMUD Dashboard started because my bookmark portal was eating 150MB of RAM and I was tired of YAML. Here's what I built instead.
+image: img/AMUD-Dashboard.png
 ---
 
 My homelab had the usual problem: twenty services, zero good way to open them.
@@ -12,7 +13,9 @@ I tried the usual suspects. Heimdall looked nice until I checked `htop` and saw 
 
 So I did what any reasonable person with too much free time does: I wrote another dashboard.
 
-**AMUD** (yeah, Advanced Modern Unified Dashboard — I know, acronym energy) is a compiled Rust app with SQLite config. No YAML. No Node runtime sitting there burning RAM while nothing happens. On Proxmox, server + agent combined idle around **26–35MB**. That's not a marketing number; that's what I actually see in the LXC.
+<!-- truncate -->
+
+**AMUD Dashboard** (yeah, Advanced Modern Unified Dashboard — I know, acronym energy) is a compiled Rust app with SQLite config. No YAML. No Node runtime sitting there burning RAM while nothing happens. On Proxmox, server + agent combined idle around **26–35MB**. That's not a marketing number; that's what I actually see in the LXC.
 
 ## What it actually does
 

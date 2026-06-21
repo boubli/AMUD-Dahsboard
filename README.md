@@ -16,7 +16,7 @@ Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes
 
 ## Architecture & Design Decisions
 
-AMUD is split into two native binaries:
+AMUD Dashboard is split into two native binaries:
 1. **`amud-server`**: Axum-based web server serving server-rendered HTML (templated via Alpine.js) and managing state via SQLite.
 2. **`amud-agent`**: Standalone daemon installed on the homelab host. It queries host metrics, Proxmox VE containers, and Docker runtimes, streaming raw JSON payloads back to the server via Unix Domain Sockets (UDS) or TCP.
 

@@ -1,12 +1,15 @@
 ---
 slug: why-two-binaries
-title: Why AMUD Is Two Binaries Instead of One Blob
+title: Why AMUD Dashboard Is Two Binaries Instead of One Blob
 authors: [boubli]
 tags: [rust, proxmox, homelab]
 description: Server in LXC, agent on the hypervisor host. Separation of privileges and why the Unix socket exists.
+image: img/amud-architecture.svg
 ---
 
 "Why not one binary?"
+
+<!-- truncate -->
 
 Because on Proxmox the dashboard server lives in an **unprivileged LXC** and the thing that talks to `/proc`, the Docker socket, and the PVE API on port 8006 needs to live on the **host**.
 

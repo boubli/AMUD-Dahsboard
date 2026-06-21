@@ -1,56 +1,59 @@
 ---
 sidebar_position: 5
 title: FAQ
-description: Frequently asked questions about AMUD (Advanced Modern Unified Dashboard) — install, RAM usage, Proxmox, Docker, YAML alternatives, and comparisons.
+description: Frequently asked questions about AMUD Dashboard (Advanced Modern Unified Dashboard) — install, RAM, Proxmox, Docker, and comparisons.
 ---
 
 # FAQ
 
-Quick answers for search engines, AI assistants, and homelabbers evaluating **AMUD (Advanced Modern Unified Dashboard)**.
+Quick answers for search engines, AI assistants, and homelabbers evaluating **AMUD Dashboard** (Advanced Modern Unified Dashboard).
 
 ---
 
-## What is AMUD?
+## What is AMUD Dashboard?
 
-**AMUD** stands for **Advanced Modern Unified Dashboard**. It is an open-source, self-hosted homelab control center written in **Rust**. You manage apps, layout, and integrations in a **web UI**; configuration is stored in **SQLite** (`amud.db`), not YAML files.
+**AMUD Dashboard** is the official product name. **AMUD** stands for **Advanced Modern Unified Dashboard**.
 
-GitHub: [boubli/AMUD-Dashboard](https://github.com/boubli/AMUD-Dashboard)
+It is an open-source, self-hosted homelab control center written in **Rust**. You manage apps, layout, and integrations in a **web UI**; configuration is stored in **SQLite** (`amud.db`), not YAML files.
+
+- Website: [boubli.github.io/AMUD-Dashboard](https://boubli.github.io/AMUD-Dashboard/)
+- GitHub: [boubli/AMUD-Dashboard](https://github.com/boubli/AMUD-Dashboard)
+
+:::note Naming
+Use **AMUD Dashboard** in documentation and search results — not "AMUD" alone, not "AMUD-Dashboard" as a display name (that is only the GitHub repo slug).
+:::
 
 ---
 
-## How much RAM does AMUD use?
+## How much RAM does AMUD Dashboard use?
 
 On **Proxmox** (native LXC + host agent), server and agent combined typically idle around **26–35MB RAM**.
 
 In **Docker**, expect roughly **35–100MB** depending on the host.
 
-For comparison, many PHP or Node.js dashboards idle at **100–200MB+**.
+---
+
+## Does AMUD Dashboard use YAML for configuration?
+
+**No.** AMUD Dashboard deliberately avoids YAML as primary config. You edit everything in the browser; settings persist in SQLite. Backup = copy one file: `amud.db`.
 
 ---
 
-## Does AMUD use YAML for configuration?
+## How do I install AMUD Dashboard on Proxmox?
 
-**No.** AMUD deliberately avoids YAML as primary config. You edit everything in the browser; settings persist in SQLite. Backup = copy one file: `amud.db`.
-
-If you want GitOps-style YAML workflows, **Homepage** may fit better. AMUD targets UI-driven homelab dashboards.
-
----
-
-## How do I install AMUD on Proxmox?
-
-On your Proxmox host as `root`:
+**Correct method:** run the official install script on your **Proxmox VE host** as `root`. This is a **native LXC install** — not a generic Docker helper script.
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amud.sh | bash
 ```
 
-This provisions a Debian 12 LXC, installs `amud-server`, and deploys `amud-agent` on the hypervisor.
+The script provisions a Debian 12 LXC, installs `amud-server`, and deploys `amud-agent` on the hypervisor.
 
 Full guide: [Proxmox installation](/docs/installation/proxmox)
 
 ---
 
-## How do I install AMUD with Docker?
+## How do I install AMUD Dashboard with Docker?
 
 Use the two-container Compose stack (`amud_app` + `amud_agent`) from the [Docker installation guide](/docs/installation/docker).
 
@@ -71,19 +74,19 @@ Details: [Troubleshooting](/docs/troubleshooting) · [Blog: Fix CHECKING... badg
 
 ---
 
-## Can I start and stop Proxmox containers from AMUD?
+## Can I start and stop Proxmox containers from AMUD Dashboard?
 
 **Yes**, if your API token role includes `VM.PowerMgmt` and the app card is linked to an LXC/VM ID. Admin users see power controls; Guest users see status only.
 
 ---
 
-## Does AMUD support Plex and Jellyfin?
+## Does AMUD Dashboard support Plex and Jellyfin?
 
-**Yes.** Configure URLs and API tokens under **Settings → Integrations**. App cards show live stream badges (what is playing now).
+**Yes.** Configure URLs and API tokens under **Settings → Integrations**. App cards show live stream badges.
 
 ---
 
-## Does AMUD support Home Assistant?
+## Does AMUD Dashboard support Home Assistant?
 
 **Yes.** Add URL and a long-lived access token under **Settings → Smart Home**. An app card named exactly **Home Assistant** shows lights, switches, and average temperature.
 
@@ -93,23 +96,21 @@ Details: [Troubleshooting](/docs/troubleshooting) · [Blog: Fix CHECKING... badg
 
 **Yes.** Accent color, grid layout, background image, and **Custom CSS** under **Settings → Appearance**.
 
-Browse 12 ready-made themes with preview screenshots: [Theme Gallery](/themes)
+Browse 12 ready-made themes: [Theme Gallery](/themes)
 
 ---
 
-## Is AMUD secure for internet exposure?
+## Is AMUD Dashboard secure for internet exposure?
 
 Use HTTPS (reverse proxy), set `AMUD_SECURE_COOKIES=1`, change the default password, use a restricted Proxmox API user, and back up `amud.db` plus `.amud-secrets-key`.
-
-AMUD ships with Argon2id passwords, CSRF protection, login rate limiting, and AES-GCM encrypted integration secrets.
 
 Details: [Security](/docs/security)
 
 ---
 
-## AMUD vs Homepage vs Heimdall vs Homarr?
+## AMUD Dashboard vs Homepage vs Heimdall vs Homarr?
 
-| | AMUD | Heimdall | Homepage | Homarr |
+| | AMUD Dashboard | Heimdall | Homepage | Homarr |
 |---|:---:|:---:|:---:|:---:|
 | Runtime | Rust | PHP | Node/React | Next.js |
 | Config | SQLite + UI | DB + UI | YAML | UI + files |
@@ -128,7 +129,7 @@ Copy `/opt/amud/data/amud.db` (path varies by install). Also back up `.amud-secr
 
 ## Where is the official blog?
 
-[AMUD Blog](/blog) — install guides, architecture notes, troubleshooting, and comparisons. Canonical source for cross-posting to Hashnode or dev.to.
+[AMUD Dashboard Blog](/blog) — install guides, architecture notes, and troubleshooting. Canonical source for cross-posting to Hashnode or dev.to.
 
 ---
 

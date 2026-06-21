@@ -1,16 +1,19 @@
 ---
 slug: sqlite-wal-not-postgres
-title: Why AMUD Uses SQLite Instead of Postgres (Yes, Really)
+title: Why AMUD Dashboard Uses SQLite Instead of Postgres (Yes, Really)
 authors: [boubli]
 tags: [rust, homelab]
 description: Embedded DB for embedded dashboard. WAL mode, single-file backup, no extra container for config storage.
+image: img/amud-architecture.svg
 ---
 
 "Why not Postgres?"
 
+<!-- truncate -->
+
 Because then I'd need to run Postgres.
 
-AMUD is a dashboard. Config storage is a few hundred KB of apps, settings, and encrypted tokens. Running a whole separate database server for that is like buying a warehouse to store a shoebox.
+AMUD Dashboard is a dashboard. Config storage is a few hundred KB of apps, settings, and encrypted tokens. Running a whole separate database server for that is like buying a warehouse to store a shoebox.
 
 ## SQLite with WAL
 
@@ -29,7 +32,7 @@ I've done all of these at 1am. Postgres would add connection strings, another se
 
 ## When I'd reach for Postgres
 
-Multi-tenant SaaS. Hundreds of concurrent writers. Horizontal scaling. AMUD is explicitly none of those — see roadmap "won't do SaaS."
+Multi-tenant SaaS. Hundreds of concurrent writers. Horizontal scaling. AMUD Dashboard is explicitly none of those — see roadmap "won't do SaaS."
 
 Homelab tool. Homelab database. Match the complexity to the problem.
 

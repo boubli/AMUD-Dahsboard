@@ -3,10 +3,13 @@ slug: securing-homelab-dashboard
 title: Securing a Dashboard That Knows Where Everything Lives
 authors: [boubli]
 tags: [security, selfhosted]
-description: Argon2id passwords, encrypted integration secrets, CSRF, rate limiting — what AMUD actually ships with.
+description: Argon2id passwords, encrypted integration secrets, CSRF, rate limiting — what AMUD Dashboard actually ships with.
+image: themes/assets/AMUD-Theme-Dracula.png
 ---
 
 Your dashboard is a map to your entire homelab. Treat it like one.
+
+<!-- truncate -->
 
 ## Passwords
 

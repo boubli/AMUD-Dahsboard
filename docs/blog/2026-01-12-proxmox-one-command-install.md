@@ -1,12 +1,15 @@
 ---
 slug: proxmox-one-command-install
-title: Install AMUD on Proxmox in One Command (No Docker)
+title: Install AMUD Dashboard on Proxmox in One Command (No Docker)
 authors: [boubli]
 tags: [proxmox, homelab, selfhosted]
 description: One curl on your Proxmox host provisions an LXC, installs the agent on the hypervisor, and gives you a working dashboard on port 8000.
+image: img/amud-architecture.svg
 ---
 
 Docker is fine. I use it. But wrapping a *dashboard* — a thing that mostly displays links and polls metrics — inside another network stack on a Proxmox box always felt like wearing two coats indoors.
+
+<!-- truncate -->
 
 AMUD's happy path on Proxmox is **native**: agent on the host, server in a tiny Debian 12 LXC, Unix socket between them.
 

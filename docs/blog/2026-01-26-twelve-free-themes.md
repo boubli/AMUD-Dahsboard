@@ -4,9 +4,12 @@ title: 12 Free Themes Because Orange Glass Isn't for Everyone
 authors: [boubli]
 tags: [themes, homelab]
 description: Copy-paste CSS from the theme gallery. Dracula, Nord, Catppuccin, Cyberpunk Neon, and eight more with preview screenshots.
+image: themes/assets/AMUD-Theme-Nord.png
 ---
 
-The default AMUD look is orange glass. I like it. My partner said it looked like a Cheetos-themed spaceship cockpit. Fair.
+The default AMUD Dashboard look is orange glass. I like it. My partner said it looked like a Cheetos-themed spaceship cockpit. Fair.
+
+<!-- truncate -->
 
 So I built a [theme gallery](/themes) with twelve ready-made CSS themes and actual dashboard preview screenshots so you can pick before you paste.
 

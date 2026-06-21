@@ -4,11 +4,14 @@ title: Why Your App Cards Are Stuck on CHECKING...
 authors: [boubli]
 tags: [proxmox, homelab]
 description: CPU bars work but LXC badges don't? It's almost always the Proxmox API token. Here's how to read agent logs and fix it.
+image: img/AMUD-Dashboard.png
 ---
 
 Top bar shows live CPU. App cards say **CHECKING...** forever.
 
-Welcome to the most common AMUD support question. Good news: it's usually one of like four things.
+<!-- truncate -->
+
+Welcome to the most common AMUD Dashboard support question. Good news: it's usually one of like four things.
 
 ## Read the agent logs first
 

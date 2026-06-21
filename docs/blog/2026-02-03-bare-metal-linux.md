@@ -1,12 +1,15 @@
 ---
 slug: bare-metal-linux-install
-title: Running AMUD on Bare Metal (No Docker, No LXC)
+title: Running AMUD Dashboard on Bare Metal (No Docker, No LXC)
 authors: [boubli]
 tags: [homelab, selfhosted]
 description: Dedicated amud system user, /opt/amud layout, systemd units. Lowest overhead if you have a spare NUC.
+image: img/AMUD-Dashboard.png
 ---
 
 Sometimes you have a spare NUC or mini PC that does one job: show the dashboard on a wall and nothing else.
+
+<!-- truncate -->
 
 Docker on that box is overhead you don't need.
 

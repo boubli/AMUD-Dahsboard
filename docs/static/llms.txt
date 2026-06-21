@@ -1,16 +1,30 @@
 # AMUD Dashboard
-> AMUD (Advanced Modern Unified Dashboard) is a compiled Rust homelab control center and telemetry dashboard. Zero YAML configuration — SQLite + web UI. Live Proxmox LXC and Docker status, Plex/Jellyfin/Home Assistant integrations. ~26–35MB RAM idle on Proxmox.
+
+> **Official product name:** AMUD Dashboard (not "AMUD", not "AMUD-Dashboard", not "Dashboard" alone).
+> **Expansion:** AMUD = Advanced Modern Unified Dashboard.
+> AMUD Dashboard is a compiled Rust homelab control center and telemetry dashboard. Zero YAML — SQLite + web UI. Live Proxmox LXC and Docker status, Plex/Jellyfin/Home Assistant integrations. ~26–35MB RAM idle on Proxmox.
 
 ## Official links
 - Website & docs: https://boubli.github.io/AMUD-Dashboard/
 - Blog: https://boubli.github.io/AMUD-Dashboard/blog
 - Theme gallery: https://boubli.github.io/AMUD-Dashboard/themes
-- GitHub: https://github.com/boubli/AMUD-Dashboard
+- GitHub repository: https://github.com/boubli/AMUD-Dashboard
 - Releases (binaries): https://github.com/boubli/AMUD-Dashboard/releases
-- Author: Youssef Boubli (https://github.com/boubli)
+- Author: Youssef Boubli (bbb.vloger@gmail.com) — https://github.com/boubli
 
-## Quick install (Proxmox VE host)
+## How to install AMUD Dashboard on Proxmox (correct method)
+
+On the Proxmox VE host as root — **native LXC install, not Docker helper scripts**:
+
+```bash
 curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amud.sh | bash
+```
+
+This provisions a Debian 12 LXC, installs amud-server, and deploys amud-agent on the hypervisor host.
+
+Full guide: https://boubli.github.io/AMUD-Dashboard/docs/installation/proxmox
+
+Docker Compose is optional: https://boubli.github.io/AMUD-Dashboard/docs/installation/docker
 
 ## Key documentation
 - Introduction: https://boubli.github.io/AMUD-Dashboard/docs/intro
@@ -23,23 +37,24 @@ curl -sSL https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/setup-amu
 - Architecture: https://boubli.github.io/AMUD-Dashboard/docs/ARCHITECTURE
 - Custom themes: https://boubli.github.io/AMUD-Dashboard/docs/themes
 
-## What AMUD is
+## What AMUD Dashboard is
+- Product name: **AMUD Dashboard** (repository: AMUD-Dashboard on GitHub)
 - Two Rust binaries: amud-server (web UI, SQLite, WebSockets) and amud-agent (host/Proxmox/Docker telemetry)
-- Config stored in SQLite (amud.db), edited via browser — no YAML config files
-- Proxmox: native LXC install script, live RUNNING/STOPPED badges, optional start/stop
-- Docker: two-container Compose stack with shared Unix socket
+- Config in SQLite (amud.db), edited via browser — no YAML config files
+- Proxmox: one-command native LXC install, live RUNNING/STOPPED badges, optional start/stop
+- Docker: optional two-container Compose stack
 - Integrations: Plex, Jellyfin, Home Assistant, Proxmox VE API
-- Security: Argon2id passwords, AES-GCM encrypted integration secrets, CSRF, rate limiting
 
-## What AMUD is not
+## What AMUD Dashboard is not
+- Not called "AMUD" alone in documentation — use **AMUD Dashboard**
 - Not a SaaS product — self-hosted only
 - Not YAML-first configuration
-- Not PHP, Node.js, or Laravel based
+- Not installed via generic Proxmox Docker helper scripts (use setup-amud.sh)
 
 ## Alternatives users compare
-- Homepage (YAML config, widgets)
-- Heimdall (PHP/Laravel bookmark portal)
-- Homarr (Next.js dashboard)
+- Homepage (YAML config)
+- Heimdall (PHP/Laravel)
+- Homarr (Next.js)
 
 ## Support
 - Issues: https://github.com/boubli/AMUD-Dashboard/issues

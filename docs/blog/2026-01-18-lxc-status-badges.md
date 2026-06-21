@@ -4,11 +4,14 @@ title: Green and Red LXC Badges (Plus Start/Stop From the Dashboard)
 authors: [boubli]
 tags: [proxmox, homelab]
 description: Link an app card to a CTID, get live RUNNING/STOPPED status, and optionally power-cycle containers without opening Proxmox.
+image: img/AMUD-Dashboard.png
 ---
 
 A link list tells you where Jellyfin *should* be. It doesn't tell you Jellyfin is stopped because you updated the LXC last night and forgot to bring it back up.
 
-AMUD app cards can bind to a Proxmox **CTID**. Badge flips between **RUNNING**, **STOPPED**, and the eternal **CHECKING...** when something's misconfigured.
+<!-- truncate -->
+
+AMUD Dashboard app cards can bind to a Proxmox **CTID**. Badge flips between **RUNNING**, **STOPPED**, and the eternal **CHECKING...** when something's misconfigured.
 
 ## Setup checklist
 
