@@ -98,6 +98,7 @@ fn setup_test_state() -> Arc<AppState> {
 
 #[tokio::test]
 async fn test_unauthorized_integration_data() {
+    // No session and app id 1 does not exist — expect 403 (not an RSS public-access test).
     let state = setup_test_state();
     let app = build_app_router(state);
 
@@ -417,4 +418,112 @@ async fn test_settings_save_records_audit_entry() {
         }),
         "expected settings_update audit entry, got: {entries:?}"
     );
+}
+
+#[tokio::test]
+async fn test_rss_integration_allowed_for_guest() {
+    let state = setup_test_state();
+    let encrypted_key =
+        amud_server::secrets::encrypt_value("https://example.com/feed.xml").unwrap();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, category, node_tag, integration_type, api_key) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            rusqlite::params![1, "News", "https://example.com", "General", "Local", "rss", encrypted_key],
+        )
+        .unwrap();
+    }
+
+    let app = build_app_router(state);
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/apps/1/integration")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_ne!(response.status(), StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn test_rss_integration_forbidden_for_pihole_guest() {
+    let state = setup_test_state();
+    let encrypted_key = amud_server::secrets::encrypt_value("super-secret-pihole-key").unwrap();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, category, node_tag, integration_type, api_key) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            rusqlite::params![1, "Pihole", "http://1.1.1.1", "General", "Local", "pihole", encrypted_key],
+        )
+        .unwrap();
+    }
+
+    let app = build_app_router(state);
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/apps/1/integration")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn test_rss_url_rejected_on_add() {
+    let state = setup_test_state();
+    let session_token = insert_admin_session(&state);
+    let app = build_app_router(state.clone());
+
+    let add_payload = "name=News&url=https://example.com&category=General&node_tag=Local&integration_type=rss&api_key=http://127.0.0.1/feed&csrf_token=csrf-reorder-abc";
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/apps")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, format!("amud_session={session_token}"))
+                .body(Body::from(add_payload))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+
+    let count: i64 = {
+        let db = state.db.lock().unwrap();
+        db.query_row("SELECT COUNT(*) FROM apps", [], |row| row.get(0))
+            .unwrap()
+    };
+    assert_eq!(count, 0);
+}
+
+#[tokio::test]
+async fn test_integration_data_rate_limited() {
+    let state = setup_test_state();
+    let app = build_app_router(state);
+
+    let mut last_status = StatusCode::OK;
+    for _ in 0..31 {
+        last_status = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/api/apps/1/integration")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap()
+            .status();
+    }
+
+    assert_eq!(last_status, StatusCode::TOO_MANY_REQUESTS);
 }

@@ -383,7 +383,7 @@ fn render_apps_grid(
         if !app.integration_type.is_empty() {
             integration_widget = format!(
                 r#"
-                <div class="integration-widget" x-show="integrationData">
+                <div class="integration-widget" x-show="integrationData && integrationData.type">
                     <template x-if="integrationData.type === 'pihole' || integrationData.type === 'adguard'">
                         <div class="nested-metrics-grid cols-2">
                             <div class="metric-block">
@@ -406,11 +406,15 @@ fn render_apps_grid(
                     </template>
                     <template x-if="integrationData.type === 'rss'">
                         <div class="rss-feed-list">
-                            <template x-for="entry in integrationData.entries" :key="entry.link">
-                                <a :href="entry.link" target="_blank" rel="noopener" class="rss-feed-item">
+                            <template x-for="(entry, index) in integrationData.entries" :key="index">
+                                <a x-show="entry.link" :href="entry.link" target="_blank" rel="noopener" class="rss-feed-item">
                                     <span class="rss-feed-title" x-text="entry.title"></span>
                                     <span class="rss-feed-date" x-text="entry.date"></span>
                                 </a>
+                                <div x-show="!entry.link" class="rss-feed-item rss-feed-item--text-only">
+                                    <span class="rss-feed-title" x-text="entry.title"></span>
+                                    <span class="rss-feed-date" x-text="entry.date"></span>
+                                </div>
                             </template>
                             <div x-show="!integrationData.entries || integrationData.entries.length === 0" class="rss-feed-empty">
                                 <span>No entries found</span>
@@ -424,7 +428,7 @@ fn render_apps_grid(
 
         let alpine_init = if !app.integration_type.is_empty() {
             format!(
-                r#"x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.json()).then(d => integrationData = d)""#,
+                r#"x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }})""#,
                 app.id
             )
         } else {

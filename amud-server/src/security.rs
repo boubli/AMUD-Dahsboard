@@ -99,6 +99,35 @@ fn is_blocked_health_target(ip: std::net::IpAddr) -> bool {
     }
 }
 
+/// RSS feed fetch targets: homelab-friendly (RFC1918 allowed), block loopback/metadata.
+pub(crate) fn url_allowed_for_rss_feed(raw: &str) -> bool {
+    url_allowed_for_health_check(raw)
+}
+
+/// Returns a trimmed feed URL when it passes RSS SSRF policy.
+pub(crate) fn sanitize_rss_feed_url(raw: &str) -> Option<String> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() || !url_allowed_for_rss_feed(trimmed) {
+        return None;
+    }
+    Some(trimmed.to_string())
+}
+
+/// Only absolute http(s) links are safe for dashboard href binding.
+pub(crate) fn sanitize_feed_link(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+    let Ok(parsed) = reqwest::Url::parse(trimmed) else {
+        return String::new();
+    };
+    match parsed.scheme() {
+        "http" | "https" => trimmed.to_string(),
+        _ => String::new(),
+    }
+}
+
 pub(crate) fn client_ip(headers: &axum::http::HeaderMap) -> String {
     let trust_proxy = std::env::var("AMUD_TRUST_PROXY").unwrap_or_default() == "1" || cfg!(test);
     if trust_proxy {
@@ -194,6 +223,43 @@ mod tests {
             mask_webhook_url("https://discord.com/api/webhooks/123456789/abcdefghijklmnop");
         assert!(!masked.contains("abcdefghijklmnop"));
         assert!(masked.contains("discord.com"));
+    }
+
+    #[test]
+    fn rss_feed_blocks_loopback_and_metadata() {
+        assert!(!url_allowed_for_rss_feed("http://127.0.0.1/feed"));
+        assert!(!url_allowed_for_rss_feed("http://localhost/feed"));
+        assert!(!url_allowed_for_rss_feed(
+            "http://169.254.169.254/latest/meta-data"
+        ));
+    }
+
+    #[test]
+    fn rss_feed_allows_homelab_and_public() {
+        assert!(url_allowed_for_rss_feed("http://192.168.1.50/feed.xml"));
+        assert!(url_allowed_for_rss_feed(
+            "https://feeds.bbci.co.uk/news/rss.xml"
+        ));
+    }
+
+    #[test]
+    fn sanitize_rss_feed_url_rejects_invalid() {
+        assert!(sanitize_rss_feed_url("http://127.0.0.1/feed").is_none());
+        assert_eq!(
+            sanitize_rss_feed_url("  https://example.com/feed.xml  ").as_deref(),
+            Some("https://example.com/feed.xml")
+        );
+    }
+
+    #[test]
+    fn sanitize_feed_link_strips_dangerous_schemes() {
+        assert_eq!(sanitize_feed_link("javascript:alert(1)"), "");
+        assert_eq!(sanitize_feed_link("data:text/html,hi"), "");
+        assert_eq!(sanitize_feed_link("/relative/path"), "");
+        assert_eq!(
+            sanitize_feed_link("https://example.com/article"),
+            "https://example.com/article"
+        );
     }
 
     #[test]

@@ -123,6 +123,16 @@ volumes:
     name: amud_run
 ```
 
+### Unraid (Community Applications)
+
+Official templates: **AMUD Dashboard** + **AMUD Agent** (two containers, shared socket path).
+
+1. Install both from the **Apps** tab after templates are published.
+2. Use the **same** `AMUD_AGENT_SECRET` on both containers.
+3. Full guide: [Unraid installation docs](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
+
+Template XML lives in [`templates/`](templates/) with [`ca_profile.xml`](ca_profile.xml) for Community Applications submission.
+
 ### Proxmox LXC Autopilot Script
 For native installation within a Proxmox VE LXC container (running outside Docker), execute this on your Proxmox VE host:
 ```bash

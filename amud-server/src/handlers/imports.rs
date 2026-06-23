@@ -18,7 +18,7 @@ pub(crate) use crate::db::{
 };
 pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};
 pub(crate) use crate::models::{AppState, Session};
-pub(crate) use crate::security::url_allowed_for_webhook;
+pub(crate) use crate::security::{sanitize_rss_feed_url, url_allowed_for_webhook};
 pub(crate) use crate::settings::{
     sanitize_card_span, sanitize_custom_css, sanitize_integration_url, sanitize_setting_url,
     sanitize_theme_mode, setting_key_allowed, DONATION_LINKS, DONATION_MESSAGE,

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CA>
+  <Icon>https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png</Icon>
+  <Profile><![CDATA[
+## AMUD Dashboard — Unraid templates
+
+**AMUD** (Advanced Modern Unified Dashboard) is a compiled Rust homelab control center: app launcher, live telemetry, and integrations — with **no YAML** (SQLite config in the UI).
+
+### Install both templates
+
+AMUD uses two lightweight containers that share a Unix socket on disk:
+
+1. **AMUD Dashboard** — Web UI on port 8000
+2. **AMUD Agent** — Docker/host telemetry sidecar (required for container stats)
+
+Use the **same** `AMUD_AGENT_SECRET` and the **same** socket path (`/mnt/user/appdata/amud-dashboard/run`) on both containers.
+
+### Links
+
+- Docs: https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid
+- GitHub: https://github.com/boubli/AMUD-Dashboard
+- Support: https://github.com/boubli/AMUD-Dashboard/discussions
+- Docker Hub: https://hub.docker.com/r/tradmss/amud-dashboard
+
+### Typical RAM usage
+
+Server + agent combined: roughly **35–100MB** in Docker (vs 150MB+ for PHP/Node dashboards).
+  ]]></Profile>
+</CA>

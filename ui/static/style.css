@@ -712,6 +712,10 @@ body::-webkit-scrollbar-button {
     opacity: 0.7;
 }
 
+.rss-feed-item--text-only {
+    cursor: default;
+}
+
 .rss-feed-empty {
     padding: 0.75rem 0.4rem;
     text-align: center;

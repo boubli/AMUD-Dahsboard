@@ -28,13 +28,10 @@ pub async fn add_app_handler(
     let mac_address = form.get("mac_address").cloned().unwrap_or_default();
     let integration_type = form.get("integration_type").cloned().unwrap_or_default();
     let api_key = form.get("api_key").cloned().unwrap_or_default();
-    let encrypted_api_key = if !api_key.trim().is_empty() {
-        crate::secrets::encrypt_value(&api_key).unwrap_or_else(|_| api_key.clone())
-    } else {
-        api_key
-    };
+    let rss_key_ok = rss_feed_api_key_valid(&integration_type, &api_key);
 
-    if !name.is_empty() && !url.is_empty() {
+    if !name.is_empty() && !url.is_empty() && rss_key_ok {
+        let encrypted_api_key = encrypt_integration_api_key(&integration_type, &api_key);
         let admin_user = session
             .as_ref()
             .map(|s| s.username.clone())
@@ -138,8 +135,9 @@ pub async fn edit_app_handler(
             let mac_address = form.get("mac_address").cloned().unwrap_or_default();
             let integration_type = form.get("integration_type").cloned().unwrap_or_default();
             let api_key = form.get("api_key").cloned().unwrap_or_default();
+            let rss_key_ok = rss_feed_api_key_valid(&integration_type, &api_key);
 
-            if !name.is_empty() && !url.is_empty() {
+            if !name.is_empty() && !url.is_empty() && rss_key_ok {
                 let admin_user = session
                     .as_ref()
                     .map(|s| s.username.clone())
@@ -156,7 +154,7 @@ pub async fn edit_app_handler(
                             row.get::<_, String>(0)
                         }).unwrap_or_default()
                     } else {
-                        crate::secrets::encrypt_value(&api_key).unwrap_or_else(|_| api_key.clone())
+                        encrypt_integration_api_key(&integration_type, &api_key)
                     };
                     if db
                         .execute(
@@ -500,6 +498,10 @@ pub async fn integration_data_handler(
     Path(id): Path<i64>,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "integration_data", 30, 60) {
+        return resp;
+    }
+
     let session = get_session(&headers, &state.sessions);
     let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
 
@@ -803,4 +805,27 @@ pub async fn reorder_apps_handler(
         )
         .into_response(),
     }
+}
+
+fn rss_feed_api_key_valid(integration_type: &str, api_key: &str) -> bool {
+    if integration_type != "rss" {
+        return true;
+    }
+    let trimmed = api_key.trim();
+    if trimmed.is_empty() || trimmed == "Configured — leave blank to keep unchanged" {
+        return true;
+    }
+    sanitize_rss_feed_url(trimmed).is_some()
+}
+
+fn encrypt_integration_api_key(integration_type: &str, api_key: &str) -> String {
+    if api_key.trim().is_empty() {
+        return api_key.to_string();
+    }
+    let value_to_store = if integration_type == "rss" {
+        sanitize_rss_feed_url(api_key).unwrap_or_else(|| api_key.trim().to_string())
+    } else {
+        api_key.to_string()
+    };
+    crate::secrets::encrypt_value(&value_to_store).unwrap_or(value_to_store)
 }

@@ -209,7 +209,7 @@
             </button>
         </div>
 
-        <form action="/apps" method="POST" class="settings-form">
+        <form action="/apps" method="POST" class="settings-form" @submit="return validateRssAppForm($event)">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <div class="form-group">
                 <label for="add-app-name">Application Name</label>
@@ -274,8 +274,9 @@
 
             <div class="form-group" x-show="newApp.integration_type !== ''">
                 <label for="add-app-api-key" x-text="newApp.integration_type === 'rss' ? 'RSS Feed URL' : 'Integration API Key / Token'">Integration API Key / Token</label>
-                <input type="text" id="add-app-api-key" name="api_key" class="form-control" :placeholder="newApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
-                <p class="form-help" x-show="newApp.integration_type === 'rss'">Paste the full URL of the RSS or Atom feed. The top 3 headlines will appear on the card.</p>
+                <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key" :placeholder="newApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
+                <p class="form-help" x-show="newApp.integration_type === 'rss'">Paste the full URL of the RSS or Atom feed (public or LAN). Loopback and metadata URLs are blocked. The top 3 headlines will appear on the card.</p>
+                <p class="form-help duplicate-warning" data-rss-url-warning style="display:none; color: var(--accent-color);">RSS feed URL must start with http:// or https://</p>
             </div>
 
             <div class="form-group">
@@ -303,7 +304,7 @@
             </button>
         </div>
 
-        <form action="/apps/edit" method="POST" class="settings-form">
+        <form action="/apps/edit" method="POST" class="settings-form" @submit="return validateRssAppForm($event)">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <input type="hidden" name="id" x-model="editApp.id">
 
@@ -371,7 +372,8 @@
             <div class="form-group" x-show="editApp.integration_type !== ''">
                 <label for="edit-app-api-key" x-text="editApp.integration_type === 'rss' ? 'RSS Feed URL' : 'Integration API Key / Token'">Integration API Key / Token</label>
                 <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key" :placeholder="editApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
-                <p class="form-help" x-show="editApp.integration_type === 'rss'">Paste the full URL of the RSS or Atom feed. The top 3 headlines will appear on the card.</p>
+                <p class="form-help" x-show="editApp.integration_type === 'rss'">Paste the full URL of the RSS or Atom feed (public or LAN). Loopback and metadata URLs are blocked. The top 3 headlines will appear on the card.</p>
+                <p class="form-help duplicate-warning" data-rss-url-warning style="display:none; color: var(--accent-color);">RSS feed URL must start with http:// or https://</p>
             </div>
 
             <div class="form-group">
@@ -443,6 +445,25 @@
                 const duplicate = value && knownAppNames.has(value) && value !== originalName;
                 warning.style.display = duplicate ? 'block' : 'none';
             });
+        }
+
+        function validateRssAppForm(event) {
+            const form = event.target;
+            const integrationType = form.querySelector('[name="integration_type"]')?.value || '';
+            const apiKey = form.querySelector('[name="api_key"]')?.value || '';
+            const warning = form.querySelector('[data-rss-url-warning]');
+            if (integrationType !== 'rss') {
+                if (warning) warning.style.display = 'none';
+                return true;
+            }
+            const trimmed = apiKey.trim();
+            if (!trimmed || trimmed === 'Configured — leave blank to keep unchanged') {
+                if (warning) warning.style.display = 'none';
+                return true;
+            }
+            const ok = /^https?:\/\/.+/i.test(trimmed);
+            if (warning) warning.style.display = ok ? 'none' : 'block';
+            return ok;
         }
 
         // Clock, greeting and date updater
