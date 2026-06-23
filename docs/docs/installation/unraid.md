@@ -63,6 +63,8 @@ If telemetry is missing:
 
 See [Permission errors on appdata](#permission-errors-on-appdata) below if the dashboard container exits or the database cannot be created.
 
+To customize which network interfaces or disk mounts appear on the dashboard, see [Host telemetry mapping](../configuration.md#host-telemetry-mapping) (Unraid example: `/mnt/user` for array-only storage).
+
 ---
 
 ## Permission errors on appdata

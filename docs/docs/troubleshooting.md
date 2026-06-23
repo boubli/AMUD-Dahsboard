@@ -621,6 +621,35 @@ ls -la /opt/amud/run
 
 ---
 
+## Host telemetry mapping
+
+**Symptom:** Disk or network widgets on the dashboard do not match what you expect, or you need help filling **Settings → Privacy & Access → Host telemetry mapping**.
+
+**Full guide:** [Configuration — Host telemetry mapping](./configuration.md#host-telemetry-mapping) (how to find interface names and mount paths on Proxmox, Unraid, and Docker).
+
+**Quick checks:**
+
+1. Leave all three fields **blank** first — auto mode works for most installs.
+2. Discovery commands run on the **host where amud-agent runs** (not the dashboard LXC unless agent is there too):
+
+```bash
+cat /proc/net/dev    # interface names (first column)
+df -h                # mount paths (Mounted on column)
+```
+
+3. After saving settings, confirm values persisted:
+
+```bash
+pct exec <CT_ID> -- sqlite3 /opt/amud/data/amud.db \
+  "SELECT key, value FROM settings WHERE key LIKE 'telemetry_%';"
+```
+
+4. Agent must be connected — `systemctl status amud-agent` on the host should be **active**.
+
+If you override network interfaces, list **both** external and internal names; unlisted interfaces are not counted.
+
+---
+
 ## Audit Log Empty
 
 **Symptom:** Settings → **Audit** shows no entries even after you sign out, sign back in, or save settings.

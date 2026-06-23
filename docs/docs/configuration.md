@@ -144,6 +144,79 @@ Leave fields **blank** for automatic detection (bridges/Docker → internal; oth
 
 Changes push to the connected agent when you save settings.
 
+### How to find your interface names and mount paths
+
+The **amud-agent** runs on the **host** (Proxmox bare metal, Unraid, or the machine that owns the Docker socket). Run the discovery commands **on that host**, not inside the AMUD dashboard container/LXC unless the agent also runs there.
+
+#### Find network interface names
+
+```bash
+cat /proc/net/dev
+```
+
+The first column is the interface name (ignore `lo`). Common patterns:
+
+| Interface | Typical role | Auto mode |
+|-----------|--------------|-----------|
+| `eno1`, `enp3s0`, `eth0` | Physical NIC (WAN/LAN) | **External** |
+| `vmbr0` | Proxmox bridge | **Internal** |
+| `br-*`, `docker0` | Docker / virtual bridges | **Internal** |
+
+**Proxmox:** run on the **hypervisor host**. Physical NIC → **External**; `vmbr0` → **Internal**.
+
+```bash
+# On the Proxmox host
+cat /proc/net/dev
+# Example result: eno1 (external), vmbr0 (internal)
+```
+
+**Unraid:** run in the **Unraid terminal** (or the host where **AMUD Agent** runs). Use the NIC that faces your router for **External**; Docker `br-*` bridges for **Internal** if you care about container traffic separately.
+
+**Docker / Portainer:** the agent needs the host network view. Interface names come from the **Docker host**, not from inside the dashboard container.
+
+#### Find disk mount paths
+
+```bash
+df -h
+```
+
+Use the **Mounted on** column. Pick the paths you want the storage bar to represent.
+
+| Platform | Common mounts | Example setting |
+|----------|---------------|-----------------|
+| **Proxmox** | OS disk + VM/CT storage | `/,/var/lib/vz` |
+| **Unraid** | Array / cache | `/mnt/user` or `/mnt/cache` |
+| **Generic Linux** | Root only | `/` |
+
+AMUD skips virtual/temporary filesystems (`tmpfs`, `overlay`, etc.) automatically when summing disks.
+
+#### Fill in Settings
+
+1. Open **Settings → Privacy & Access → Host telemetry mapping**.
+2. Paste comma-separated names/paths (no spaces required, but spaces after commas are fine).
+3. Click **Save Settings** at the bottom of the page.
+4. Wait ~5–10 seconds — the agent picks up the new config on the next sync.
+
+**Example (typical Proxmox):**
+
+```
+External network interfaces:  eno1
+Internal network interfaces:  vmbr0
+Disk mount points:            /,/var/lib/vz
+```
+
+#### Rules and tips
+
+- **Blank = auto** — start here; only override if the dashboard disk or network numbers look wrong.
+- **If you set either network list**, only interfaces you list are counted. Unlisted interfaces are ignored — fill **both** external and internal lists when overriding.
+- **Verify saved values** (optional, admin shell on the AMUD server):
+
+```bash
+sqlite3 /opt/amud/data/amud.db "SELECT key, value FROM settings WHERE key LIKE 'telemetry_%';"
+```
+
+- **Still wrong?** See [Troubleshooting — Host telemetry mapping](./troubleshooting.md#host-telemetry-mapping).
+
 ---
 
 ## Smart Home Integration (Home Assistant)
