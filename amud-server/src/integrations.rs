@@ -246,6 +246,12 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
         "peanut" => {
             return fetch_peanut(&client, base_url, &app.api_key).await;
         }
+        "qbittorrent" => {
+            return fetch_qbittorrent(accept_invalid_certs, base_url, &app.api_key).await;
+        }
+        "bazarr" => {
+            return fetch_bazarr(&client, base_url, &app.api_key).await;
+        }
         "rss" => {
             let feed_url = sanitize_rss_feed_url(&app.api_key)?;
             let resp = client.get(&feed_url).send().await.ok()?;
@@ -442,6 +448,153 @@ async fn fetch_cloudflare_tunnel(client: &reqwest::Client, creds_raw: &str) -> O
     }))
 }
 
+pub(crate) fn parse_qbittorrent_creds(raw: &str) -> Option<(String, String)> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    if let Some((user, pass)) = trimmed.split_once('|') {
+        let user = user.trim();
+        let pass = pass.trim();
+        if !user.is_empty() && !pass.is_empty() {
+            return Some((user.to_string(), pass.to_string()));
+        }
+    }
+    if let Some(idx) = trimmed.find(':') {
+        let user = trimmed[..idx].trim();
+        let pass = trimmed[idx + 1..].trim();
+        if !user.is_empty() && !pass.is_empty() {
+            return Some((user.to_string(), pass.to_string()));
+        }
+    }
+    None
+}
+
+pub(crate) fn format_qbit_speed(bytes_per_sec: u64) -> String {
+    if bytes_per_sec >= 1_000_000 {
+        format!("{:.1} MB/s", bytes_per_sec as f64 / 1_000_000.0)
+    } else if bytes_per_sec >= 1_000 {
+        format!("{:.0} KB/s", bytes_per_sec as f64 / 1_000.0)
+    } else {
+        format!("{} B/s", bytes_per_sec)
+    }
+}
+
+pub(crate) fn count_qbittorrent_states(torrents: &Value) -> (u64, u64) {
+    let Some(arr) = torrents.as_array() else {
+        return (0, 0);
+    };
+    let mut downloading = 0u64;
+    let mut seeding = 0u64;
+    for t in arr {
+        let Some(state) = t.get("state").and_then(|s| s.as_str()) else {
+            continue;
+        };
+        match state {
+            "downloading" | "stalledDL" | "metaDL" | "forcedDL" | "queuedDL" => downloading += 1,
+            "uploading" | "stalledUP" | "forcedUP" | "queuedUP" => seeding += 1,
+            _ => {}
+        }
+    }
+    (downloading, seeding)
+}
+
+pub(crate) fn bazarr_wanted_count(json: &Value) -> u64 {
+    json.get("data")
+        .and_then(|d| d.as_array())
+        .or_else(|| json.as_array())
+        .map(|a| a.len() as u64)
+        .unwrap_or(0)
+}
+
+async fn fetch_qbittorrent(
+    accept_invalid_certs: bool,
+    base_url: &str,
+    creds_raw: &str,
+) -> Option<Value> {
+    let (username, password) = parse_qbittorrent_creds(creds_raw)?;
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(5))
+        .cookie_store(true)
+        .danger_accept_invalid_certs(accept_invalid_certs)
+        .build()
+        .ok()?;
+    let login_url = format!("{}/api/v2/auth/login", base_url.trim_end_matches('/'));
+    let login = client
+        .post(&login_url)
+        .form(&[
+            ("username", username.as_str()),
+            ("password", password.as_str()),
+        ])
+        .send()
+        .await
+        .ok()?;
+    if !login.status().is_success() {
+        return None;
+    }
+    let base = base_url.trim_end_matches('/');
+    let transfer_resp = client
+        .get(format!("{}/api/v2/transfer/info", base))
+        .send()
+        .await
+        .ok()?;
+    if !transfer_resp.status().is_success() {
+        return None;
+    }
+    let transfer: Value = transfer_resp.json().await.ok()?;
+    let dl_speed = transfer
+        .get("dl_info_speed")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let torrents_resp = client
+        .get(format!("{}/api/v2/torrents/info", base))
+        .send()
+        .await
+        .ok()?;
+    if !torrents_resp.status().is_success() {
+        return None;
+    }
+    let torrents: Value = torrents_resp.json().await.ok()?;
+    let (downloading, seeding) = count_qbittorrent_states(&torrents);
+    Some(json!({
+        "type": "qbittorrent",
+        "download_speed": format_qbit_speed(dl_speed),
+        "active_downloads": downloading,
+        "seeding": seeding
+    }))
+}
+
+async fn fetch_bazarr(client: &reqwest::Client, base_url: &str, api_key: &str) -> Option<Value> {
+    if api_key.trim().is_empty() {
+        return None;
+    }
+    let base = base_url.trim_end_matches('/');
+    let movies_url = format!("{}/api/movies/wanted", base);
+    let episodes_url = format!("{}/api/episodes/wanted", base);
+    let movies_resp = client
+        .get(&movies_url)
+        .header("X-Api-Key", api_key)
+        .send()
+        .await
+        .ok()?;
+    let episodes_resp = client
+        .get(&episodes_url)
+        .header("X-Api-Key", api_key)
+        .send()
+        .await
+        .ok()?;
+    if !movies_resp.status().is_success() || !episodes_resp.status().is_success() {
+        return None;
+    }
+    let movies: Value = movies_resp.json().await.ok()?;
+    let episodes: Value = episodes_resp.json().await.ok()?;
+    Some(json!({
+        "type": "bazarr",
+        "missing_movies": bazarr_wanted_count(&movies),
+        "missing_episodes": bazarr_wanted_count(&episodes)
+    }))
+}
+
 async fn fetch_peanut(client: &reqwest::Client, base_url: &str, api_key: &str) -> Option<Value> {
     for path in ["/api/v1/stats", "/api/stats"] {
         let url = format!("{}{}", base_url, path);
@@ -622,5 +775,39 @@ mod tests {
     fn adguard_blocked_today_reads_num_blocked_filtering() {
         let json: Value = serde_json::json!({ "num_blocked_filtering": 42 });
         assert_eq!(adguard_blocked_today(&json), 42);
+    }
+
+    #[test]
+    fn parse_qbittorrent_creds_pipe_and_colon() {
+        assert_eq!(
+            parse_qbittorrent_creds("admin|secret"),
+            Some(("admin".into(), "secret".into()))
+        );
+        assert_eq!(
+            parse_qbittorrent_creds("admin:secret"),
+            Some(("admin".into(), "secret".into()))
+        );
+    }
+
+    #[test]
+    fn format_qbit_speed_human_readable() {
+        assert_eq!(format_qbit_speed(500), "500 B/s");
+        assert_eq!(format_qbit_speed(1500), "2 KB/s");
+    }
+
+    #[test]
+    fn count_qbittorrent_states_groups_active() {
+        let json: Value = serde_json::json!([
+            { "state": "downloading" },
+            { "state": "uploading" },
+            { "state": "pausedUP" }
+        ]);
+        assert_eq!(count_qbittorrent_states(&json), (1, 1));
+    }
+
+    #[test]
+    fn bazarr_wanted_count_reads_data_array() {
+        let json: Value = serde_json::json!({ "data": [{}, {}] });
+        assert_eq!(bazarr_wanted_count(&json), 2);
     }
 }

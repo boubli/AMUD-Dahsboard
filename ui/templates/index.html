@@ -285,6 +285,8 @@
                         <option value="overseerr">Overseerr</option>
                         <option value="jellyseerr">Jellyseerr</option>
                         <option value="prowlarr">Prowlarr</option>
+                        <option value="qbittorrent">qBittorrent</option>
+                        <option value="bazarr">Bazarr</option>
                         <option value="uptime_kuma">Uptime Kuma</option>
                         <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
                         <option value="peanut">Peanut (UPS)</option>
@@ -298,10 +300,11 @@
                         <span x-show="newApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
                         <span x-show="newApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
                         <span x-show="newApp.integration_type === 'peanut'">API token (optional)</span>
-                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut'].includes(newApp.integration_type)">API key / token</span>
+                        <span x-show="newApp.integration_type === 'qbittorrent'">Web UI credentials</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent'].includes(newApp.integration_type)">API key / token</span>
                     </label>
                     <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key"
-                        :placeholder="newApp.integration_type === 'adguard' ? 'Base64 username:password' : (newApp.integration_type === 'pihole' ? 'Pi-hole API token (Settings → API)' : (newApp.integration_type === 'uptime_kuma' ? 'my-status-page-slug' : (newApp.integration_type === 'cloudflare_tunnel' ? 'account_id|tunnel_id|api_token' : (newApp.integration_type === 'peanut' ? 'Leave empty if no auth' : 'From the service settings'))))">
+                        :placeholder="newApp.integration_type === 'adguard' ? 'Base64 username:password' : (newApp.integration_type === 'pihole' ? 'Pi-hole API token (Settings → API)' : (newApp.integration_type === 'uptime_kuma' ? 'my-status-page-slug' : (newApp.integration_type === 'cloudflare_tunnel' ? 'account_id|tunnel_id|api_token' : (newApp.integration_type === 'peanut' ? 'Leave empty if no auth' : (newApp.integration_type === 'qbittorrent' ? 'admin|yourpassword' : 'From the service settings')))))">
                     <p class="form-help" x-show="newApp.integration_type === 'adguard'">
                         AdGuard Home does <strong>not</strong> use an API key. Encode your AdGuard UI login as Base64 <code>username:password</code>
                         (Linux/macOS: <code>echo -n 'admin:yourpass' | base64</code>).
@@ -317,7 +320,13 @@
                         Copy the API key from the service settings (Overseerr/Jellyseerr → General).
                     </p>
                     <p class="form-help" x-show="newApp.integration_type === 'prowlarr'">
-                        API key from Prowlarr <strong>Settings → General</strong>. Shows enabled indexers and queue size.
+                        API key from Prowlarr <strong>Settings → General</strong>. Hover the card to see indexers and queue.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'qbittorrent'">
+                        Format: <code>username|password</code> for the qBittorrent Web UI. Enable Web UI in qBittorrent settings. Hover the card for download speed and active torrents.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'bazarr'">
+                        API key from Bazarr <strong>Settings → General</strong>. Shows missing subtitles (hover card).
                     </p>
                     <p class="form-help" x-show="newApp.integration_type === 'uptime_kuma'">
                         Use your public <strong>status page slug</strong> (Settings → Status Pages), or an Uptime Kuma API key for monitor count.
@@ -427,6 +436,8 @@
                         <option value="overseerr">Overseerr</option>
                         <option value="jellyseerr">Jellyseerr</option>
                         <option value="prowlarr">Prowlarr</option>
+                        <option value="qbittorrent">qBittorrent</option>
+                        <option value="bazarr">Bazarr</option>
                         <option value="uptime_kuma">Uptime Kuma</option>
                         <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
                         <option value="peanut">Peanut (UPS)</option>
@@ -440,7 +451,8 @@
                         <span x-show="editApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
                         <span x-show="editApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
                         <span x-show="editApp.integration_type === 'peanut'">API token (optional)</span>
-                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut'].includes(editApp.integration_type)">API key / token</span>
+                        <span x-show="editApp.integration_type === 'qbittorrent'">Web UI credentials</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent'].includes(editApp.integration_type)">API key / token</span>
                     </label>
                     <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key"
                         :placeholder="editApp.integration_type === 'adguard' ? 'Base64 username:password' : (editApp.integration_type === 'pihole' ? 'Leave blank to keep unchanged' : 'Leave blank to keep unchanged')">
@@ -460,6 +472,12 @@
                     </p>
                     <p class="form-help" x-show="editApp.integration_type === 'prowlarr'">
                         Prowlarr API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'qbittorrent'">
+                        <code>username|password</code> for Web UI. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'bazarr'">
+                        Bazarr API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.
                     </p>
                     <p class="form-help" x-show="editApp.integration_type === 'uptime_kuma'">
                         Status page slug or API key. Leave blank to keep unchanged.

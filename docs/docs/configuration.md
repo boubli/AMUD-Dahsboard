@@ -95,6 +95,8 @@ Per-app integrations are set when you **Add** or **Edit** an app (Integration dr
 | **Overseerr** | Overseerr base URL | API key | Pending media requests |
 | **Jellyseerr** | Jellyseerr base URL | API key | Pending media requests |
 | **Prowlarr** | Prowlarr base URL | API key (`X-Api-Key`) | Enabled/total indexers + queue size |
+| **qBittorrent** | Web UI base URL | `username\|password` | Download speed, active downloads, seeding (hover card) |
+| **Bazarr** | Bazarr base URL | API key | Missing subtitle counts for episodes and movies (hover card) |
 | **Uptime Kuma** | Uptime Kuma base URL | Status page slug **or** API key | Monitors up/down (status page JSON or `/api/monitors`) |
 | **Cloudflare Tunnel** | Tunnel hostname or dashboard URL | `account_id\|tunnel_id\|api_token` | Tunnel status + active connections |
 | **Peanut (UPS)** | Peanut/NUT base URL | API token (optional) | Battery % and UPS status |

@@ -656,6 +656,64 @@ body::-webkit-scrollbar-button {
     text-transform: uppercase;
 }
 
+/* Integration stats — reveal on card hover (compact cards) */
+.integration-widget--hover {
+    margin-top: auto;
+}
+
+@media (hover: hover) {
+    .app-card .integration-widget--hover {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        padding: 0.65rem 1rem 0.85rem;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        background: linear-gradient(
+            to top,
+            rgba(12, 14, 18, 0.97) 70%,
+            rgba(12, 14, 18, 0.82) 100%
+        );
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(6px);
+        transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .app-card .integration-widget--hover .nested-metrics-grid {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+
+    .app-card:hover .integration-widget--hover,
+    .app-card:focus-within .integration-widget--hover {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+}
+
+@media (hover: none) {
+    .app-card .integration-widget--hover {
+        margin-top: auto;
+    }
+}
+
+.integration-widget--always {
+    margin-top: auto;
+}
+
+:root[data-theme="light"] .app-card .integration-widget--hover {
+    background: linear-gradient(
+        to top,
+        rgba(248, 250, 252, 0.98) 70%,
+        rgba(248, 250, 252, 0.88) 100%
+    );
+}
+
 /* ── RSS Feed Widget ───────────────────────────── */
 .rss-feed-list {
     display: flex;

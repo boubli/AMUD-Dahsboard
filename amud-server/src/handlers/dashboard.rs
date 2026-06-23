@@ -476,9 +476,14 @@ fn render_apps_grid(
 
         let mut integration_widget = String::new();
         if !app.integration_type.is_empty() {
+            let integration_class = if app.integration_type == "rss" {
+                "integration-widget integration-widget--always"
+            } else {
+                "integration-widget integration-widget--hover"
+            };
             integration_widget = format!(
                 r#"
-                <div class="integration-widget" x-show="integrationData && integrationData.type">
+                <div class="{}" x-show="integrationData && integrationData.type">
                     <template x-if="integrationData.type === 'pihole' || integrationData.type === 'adguard'">
                         <div class="nested-metrics-grid cols-2">
                             <div class="metric-block">
@@ -555,6 +560,30 @@ fn render_apps_grid(
                             </div>
                         </div>
                     </template>
+                    <template x-if="integrationData.type === 'qbittorrent'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.download_speed"></span>
+                                <span class="metric-label">Download</span>
+                            </div>
+                            <div class="metric-block">
+                                <span class="metric-value"><span x-text="integrationData.active_downloads"></span>↓ <span x-text="integrationData.seeding"></span>↑</span>
+                                <span class="metric-label">Active / Seeding</span>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'bazarr'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.missing_episodes"></span>
+                                <span class="metric-label">Episodes Missing</span>
+                            </div>
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.missing_movies"></span>
+                                <span class="metric-label">Movies Missing</span>
+                            </div>
+                        </div>
+                    </template>
                     <template x-if="integrationData.type === 'rss'">
                         <div class="rss-feed-list">
                             <template x-for="(entry, index) in integrationData.entries" :key="index">
@@ -573,7 +602,7 @@ fn render_apps_grid(
                         </div>
                     </template>
                 </div>"#,
-                app.id, csrf_token, app.id
+                integration_class, app.id, csrf_token, app.id
             );
         }
 
