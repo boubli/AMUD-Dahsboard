@@ -8,6 +8,20 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.4.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.0) — 2026-06-23
+
+Feeds page polish: hero headline, category colors, and drag reorder.
+
+### Added
+- **Featured headline hero** on `/feeds` — top story from the first feed in sort order
+- **RSS feed reorder** — drag rows in Settings → RSS Feeds; order drives `/feeds` layout
+
+### Improved
+- **Feed category tabs** — guest-visible accent colors per category on `/feeds`
+- **Feeds UX** — news-style cards, preset icons, and category empty states (phases 1–3)
+
+---
+
 ## [v1.5.3.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.3.0) — 2026-06-23
 
 RSS management UI, homelab polish, and audit expansion.

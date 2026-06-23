@@ -734,6 +734,50 @@ pub(crate) fn update_app_order(db: &Connection, ids: &[i64]) -> Result<(), Strin
     tx.commit().map_err(|e| e.to_string())
 }
 
+pub(crate) fn update_rss_feed_order(db: &Connection, ids: &[i64]) -> Result<(), String> {
+    if ids.is_empty() {
+        return Ok(());
+    }
+
+    let total: i64 = db
+        .query_row(
+            "SELECT COUNT(*) FROM apps WHERE integration_type = 'rss'",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+    if ids.len() as i64 != total {
+        return Err("Reorder payload must include every RSS feed exactly once".into());
+    }
+
+    let mut seen = std::collections::HashSet::with_capacity(ids.len());
+    for id in ids {
+        if !seen.insert(*id) {
+            return Err("Duplicate RSS feed id in reorder payload".into());
+        }
+        let exists: i64 = db
+            .query_row(
+                "SELECT COUNT(*) FROM apps WHERE id = ? AND integration_type = 'rss'",
+                params![id],
+                |row| row.get(0),
+            )
+            .map_err(|e| e.to_string())?;
+        if exists == 0 {
+            return Err(format!("Unknown RSS feed id in reorder payload: {id}"));
+        }
+    }
+
+    let tx = db.unchecked_transaction().map_err(|e| e.to_string())?;
+    for (i, id) in ids.iter().enumerate() {
+        tx.execute(
+            "UPDATE apps SET sort_order = ? WHERE id = ? AND integration_type = 'rss'",
+            params![i as i64, id],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    tx.commit().map_err(|e| e.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

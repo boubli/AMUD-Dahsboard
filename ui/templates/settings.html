@@ -835,6 +835,7 @@
                     <table class="mgmt-table">
                         <thead>
                             <tr>
+                                <th style="width:2rem;" aria-label="Reorder"></th>
                                 <th>Name</th>
                                 <th>Category</th>
                                 <th>Feed URL</th>
@@ -2428,11 +2429,22 @@
                 if (!tbody) return;
                 tbody.replaceChildren();
                 if (!data.length) {
-                    setTableMessage(tbody, 6, 'No RSS feeds configured yet. Click "New RSS Feed" to add one.', { style: 'color:var(--text-muted);' });
+                    setTableMessage(tbody, 7, 'No RSS feeds configured yet. Click "New RSS Feed" to add one.', { style: 'color:var(--text-muted);' });
                     return;
                 }
                 data.forEach(feed => {
                     const tr = document.createElement('tr');
+                    tr.dataset.feedId = String(feed.id);
+
+                    const dragTd = document.createElement('td');
+                    dragTd.className = 'drag-cell';
+                    const handle = document.createElement('span');
+                    handle.className = 'rss-drag-handle drag-handle';
+                    handle.setAttribute('aria-hidden', 'true');
+                    handle.innerHTML = '<i data-lucide="grip-vertical"></i>';
+                    dragTd.appendChild(handle);
+                    tr.appendChild(dragTd);
+
                     appendTableCell(tr, feed.name, { strong: true });
                     appendTableCell(tr, feed.category || 'General');
                     appendTableCell(tr, feed.feed_url, { code: true });
@@ -2472,6 +2484,60 @@
                     tr.appendChild(actionsTd);
                     tbody.appendChild(tr);
                 });
+                initRssFeedDragReorder();
+                if (window.lucide) window.lucide.createIcons();
+            } catch (e) {
+                console.error(e);
+                showApiError(e.message);
+            }
+        }
+
+        let rssReorderSaveTimer = null;
+
+        function initRssFeedDragReorder() {
+            const tbody = document.getElementById('rss-table-body');
+            if (!tbody) return;
+
+            let dragRow = null;
+            tbody.querySelectorAll('tr[data-feed-id]').forEach(row => {
+                row.draggable = true;
+                row.addEventListener('dragstart', (e) => {
+                    dragRow = row;
+                    row.classList.add('is-dragging');
+                    if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+                });
+                row.addEventListener('dragend', () => {
+                    row.classList.remove('is-dragging');
+                    dragRow = null;
+                    clearTimeout(rssReorderSaveTimer);
+                    rssReorderSaveTimer = setTimeout(saveRssFeedOrder, 250);
+                });
+                row.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (!dragRow || dragRow === row) return;
+                    const rect = row.getBoundingClientRect();
+                    const after = e.clientY > rect.top + rect.height / 2;
+                    tbody.insertBefore(dragRow, after ? row.nextSibling : row);
+                });
+            });
+        }
+
+        async function saveRssFeedOrder() {
+            const tbody = document.getElementById('rss-table-body');
+            if (!tbody) return;
+            const ids = [...tbody.querySelectorAll('tr[data-feed-id]')]
+                .map(tr => Number(tr.dataset.feedId))
+                .filter(id => !Number.isNaN(id));
+            if (!ids.length) return;
+
+            try {
+                const res = await fetch('/api/rss-feeds/reorder', {
+                    method: 'POST',
+                    headers: amudCsrfHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ ids, csrf_token: amudCsrfToken() })
+                });
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) throw new Error(data.error || 'Failed to save feed order');
             } catch (e) {
                 console.error(e);
                 showApiError(e.message);

@@ -468,6 +468,7 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/rss-feeds/add", post(add_rss_feed_handler))
         .route("/api/rss-feeds/edit", post(edit_rss_feed_handler))
         .route("/api/rss-feeds/delete", post(delete_rss_feed_handler))
+        .route("/api/rss-feeds/reorder", post(reorder_rss_feeds_handler))
         .route("/api/audit", get(list_audit_handler))
         .route("/api/system/version", get(system_version_handler))
         .route("/api/system/update", post(system_update_handler))

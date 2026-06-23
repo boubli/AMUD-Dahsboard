@@ -586,6 +586,11 @@ async fn test_feeds_page_renders_feed_cards_without_infra_metrics() {
         body.contains("page-feeds"),
         "expected feeds page body class"
     );
+    assert!(
+        body.contains("id=\"feed-hero\""),
+        "expected featured hero shell"
+    );
+    assert!(body.contains("initFeedHero"), "expected hero loader script");
     for (idx, _) in body.match_indices("class=\"glass-panel feed-card\"") {
         let snippet = &body[idx..body.len().min(idx + 2500)];
         assert!(
@@ -775,4 +780,63 @@ async fn test_feeds_page_shows_category_tabs() {
         body.contains("feed-category-pill"),
         "expected category pill on card"
     );
+    assert!(
+        body.contains("--tab-accent"),
+        "expected category color on feed tabs"
+    );
+    assert!(
+        body.contains("id=\"feed-hero\""),
+        "expected featured hero shell"
+    );
+}
+
+// ── Phase 4: Feed reorder, hero card, tab colors ──────────────────────────
+
+#[tokio::test]
+async fn test_rss_feeds_reorder_success() {
+    let state = setup_test_state();
+    let key_a = amud_server::secrets::encrypt_value("https://example.com/a.xml").unwrap();
+    let key_b = amud_server::secrets::encrypt_value("https://example.com/b.xml").unwrap();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, category, node_tag, integration_type, api_key, sort_order) VALUES (1, 'A', 'https://a', 'General', 'Local', 'rss', ?, 0)",
+            rusqlite::params![key_a],
+        )
+        .unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, category, node_tag, integration_type, api_key, sort_order) VALUES (2, 'B', 'https://b', 'General', 'Local', 'rss', ?, 1)",
+            rusqlite::params![key_b],
+        )
+        .unwrap();
+    }
+
+    let session_token = insert_admin_session(&state);
+    let app = build_app_router(state.clone());
+
+    let payload = r#"{"ids":[2,1],"csrf_token":"csrf-reorder-abc"}"#;
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/rss-feeds/reorder")
+                .header(header::CONTENT_TYPE, "application/json")
+                .header(header::COOKIE, format!("amud_session={}", session_token))
+                .body(Body::from(payload))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let db = state.db.lock().unwrap();
+    let first_name: String = db
+        .query_row(
+            "SELECT name FROM apps WHERE integration_type = 'rss' ORDER BY sort_order ASC LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(first_name, "B");
 }

@@ -846,6 +846,72 @@ pub async fn reorder_apps_handler(
     }
 }
 
+pub async fn reorder_rss_feeds_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    body: String,
+) -> impl IntoResponse {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    #[derive(Deserialize)]
+    struct ReorderPayload {
+        ids: Vec<i64>,
+        csrf_token: String,
+    }
+
+    let Ok(payload) = serde_json::from_str::<ReorderPayload>(&body) else {
+        return api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"error": "Invalid payload"}),
+        )
+        .into_response();
+    };
+
+    let mut csrf_form = HashMap::new();
+    csrf_form.insert("csrf_token".to_string(), payload.csrf_token);
+
+    if !validate_csrf(&headers, &state.sessions, Some(&csrf_form)) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    let reorder_count = payload.ids.len();
+    let result = with_db(state.db.clone(), move |db| {
+        update_rss_feed_order(db, &payload.ids)
+    })
+    .await;
+
+    match result {
+        Ok(()) => {
+            let admin_user = session
+                .as_ref()
+                .map(|s| s.username.clone())
+                .unwrap_or_default();
+            let headers = headers.clone();
+            let details = format!("{reorder_count} feeds");
+            with_db(state.db.clone(), move |db| {
+                record_audit_blocking(
+                    db,
+                    &headers,
+                    &admin_user,
+                    "rss_feed_reorder",
+                    "settings",
+                    &details,
+                );
+            })
+            .await;
+            api_json(StatusCode::OK, serde_json::json!({"success": true})).into_response()
+        }
+        Err(error) => api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"success": false, "error": error}),
+        )
+        .into_response(),
+    }
+}
+
 fn rss_feed_api_key_valid(integration_type: &str, api_key: &str) -> bool {
     if integration_type != "rss" {
         return true;

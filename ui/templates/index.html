@@ -180,6 +180,9 @@
         <!-- Wake-on-LAN Row -->
         <!-- WOL_SECTION -->
 
+        <!-- Featured headline (feeds page) -->
+        <!-- FEED_HERO -->
+
         <!-- Main Bento Grid Columns -->
         <main class="{{main_grid_class}}">
             <!-- APPS_GRID -->
@@ -547,6 +550,80 @@
                 emptyMsg.style.display = 'none';
             }
         }
+
+        async function initFeedHero() {
+            const hero = document.getElementById('feed-hero');
+            if (!hero) return;
+
+            const cards = [...document.querySelectorAll('.feed-card[data-app-id]')];
+            for (const card of cards) {
+                const id = card.getAttribute('data-app-id');
+                if (!id) continue;
+
+                const source = card.querySelector('.feed-card-title')?.textContent?.trim() || 'Feed';
+                const iconSrc = card.querySelector('.feed-card-icon img')?.getAttribute('src') || '/static/feeds/icons/rss.svg';
+                const category = card.querySelector('.feed-category-pill')?.textContent?.trim() || '';
+
+                try {
+                    const res = await fetch(`/api/apps/${id}/integration`);
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const entry = data?.entries?.[0];
+                    if (!entry?.title) continue;
+
+                    const link = entry.link || entry.url || '#';
+                    const date = entry.date || entry.published || '';
+
+                    hero.replaceChildren();
+                    const anchor = document.createElement('a');
+                    anchor.href = link;
+                    anchor.target = '_blank';
+                    anchor.rel = 'noopener noreferrer';
+                    anchor.className = 'feed-hero-link';
+
+                    const media = document.createElement('div');
+                    media.className = 'feed-hero-media';
+                    const img = document.createElement('img');
+                    img.src = iconSrc;
+                    img.alt = '';
+                    img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
+                    media.appendChild(img);
+
+                    const content = document.createElement('div');
+                    content.className = 'feed-hero-content';
+                    const eyebrow = document.createElement('span');
+                    eyebrow.className = 'feed-hero-eyebrow';
+                    eyebrow.textContent = category || source;
+                    const title = document.createElement('h2');
+                    title.className = 'feed-hero-title';
+                    title.textContent = entry.title;
+                    const meta = document.createElement('p');
+                    meta.className = 'feed-hero-meta';
+                    meta.textContent = date ? `${source} · ${date}` : source;
+                    content.append(eyebrow, title, meta);
+
+                    const cta = document.createElement('span');
+                    cta.className = 'feed-hero-cta';
+                    cta.innerHTML = 'Read <i data-lucide="arrow-up-right"></i>';
+
+                    anchor.append(media, content, cta);
+                    hero.appendChild(anchor);
+                    hero.hidden = false;
+                    if (window.lucide) window.lucide.createIcons();
+                    return;
+                } catch (_) {
+                    /* try next feed */
+                }
+            }
+
+            hero.remove();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.body.classList.contains('page-feeds')) {
+                initFeedHero();
+            }
+        });
 
         // Trigger container actions (start/stop/restart) for Admin
         function triggerContainerAction(button, action) {

@@ -15,8 +15,8 @@ pub(crate) use crate::db::{
     load_webhooks_json, load_wol_devices_from_db, process_login, record_audit_blocking,
     refresh_settings_cache, secret_field_placeholder, secret_setting_configured,
     setting_value_or_existing, telemetry_public_from_cache, update_app_order,
-    update_category_by_id, update_feed_category_by_id, with_db, CategoryDeleteError,
-    DeleteUserError, FeedCategoryDeleteError,
+    update_category_by_id, update_feed_category_by_id, update_rss_feed_order, with_db,
+    CategoryDeleteError, DeleteUserError, FeedCategoryDeleteError,
 };
 pub(crate) use crate::feed_icons::{guess_feed_icon_key, host_from_url, resolve_feed_logo};
 pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};

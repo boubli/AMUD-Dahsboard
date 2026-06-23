@@ -148,6 +148,13 @@ async fn render_page(
         PageMode::Dashboard => render_support_section(&settings),
         PageMode::Feeds => String::new(),
     };
+    let feed_hero_html = match mode {
+        PageMode::Feeds if !apps.is_empty() => {
+            r#"<section id="feed-hero" class="glass-panel feed-hero" hidden aria-live="polite"></section>"#
+                .to_string()
+        }
+        _ => String::new(),
+    };
 
     let root_css = build_root_css(&branding);
 
@@ -275,6 +282,7 @@ async fn render_page(
         .replace("<!-- APPS_GRID -->", &apps_html)
         .replace("<!-- WOL_SECTION -->", &wol_html)
         .replace("<!-- STREAMS_ROW -->", &streams_html)
+        .replace("<!-- FEED_HERO -->", &feed_hero_html)
         .replace("<!-- CATEGORY_TABS -->", &category_tabs_html)
         .replace("<!-- SUPPORT_SECTION -->", &support_html)
         .replace("<!-- AUTH_BUTTONS -->", &auth_buttons)
@@ -754,9 +762,14 @@ fn render_feed_category_tabs(apps: &[App], feed_categories: &[serde_json::Value]
             continue;
         }
         let icon = cat.get("icon").and_then(|v| v.as_str()).unwrap_or("rss");
+        let color = cat
+            .get("color")
+            .and_then(|v| v.as_str())
+            .unwrap_or("#64748b");
         let cat_slug = category_slug(name);
         category_tabs_html.push_str(&format!(
-            r#"<button type="button" class="filter-tab feed-filter-tab" @click="filterCategory('{}', $el)"><i data-lucide="{}"></i> {} <span class="filter-count">{}</span></button>"#,
+            r#"<button type="button" class="filter-tab feed-filter-tab" style="--tab-accent: {};" @click="filterCategory('{}', $el)"><i data-lucide="{}"></i> {} <span class="filter-count">{}</span></button>"#,
+            escape_html(color),
             escape_html(&cat_slug),
             escape_html(icon),
             escape_html(name),

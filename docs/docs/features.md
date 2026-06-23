@@ -20,6 +20,9 @@ Complete inventory of what AMUD Dashboard ships today (v1.5.2.1). Everything bel
 | **Weather widget** | Open-Meteo via latitude/longitude in Settings |
 | **Live settings preview** | Accent, glass blur/opacity, grid columns, wallpaper |
 | **Dedicated `/feeds` page** | RSS-only view for guest-friendly news cards |
+| **Featured hero headline** | Top story banner on `/feeds` |
+| **Feed categories** | World News, Tech, etc. with icons and tab colors |
+| **RSS reorder** | Drag feeds in Settings; order drives `/feeds` layout |
 | **In-app update banner** | Native/Proxmox installs check GitHub Releases automatically |
 | **PWA service worker** | Basic static asset caching (offline shell polish is on the roadmap) |
 
