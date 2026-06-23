@@ -11,6 +11,21 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.5.5.1 — qBittorrent, Bazarr, hover integration stats
+
+**2026-06-24** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.1) · [Compare v1.5.5.0…v1.5.5.1](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.0...v1.5.5.1)
+
+**Added**
+- **qBittorrent** and **Bazarr** app card integrations
+
+**Improved**
+- Integration stats on **card hover** (compact cards)
+- Telemetry mapping discovery docs + Settings link
+
+**Upgrade:** `curl -sSL …/update-amud.sh | bash` — verify **Settings → System** shows `v1.5.5.1`.
+
+---
+
 ## v1.5.5.0 — Integrations, telemetry mapping, Unraid polish
 
 **2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.0) · [Compare v1.5.4.3…v1.5.5.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.4.3...v1.5.5.0)

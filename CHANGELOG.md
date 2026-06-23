@@ -8,6 +8,19 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.5.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.1) — 2026-06-24
+
+qBittorrent and Bazarr integrations plus compact hover stats on app cards.
+
+### Added
+- **qBittorrent** and **Bazarr** app card integrations
+
+### Improved
+- **Integration stats on hover** — cards stay short; hover to see Prowlarr/*arr/qBit/Bazarr metrics
+- **Telemetry mapping docs** — how to find interface names and disk mounts (linked from Settings)
+
+---
+
 ## [v1.5.5.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.0) — 2026-06-23
 
 Community integrations, telemetry mapping, and Unraid polish (Inch feedback batch).
