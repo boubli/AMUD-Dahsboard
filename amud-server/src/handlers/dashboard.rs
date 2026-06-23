@@ -404,6 +404,14 @@ fn render_apps_grid(
                             </div>
                         </div>
                     </template>
+                    <template x-if="integrationData.type === 'overseerr' || integrationData.type === 'jellyseerr'">
+                        <div class="nested-metrics-grid">
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.pending_requests"></span>
+                                <span class="metric-label">Pending Requests</span>
+                            </div>
+                        </div>
+                    </template>
                     <template x-if="integrationData.type === 'rss'">
                         <div class="rss-feed-list">
                             <template x-for="(entry, index) in integrationData.entries" :key="index">

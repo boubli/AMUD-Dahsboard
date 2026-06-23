@@ -1,0 +1,37 @@
+# Version Control
+.git
+.githooks
+.github
+.gitignore
+
+# Local dev and build
+target/
+data/
+*.log
+
+# Documentation and Assets
+docs/
+readmes/
+assist/
+README.md
+AUDIT_TASKS.md
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+DEPLOY.md
+SECURITY.md
+
+# Scripts and external configs
+scripts/
+scratch/
+templates/
+setup-amud.sh
+setup-hydrivax.sh
+uninstall-amud.sh
+update-amud.sh
+docker-compose*.yml
+ca_profile.xml
+sonar-project.properties
+rustfmt.toml
+.env.example
+LICENSE

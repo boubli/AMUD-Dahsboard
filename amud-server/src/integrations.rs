@@ -176,6 +176,23 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 }));
             }
         }
+        "overseerr" | "jellyseerr" => {
+            let url = format!("{}/api/v1/request/count", base_url);
+            let resp = client
+                .get(&url)
+                .header("X-Api-Key", &app.api_key)
+                .send()
+                .await
+                .ok()?;
+            if resp.status().is_success() {
+                let json: Value = resp.json().await.ok()?;
+                let pending = json.get("pending").and_then(|v| v.as_u64()).unwrap_or(0);
+                return Some(json!({
+                    "type": app.integration_type.as_str(),
+                    "pending_requests": pending
+                }));
+            }
+        }
         "rss" => {
             let feed_url = sanitize_rss_feed_url(&app.api_key)?;
             let resp = client.get(&feed_url).send().await.ok()?;
