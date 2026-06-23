@@ -21,7 +21,7 @@ Items move between **Now**, **Next**, and **Later** as reality hits.
 
 ## Next
 
-- **Guest vs Admin UX** — clearer permission boundaries in the UI for read-only dashboard users.
+- **Guest vs Admin UX (In Progress)** — expanding clearer permission boundaries in the UI for read-only dashboard users (RSS feeds are already guest-friendly, continuing with more).
 - **Backup/restore UX** — one-click export reminder and post-import validation feedback.
 - **Custom themes** — document and polish the CSS variable system ([Themes](./themes)).
 - **ARM64 release binaries** — official builds alongside x86_64 (manual builds exist today; CI support planned).

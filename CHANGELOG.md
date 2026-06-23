@@ -8,6 +8,17 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.2.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.2.0) — 2026-06-23
+
+Native RSS and Atom feed integration for dashboard app cards.
+
+### Added
+- **RSS Integration**: Add any valid RSS or Atom feed URL to an app to display the top 3 latest headlines on its card.
+- **Guest Visibility**: RSS integration data is explicitly permitted for unauthenticated guest users, keeping your dashboard lively while keeping sensitive integrations (like Pi-hole or Proxmox) locked down to admins.
+- **Feed Parsing**: Powered by `feed-rs` for robust cross-format feed compatibility.
+
+---
+
 ## [v1.5.1.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.1.0) — 2026-06-21
 
 Appearance cleanup, offline bundled themes, audit log fixes, and in-app updater repair.
