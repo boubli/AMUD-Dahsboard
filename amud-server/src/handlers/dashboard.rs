@@ -104,19 +104,32 @@ async fn render_page(
     )
     .unwrap_or_else(|_| "[]".to_string());
 
-    let apps_html = render_apps_grid(
-        &apps,
-        is_admin,
-        &csrf_token,
-        &csrf_attr,
-        &session,
-        &logo_manifest,
-        mode,
-    );
+    let feed_categories = match mode {
+        PageMode::Feeds => with_db(state.db.clone(), load_feed_categories_json).await,
+        PageMode::Dashboard => Vec::new(),
+    };
+
+    let apps_html = match mode {
+        PageMode::Feeds => render_feeds_grid(
+            &apps,
+            is_admin,
+            &csrf_attr,
+            &logo_manifest,
+            &feed_categories,
+        ),
+        PageMode::Dashboard => render_apps_grid(
+            &apps,
+            is_admin,
+            &csrf_token,
+            &csrf_attr,
+            &session,
+            &logo_manifest,
+        ),
+    };
 
     let wol_html = render_wol_devices(&wol_devices, is_admin, &csrf_attr);
 
-    let auth_buttons = render_auth_buttons(&session, &csrf_attr);
+    let auth_buttons = render_auth_buttons(&session, &csrf_attr, mode);
     let streams_html = match mode {
         PageMode::Dashboard => render_streams(
             &apps,
@@ -127,7 +140,10 @@ async fn render_page(
         ),
         PageMode::Feeds => String::new(),
     };
-    let category_tabs_html = render_category_tabs(&apps);
+    let category_tabs_html = match mode {
+        PageMode::Feeds => render_feed_category_tabs(&apps, &feed_categories),
+        PageMode::Dashboard => render_category_tabs(&apps),
+    };
     let support_html = match mode {
         PageMode::Dashboard => render_support_section(&settings),
         PageMode::Feeds => String::new(),
@@ -216,6 +232,14 @@ async fn render_page(
         PageMode::Dashboard => r#"<a href="/feeds" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;"><i data-lucide="rss" style="width:0.95rem; height:0.95rem;"></i> Feeds</a>"#.to_string(),
         PageMode::Feeds => r#"<a href="/" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;"><i data-lucide="arrow-left" style="width:0.95rem; height:0.95rem;"></i> Dashboard</a>"#.to_string(),
     };
+    let main_grid_class = match mode {
+        PageMode::Feeds => "feeds-grid",
+        PageMode::Dashboard => "bento-grid",
+    };
+    let body_page_class = match mode {
+        PageMode::Feeds => "page-feeds",
+        PageMode::Dashboard => "",
+    };
 
     let mut result = index_tmpl
         .replace("/* ROOT_CSS */", &root_css)
@@ -223,6 +247,8 @@ async fn render_page(
         .replace("{{tagline}}", &safe_tagline)
         .replace("{{page_title_suffix}}", page_title_suffix)
         .replace("<!-- FEEDS_NAV -->", &feeds_nav)
+        .replace("{{main_grid_class}}", main_grid_class)
+        .replace("{{body_page_class}}", body_page_class)
         .replace(
             "{{proxmox_enabled}}",
             if proxmox_enabled { "true" } else { "false" },
@@ -317,23 +343,14 @@ fn render_apps_grid(
     csrf_attr: &str,
     session: &Option<Session>,
     logo_manifest: &HashMap<String, String>,
-    mode: PageMode,
 ) -> String {
     if apps.is_empty() {
-        return match mode {
-            PageMode::Feeds => r#"
-        <div class="glass-panel app-card app-card--empty">
-            <p style="font-weight: 600; color: var(--text-secondary);">No RSS feeds configured yet</p>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Admins can add feeds under Settings → RSS Feeds or from the Add App modal (RSS integration).</p>
-        </div>"#
-                .to_string(),
-            PageMode::Dashboard => r#"
+        return r#"
         <div class="glass-panel app-card app-card--empty">
             <p style="font-weight: 600; color: var(--text-secondary);">No services configured yet</p>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Log in as Admin and click "Add App" to register your infrastructure.</p>
         </div>"#
-                .to_string(),
-        };
+            .to_string();
     }
 
     let mut cards_html = String::new();
@@ -407,12 +424,14 @@ fn render_apps_grid(
                 .replace('&', "&amp;")
                 .replace('"', "&quot;")
                 .replace('\'', "&#39;");
+            let edit_control = format!(
+                r#"<button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);"><i data-lucide="edit-2"></i></button>"#,
+                escaped_json
+            );
             format!(
                 r#"
                 <div style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                    <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);">
-                        <i data-lucide="edit-2"></i>
-                    </button>
+                    {}
                     <form action="/apps/delete" method="POST" style="margin: 0; display: inline-flex; align-items: center;">
                         <input type="hidden" name="id" value="{}">
                         <input type="hidden" name="csrf_token" value="{}">
@@ -422,7 +441,7 @@ fn render_apps_grid(
                     </form>
                 </div>
                 "#,
-                escaped_json, app.id, csrf_attr
+                edit_control, app.id, csrf_attr
             )
         } else {
             "".to_string()
@@ -584,10 +603,186 @@ fn render_apps_grid(
     cards_html
 }
 
-fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
+fn feed_category_meta(name: &str, feed_categories: &[serde_json::Value]) -> (String, String) {
+    for cat in feed_categories {
+        if cat.get("name").and_then(|v| v.as_str()) == Some(name) {
+            let color = cat
+                .get("color")
+                .and_then(|v| v.as_str())
+                .unwrap_or("#64748b")
+                .to_string();
+            let icon = cat
+                .get("icon")
+                .and_then(|v| v.as_str())
+                .unwrap_or("rss")
+                .to_string();
+            return (color, icon);
+        }
+    }
+    ("#64748b".to_string(), "rss".to_string())
+}
+
+fn render_feeds_grid(
+    apps: &[App],
+    is_admin: bool,
+    csrf_attr: &str,
+    logo_manifest: &HashMap<String, String>,
+    feed_categories: &[serde_json::Value],
+) -> String {
+    if apps.is_empty() {
+        return r#"
+        <div class="glass-panel feed-card feed-card--empty">
+            <p style="font-weight: 600; color: var(--text-secondary);">No RSS feeds configured yet</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Admins: add feeds under <a href="/admin/settings?tab=rss" style="color:var(--accent-color);">Settings → RSS Feeds</a>.</p>
+        </div>"#
+            .to_string();
+    }
+
+    let mut cards_html = String::new();
+    for app in apps.iter() {
+        let feed_logo = resolve_feed_logo(&app.icon, &app.name, &app.url, "", logo_manifest);
+        let cat_slug = category_slug(&app.category);
+        let (cat_color, _cat_icon) = feed_category_meta(&app.category, feed_categories);
+        let host = host_from_url(if app.url.is_empty() {
+            &app.name
+        } else {
+            &app.url
+        });
+        let site_href = if app.url.is_empty() {
+            "#".to_string()
+        } else {
+            escape_html(&app.url)
+        };
+
+        let admin_actions = if is_admin {
+            format!(
+                r#"
+                <div class="feed-card-actions">
+                    <a href="/admin/settings?tab=rss" class="btn-edit-app" title="Edit in RSS Feeds settings">
+                        <i data-lucide="edit-2"></i>
+                    </a>
+                    <form action="/apps/delete" method="POST" style="margin:0; display:inline-flex;">
+                        <input type="hidden" name="id" value="{}">
+                        <input type="hidden" name="csrf_token" value="{}">
+                        <button type="submit" class="btn-delete-app" title="Delete feed">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </form>
+                </div>"#,
+                app.id, csrf_attr
+            )
+        } else {
+            String::new()
+        };
+
+        let category_pill = format!(
+            r#"<span class="feed-category-pill" style="--pill-color:{};">{}</span>"#,
+            escape_html(&cat_color),
+            escape_html(&app.category)
+        );
+
+        let card = format!(
+            r#"
+            <article class="glass-panel feed-card" data-app-id="{}" data-category="{}" data-app-name="{}" x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }})">
+                <header class="feed-card-header">
+                    <a href="{}" target="_blank" rel="noopener noreferrer" class="feed-card-identity">
+                        <div class="feed-card-icon">
+                            <img src="{}" alt="" onerror="this.src='/static/feeds/icons/rss.svg'">
+                        </div>
+                        <div class="feed-card-meta">
+                            <h3 class="feed-card-title">{}</h3>
+                            <span class="feed-card-host">{}</span>
+                        </div>
+                    </a>
+                    <div class="feed-card-badges">
+                        {}
+                        {}
+                    </div>
+                </header>
+                <div class="integration-widget feed-card-body" x-show="integrationData && integrationData.type === 'rss'">
+                    <div class="rss-feed-list">
+                        <template x-for="(entry, index) in integrationData.entries" :key="index">
+                            <a x-show="entry.link" :href="entry.link" target="_blank" rel="noopener" class="rss-feed-item">
+                                <span class="rss-feed-title" x-text="entry.title"></span>
+                                <span class="rss-feed-date" x-text="entry.date"></span>
+                            </a>
+                            <div x-show="!entry.link" class="rss-feed-item rss-feed-item--text-only">
+                                <span class="rss-feed-title" x-text="entry.title"></span>
+                                <span class="rss-feed-date" x-text="entry.date"></span>
+                            </div>
+                        </template>
+                        <div x-show="!integrationData || !integrationData.entries || integrationData.entries.length === 0" class="rss-feed-empty">
+                            <span>Loading headlines…</span>
+                        </div>
+                    </div>
+                </div>
+                <footer class="feed-card-footer">
+                    <a href="{}" target="_blank" rel="noopener noreferrer" class="feed-card-visit">Visit site <i data-lucide="external-link"></i></a>
+                </footer>
+            </article>"#,
+            app.id,
+            escape_html(&cat_slug),
+            escape_html(&app.name.to_lowercase()),
+            app.id,
+            site_href,
+            escape_html(&feed_logo),
+            escape_html(&app.name),
+            escape_html(if host.is_empty() { "news feed" } else { &host }),
+            category_pill,
+            admin_actions,
+            site_href,
+        );
+        cards_html.push_str(&card);
+    }
+
+    cards_html
+}
+
+fn render_feed_category_tabs(apps: &[App], feed_categories: &[serde_json::Value]) -> String {
+    let mut category_tabs_html = format!(
+        r#"<button type="button" class="filter-tab feed-filter-tab active" @click="filterCategory('all', $el)"><i data-lucide="layers"></i> All <span class="filter-count">{}</span></button>"#,
+        apps.len()
+    );
+
+    for cat in feed_categories {
+        let name = cat.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        if name.is_empty() {
+            continue;
+        }
+        let count = apps.iter().filter(|a| a.category == name).count();
+        if count == 0 {
+            continue;
+        }
+        let icon = cat.get("icon").and_then(|v| v.as_str()).unwrap_or("rss");
+        let cat_slug = category_slug(name);
+        category_tabs_html.push_str(&format!(
+            r#"<button type="button" class="filter-tab feed-filter-tab" @click="filterCategory('{}', $el)"><i data-lucide="{}"></i> {} <span class="filter-count">{}</span></button>"#,
+            escape_html(&cat_slug),
+            escape_html(icon),
+            escape_html(name),
+            count
+        ));
+    }
+
+    category_tabs_html
+}
+
+fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str, mode: PageMode) -> String {
     if let Some(ref sess) = session {
         let admin_settings_btn = if sess.role == "Admin" {
-            r#"
+            match mode {
+                PageMode::Feeds => {
+                    r#"
+            <a href="/admin/settings?tab=rss" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
+                <i data-lucide="rss" style="width:0.95rem; height:0.95rem;"></i> Add RSS Feed
+            </a>
+            <a href="/admin/settings" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
+                <i data-lucide="sliders-horizontal" style="width:0.95rem; height:0.95rem;"></i> Settings
+            </a>
+            "#
+                }
+                PageMode::Dashboard => {
+                    r#"
             <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '', card_span: '1x1' };" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
                 <i data-lucide="plus" style="width:0.95rem; height:0.95rem;"></i> Add App
             </button>
@@ -595,6 +790,8 @@ fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str) -> String {
                 <i data-lucide="sliders-horizontal" style="width:0.95rem; height:0.95rem;"></i> Settings
             </a>
             "#
+                }
+            }
         } else {
             ""
         };

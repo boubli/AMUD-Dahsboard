@@ -9,13 +9,16 @@ pub(crate) use crate::auth::{
     valid_user_role, validate_csrf, verify_password, CspNonce,
 };
 pub(crate) use crate::db::{
-    delete_category_by_id, delete_user_by_id, delete_wol_device, fetch_webhook_by_id,
-    fetch_wol_device_for_wake, insert_wol_device, load_apps_from_db, load_categories,
-    load_categories_json, load_users_json, load_webhooks_json, load_wol_devices_from_db,
-    process_login, record_audit_blocking, refresh_settings_cache, secret_field_placeholder,
-    secret_setting_configured, setting_value_or_existing, telemetry_public_from_cache,
-    update_app_order, update_category_by_id, with_db, CategoryDeleteError, DeleteUserError,
+    delete_category_by_id, delete_feed_category_by_id, delete_user_by_id, delete_wol_device,
+    fetch_webhook_by_id, fetch_wol_device_for_wake, insert_wol_device, load_apps_from_db,
+    load_categories, load_categories_json, load_feed_categories_json, load_users_json,
+    load_webhooks_json, load_wol_devices_from_db, process_login, record_audit_blocking,
+    refresh_settings_cache, secret_field_placeholder, secret_setting_configured,
+    setting_value_or_existing, telemetry_public_from_cache, update_app_order,
+    update_category_by_id, update_feed_category_by_id, with_db, CategoryDeleteError,
+    DeleteUserError, FeedCategoryDeleteError,
 };
+pub(crate) use crate::feed_icons::{guess_feed_icon_key, host_from_url, resolve_feed_logo};
 pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};
 pub(crate) use crate::models::{AppState, Session};
 pub(crate) use crate::security::{sanitize_rss_feed_url, url_allowed_for_webhook};

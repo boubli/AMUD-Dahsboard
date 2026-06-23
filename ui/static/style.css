@@ -724,6 +724,267 @@ body::-webkit-scrollbar-button {
     opacity: 0.6;
 }
 
+/* ── Feeds page layout ─────────────────────────── */
+.page-feeds .search-section {
+    margin-bottom: 0.5rem;
+}
+
+.feeds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+    width: 100%;
+    align-items: stretch;
+}
+
+.feed-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
+    padding: 1rem 1.1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feed-card:hover {
+    transform: translateY(-2px);
+}
+
+.feed-card--empty {
+    grid-column: 1 / -1;
+    min-height: auto;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+}
+
+.feed-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.feed-card-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+    flex: 1;
+}
+
+.feed-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feed-card-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.feed-card-meta {
+    min-width: 0;
+}
+
+.feed-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.25;
+}
+
+.feed-card-host {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+.feed-card-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.feed-category-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: color-mix(in srgb, var(--pill-color) 22%, transparent);
+    color: var(--pill-color);
+    border: 1px solid color-mix(in srgb, var(--pill-color) 35%, transparent);
+}
+
+.feed-card-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.feed-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.feed-card-body .rss-feed-list {
+    flex: 1;
+    margin-top: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 0.35rem;
+}
+
+.feed-card-footer {
+    margin-top: 0.65rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.feed-card-visit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.feed-card-visit i {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.feed-filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.feed-filter-tab i {
+    width: 0.85rem;
+    height: 0.85rem;
+    opacity: 0.85;
+}
+
+/* Settings: feed icon picker */
+.icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 0.35rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.icon-picker-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.45rem 0.25rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.icon-picker-item:hover,
+.icon-picker-item.selected {
+    border-color: var(--accent-color);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.icon-picker-item img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.icon-picker-item span {
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.category-icon-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.category-icon-option {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.category-icon-option.selected {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.category-icon-option i {
+    width: 1rem;
+    height: 1rem;
+}
+
+.feed-icon-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.feed-categories-block {
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .feeds-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Wide bottom/list button links */
 .link-list-card {
     padding: 0.75rem 1rem;
@@ -1330,6 +1591,42 @@ select.form-control option {
     color: var(--text-muted);
     margin-top: 0.35rem;
     line-height: 1.4;
+}
+
+.form-advanced-block {
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.form-advanced-block summary {
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    user-select: none;
+}
+
+.form-advanced-block summary:hover {
+    color: var(--text-primary);
+}
+
+.icon-input-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.icon-input-row .form-control {
+    flex: 1;
+    min-width: 0;
+}
+
+.icon-input-row .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .duplicate-warning {

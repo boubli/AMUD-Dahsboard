@@ -45,7 +45,16 @@ fn setup_test_db() -> Connection {
             sort_order INTEGER DEFAULT 0
         );
         INSERT INTO categories (name, color, sort_order) VALUES ('General', '#64748b', 0);
-        INSERT INTO categories (name, color, sort_order) VALUES ('Media', '#64748b', 1);",
+        INSERT INTO categories (name, color, sort_order) VALUES ('Media', '#64748b', 1);
+        CREATE TABLE IF NOT EXISTS feed_categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            color TEXT DEFAULT '#64748b',
+            icon TEXT DEFAULT 'rss',
+            sort_order INTEGER DEFAULT 0
+        );
+        INSERT INTO feed_categories (name, color, icon, sort_order) VALUES ('General', '#64748b', 'rss', 0);
+        INSERT INTO feed_categories (name, color, icon, sort_order) VALUES ('Tech', '#8b5cf6', 'cpu', 1);",
     )
     .unwrap();
     conn
@@ -526,4 +535,210 @@ async fn test_integration_data_rate_limited() {
     }
 
     assert_eq!(last_status, StatusCode::TOO_MANY_REQUESTS);
+}
+
+// ── Phase 1: Feeds page UI (news cards, no infra metrics) ─────────────────
+
+#[tokio::test]
+async fn test_feeds_page_renders_feed_cards_without_infra_metrics() {
+    let state = setup_test_state();
+    let encrypted_key =
+        amud_server::secrets::encrypt_value("https://feeds.bbci.co.uk/news/rss.xml").unwrap();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, icon, category, node_tag, integration_type, api_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            rusqlite::params![
+                1,
+                "BBC News",
+                "https://www.bbc.com/news",
+                "bbc",
+                "General",
+                "Local",
+                "rss",
+                encrypted_key
+            ],
+        )
+        .unwrap();
+    }
+
+    let app = build_app_router(state);
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/feeds")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body_bytes = axum::body::to_bytes(response.into_body(), 2 * 1024 * 1024)
+        .await
+        .unwrap();
+    let body = String::from_utf8_lossy(&body_bytes);
+
+    assert!(body.contains("feeds-grid"), "expected feeds grid layout");
+    assert!(body.contains("feed-card"), "expected feed-card component");
+    assert!(body.contains("rss-feed-list"), "expected headline list");
+    assert!(
+        body.contains("page-feeds"),
+        "expected feeds page body class"
+    );
+    for (idx, _) in body.match_indices("class=\"glass-panel feed-card\"") {
+        let snippet = &body[idx..body.len().min(idx + 2500)];
+        assert!(
+            !snippet.contains("data-lxc-metrics"),
+            "feed-card must not include CPU/RAM metrics grid"
+        );
+        assert!(
+            !snippet.contains("status-badge"),
+            "feed-card must not include health status badge"
+        );
+    }
+    assert!(
+        !body.contains("app-card-header"),
+        "feeds page must not use homelab app-card shell"
+    );
+}
+
+// ── Phase 2: Feed categories + RSS category assignment ────────────────────
+
+#[tokio::test]
+async fn test_feed_categories_list_requires_admin() {
+    let state = setup_test_state();
+    let app = build_app_router(state);
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/feed-categories")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn test_feed_categories_list_returns_seeded_categories() {
+    let state = setup_test_state();
+    let session_token = insert_admin_session(&state);
+    let app = build_app_router(state);
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/feed-categories")
+                .header(header::COOKIE, format!("amud_session={session_token}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body_bytes = axum::body::to_bytes(response.into_body(), 64 * 1024)
+        .await
+        .unwrap();
+    let categories: Vec<serde_json::Value> = serde_json::from_slice(&body_bytes).unwrap();
+    assert!(categories.iter().any(|c| c["name"] == "Tech"));
+    assert!(categories.iter().any(|c| c["icon"] == "cpu"));
+}
+
+#[tokio::test]
+async fn test_rss_feed_api_persists_category() {
+    let state = setup_test_state();
+    let session_token = insert_admin_session(&state);
+    let app = build_app_router(state.clone());
+
+    let payload = "name=BBC+News&feed_url=https%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Frss.xml&url=https%3A%2F%2Fwww.bbc.com%2Fnews&icon=bbc&category=Tech&csrf_token=csrf-reorder-abc";
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/rss-feeds/add")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, format!("amud_session={session_token}"))
+                .body(Body::from(payload))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let category: String = {
+        let db = state.db.lock().unwrap();
+        db.query_row(
+            "SELECT category FROM apps WHERE integration_type = 'rss'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap()
+    };
+    assert_eq!(category, "Tech");
+
+    let icon: String = {
+        let db = state.db.lock().unwrap();
+        db.query_row(
+            "SELECT icon FROM apps WHERE integration_type = 'rss'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap()
+    };
+    assert_eq!(icon, "bbc");
+}
+
+#[tokio::test]
+async fn test_feeds_page_shows_category_tabs() {
+    let state = setup_test_state();
+    let encrypted_key =
+        amud_server::secrets::encrypt_value("https://feeds.bbci.co.uk/news/rss.xml").unwrap();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, icon, category, node_tag, integration_type, api_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            rusqlite::params![
+                1,
+                "BBC News",
+                "https://www.bbc.com/news",
+                "bbc",
+                "Tech",
+                "Local",
+                "rss",
+                encrypted_key
+            ],
+        )
+        .unwrap();
+    }
+
+    let app = build_app_router(state);
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/feeds")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body_bytes = axum::body::to_bytes(response.into_body(), 2 * 1024 * 1024)
+        .await
+        .unwrap();
+    let body = String::from_utf8_lossy(&body_bytes);
+    assert!(
+        body.contains("feed-filter-tab"),
+        "expected feed category tabs"
+    );
+    assert!(
+        body.contains("feed-category-pill"),
+        "expected category pill on card"
+    );
 }

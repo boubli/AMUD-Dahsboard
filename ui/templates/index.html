@@ -30,7 +30,7 @@
     </style>
     <style id="amud-custom-css">{{custom_css}}</style>
 </head>
-<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1' } }" class="{{video_bg_class}}">
+<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1' } }" class="{{video_bg_class}} {{body_page_class}}">
     {{video_bg_element}}
     {{update_banner}}
     <div class="dashboard-container">
@@ -181,7 +181,7 @@
         <!-- WOL_SECTION -->
 
         <!-- Main Bento Grid Columns -->
-        <main class="bento-grid">
+        <main class="{{main_grid_class}}">
             <!-- APPS_GRID -->
         </main>
         <div id="health-status-hint" class="health-status-hint" style="display:none;">
@@ -203,37 +203,26 @@
         <div class="modal-header">
             <div>
                 <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Registry</p>
-                <h2>Add Application</h2>
+                <h2>Add App</h2>
+                <p class="form-help" style="margin-top:0.35rem;">Homelab service on the main dashboard. News feeds → <a href="/admin/settings?tab=rss" style="color:var(--accent-color);">Settings → RSS Feeds</a>.</p>
             </div>
             <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="addAppModalOpen = false">
                 <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
             </button>
         </div>
 
-        <form action="/apps" method="POST" class="settings-form" @submit="return validateRssAppForm($event)">
+        <form action="/apps" method="POST" class="settings-form">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <div class="form-group">
-                <label for="add-app-name">Application Name</label>
+                <label for="add-app-name">Name</label>
                 <input type="text" id="add-app-name" name="name" class="form-control" required placeholder="e.g. Radarr" oninput="checkDuplicateAppName()">
-                <p class="form-help duplicate-warning" data-duplicate-warning style="display:none;">An app with this name already exists. Use a unique name for accurate health badges.</p>
+                <p class="form-help duplicate-warning" data-duplicate-warning style="display:none;">An app with this name already exists.</p>
             </div>
 
             <div class="form-group">
-                <label for="add-app-url">Application URL / Health Check Target</label>
-                <input type="url" id="add-app-url" name="url" class="form-control" required placeholder="e.g. http://192.168.1.50:7878">
-                <p class="form-help">AMUD uses this URL for public ONLINE/OFFLINE checks. Guests only see the coarse result.</p>
-            </div>
-
-            <div class="form-group">
-                <label for="add-app-icon">Icon Identifier / Upload Logo</label>
-                <input type="text" id="add-app-icon" name="icon" x-model="appIconUrl" class="form-control" placeholder="e.g. radarr, sonarr, or image URL">
-                <div class="upload-zone" @click="$refs.appIconFileInput.click()">
-                    <label for="add-app-icon-file" class="visually-hidden">Upload app icon file</label>
-                    <input type="file" id="add-app-icon-file" x-ref="appIconFileInput" style="display:none;" @change="handleFileUpload($event, 'appIcon')">
-                    <i data-lucide="upload-cloud"></i>
-                    <span>Select app icon file</span>
-                    <span class="upload-hint">SVG, PNG, JPG, ICO (Max 5MB). Recommended size: 256x256px.</span>
-                </div>
+                <label for="add-app-url">URL</label>
+                <input type="url" id="add-app-url" name="url" class="form-control" required placeholder="http://192.168.1.50:7878">
+                <p class="form-help">Used for the link and ONLINE/OFFLINE health check.</p>
             </div>
 
             <div class="form-group">
@@ -243,51 +232,58 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="add-app-card-span">Card Layout Size</label>
-                <select id="add-app-card-span" name="card_span" x-model="newApp.card_span" class="form-control">
-                    <option value="1x1">1x1 Standard</option>
-                    <option value="2x1">2x1 Wide</option>
-                    <option value="1x2">1x2 Tall</option>
-                </select>
-                <p class="form-help">Choose the card dimensions for the Bento Grid layout.</p>
-            </div>
+            <details class="form-advanced-block">
+                <summary>More options</summary>
+                <div class="form-group" style="margin-top:1rem;">
+                    <label for="add-app-icon">Icon</label>
+                    <div class="icon-input-row">
+                        <input type="text" id="add-app-icon" name="icon" x-model="appIconUrl" class="form-control" placeholder="radarr, sonarr, or image URL">
+                        <button type="button" class="btn btn-secondary" @click="$refs.appIconFileInput.click()">Upload</button>
+                    </div>
+                    <input type="file" id="add-app-icon-file" x-ref="appIconFileInput" class="visually-hidden" @change="handleFileUpload($event, 'appIcon')">
+                </div>
 
-            <div class="form-group">
-                <label for="add-app-node-tag">Node Tag</label>
-                <input type="text" id="add-app-node-tag" name="node_tag" class="form-control" placeholder="e.g. Local, PVE-1 (Defaults to Local)">
-            </div>
+                <div class="form-group">
+                    <label for="add-app-card-span">Card size</label>
+                    <select id="add-app-card-span" name="card_span" x-model="newApp.card_span" class="form-control">
+                        <option value="1x1">1x1 Standard</option>
+                        <option value="2x1">2x1 Wide</option>
+                        <option value="1x2">1x2 Tall</option>
+                    </select>
+                </div>
 
+                <div class="form-group">
+                    <label for="add-app-node-tag">Node tag</label>
+                    <input type="text" id="add-app-node-tag" name="node_tag" class="form-control" placeholder="Local">
+                </div>
 
+                <div class="form-group">
+                    <label for="add-app-integration-type">Integration</label>
+                    <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type">
+                        <option value="">None</option>
+                        <option value="pihole">Pi-hole</option>
+                        <option value="adguard">AdGuard Home</option>
+                        <option value="radarr">Radarr</option>
+                        <option value="sonarr">Sonarr</option>
+                        <option value="overseerr">Overseerr</option>
+                        <option value="jellyseerr">Jellyseerr</option>
+                    </select>
+                </div>
 
-            <div class="form-group">
-                <label for="add-app-integration-type">Integration Type (Optional)</label>
-                <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type">
-                    <option value="">None</option>
-                    <option value="pihole">Pi-hole</option>
-                    <option value="adguard">AdGuard Home</option>
-                    <option value="radarr">Radarr</option>
-                    <option value="sonarr">Sonarr</option>
-                    <option value="overseerr">Overseerr</option>
-                    <option value="jellyseerr">Jellyseerr</option>
-                    <option value="rss">RSS / Atom Feed</option>
-                </select>
-                <p class="form-help">Enables active API widgets on the dashboard card. RSS feeds appear on the <a href="/feeds" style="color:var(--accent-color);">Feeds</a> page.</p>
-            </div>
+                <div class="form-group" x-show="newApp.integration_type !== ''">
+                    <label for="add-app-api-key">API key / token</label>
+                    <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key" placeholder="From the service settings">
+                </div>
 
-            <div class="form-group" x-show="newApp.integration_type !== ''">
-                <label for="add-app-api-key" x-text="newApp.integration_type === 'rss' ? 'RSS Feed URL' : 'Integration API Key / Token'">Integration API Key / Token</label>
-                <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key" :placeholder="newApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
-            </div>
-
-            <div class="form-group">
-                <label for="add-app-description">Description</label>
-                <textarea id="add-app-description" name="description" class="form-control" rows="2" placeholder="Brief description of the app service"></textarea>
-            </div>
+                <div class="form-group">
+                    <label for="add-app-description">Description</label>
+                    <textarea id="add-app-description" name="description" class="form-control" rows="2" placeholder="Optional"></textarea>
+                </div>
+            </details>
 
             <div class="drawer-footer">
                 <button type="button" class="btn btn-secondary" @click="addAppModalOpen = false">Cancel</button>
-                <button type="submit" class="btn btn-primary">Add Application</button>
+                <button type="submit" class="btn btn-primary">Add App</button>
             </div>
         </form>
     </div>
@@ -298,39 +294,26 @@
         <div class="modal-header">
             <div>
                 <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Registry</p>
-                <h2>Edit Application</h2>
+                <h2>Edit App</h2>
             </div>
             <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="editAppModalOpen = false">
                 <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
             </button>
         </div>
 
-        <form action="/apps/edit" method="POST" class="settings-form" @submit="return validateRssAppForm($event)">
+        <form action="/apps/edit" method="POST" class="settings-form">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
             <input type="hidden" name="id" x-model="editApp.id">
 
             <div class="form-group">
-                <label for="edit-app-name">Application Name</label>
+                <label for="edit-app-name">Name</label>
                 <input type="text" id="edit-app-name" name="name" class="form-control" required x-model="editApp.name" placeholder="e.g. Radarr" oninput="checkDuplicateAppName()">
-                <p class="form-help duplicate-warning" data-duplicate-warning style="display:none;">Another app already uses this name. Use a unique name for accurate health badges.</p>
+                <p class="form-help duplicate-warning" data-duplicate-warning style="display:none;">Another app already uses this name.</p>
             </div>
 
             <div class="form-group">
-                <label for="edit-app-url">Application URL / Health Check Target</label>
-                <input type="url" id="edit-app-url" name="url" class="form-control" required x-model="editApp.url" placeholder="e.g. http://192.168.1.50:7878">
-                <p class="form-help">AMUD uses this URL for public ONLINE/OFFLINE checks. Guests only see the coarse result.</p>
-            </div>
-
-            <div class="form-group">
-                <label for="edit-app-icon">Icon Identifier / Upload Logo</label>
-                <input type="text" id="edit-app-icon" name="icon" x-model="editApp.icon" class="form-control" placeholder="e.g. radarr, sonarr, or image URL">
-                <div class="upload-zone" @click="$refs.editAppIconFileInput.click()">
-                    <label for="edit-app-icon-file" class="visually-hidden">Upload app icon file</label>
-                    <input type="file" id="edit-app-icon-file" x-ref="editAppIconFileInput" style="display:none;" @change="handleFileUpload($event, 'editAppIcon')">
-                    <i data-lucide="upload-cloud"></i>
-                    <span>Select app icon file</span>
-                    <span class="upload-hint">SVG, PNG, JPG, ICO (Max 5MB). Recommended size: 256x256px.</span>
-                </div>
+                <label for="edit-app-url">URL</label>
+                <input type="url" id="edit-app-url" name="url" class="form-control" required x-model="editApp.url" placeholder="http://192.168.1.50:7878">
             </div>
 
             <div class="form-group">
@@ -340,51 +323,58 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="edit-app-card-span">Card Layout Size</label>
-                <select id="edit-app-card-span" name="card_span" x-model="editApp.card_span" class="form-control">
-                    <option value="1x1">1x1 Standard</option>
-                    <option value="2x1">2x1 Wide</option>
-                    <option value="1x2">1x2 Tall</option>
-                </select>
-                <p class="form-help">Choose the card dimensions for the Bento Grid layout.</p>
-            </div>
+            <details class="form-advanced-block" open>
+                <summary>More options</summary>
+                <div class="form-group" style="margin-top:1rem;">
+                    <label for="edit-app-icon">Icon</label>
+                    <div class="icon-input-row">
+                        <input type="text" id="edit-app-icon" name="icon" x-model="editApp.icon" class="form-control" placeholder="radarr, sonarr, or image URL">
+                        <button type="button" class="btn btn-secondary" @click="$refs.editAppIconFileInput.click()">Upload</button>
+                    </div>
+                    <input type="file" id="edit-app-icon-file" x-ref="editAppIconFileInput" class="visually-hidden" @change="handleFileUpload($event, 'editAppIcon')">
+                </div>
 
-            <div class="form-group">
-                <label for="edit-app-node-tag">Node Tag</label>
-                <input type="text" id="edit-app-node-tag" name="node_tag" x-model="editApp.node_tag" class="form-control" placeholder="e.g. Local, PVE-1 (Defaults to Local)">
-            </div>
+                <div class="form-group">
+                    <label for="edit-app-card-span">Card size</label>
+                    <select id="edit-app-card-span" name="card_span" x-model="editApp.card_span" class="form-control">
+                        <option value="1x1">1x1 Standard</option>
+                        <option value="2x1">2x1 Wide</option>
+                        <option value="1x2">1x2 Tall</option>
+                    </select>
+                </div>
 
+                <div class="form-group">
+                    <label for="edit-app-node-tag">Node tag</label>
+                    <input type="text" id="edit-app-node-tag" name="node_tag" x-model="editApp.node_tag" class="form-control" placeholder="Local">
+                </div>
 
+                <div class="form-group">
+                    <label for="edit-app-integration-type">Integration</label>
+                    <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type">
+                        <option value="">None</option>
+                        <option value="pihole">Pi-hole</option>
+                        <option value="adguard">AdGuard Home</option>
+                        <option value="radarr">Radarr</option>
+                        <option value="sonarr">Sonarr</option>
+                        <option value="overseerr">Overseerr</option>
+                        <option value="jellyseerr">Jellyseerr</option>
+                    </select>
+                </div>
 
-            <div class="form-group">
-                <label for="edit-app-integration-type">Integration Type (Optional)</label>
-                <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type">
-                    <option value="">None</option>
-                    <option value="pihole">Pi-hole</option>
-                    <option value="adguard">AdGuard Home</option>
-                    <option value="radarr">Radarr</option>
-                    <option value="sonarr">Sonarr</option>
-                    <option value="overseerr">Overseerr</option>
-                    <option value="jellyseerr">Jellyseerr</option>
-                    <option value="rss">RSS / Atom Feed</option>
-                </select>
-                <p class="form-help">Enables active API widgets on the dashboard card. RSS feeds appear on the <a href="/feeds" style="color:var(--accent-color);">Feeds</a> page.</p>
-            </div>
+                <div class="form-group" x-show="editApp.integration_type !== ''">
+                    <label for="edit-app-api-key">API key / token</label>
+                    <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key" placeholder="Leave blank to keep unchanged">
+                </div>
 
-            <div class="form-group" x-show="editApp.integration_type !== ''">
-                <label for="edit-app-api-key" x-text="editApp.integration_type === 'rss' ? 'RSS Feed URL' : 'Integration API Key / Token'">Integration API Key / Token</label>
-                <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key" :placeholder="editApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
-            </div>
-
-            <div class="form-group">
-                <label for="edit-app-description">Description</label>
-                <textarea id="edit-app-description" name="description" x-model="editApp.description" class="form-control" rows="2" placeholder="Brief description of the app service"></textarea>
-            </div>
+                <div class="form-group">
+                    <label for="edit-app-description">Description</label>
+                    <textarea id="edit-app-description" name="description" x-model="editApp.description" class="form-control" rows="2" placeholder="Optional"></textarea>
+                </div>
+            </details>
 
             <div class="drawer-footer">
                 <button type="button" class="btn btn-secondary" @click="editAppModalOpen = false">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="submit" class="btn btn-primary">Save</button>
             </div>
         </form>
     </div>
@@ -448,28 +438,7 @@
             });
         }
 
-        function validateRssAppForm(event) {
-            const form = event.target;
-            const integrationType = form.querySelector('[name="integration_type"]')?.value || '';
-            const apiKey = form.querySelector('[name="api_key"]')?.value || '';
-            const warning = form.querySelector('[data-rss-url-warning]');
-            if (integrationType !== 'rss') {
-                if (warning) warning.style.display = 'none';
-                return true;
-            }
-            const trimmed = apiKey.trim();
-            if (!trimmed || trimmed === 'Configured — leave blank to keep unchanged') {
-                if (warning) warning.style.display = 'none';
-                return true;
-            }
-            const ok = /^https?:\/\/.+/i.test(trimmed);
-            if (warning) warning.style.display = ok ? 'none' : 'block';
-            return ok;
-        }
-
-        // Clock, greeting and date updater
         function updateClock() {
-            const now = new Date();
             
             // Time
             let hours = now.getHours();
@@ -538,7 +507,8 @@
                 element.classList.add('active');
             }
 
-            document.querySelectorAll('.app-card:not(.filter-empty-msg)').forEach(card => {
+            const cardSelector = '.app-card:not(.filter-empty-msg), .feed-card:not(.filter-empty-msg)';
+            document.querySelectorAll(cardSelector).forEach(card => {
                 if (category === 'all') {
                     card.style.display = 'flex';
                 } else {
@@ -552,17 +522,17 @@
                 section.style.display = (category === 'all' || sectionCat === category) ? '' : 'none';
             });
 
-            const grid = document.querySelector('.bento-grid');
+            const grid = document.querySelector('.bento-grid, .feeds-grid');
             if (!grid) return;
 
             let emptyMsg = grid.querySelector('.filter-empty-msg');
-            const visibleCount = [...grid.querySelectorAll('.app-card:not(.filter-empty-msg)')]
+            const visibleCount = [...grid.querySelectorAll(cardSelector)]
                 .filter(card => card.style.display !== 'none').length;
 
             if (visibleCount === 0 && category !== 'all') {
                 if (!emptyMsg) {
                     emptyMsg = document.createElement('div');
-                    emptyMsg.className = 'glass-panel app-card filter-empty-msg';
+                    emptyMsg.className = 'glass-panel filter-empty-msg ' + (grid.classList.contains('feeds-grid') ? 'feed-card' : 'app-card');
                     setFilterEmptyMessage(emptyMsg);
                     grid.appendChild(emptyMsg);
                 }

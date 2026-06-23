@@ -886,7 +886,7 @@ pub async fn list_rss_feeds_handler(
 
     let feeds = with_db(state.db.clone(), |db| {
         let mut stmt = db
-            .prepare("SELECT id, name, url, icon, api_key FROM apps WHERE integration_type = 'rss' ORDER BY sort_order ASC, name ASC")
+            .prepare("SELECT id, name, url, icon, api_key, category FROM apps WHERE integration_type = 'rss' ORDER BY sort_order ASC, name ASC")
             .unwrap();
         let rows = stmt
             .query_map([], |row| {
@@ -895,6 +895,7 @@ pub async fn list_rss_feeds_handler(
                 let url: String = row.get(2)?;
                 let icon: String = row.get(3)?;
                 let raw_key: String = row.get(4)?;
+                let category: String = row.get(5)?;
                 let feed_url = crate::secrets::decrypt_value(&raw_key).unwrap_or(raw_key);
                 Ok(serde_json::json!({
                     "id": id,
@@ -902,6 +903,7 @@ pub async fn list_rss_feeds_handler(
                     "url": url,
                     "icon": icon,
                     "feed_url": feed_url,
+                    "category": category,
                 }))
             })
             .unwrap();
@@ -934,11 +936,15 @@ pub async fn add_rss_feed_handler(
 
     let name = form.get("name").cloned().unwrap_or_default();
     let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
-    let icon = form
-        .get("icon")
-        .cloned()
-        .unwrap_or_else(|| "rss".to_string());
     let feed_url = form.get("feed_url").cloned().unwrap_or_default();
+    let category = form
+        .get("category")
+        .cloned()
+        .unwrap_or_else(|| "General".to_string());
+    let mut icon = form.get("icon").cloned().unwrap_or_default();
+    if icon.is_empty() || icon == "rss" {
+        icon = guess_feed_icon_key(&name, &url, &feed_url);
+    }
 
     if name.is_empty() || feed_url.is_empty() {
         return api_json(
@@ -962,12 +968,13 @@ pub async fn add_rss_feed_handler(
     let headers_c = headers.clone();
     let name_c = name.clone();
     let url_c = url.clone();
+    let category_c = category.clone();
     with_db(state.db.clone(), move |db| {
         let sort_order = crate::db::next_app_sort_order(db);
         if db
             .execute(
-                "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span) VALUES (?, ?, ?, '', 'General', 'Local', '', 'rss', ?, ?, '1x1')",
-                params![name_c, url_c, icon, encrypted, sort_order],
+                "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span) VALUES (?, ?, ?, '', ?, 'Local', '', 'rss', ?, ?, '1x1')",
+                params![name_c, url_c, icon, category_c, encrypted, sort_order],
             )
             .is_ok()
         {
@@ -1014,11 +1021,15 @@ pub async fn edit_rss_feed_handler(
 
     let name = form.get("name").cloned().unwrap_or_default();
     let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
-    let icon = form
-        .get("icon")
-        .cloned()
-        .unwrap_or_else(|| "rss".to_string());
     let feed_url = form.get("feed_url").cloned().unwrap_or_default();
+    let category = form
+        .get("category")
+        .cloned()
+        .unwrap_or_else(|| "General".to_string());
+    let mut icon = form.get("icon").cloned().unwrap_or_default();
+    if icon.is_empty() || icon == "rss" {
+        icon = guess_feed_icon_key(&name, &url, &feed_url);
+    }
 
     if name.is_empty() || feed_url.is_empty() {
         return api_json(
@@ -1044,8 +1055,8 @@ pub async fn edit_rss_feed_handler(
     with_db(state.db.clone(), move |db| {
         if db
             .execute(
-                "UPDATE apps SET name = ?, url = ?, icon = ?, api_key = ? WHERE id = ? AND integration_type = 'rss'",
-                params![name_c, url, icon, encrypted, id],
+                "UPDATE apps SET name = ?, url = ?, icon = ?, api_key = ?, category = ? WHERE id = ? AND integration_type = 'rss'",
+                params![name_c, url, icon, encrypted, category, id],
             )
             .is_ok()
         {

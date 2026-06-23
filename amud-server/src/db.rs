@@ -199,7 +199,9 @@ pub(crate) fn load_categories(db: &Connection) -> Vec<(i64, String)> {
 
 pub(crate) fn load_app_name_urls(db: &Connection) -> Vec<(String, String)> {
     let mut apps = Vec::new();
-    let Ok(mut stmt) = db.prepare("SELECT name, url FROM apps") else {
+    let Ok(mut stmt) = db.prepare(
+        "SELECT name, url FROM apps WHERE integration_type IS NULL OR integration_type != 'rss'",
+    ) else {
         return apps;
     };
     let Ok(rows) = stmt.query_map([], |row| {
@@ -239,6 +241,112 @@ pub(crate) fn load_categories_json(db: &Connection) -> Vec<serde_json::Value> {
         }
     }
     categories
+}
+
+pub(crate) fn load_feed_categories_json(db: &Connection) -> Vec<serde_json::Value> {
+    let mut categories = Vec::new();
+    let Ok(mut stmt) = db.prepare(
+        "SELECT id, name, color, icon, sort_order FROM feed_categories ORDER BY sort_order ASC, name ASC",
+    ) else {
+        return categories;
+    };
+    let Ok(mut rows) = stmt.query([]) else {
+        return categories;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if let (Ok(id), Ok(name), Ok(color), Ok(icon), Ok(sort_order)) = (
+            row.get::<_, i64>(0),
+            row.get::<_, String>(1),
+            row.get::<_, String>(2),
+            row.get::<_, String>(3),
+            row.get::<_, i64>(4),
+        ) {
+            categories.push(serde_json::json!({
+                "id": id,
+                "name": name,
+                "color": color,
+                "icon": icon,
+                "sort_order": sort_order
+            }));
+        }
+    }
+    categories
+}
+
+pub(crate) enum FeedCategoryDeleteError {
+    LastCategory,
+    NotFound,
+    DeleteFailed,
+}
+
+pub(crate) fn delete_feed_category_by_id(
+    db: &Connection,
+    id: i64,
+) -> Result<(), FeedCategoryDeleteError> {
+    let cat_count: i64 = db
+        .query_row("SELECT COUNT(*) FROM feed_categories", [], |row| row.get(0))
+        .unwrap_or(0);
+    if cat_count <= 1 {
+        return Err(FeedCategoryDeleteError::LastCategory);
+    }
+    let old_name: String = db
+        .query_row(
+            "SELECT name FROM feed_categories WHERE id = ?",
+            params![id],
+            |row| row.get(0),
+        )
+        .unwrap_or_default();
+    if old_name.is_empty() {
+        return Err(FeedCategoryDeleteError::NotFound);
+    }
+    let fallback: String = db
+        .query_row(
+            "SELECT name FROM feed_categories WHERE id != ? ORDER BY sort_order ASC, name ASC LIMIT 1",
+            params![id],
+            |row| row.get(0),
+        )
+        .unwrap_or_else(|_| "General".to_string());
+    db.execute(
+        "UPDATE apps SET category = ? WHERE integration_type = 'rss' AND category = ?",
+        params![fallback, old_name],
+    )
+    .ok();
+    if db
+        .execute("DELETE FROM feed_categories WHERE id = ?", params![id])
+        .is_err()
+    {
+        return Err(FeedCategoryDeleteError::DeleteFailed);
+    }
+    Ok(())
+}
+
+pub(crate) fn update_feed_category_by_id(
+    db: &Connection,
+    id: i64,
+    name: &str,
+    color: &str,
+    icon: &str,
+    sort_order: i64,
+) {
+    let old_name: String = db
+        .query_row(
+            "SELECT name FROM feed_categories WHERE id = ?",
+            params![id],
+            |row| row.get(0),
+        )
+        .unwrap_or_default();
+    db.execute(
+        "UPDATE feed_categories SET name = ?, color = ?, icon = ?, sort_order = ? WHERE id = ?",
+        params![name, color, icon, sort_order, id],
+    )
+    .ok();
+    if !old_name.is_empty() && old_name != name {
+        db.execute(
+            "UPDATE apps SET category = ? WHERE integration_type = 'rss' AND category = ?",
+            params![name, old_name],
+        )
+        .ok();
+    }
 }
 
 pub(crate) fn load_users_json(db: &Connection) -> Vec<serde_json::Value> {
@@ -696,5 +804,19 @@ mod tests {
         let db = test_db();
         assert_eq!(resolve_app_category(&db, "Missing"), "General");
         assert_eq!(resolve_app_category(&db, ""), "General");
+    }
+
+    #[test]
+    fn load_app_name_urls_skips_rss_feeds() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "CREATE TABLE apps (name TEXT, url TEXT, integration_type TEXT DEFAULT '');
+             INSERT INTO apps (name, url, integration_type) VALUES ('Radarr', 'http://radarr', '');
+             INSERT INTO apps (name, url, integration_type) VALUES ('BBC News', 'https://bbc.com', 'rss');",
+        )
+        .unwrap();
+        let urls = load_app_name_urls(&conn);
+        assert_eq!(urls.len(), 1);
+        assert_eq!(urls[0].0, "Radarr");
     }
 }

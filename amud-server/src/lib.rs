@@ -3,6 +3,7 @@ pub mod apps;
 pub mod audit;
 pub mod auth;
 pub mod db;
+pub mod feed_icons;
 pub mod handlers;
 pub mod integrations;
 pub mod logos;
@@ -188,6 +189,18 @@ pub async fn run() {
     .unwrap();
 
     conn.execute(
+        "CREATE TABLE IF NOT EXISTS feed_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE NOT NULL,
+        color TEXT DEFAULT '#64748b',
+        icon TEXT DEFAULT 'rss',
+        sort_order INTEGER DEFAULT 0
+    );",
+        [],
+    )
+    .unwrap();
+
+    conn.execute(
         "CREATE TABLE IF NOT EXISTS audit_log (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -204,6 +217,7 @@ pub async fn run() {
     conn.execute_batch(
         "CREATE INDEX IF NOT EXISTS idx_apps_category ON apps(category);
          CREATE INDEX IF NOT EXISTS idx_categories_sort ON categories(sort_order, name);
+         CREATE INDEX IF NOT EXISTS idx_feed_categories_sort ON feed_categories(sort_order, name);
          CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at);
          CREATE INDEX IF NOT EXISTS idx_webhooks_is_active ON webhooks(is_active);
          CREATE INDEX IF NOT EXISTS idx_wol_devices_mac ON wol_devices(mac_address);",
@@ -227,6 +241,32 @@ pub async fn run() {
                 conn.execute(
                     "INSERT INTO categories (name, color, sort_order) VALUES (?, ?, ?)",
                     params![name, color, order],
+                )
+                .ok();
+            }
+        }
+    }
+
+    {
+        let mut stmt_fc = conn
+            .prepare("SELECT COUNT(*) FROM feed_categories")
+            .unwrap();
+        let fc_count: i64 = stmt_fc.query_row([], |r| r.get(0)).unwrap();
+        if fc_count == 0 {
+            println!("Seeding default feed categories...");
+            let defaults = [
+                ("World News", "#3b82f6", "globe", 0),
+                ("Tech", "#8b5cf6", "cpu", 1),
+                ("Sports", "#10b981", "trophy", 2),
+                ("Entertainment", "#ec4899", "clapperboard", 3),
+                ("Science", "#06b6d4", "rocket", 4),
+                ("Business", "#f59e0b", "trending-up", 5),
+                ("General", "#64748b", "rss", 6),
+            ];
+            for (name, color, icon, order) in defaults {
+                conn.execute(
+                    "INSERT INTO feed_categories (name, color, icon, sort_order) VALUES (?, ?, ?, ?)",
+                    params![name, color, icon, order],
                 )
                 .ok();
             }
@@ -405,6 +445,18 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         )
         .route("/api/categories/delete", post(delete_category_handler))
         .route("/api/categories/edit", post(edit_category_handler))
+        .route(
+            "/api/feed-categories",
+            get(list_feed_categories_handler).post(add_feed_category_handler),
+        )
+        .route(
+            "/api/feed-categories/delete",
+            post(delete_feed_category_handler),
+        )
+        .route(
+            "/api/feed-categories/edit",
+            post(edit_feed_category_handler),
+        )
         .route(
             "/api/webhooks",
             get(list_webhooks_handler).post(add_webhook_handler),
