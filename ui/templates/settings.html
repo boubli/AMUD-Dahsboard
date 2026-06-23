@@ -1310,8 +1310,8 @@
     <div class="mgmt-modal" x-show="rssModalOpen" x-transition.opacity style="display: none; max-width: 520px;">
         <h3 style="margin-bottom:1.5rem;" x-text="rssEditing ? 'Edit RSS Feed' : 'Add RSS Feed'">Add RSS Feed</h3>
         <form @submit.prevent="saveRssFeed()" style="margin:0;">
-            <input type="hidden" id="rss-id">
-            <input type="hidden" id="rss-icon" value="rss">
+            <input type="hidden" id="rss-id" aria-label="RSS feed identifier">
+            <input type="hidden" id="rss-icon" value="rss" aria-label="RSS feed icon key">
             <div class="form-group">
                 <label for="rss-name">Feed Name</label>
                 <input type="text" id="rss-name" class="form-control" placeholder="e.g. BBC News" required autocomplete="off" oninput="autoSuggestRssFields()">
@@ -1329,9 +1329,9 @@
                 <label for="rss-url">Site Link (Optional)</label>
                 <input type="url" id="rss-url" class="form-control" placeholder="e.g. https://www.bbc.com/news" autocomplete="off" oninput="autoSuggestRssFields()">
             </div>
-            <div class="form-group" style="margin-top:1rem;">
-                <label>Source Icon</label>
-                <div id="rss-icon-picker" class="icon-picker-grid"></div>
+            <div class="form-group" style="margin-top:1rem;" role="group" aria-labelledby="rss-icon-picker-label">
+                <span id="rss-icon-picker-label" class="form-label">Source Icon</span>
+                <div id="rss-icon-picker" class="icon-picker-grid" role="radiogroup" aria-label="Source Icon"></div>
                 <p class="form-help">Auto-detected from URL when left on Generic RSS.</p>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
@@ -1345,8 +1345,8 @@
     <div class="drawer-backdrop" x-show="feedCatModalOpen" x-transition.opacity @click="feedCatModalOpen = false" style="display: none; z-index:90;"></div>
     <div class="mgmt-modal" x-show="feedCatModalOpen" x-transition.opacity style="display: none;">
         <h3 style="margin-bottom:1.5rem;" x-text="feedCatEditing ? 'Edit Feed Category' : 'Add Feed Category'">Add Feed Category</h3>
-        <input type="hidden" id="feed-cat-id">
-        <input type="hidden" id="feed-cat-icon" value="rss">
+        <input type="hidden" id="feed-cat-id" aria-label="Feed category identifier">
+        <input type="hidden" id="feed-cat-icon" value="rss" aria-label="Feed category icon key">
         <div class="form-group">
             <label for="feed-cat-name">Name</label>
             <input type="text" id="feed-cat-name" class="form-control" placeholder="e.g. Trending Tech" required>
@@ -1355,9 +1355,9 @@
             <label for="feed-cat-color">Color</label>
             <input type="color" id="feed-cat-color" class="form-control" style="height:3rem; padding:0.2rem;" value="#64748b">
         </div>
-        <div class="form-group" style="margin-top:1rem;">
-            <label>Tab Icon</label>
-            <div id="feed-cat-icon-picker" class="category-icon-picker"></div>
+        <div class="form-group" style="margin-top:1rem;" role="group" aria-labelledby="feed-cat-icon-picker-label">
+            <span id="feed-cat-icon-picker-label" class="form-label">Tab Icon</span>
+            <div id="feed-cat-icon-picker" class="category-icon-picker" role="radiogroup" aria-label="Tab Icon"></div>
         </div>
         <div class="form-group" style="margin-top:1rem;">
             <label for="feed-cat-order">Sort Order</label>

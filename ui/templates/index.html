@@ -243,9 +243,10 @@
                     <label for="add-app-icon">Icon</label>
                     <div class="icon-input-row">
                         <input type="text" id="add-app-icon" name="icon" x-model="appIconUrl" class="form-control" placeholder="radarr, sonarr, or image URL">
-                        <button type="button" class="btn btn-secondary" @click="$refs.appIconFileInput.click()">Upload</button>
+                        <button type="button" class="btn btn-secondary" aria-label="Upload app icon image" @click="$refs.appIconFileInput.click()">Upload</button>
                     </div>
-                    <input type="file" id="add-app-icon-file" x-ref="appIconFileInput" class="visually-hidden" @change="handleFileUpload($event, 'appIcon')">
+                    <label for="add-app-icon-file" class="visually-hidden">Upload app icon image file</label>
+                    <input type="file" id="add-app-icon-file" x-ref="appIconFileInput" class="visually-hidden" accept="image/*" @change="handleFileUpload($event, 'appIcon')">
                 </div>
 
                 <div class="form-group">
@@ -263,8 +264,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="checkbox-row" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
-                        <input type="hidden" name="show_container_metrics" :value="newApp.show_container_metrics ? '1' : '0'">
+                    <input type="hidden" name="show_container_metrics" aria-label="Show container metrics value" :value="newApp.show_container_metrics ? '1' : '0'">
+                    <label class="checkbox-row" for="add-app-show-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
                         <input type="checkbox" id="add-app-show-metrics" x-model="newApp.show_container_metrics" style="margin-top:0.15rem;">
                         <span>
                             Show CPU / RAM from host agent
@@ -358,7 +359,7 @@
 
         <form action="/apps/edit" method="POST" class="settings-form">
             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-            <input type="hidden" name="id" x-model="editApp.id">
+            <input type="hidden" name="id" aria-label="App identifier" x-model="editApp.id">
 
             <div class="form-group">
                 <label for="edit-app-name">Name</label>
@@ -384,9 +385,10 @@
                     <label for="edit-app-icon">Icon</label>
                     <div class="icon-input-row">
                         <input type="text" id="edit-app-icon" name="icon" x-model="editApp.icon" class="form-control" placeholder="radarr, sonarr, or image URL">
-                        <button type="button" class="btn btn-secondary" @click="$refs.editAppIconFileInput.click()">Upload</button>
+                        <button type="button" class="btn btn-secondary" aria-label="Upload app icon image" @click="$refs.editAppIconFileInput.click()">Upload</button>
                     </div>
-                    <input type="file" id="edit-app-icon-file" x-ref="editAppIconFileInput" class="visually-hidden" @change="handleFileUpload($event, 'editAppIcon')">
+                    <label for="edit-app-icon-file" class="visually-hidden">Upload app icon image file</label>
+                    <input type="file" id="edit-app-icon-file" x-ref="editAppIconFileInput" class="visually-hidden" accept="image/*" @change="handleFileUpload($event, 'editAppIcon')">
                 </div>
 
                 <div class="form-group">
@@ -404,8 +406,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="checkbox-row" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
-                        <input type="hidden" name="show_container_metrics" :value="editApp.show_container_metrics ? '1' : '0'">
+                    <input type="hidden" name="show_container_metrics" aria-label="Show container metrics value" :value="editApp.show_container_metrics ? '1' : '0'">
+                    <label class="checkbox-row" for="edit-app-show-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
                         <input type="checkbox" id="edit-app-show-metrics" x-model="editApp.show_container_metrics" style="margin-top:0.15rem;">
                         <span>
                             Show CPU / RAM from host agent

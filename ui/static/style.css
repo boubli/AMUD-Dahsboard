@@ -1210,7 +1210,10 @@ body::-webkit-scrollbar-button {
     margin-bottom: 1.25rem;
 }
 
-.form-group label {
+.form-group label,
+.form-group .form-label {
+    display: block;
+    margin-bottom: 0.45rem;
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--text-secondary);
