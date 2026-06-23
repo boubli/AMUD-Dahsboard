@@ -92,6 +92,74 @@ struct NetworkSnapshot {
     external_tx: u64,
 }
 
+#[derive(Clone, Default)]
+struct TelemetryConfig {
+    external_ifaces: Vec<String>,
+    internal_ifaces: Vec<String>,
+    disk_mounts: Vec<String>,
+}
+
+fn telemetry_config() -> &'static std::sync::RwLock<TelemetryConfig> {
+    static CONFIG: std::sync::OnceLock<std::sync::RwLock<TelemetryConfig>> =
+        std::sync::OnceLock::new();
+    CONFIG.get_or_init(|| std::sync::RwLock::new(TelemetryConfig::default()))
+}
+
+fn parse_csv_list(raw: &str) -> Vec<String> {
+    raw.split(',')
+        .map(|s| s.trim().to_ascii_lowercase())
+        .filter(|s| !s.is_empty())
+        .collect()
+}
+
+fn apply_telemetry_config(config: &serde_json::Value) {
+    let mut tc = telemetry_config().write().unwrap();
+    tc.external_ifaces = config
+        .get("telemetry_external_ifaces")
+        .and_then(|v| v.as_str())
+        .map(parse_csv_list)
+        .unwrap_or_default();
+    tc.internal_ifaces = config
+        .get("telemetry_internal_ifaces")
+        .and_then(|v| v.as_str())
+        .map(parse_csv_list)
+        .unwrap_or_default();
+    tc.disk_mounts = config
+        .get("telemetry_disk_mounts")
+        .and_then(|v| v.as_str())
+        .map(parse_csv_list)
+        .unwrap_or_default();
+}
+
+fn iface_classify(iface: &str, cfg: &TelemetryConfig) -> Option<&'static str> {
+    let iface_lower = iface.to_ascii_lowercase();
+    if !cfg.external_ifaces.is_empty() && cfg.external_ifaces.contains(&iface_lower) {
+        return Some("external");
+    }
+    if !cfg.internal_ifaces.is_empty() && cfg.internal_ifaces.contains(&iface_lower) {
+        return Some("internal");
+    }
+    if !cfg.external_ifaces.is_empty() || !cfg.internal_ifaces.is_empty() {
+        return None;
+    }
+    if iface.starts_with("vmbr") || iface.starts_with("br-") || iface.starts_with("docker") {
+        Some("internal")
+    } else {
+        Some("external")
+    }
+}
+
+fn mount_matches(path: &str, cfg: &TelemetryConfig) -> bool {
+    if cfg.disk_mounts.is_empty() {
+        return true;
+    }
+    let path_lower = path.to_ascii_lowercase();
+    cfg.disk_mounts.iter().any(|m| {
+        let mount = m.trim_end_matches('/');
+        path_lower == mount || path_lower.starts_with(&format!("{mount}/"))
+    })
+}
+
 fn main() {
     println!("AMUD-Agent telemetry client starting up...");
 
@@ -403,6 +471,7 @@ fn read_network_snapshot() -> NetworkSnapshot {
     let Ok(content) = std::fs::read_to_string("/proc/net/dev") else {
         return NetworkSnapshot::default();
     };
+    let cfg = telemetry_config().read().unwrap().clone();
     let mut snapshot = NetworkSnapshot::default();
 
     for line in content.lines().skip(2) {
@@ -423,12 +492,16 @@ fn read_network_snapshot() -> NetworkSnapshot {
 
         let rx = values[0];
         let tx = values[8];
-        if iface.starts_with("vmbr") || iface.starts_with("br-") || iface.starts_with("docker") {
-            snapshot.internal_rx = snapshot.internal_rx.saturating_add(rx);
-            snapshot.internal_tx = snapshot.internal_tx.saturating_add(tx);
-        } else {
-            snapshot.external_rx = snapshot.external_rx.saturating_add(rx);
-            snapshot.external_tx = snapshot.external_tx.saturating_add(tx);
+        match iface_classify(iface, &cfg) {
+            Some("internal") => {
+                snapshot.internal_rx = snapshot.internal_rx.saturating_add(rx);
+                snapshot.internal_tx = snapshot.internal_tx.saturating_add(tx);
+            }
+            Some("external") => {
+                snapshot.external_rx = snapshot.external_rx.saturating_add(rx);
+                snapshot.external_tx = snapshot.external_tx.saturating_add(tx);
+            }
+            _ => {}
         }
     }
 
@@ -747,12 +820,16 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         }
 
         let disks = sysinfo::Disks::new_with_refreshed_list();
+        let disk_cfg = telemetry_config().read().unwrap().clone();
         let mut total_disk: u64 = 0;
         let mut avail_disk: u64 = 0;
         let mut seen_devices = std::collections::HashSet::new();
         for disk in &disks {
             let fs = disk.file_system().to_string_lossy().to_lowercase();
             let mount = disk.mount_point().to_string_lossy().to_string();
+            if !mount_matches(&mount, &disk_cfg) {
+                continue;
+            }
             if fs == "tmpfs"
                 || fs == "overlay"
                 || fs == "squashfs"
@@ -859,6 +936,7 @@ fn send_action_result(
 fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
     if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
         if let Some(config) = val.get("config") {
+            apply_telemetry_config(config);
             if pve_token_from_env().is_none() {
                 if let Some(token) = config.get("pve_api_token").and_then(|t| t.as_str()) {
                     if !token.is_empty() {

@@ -40,6 +40,16 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "webhooks_allow_private_ips",
     "enable_proxmox",
     "last_backup_export_at",
+    "telemetry_external_ifaces",
+    "telemetry_internal_ifaces",
+    "telemetry_disk_mounts",
+];
+
+pub(crate) const AGENT_CONFIG_SETTING_KEYS: &[&str] = &[
+    "pve_api_token",
+    "telemetry_external_ifaces",
+    "telemetry_internal_ifaces",
+    "telemetry_disk_mounts",
 ];
 
 pub(crate) fn allowed_setting_keys() -> std::collections::HashSet<String> {
@@ -134,11 +144,43 @@ pub(crate) fn sanitize_theme_mode(value: &str) -> String {
     }
 }
 
+/// Comma-separated network interface names (e.g. `eth0,vmbr0`).
+pub(crate) fn sanitize_iface_list(value: &str) -> String {
+    value
+        .split(',')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .filter(|s| {
+            s.chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
+        })
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+/// Comma-separated absolute mount paths (e.g. `/,/mnt/user`).
+pub(crate) fn sanitize_disk_mount_list(value: &str) -> String {
+    value
+        .split(',')
+        .map(str::trim)
+        .filter(|s| s.starts_with('/') && !s.contains(".."))
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
 /// Bento card span — unknown values become 1x1.
 pub(crate) fn sanitize_card_span(value: &str) -> String {
     match value.trim() {
         "2x1" | "1x2" => value.trim().to_string(),
         _ => "1x1".to_string(),
+    }
+}
+
+/// Per-app CPU/RAM row on cards — default on for existing apps.
+pub(crate) fn parse_show_container_metrics(value: Option<&str>) -> i64 {
+    match value.map(str::trim) {
+        Some("1") | Some("true") | Some("on") => 1,
+        _ => 0,
     }
 }
 
@@ -199,5 +241,25 @@ mod tests {
         assert_eq!(sanitize_card_span("1x2"), "1x2");
         assert_eq!(sanitize_card_span("2x2"), "1x1");
         assert_eq!(sanitize_card_span(""), "1x1");
+    }
+
+    #[test]
+    fn test_parse_show_container_metrics() {
+        assert_eq!(parse_show_container_metrics(Some("1")), 1);
+        assert_eq!(parse_show_container_metrics(Some("true")), 1);
+        assert_eq!(parse_show_container_metrics(Some("0")), 0);
+        assert_eq!(parse_show_container_metrics(None), 0);
+    }
+
+    #[test]
+    fn test_sanitize_iface_list() {
+        assert_eq!(sanitize_iface_list("eth0, vmbr0"), "eth0,vmbr0");
+        assert_eq!(sanitize_iface_list("eth0,bad!name"), "eth0");
+    }
+
+    #[test]
+    fn test_sanitize_disk_mount_list() {
+        assert_eq!(sanitize_disk_mount_list("/,/mnt/user"), "/,/mnt/user");
+        assert_eq!(sanitize_disk_mount_list("relative,/../etc"), "");
     }
 }

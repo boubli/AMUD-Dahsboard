@@ -56,6 +56,10 @@ Configure per app under **Add/Edit App → Integration**. Data loads when the ca
 | **Sonarr** | Queue size | — | No |
 | **Overseerr** | Pending media requests | — | No |
 | **Jellyseerr** | Pending media requests | — | No |
+| **Prowlarr** | Enabled/total indexers, queue size | — | No |
+| **Uptime Kuma** | Monitors up/down | — | No |
+| **Cloudflare Tunnel** | Tunnel status, connections | — | No |
+| **Peanut (UPS)** | Battery %, UPS status | — | No |
 | **RSS / Atom** | Top 3 headlines | — | **Yes** |
 
 RSS feeds are managed under **Settings → RSS Feeds** (not the Add App modal).

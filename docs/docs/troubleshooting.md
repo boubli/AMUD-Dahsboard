@@ -331,6 +331,18 @@ systemctl restart amud-agent
 
 ---
 
+## Unraid: permission denied on appdata
+
+**Symptom:** **AMUD-Dashboard** or **AMUD-Agent** will not start, or logs show errors writing to `/data` or binding the socket in `run/`.
+
+**Cause:** Host folders under `/mnt/user/appdata/amud-dashboard/` are not owned by the user the container runs as.
+
+**Fix:** See the full Unraid guide — [Permission errors on appdata](./installation/unraid.md#permission-errors-on-appdata). On templates that run the container as root, fix ownership with `chown -R 0:0` on both `data` and `run`.
+
+After fixing ownership, restart dashboard then agent.
+
+---
+
 ## Docker / Portainer: Permission Denied on docker.sock
 
 **Symptom:** The agent log reports errors like:

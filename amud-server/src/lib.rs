@@ -111,6 +111,10 @@ pub async fn run() {
         "ALTER TABLE apps ADD COLUMN card_span TEXT DEFAULT '1x1'",
         [],
     );
+    let _ = conn.execute(
+        "ALTER TABLE apps ADD COLUMN show_container_metrics INTEGER DEFAULT 1",
+        [],
+    );
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS wol_devices (

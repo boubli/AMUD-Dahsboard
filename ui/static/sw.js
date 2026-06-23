@@ -1,10 +1,12 @@
-const CACHE_NAME = 'amud-dashboard-v2';
+const CACHE_NAME = 'amud-dashboard-v5';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/AMUD-logo.png',
   '/static/manifest.json',
   '/static/vendor/alpine.min.js',
-  '/static/vendor/lucide.min.js'
+  '/static/vendor/lucide.min.js',
+  '/static/admin.js',
+  '/static/dashboard-live.js'
 ];
 
 globalThis.addEventListener('install', event => {
@@ -35,16 +37,9 @@ globalThis.addEventListener('fetch', event => {
     return;
   }
 
+  // Never cache HTML documents — avoids stale broken inline scripts after upgrades.
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => caches.match(request).then(cached => cached || caches.match('/')))
-    );
+    event.respondWith(fetch(request));
     return;
   }
 

@@ -20,6 +20,9 @@ pub async fn settings_handler(
 
     let settings_cache = state.settings_cache.clone();
     let headers = headers.clone();
+    let agent_config_keys_changed = form
+        .keys()
+        .any(|k| AGENT_CONFIG_SETTING_KEYS.contains(&k.as_str()) || k == "pve_api_token");
     let new_token = with_db(state.db.clone(), move |db| {
         let mut new_token = None;
         let mut changed_keys = 0usize;
@@ -43,6 +46,10 @@ pub async fn settings_handler(
                 sanitize_integration_url(&val)
             } else if key == "theme_mode" {
                 sanitize_theme_mode(&val)
+            } else if key == "telemetry_external_ifaces" || key == "telemetry_internal_ifaces" {
+                sanitize_iface_list(&val)
+            } else if key == "telemetry_disk_mounts" {
+                sanitize_disk_mount_list(&val)
             } else if key == "accent_color" {
                 crate::templates::safe_accent_hex(&val)
             } else if SECRET_SETTING_KEYS.contains(&key.as_str()) {
@@ -74,16 +81,8 @@ pub async fn settings_handler(
     })
     .await;
 
-    if let Some(token) = new_token {
-        let config_payload = pve_config_payload(&token);
-        if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
-            serialized.push(b'\n');
-            if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {
-                let _ = tx
-                    .tx
-                    .send(String::from_utf8_lossy(&serialized).into_owned());
-            }
-        }
+    if agent_config_keys_changed || new_token.is_some() {
+        push_agent_config(&state, new_token.as_deref());
     }
     Redirect::to("/admin/settings").into_response()
 }
@@ -109,7 +108,10 @@ pub async fn test_proxmox_handler(
             refresh_settings_cache(db, &settings_cache);
         })
         .await;
-        let config_payload = pve_config_payload(form_token.trim());
+        let config_payload = {
+            let cache = state.settings_cache.read().unwrap();
+            agent_config_payload(&cache, Some(form_token.trim()))
+        };
         if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
             serialized.push(b'\n');
             if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {

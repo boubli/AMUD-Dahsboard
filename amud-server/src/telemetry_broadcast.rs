@@ -1,4 +1,4 @@
-use crate::models::{AppState, AppStatus, FullTelemetry};
+use crate::models::{AppState, AppStatus, FullTelemetry, LxcContainer};
 use amud_protocol::{AgentTelemetry, NetworkTelemetry};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -31,6 +31,19 @@ fn read_rwlock<T: Clone>(lock: &RwLock<T>) -> T {
 
 fn read_agent_connected(lock: &RwLock<bool>) -> bool {
     *lock.read().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
+/// Guest WebSocket payloads include container name + runtime status only (no vmid, CPU, RAM).
+fn sanitize_containers_for_guest(containers: &[LxcContainer]) -> Vec<LxcContainer> {
+    containers
+        .iter()
+        .map(|c| LxcContainer {
+            vmid: 0,
+            status: c.status.clone(),
+            name: c.name.clone(),
+            ..Default::default()
+        })
+        .collect()
 }
 
 impl Default for WsTelemetryBundle {
@@ -84,7 +97,7 @@ impl WsTelemetryBundle {
             .collect();
 
         let mut guest_system = system.clone();
-        guest_system.lxc_containers.clear();
+        guest_system.lxc_containers = sanitize_containers_for_guest(&system.lxc_containers);
 
         let full = FullTelemetry {
             system,
@@ -96,20 +109,23 @@ impl WsTelemetryBundle {
         };
 
         let guest_public = FullTelemetry {
-            system: guest_system,
+            system: guest_system.clone(),
             network,
             streams: HashMap::new(),
             app_statuses: guest_app_statuses.clone(),
-            agent_connected: false,
+            agent_connected,
             smart_home: None,
         };
 
         let guest_redacted = FullTelemetry {
-            system: AgentTelemetry::default(),
+            system: AgentTelemetry {
+                lxc_containers: guest_system.lxc_containers,
+                ..Default::default()
+            },
             network: NetworkTelemetry::default(),
             streams: HashMap::new(),
             app_statuses: guest_app_statuses,
-            agent_connected: false,
+            agent_connected,
             smart_home: None,
         };
 
@@ -201,9 +217,13 @@ mod tests {
 
         assert!(guest["system"]["lxc_containers"]
             .as_array()
-            .is_some_and(|v| v.is_empty()));
+            .is_some_and(|v| !v.is_empty()));
+        assert_eq!(guest["system"]["lxc_containers"][0]["name"], "jellyfin");
+        assert_eq!(guest["system"]["lxc_containers"][0]["status"], "running");
+        assert_eq!(guest["system"]["lxc_containers"][0]["vmid"], 0);
+        assert!(guest["system"]["lxc_containers"][0]["cpu"].is_null());
         assert_eq!(guest["system"]["cpu_usage"], 0);
-        assert_eq!(guest["agent_connected"], false);
+        assert_eq!(guest["agent_connected"], true);
         assert!(guest.get("smart_home").is_none());
 
         assert_eq!(guest["app_statuses"]["jellyfin"]["status"], "ONLINE");
@@ -213,14 +233,20 @@ mod tests {
     }
 
     #[test]
-    fn guest_public_hides_lxc_but_keeps_basic_system_metrics() {
+    fn guest_public_keeps_basic_system_metrics_and_sanitized_containers() {
         let bundle = WsTelemetryBundle::from_state(&test_state(HashMap::new()));
         let guest: serde_json::Value =
             serde_json::from_str(&bundle.guest_public).expect("telemetry json");
 
-        assert!(guest["system"]["lxc_containers"]
+        let containers = guest["system"]["lxc_containers"]
             .as_array()
-            .is_some_and(|v| v.is_empty()));
+            .expect("guest containers");
+        assert_eq!(containers.len(), 1);
+        assert_eq!(containers[0]["name"], "jellyfin");
+        assert_eq!(containers[0]["status"], "running");
+        assert_eq!(containers[0]["vmid"], 0);
+        assert!(containers[0]["cpu"].is_null());
         assert_eq!(guest["system"]["cpu_usage"], 42);
+        assert_eq!(guest["agent_connected"], true);
     }
 }

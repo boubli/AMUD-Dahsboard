@@ -75,6 +75,12 @@ pub(crate) fn fallback_brand_logo(lowercase_icon: &str) -> String {
         "qbittorrent" => "/static/logos/qbittorrent.svg".to_string(),
         "transmission" => "/static/logos/transmission.svg".to_string(),
         "overseerr" => "/static/logos/overseerr.svg".to_string(),
+        "prowlarr" => "/static/logos/servarr.svg".to_string(),
+        "uptime-kuma" | "uptimekuma" | "uptime_kuma" => "/static/logos/uptime-kuma.svg".to_string(),
+        "cloudflare" | "cloudflared" | "cloudflare-tunnel" | "cloudflare_tunnel" => {
+            "/static/logos/cloudflared-light.svg".to_string()
+        }
+        "peanut" => "/static/logos/peanut.svg".to_string(),
         "truenas" => "/static/logos/truenas.svg".to_string(),
         "casaos" => "/static/logos/casaos.svg".to_string(),
         _ => "/static/fallback.svg".to_string(),

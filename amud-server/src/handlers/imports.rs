@@ -1,5 +1,5 @@
 pub(crate) use super::{api_json, apply_csp_nonce, check_api_rate_limit};
-pub(crate) use crate::agent::pve_config_payload;
+pub(crate) use crate::agent::{agent_config_payload, push_agent_config};
 pub(crate) use crate::apps::{is_jellyfin_app, is_plex_app};
 pub(crate) use crate::audit::list_recent_audit;
 pub(crate) use crate::auth::{
@@ -23,12 +23,14 @@ pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};
 pub(crate) use crate::models::{AppState, Session};
 pub(crate) use crate::security::{sanitize_rss_feed_url, url_allowed_for_webhook};
 pub(crate) use crate::settings::{
-    sanitize_card_span, sanitize_custom_css, sanitize_integration_url, sanitize_setting_url,
-    sanitize_theme_mode, setting_key_allowed, DONATION_LINKS, DONATION_MESSAGE,
-    SECRET_SETTING_KEYS,
+    parse_show_container_metrics, sanitize_card_span, sanitize_custom_css,
+    sanitize_disk_mount_list, sanitize_iface_list, sanitize_integration_url, sanitize_setting_url,
+    sanitize_theme_mode, setting_key_allowed, AGENT_CONFIG_SETTING_KEYS, DONATION_LINKS,
+    DONATION_MESSAGE, SECRET_SETTING_KEYS,
 };
 pub(crate) use crate::templates::{
-    branding_from_settings, build_root_css, escape_html, normalize_url, safe_css_url, BrandingVars,
+    apply_shared_branding, branding_from_settings, build_root_css, escape_html, normalize_url,
+    safe_css_url, BrandingRenderOptions,
 };
 pub(crate) use crate::webhooks::{normalize_webhook_event_types, send_webhook_notification};
 pub(crate) use axum::{

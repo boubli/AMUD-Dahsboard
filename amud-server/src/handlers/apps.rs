@@ -41,13 +41,15 @@ pub async fn add_app_handler(
             .get("card_span")
             .map(|s| sanitize_card_span(s))
             .unwrap_or_else(|| "1x1".to_string());
+        let show_container_metrics =
+            parse_show_container_metrics(form.get("show_container_metrics").map(|s| s.as_str()));
         with_db(state.db.clone(), move |db| {
             let category = crate::db::resolve_app_category(db, &category_input);
             let sort_order = crate::db::next_app_sort_order(db);
             if db
                 .execute(
-                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, sort_order, card_span],
+                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, sort_order, card_span, show_container_metrics],
                 )
                 .is_ok()
             {
@@ -147,6 +149,9 @@ pub async fn edit_app_handler(
                     .get("card_span")
                     .map(|s| sanitize_card_span(s))
                     .unwrap_or_else(|| "1x1".to_string());
+                let show_container_metrics = parse_show_container_metrics(
+                    form.get("show_container_metrics").map(|s| s.as_str()),
+                );
                 with_db(state.db.clone(), move |db| {
                     let category = crate::db::resolve_app_category(db, &category_input);
                     let final_api_key = if api_key.trim().is_empty() || api_key == "Configured — leave blank to keep unchanged" {
@@ -158,8 +163,8 @@ pub async fn edit_app_handler(
                     };
                     if db
                         .execute(
-                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ?, card_span = ? WHERE id = ?",
-                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, card_span, id],
+                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ?, card_span = ?, show_container_metrics = ? WHERE id = ?",
+                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, card_span, show_container_metrics, id],
                         )
                         .is_ok()
                     {

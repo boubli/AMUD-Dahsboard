@@ -61,6 +61,74 @@ If telemetry is missing:
 - Confirm **Agent Socket Dir** is identical on both.
 - Check **AMUD-Agent** logs for connection errors.
 
+See [Permission errors on appdata](#permission-errors-on-appdata) below if the dashboard container exits or the database cannot be created.
+
+---
+
+## Permission errors on appdata
+
+**Symptom:** The **AMUD-Dashboard** container fails to start, restarts in a loop, or logs show **permission denied** when writing to `/data` or the agent cannot use the shared socket under `run/`.
+
+**Cause:** Unraid maps host paths into the container. If `data/` or `run/` on the host are owned by a user the container cannot write as, SQLite and the agent Unix socket will fail.
+
+Default CA paths:
+
+| Path | Purpose |
+|------|---------|
+| `/mnt/user/appdata/amud-dashboard/data` | SQLite database and settings |
+| `/mnt/user/appdata/amud-dashboard/run` | Shared socket between dashboard and agent |
+
+**Fix 1 — Match container user (most common)**
+
+Our images run as **root** inside the container (`UID 0`). Ensure the host appdata folders are writable:
+
+```bash
+chown -R 0:0 /mnt/user/appdata/amud-dashboard/data
+chown -R 0:0 /mnt/user/appdata/amud-dashboard/run
+chmod -R 755 /mnt/user/appdata/amud-dashboard/data
+chmod -R 770 /mnt/user/appdata/amud-dashboard/run
+```
+
+Then restart **AMUD-Dashboard**, then **AMUD-Agent**.
+
+---
+
+## Reset admin password (Docker)
+
+If you cannot log in, reset the password from the Unraid terminal (legacy SHA-256 hash; AMUD upgrades it to Argon2id on next login):
+
+```bash
+# 1. Generate SHA256 hash of your new password
+echo -n 'YOUR_NEW_PASSWORD' | sha256sum | awk '{print $1}'
+
+# 2. Update the database (replace HASH with output above)
+docker run --rm -v /mnt/user/appdata/amud-dashboard/data:/data alpine sh -c \
+  "apk add --no-cache sqlite >/dev/null 2>&1 && sqlite3 /data/amud.db \"UPDATE users SET password_hash='HASH' WHERE username='admin';\""
+```
+
+Restart the **AMUD-Dashboard** container, sign in, then change the password under **Settings → Security** so a fresh Argon2id hash is stored.
+
+See also [Troubleshooting — Reset admin password](../troubleshooting.md#reset-or-change-the-admin-password-from-cli).
+
+---
+
+**Fix 2 — Custom PUID/PGID templates**
+
+If your template sets a non-root user (e.g. `PUID=99`, `PGID=100`), ownership must match that user instead of `0:0`:
+
+```bash
+chown -R 99:100 /mnt/user/appdata/amud-dashboard/data
+chown -R 99:100 /mnt/user/appdata/amud-dashboard/run
+```
+
+**Verify**
+
+```bash
+ls -la /mnt/user/appdata/amud-dashboard/
+```
+
+Both `data` and `run` should be owned by the same UID/GID the container uses. After fixing, open the UI — host telemetry should populate within a few seconds.
+
 ---
 
 ## Reverse proxy
@@ -82,6 +150,12 @@ Your config lives in `/mnt/user/appdata/amud-dashboard/data` — back up that fo
 
 ## Support
 
-- [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions) — questions, screenshots, stack reports
-- [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues) — bugs with logs and steps to reproduce
-- [Unraid forum thread](https://forums.unraid.net/) — search for "AMUD Dashboard" after the support topic is posted
+Please use the right channel so reports are tracked and fixed in releases:
+
+| Channel | Use for |
+|---------|---------|
+| [**GitHub Issues**](https://github.com/boubli/AMUD-Dashboard/issues) | **Bugs**, install failures, feature requests — include Unraid version, container logs, and steps to reproduce |
+| [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions) | Questions, screenshots, general homelab chat |
+| [Documentation](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting) | Self-service fixes (permissions, WebSockets, agent socket) |
+
+Unraid forum threads are welcome for visibility, but **open a GitHub Issue** for anything that needs a code or docs fix so it is not lost in the thread.

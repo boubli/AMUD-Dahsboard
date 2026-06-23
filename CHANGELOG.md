@@ -8,6 +8,33 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.5.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.0) — 2026-06-23
+
+Community integrations, telemetry mapping, and Unraid polish (Inch feedback batch).
+
+### Added
+- **Prowlarr, Uptime Kuma, Cloudflare Tunnel, Peanut (UPS)** app card integrations
+- **Per-app CPU/RAM toggle** on Add/Edit App
+- **Host telemetry mapping** — external/internal network interfaces and disk mount points (Settings → Privacy & Access)
+- **Guest ONLINE/OFFLINE** container status; **login page branding**
+
+### Improved
+- **AdGuard Home** — Basic auth clarity, auto Base64 for raw credentials, correct stats field, safer widget fetch
+- **Unraid docs** — permission fix and Docker password reset
+- **GitHub Issues** guidance for bugs and features
+
+---
+
+## [v1.5.4.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.3) — 2026-06-23
+
+Hardening fix when live telemetry still failed after v1.5.4.2 (cached HTML / service worker).
+
+### Fixed
+- **Live dashboard scripts** — clock, WebSocket, GPU card, telemetry bars, and status badges moved to versioned `/static/dashboard-live.js`
+- **Service worker** — do not cache HTML navigations; cache bump clears stale dashboard JS
+
+---
+
 ## [v1.5.4.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.2) — 2026-06-23
 
 Critical fix: live telemetry and status badges after feeds UI refactor.

@@ -404,7 +404,7 @@ fn render_apps_grid(
                     </div>
                 </div>"#
                     .to_string()
-            } else {
+            } else if app.show_container_metrics {
                 r#"
                 <div class="nested-metrics-grid cols-2" data-lxc-metrics>
                     <div class="metric-block">
@@ -417,6 +417,8 @@ fn render_apps_grid(
                     </div>
                 </div>"#
                     .to_string()
+            } else {
+                String::new()
             }
         } else {
             "".to_string()
@@ -485,7 +487,7 @@ fn render_apps_grid(
                             </div>
                             <div class="metric-block" style="flex-direction: row; justify-content: center; gap: 0.5rem; align-items: center;">
                                 <span class="metric-value" style="font-size: 0.8rem; text-transform: uppercase;" x-text="integrationData.status"></span>
-                                <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; height: auto;" @click="fetch('/api/apps/{}/integration/action', {{ method: 'POST', headers: {{'Content-Type': 'application/json', 'X-CSRF-Token': '{}'}}, body: JSON.stringify({{action: 'disable'}}) }}).then(() => fetch('/api/apps/{}/integration').then(r=>r.json()).then(d=>integrationData=d))">Disable</button>
+                                <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; height: auto;" @click="fetch('/api/apps/{}/integration/action', {{ method: 'POST', headers: {{'Content-Type': 'application/json', 'X-CSRF-Token': '{}'}}, body: JSON.stringify({{action: 'disable'}}) }}).then(() => fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null)).then(d => {{ if (d && d.type) integrationData = d }}).catch(() => {{}})">Disable</button>
                             </div>
                         </div>
                     </template>
@@ -502,6 +504,54 @@ fn render_apps_grid(
                             <div class="metric-block">
                                 <span class="metric-value" x-text="integrationData.pending_requests"></span>
                                 <span class="metric-label">Pending Requests</span>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'prowlarr'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block">
+                                <span class="metric-value"><span x-text="integrationData.indexers_enabled"></span>/<span x-text="integrationData.indexers_total"></span></span>
+                                <span class="metric-label">Indexers</span>
+                            </div>
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.queue_size"></span>
+                                <span class="metric-label">Queue</span>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'uptime_kuma'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.monitors_up"></span>
+                                <span class="metric-label">Up</span>
+                            </div>
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.monitors_down"></span>
+                                <span class="metric-label">Down</span>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'cloudflare_tunnel'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block">
+                                <span class="metric-value" style="font-size:0.8rem; text-transform:capitalize;" x-text="integrationData.tunnel_status"></span>
+                                <span class="metric-label" x-text="integrationData.tunnel_name"></span>
+                            </div>
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.connections"></span>
+                                <span class="metric-label">Connections</span>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'peanut'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block">
+                                <span class="metric-value"><span x-text="integrationData.battery_percent"></span>%</span>
+                                <span class="metric-label">Battery</span>
+                            </div>
+                            <div class="metric-block">
+                                <span class="metric-value" style="font-size:0.8rem;" x-text="integrationData.ups_status"></span>
+                                <span class="metric-label">UPS</span>
                             </div>
                         </div>
                     </template>
@@ -529,7 +579,7 @@ fn render_apps_grid(
 
         let alpine_init = if !app.integration_type.is_empty() {
             format!(
-                r#"x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }})""#,
+                r#"x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }}).catch(() => {{}})""#,
                 app.id
             )
         } else {
@@ -567,7 +617,7 @@ fn render_apps_grid(
 
         let card = format!(
             r#"
-            <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-container-aliases="{}" data-host-agent-app="{}" {}>
+            <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" {}>
                 <div class="app-card-header">
                     <a href="{}" target="_blank" rel="noopener noreferrer" class="app-card-identity" style="text-decoration:none; color:inherit;">
                         <div class="app-card-icon">
@@ -594,6 +644,11 @@ fn render_apps_grid(
             escape_html(&cat_slug),
             escape_html(&container_aliases),
             if is_host_agent_app { "true" } else { "false" },
+            if app.show_container_metrics {
+                "true"
+            } else {
+                "false"
+            },
             alpine_init,
             escape_html(&app.url),
             escape_html(&brand_logo),
@@ -691,7 +746,7 @@ fn render_feeds_grid(
 
         let card = format!(
             r#"
-            <article class="glass-panel feed-card" data-app-id="{}" data-category="{}" data-app-name="{}" x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }})">
+            <article class="glass-panel feed-card" data-app-id="{}" data-category="{}" data-app-name="{}" x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }}).catch(() => {{}})">
                 <header class="feed-card-header">
                     <a href="{}" target="_blank" rel="noopener noreferrer" class="feed-card-identity">
                         <div class="feed-card-icon">
@@ -796,7 +851,7 @@ fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str, mode: PageMod
                 }
                 PageMode::Dashboard => {
                     r#"
-            <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '', card_span: '1x1' };" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
+            <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true };" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
                 <i data-lucide="plus" style="width:0.95rem; height:0.95rem;"></i> Add App
             </button>
             <a href="/admin/settings" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">

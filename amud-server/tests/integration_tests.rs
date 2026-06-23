@@ -36,7 +36,8 @@ fn setup_test_db() -> Connection {
             integration_type TEXT DEFAULT '',
             api_key TEXT DEFAULT '',
             sort_order INTEGER DEFAULT 0,
-            card_span TEXT DEFAULT '1x1'
+            card_span TEXT DEFAULT '1x1',
+            show_container_metrics INTEGER DEFAULT 1
         );
         CREATE TABLE IF NOT EXISTS categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -839,4 +840,78 @@ async fn test_rss_feeds_reorder_success() {
         )
         .unwrap();
     assert_eq!(first_name, "B");
+}
+
+#[tokio::test]
+async fn test_dashboard_hides_lxc_metrics_when_disabled_per_app() {
+    let state = setup_test_state();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, category, node_tag, show_container_metrics) VALUES (1, 'RemoteApp', 'https://remote.example', 'General', 'Remote', 0)",
+            [],
+        )
+        .unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, category, node_tag, show_container_metrics) VALUES (2, 'LocalApp', 'https://local.example', 'General', 'Local', 1)",
+            [],
+        )
+        .unwrap();
+    }
+
+    let session_token = "admin-metrics-test";
+    state.sessions.write().unwrap().insert(
+        session_token.to_string(),
+        Session {
+            username: "admin".to_string(),
+            role: "Admin".to_string(),
+            expires_at_epoch: amud_server::auth::now_epoch_secs() + 3600,
+            csrf_token: "csrf-metrics".to_string(),
+        },
+    );
+
+    let app = build_app_router(state);
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/")
+                .header(header::COOKIE, format!("amud_session={}", session_token))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let html = String::from_utf8(
+        axum::body::to_bytes(response.into_body(), 2 * 1024 * 1024)
+            .await
+            .unwrap()
+            .to_vec(),
+    )
+    .unwrap();
+
+    assert!(html.contains(r#"data-app-name="remoteapp""#));
+    assert!(html.contains(r#"data-show-container-metrics="false""#));
+    assert!(html.contains(r#"data-show-container-metrics="true""#));
+
+    fn app_card_html<'a>(html: &'a str, app_name: &str) -> &'a str {
+        let needle = format!(r#"data-app-name="{app_name}""#);
+        let start = html.find(&needle).expect("app card");
+        let rest = &html[start..];
+        let end = rest[1..]
+            .find("data-app-name=")
+            .map(|i| i + 1)
+            .unwrap_or(rest.len());
+        &rest[..end]
+    }
+
+    assert!(
+        !app_card_html(&html, "remoteapp").contains("data-lxc-metrics"),
+        "remote app should not render CPU/RAM grid"
+    );
+    assert!(
+        app_card_html(&html, "localapp").contains("data-lxc-metrics"),
+        "local app should still render CPU/RAM grid"
+    );
 }

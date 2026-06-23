@@ -3,6 +3,30 @@ use crate::security::{sanitize_feed_link, sanitize_rss_feed_url};
 use chrono::{DateTime, Utc};
 use feed_rs::model::{Entry, Feed};
 use serde_json::{json, Value};
+
+fn looks_like_base64(s: &str) -> bool {
+    !s.is_empty()
+        && s.len().is_multiple_of(4)
+        && s.chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '=')
+}
+
+pub(crate) fn adguard_basic_credential(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.contains(':') && !looks_like_base64(trimmed) {
+        use base64::Engine;
+        base64::engine::general_purpose::STANDARD.encode(trimmed.as_bytes())
+    } else {
+        trimmed.to_string()
+    }
+}
+
+fn adguard_blocked_today(json: &Value) -> u64 {
+    json.get("num_blocked_filtering")
+        .or_else(|| json.get("blocked_filtering"))
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .unwrap_or(0)
+}
 use std::time::Duration;
 
 const RSS_MAX_RESPONSE_BYTES: usize = 2 * 1024 * 1024;
@@ -96,11 +120,11 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
             }
         }
         "adguard" => {
-            // AdGuard Home API uses Basic Auth
+            let credential = adguard_basic_credential(&app.api_key);
             let url = format!("{}/control/stats", base_url);
             let resp = client
                 .get(&url)
-                .header("Authorization", format!("Basic {}", app.api_key))
+                .header("Authorization", format!("Basic {}", credential))
                 .send()
                 .await
                 .ok()?;
@@ -109,7 +133,7 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 let status_url = format!("{}/control/status", base_url);
                 let status_resp = client
                     .get(&status_url)
-                    .header("Authorization", format!("Basic {}", app.api_key))
+                    .header("Authorization", format!("Basic {}", credential))
                     .send()
                     .await
                     .ok();
@@ -128,7 +152,7 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
 
                 return Some(json!({
                     "type": "adguard",
-                    "ads_blocked_today": json.get("blocked_filtering").unwrap_or(&json!(0)),
+                    "ads_blocked_today": adguard_blocked_today(&json),
                     "status": if is_running { "enabled" } else { "disabled" }
                 }));
             }
@@ -193,6 +217,35 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 }));
             }
         }
+        "prowlarr" => {
+            let url = format!("{}/api/v1/indexer", base_url);
+            let resp = client
+                .get(&url)
+                .header("X-Api-Key", &app.api_key)
+                .send()
+                .await
+                .ok()?;
+            if resp.status().is_success() {
+                let indexers: Value = resp.json().await.ok()?;
+                let (enabled, total) = count_prowlarr_indexers(&indexers);
+                let queue_size = fetch_prowlarr_queue_size(&client, base_url, &app.api_key).await;
+                return Some(json!({
+                    "type": "prowlarr",
+                    "indexers_enabled": enabled,
+                    "indexers_total": total,
+                    "queue_size": queue_size
+                }));
+            }
+        }
+        "uptime_kuma" => {
+            return fetch_uptime_kuma(&client, base_url, &app.api_key).await;
+        }
+        "cloudflare_tunnel" => {
+            return fetch_cloudflare_tunnel(&client, &app.api_key).await;
+        }
+        "peanut" => {
+            return fetch_peanut(&client, base_url, &app.api_key).await;
+        }
         "rss" => {
             let feed_url = sanitize_rss_feed_url(&app.api_key)?;
             let resp = client.get(&feed_url).send().await.ok()?;
@@ -212,6 +265,201 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
         _ => return None,
     }
 
+    None
+}
+
+fn count_prowlarr_indexers(indexers: &Value) -> (u64, u64) {
+    let Some(arr) = indexers.as_array() else {
+        return (0, 0);
+    };
+    let total = arr.len() as u64;
+    let enabled = arr
+        .iter()
+        .filter(|i| i.get("enable").and_then(|v| v.as_bool()).unwrap_or(false))
+        .count() as u64;
+    (enabled, total)
+}
+
+async fn fetch_prowlarr_queue_size(client: &reqwest::Client, base_url: &str, api_key: &str) -> u64 {
+    let url = format!("{}/api/v1/queue", base_url);
+    let Ok(resp) = client.get(&url).header("X-Api-Key", api_key).send().await else {
+        return 0;
+    };
+    if !resp.status().is_success() {
+        return 0;
+    }
+    let Ok(json) = resp.json::<Value>().await else {
+        return 0;
+    };
+    json.get("records")
+        .and_then(|r| r.as_array())
+        .map(|a| a.len() as u64)
+        .or_else(|| json.get("totalRecords").and_then(|v| v.as_u64()))
+        .unwrap_or(0)
+}
+
+pub(crate) fn parse_cloudflare_tunnel_creds(raw: &str) -> Option<(String, String, String)> {
+    let parts: Vec<&str> = raw.split('|').map(str::trim).collect();
+    if parts.len() == 3 && parts.iter().all(|p| !p.is_empty()) {
+        Some((
+            parts[0].to_string(),
+            parts[1].to_string(),
+            parts[2].to_string(),
+        ))
+    } else {
+        None
+    }
+}
+
+pub(crate) fn parse_uptime_kuma_heartbeats(json: &Value) -> (u64, u64) {
+    let mut up = 0u64;
+    let mut down = 0u64;
+    let Some(hb_list) = json.get("heartbeatList").and_then(|v| v.as_object()) else {
+        return (up, down);
+    };
+    for beats in hb_list.values() {
+        let Some(arr) = beats.as_array() else {
+            continue;
+        };
+        let Some(latest) = arr.last() else {
+            continue;
+        };
+        if latest.get("status").and_then(|s| s.as_u64()) == Some(1) {
+            up += 1;
+        } else {
+            down += 1;
+        }
+    }
+    (up, down)
+}
+
+pub(crate) fn parse_peanut_stats(json: &Value) -> (String, String) {
+    let charge = json
+        .pointer("/ups/battery.charge")
+        .or_else(|| json.get("battery.charge"))
+        .and_then(|v| {
+            v.as_str()
+                .map(String::from)
+                .or_else(|| v.as_i64().map(|n| n.to_string()))
+        })
+        .unwrap_or_else(|| "—".to_string());
+    let raw_status = json
+        .pointer("/ups/ups.status")
+        .or_else(|| json.get("ups.status"))
+        .or_else(|| json.get("status"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("UNKNOWN");
+    let status_label = match raw_status.to_ascii_uppercase().as_str() {
+        "OL" | "ONLINE" => "Online",
+        "OB" | "ON BATTERY" => "On battery",
+        "LB" => "Low battery",
+        "HB" => "High battery",
+        "RB" => "Battery charging",
+        "CHRG" => "Charging",
+        _ => raw_status,
+    };
+    (charge, status_label.to_string())
+}
+
+async fn fetch_uptime_kuma(
+    client: &reqwest::Client,
+    base_url: &str,
+    slug_or_token: &str,
+) -> Option<Value> {
+    let slug = slug_or_token.trim();
+    if slug.is_empty() {
+        return None;
+    }
+    let status_url = format!("{}/api/status-page/{}", base_url, slug);
+    if let Ok(resp) = client.get(&status_url).send().await {
+        if resp.status().is_success() {
+            if let Ok(json) = resp.json::<Value>().await {
+                let (up, down) = parse_uptime_kuma_heartbeats(&json);
+                if up > 0 || down > 0 {
+                    return Some(json!({
+                        "type": "uptime_kuma",
+                        "monitors_up": up,
+                        "monitors_down": down
+                    }));
+                }
+            }
+        }
+    }
+    let monitors_url = format!("{}/api/monitors", base_url);
+    let resp = client
+        .get(&monitors_url)
+        .header("Authorization", format!("Bearer {}", slug))
+        .send()
+        .await
+        .ok()?;
+    if resp.status().is_success() {
+        let json: Value = resp.json().await.ok()?;
+        let total = json.as_array().map(|a| a.len() as u64).unwrap_or(0);
+        return Some(json!({
+            "type": "uptime_kuma",
+            "monitors_up": total,
+            "monitors_down": 0
+        }));
+    }
+    None
+}
+
+async fn fetch_cloudflare_tunnel(client: &reqwest::Client, creds_raw: &str) -> Option<Value> {
+    let (account_id, tunnel_id, token) = parse_cloudflare_tunnel_creds(creds_raw)?;
+    let url = format!(
+        "https://api.cloudflare.com/client/v4/accounts/{}/cfd_tunnel/{}",
+        account_id, tunnel_id
+    );
+    let resp = client
+        .get(&url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let json: Value = resp.json().await.ok()?;
+    let result = json.get("result")?;
+    let status = result
+        .get("status")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    let connections = result
+        .get("connections")
+        .and_then(|v| v.as_array())
+        .map(|a| a.len() as u64)
+        .unwrap_or(0);
+    let name = result
+        .get("name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("Tunnel");
+    Some(json!({
+        "type": "cloudflare_tunnel",
+        "tunnel_name": name,
+        "tunnel_status": status,
+        "connections": connections
+    }))
+}
+
+async fn fetch_peanut(client: &reqwest::Client, base_url: &str, api_key: &str) -> Option<Value> {
+    for path in ["/api/v1/stats", "/api/stats"] {
+        let url = format!("{}{}", base_url, path);
+        let mut req = client.get(&url);
+        if !api_key.is_empty() && api_key != "none" {
+            req = req.header("Authorization", format!("Bearer {}", api_key));
+        }
+        let resp = req.send().await.ok()?;
+        if resp.status().is_success() {
+            let json: Value = resp.json().await.ok()?;
+            let (battery, status) = parse_peanut_stats(&json);
+            return Some(json!({
+                "type": "peanut",
+                "battery_percent": battery,
+                "ups_status": status
+            }));
+        }
+    }
     None
 }
 
@@ -240,12 +488,12 @@ pub async fn execute_integration_action(
             }
         }
         "adguard" if action == "disable" => {
-            // POST /control/protection
+            let credential = adguard_basic_credential(&app.api_key);
             let url = format!("{}/control/protection", base_url);
             let resp = client
                 .post(&url)
-                .header("Authorization", format!("Basic {}", app.api_key))
-                .json(&json!({"protection_enabled": false, "duration": 300000})) // 300s
+                .header("Authorization", format!("Basic {}", credential))
+                .json(&json!({"protection_enabled": false, "duration": 300000}))
                 .send()
                 .await
                 .ok()?;
@@ -317,5 +565,62 @@ mod tests {
         let entries = build_rss_entries(&feed);
         assert!(!entries.is_empty());
         assert_eq!(entries[0]["link"], "https://example.com/fourth");
+    }
+
+    #[test]
+    fn parse_cloudflare_tunnel_creds_splits_pipe_format() {
+        let parsed = parse_cloudflare_tunnel_creds("acc123|tunnel456|token789").expect("creds");
+        assert_eq!(parsed.0, "acc123");
+        assert_eq!(parsed.1, "tunnel456");
+        assert_eq!(parsed.2, "token789");
+        assert!(parse_cloudflare_tunnel_creds("bad").is_none());
+    }
+
+    #[test]
+    fn parse_uptime_kuma_heartbeats_counts_up_down() {
+        let json: Value = serde_json::json!({
+            "heartbeatList": {
+                "1": [{ "status": 1 }, { "status": 1 }],
+                "2": [{ "status": 1 }],
+                "3": [{ "status": 0 }]
+            }
+        });
+        assert_eq!(parse_uptime_kuma_heartbeats(&json), (2, 1));
+    }
+
+    #[test]
+    fn parse_peanut_stats_reads_battery_and_status() {
+        let json: Value = serde_json::json!({
+            "ups": {
+                "battery.charge": "87",
+                "ups.status": "OL"
+            }
+        });
+        let (battery, status) = parse_peanut_stats(&json);
+        assert_eq!(battery, "87");
+        assert_eq!(status, "Online");
+    }
+
+    #[test]
+    fn count_prowlarr_indexers_enabled_total() {
+        let json: Value = serde_json::json!([
+            { "enable": true },
+            { "enable": false },
+            { "enable": true }
+        ]);
+        assert_eq!(count_prowlarr_indexers(&json), (2, 3));
+    }
+
+    #[test]
+    fn adguard_basic_credential_encodes_raw_user_pass() {
+        let encoded = adguard_basic_credential("admin:secret");
+        assert_ne!(encoded, "admin:secret");
+        assert!(looks_like_base64(&encoded));
+    }
+
+    #[test]
+    fn adguard_blocked_today_reads_num_blocked_filtering() {
+        let json: Value = serde_json::json!({ "num_blocked_filtering": 42 });
+        assert_eq!(adguard_blocked_today(&json), 42);
     }
 }

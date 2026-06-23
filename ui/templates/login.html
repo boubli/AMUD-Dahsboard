@@ -1,60 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{theme_mode}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>AMUD - Administrative Sign In</title>
-    <link rel="icon" href="/static/AMUD-logo.png" type="image/png">
+    <title>{{app_name}} - Sign In</title>
+    <link rel="icon" href="{{favicon_url}}" type="image/png">
     <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="var(--accent-color)">
-    <meta name="description" content="AMUD Dashboard administrative sign in">
+    <meta name="theme-color" content="{{accent_color}}">
+    <meta name="description" content="{{app_name}} administrative sign in">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="AMUD">
+    <meta name="apple-mobile-web-app-title" content="{{app_name}}">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/static/AMUD-logo.png">
+    <link rel="apple-touch-icon" href="{{favicon_url}}">
     <link rel="stylesheet" href="/static/style.css">
-    
-    <!-- Inline variables setup for clean database variable override -->
+
     <style>
         :root {
             /* ROOT_CSS */
         }
+
+        body.login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .login-shell {
+            position: relative;
+            z-index: 10;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-brand-logo {
+            width: 3.5rem;
+            height: 3.5rem;
+            margin-bottom: 0.5rem;
+        }
     </style>
-    
+    <style id="amud-custom-css">{{custom_css}}</style>
+
     <script src="/static/vendor/lucide.min.js"></script>
 </head>
-<body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1.5rem;">
-    <div class="glass-panel" style="max-width: 400px; width: 100%; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
-        
-        <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-            <div class="brand-logo" style="width: 3.5rem; height: 3.5rem; margin-bottom: 0.5rem;"></div>
-            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em;">Sign In</h2>
-            <p style="font-size: 0.8rem; color: var(--text-secondary);">Access administrative operations cockpit</p>
+<body class="login-page {{video_bg_class}}">
+    {{video_bg_element}}
+
+    <div class="login-shell">
+        <div class="glass-panel" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+
+            <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <div class="brand-logo login-brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em;">Sign In</h2>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">{{tagline}}</p>
+            </div>
+
+            <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div id="error-message" style="display: none; background: #991b1b; color: #ffffff; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; text-align: center; border: 1px solid #b91c1c;">
+                    Invalid username or password
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                    Sign In
+                </button>
+
+                <a href="/" style="text-align: center; font-size: 0.8rem; color: var(--text-secondary); text-decoration: none; display: block; margin-top: 0.25rem;">
+                    Return to Dashboard as Guest
+                </a>
+            </form>
         </div>
-
-        <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
-            <div id="error-message" style="display: none; background: #991b1b; color: #ffffff; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; text-align: center; border: 1px solid #b91c1c;">
-                Invalid username or password
-            </div>
-
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" class="form-control" placeholder="Username" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
-                Sign In
-            </button>
-
-            <a href="/" style="text-align: center; font-size: 0.8rem; color: var(--text-secondary); text-decoration: none; display: block; margin-top: 0.25rem;">
-                Return to Dashboard as Guest
-            </a>
-        </form>
     </div>
 
     <script nonce="{{csp_nonce}}">

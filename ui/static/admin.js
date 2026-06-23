@@ -97,6 +97,8 @@
 
     function shouldUpdateLxcMetrics(grid) {
         if (!grid) return false;
+        const card = grid.closest('.app-card');
+        if (card && card.getAttribute('data-show-container-metrics') === 'false') return false;
         if (grid.closest('.integration-widget')) return false;
         if (grid.id === 'ha-metrics-grid') return false;
         return true;

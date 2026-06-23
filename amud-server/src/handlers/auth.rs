@@ -6,13 +6,17 @@ pub async fn login_page(
 ) -> impl IntoResponse {
     let settings = state.settings_cache.read().unwrap().clone();
     let branding = branding_from_settings(&settings);
-    let root_css = build_root_css(&BrandingVars {
-        tagline: None,
-        ..branding
-    });
+    let custom_css = settings.get("custom_css").map(|s| s.as_str()).unwrap_or("");
 
     let login_tmpl = include_str!("../../../ui/templates/login.html");
-    let result = login_tmpl.replace("/* ROOT_CSS */", &root_css);
+    let result = apply_shared_branding(
+        login_tmpl.to_string(),
+        &BrandingRenderOptions {
+            branding: &branding,
+            custom_css,
+            default_tagline: "Access administrative operations cockpit",
+        },
+    );
     Html(apply_csp_nonce(result, &csp.0))
 }
 

@@ -20,6 +20,8 @@
     <!-- Lucide Vector Icons -->
     <script src="/static/vendor/lucide.min.js"></script>
     <script src="/static/admin.js"></script>
+    <script id="amud-live-config" type="application/json">{"isAdmin":{{is_admin}},"hideTelemetry":{{hide_telemetry}}}</script>
+    <script src="/static/dashboard-live.js?v={{app_version}}"></script>
     {{admin_drag_script}}
 
     <!-- Inline variables setup for clean database variable override -->
@@ -30,7 +32,7 @@
     </style>
     <style id="amud-custom-css">{{custom_css}}</style>
 </head>
-<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1' } }" class="{{video_bg_class}} {{body_page_class}}">
+<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true } }" class="{{video_bg_class}} {{body_page_class}}">
     {{video_bg_element}}
     {{update_banner}}
     <div class="dashboard-container">
@@ -261,6 +263,17 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="checkbox-row" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="hidden" name="show_container_metrics" :value="newApp.show_container_metrics ? '1' : '0'">
+                        <input type="checkbox" id="add-app-show-metrics" x-model="newApp.show_container_metrics" style="margin-top:0.15rem;">
+                        <span>
+                            Show CPU / RAM from host agent
+                            <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Turn off for remote services (not on this Proxmox/Docker host) so the card stays clean.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-group">
                     <label for="add-app-integration-type">Integration</label>
                     <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type">
                         <option value="">None</option>
@@ -270,12 +283,51 @@
                         <option value="sonarr">Sonarr</option>
                         <option value="overseerr">Overseerr</option>
                         <option value="jellyseerr">Jellyseerr</option>
+                        <option value="prowlarr">Prowlarr</option>
+                        <option value="uptime_kuma">Uptime Kuma</option>
+                        <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
+                        <option value="peanut">Peanut (UPS)</option>
                     </select>
                 </div>
 
                 <div class="form-group" x-show="newApp.integration_type !== ''">
-                    <label for="add-app-api-key">API key / token</label>
-                    <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key" placeholder="From the service settings">
+                    <label for="add-app-api-key">
+                        <span x-show="newApp.integration_type === 'adguard'">Basic auth credential</span>
+                        <span x-show="newApp.integration_type === 'pihole'">API token</span>
+                        <span x-show="newApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
+                        <span x-show="newApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
+                        <span x-show="newApp.integration_type === 'peanut'">API token (optional)</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut'].includes(newApp.integration_type)">API key / token</span>
+                    </label>
+                    <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key"
+                        :placeholder="newApp.integration_type === 'adguard' ? 'Base64 username:password' : (newApp.integration_type === 'pihole' ? 'Pi-hole API token (Settings → API)' : (newApp.integration_type === 'uptime_kuma' ? 'my-status-page-slug' : (newApp.integration_type === 'cloudflare_tunnel' ? 'account_id|tunnel_id|api_token' : (newApp.integration_type === 'peanut' ? 'Leave empty if no auth' : 'From the service settings'))))">
+                    <p class="form-help" x-show="newApp.integration_type === 'adguard'">
+                        AdGuard Home does <strong>not</strong> use an API key. Encode your AdGuard UI login as Base64 <code>username:password</code>
+                        (Linux/macOS: <code>echo -n 'admin:yourpass' | base64</code>).
+                        <a href="https://boubli.github.io/AMUD-Dashboard/docs/configuration" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Configuration docs</a>
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'pihole'">
+                        Use the API token from Pi-hole <strong>Settings → API</strong> (or web password on older installs).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'radarr' || newApp.integration_type === 'sonarr'">
+                        Copy the API key from <strong>Settings → General</strong> in Radarr/Sonarr.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'overseerr' || newApp.integration_type === 'jellyseerr'">
+                        Copy the API key from the service settings (Overseerr/Jellyseerr → General).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'prowlarr'">
+                        API key from Prowlarr <strong>Settings → General</strong>. Shows enabled indexers and queue size.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'uptime_kuma'">
+                        Use your public <strong>status page slug</strong> (Settings → Status Pages), or an Uptime Kuma API key for monitor count.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'cloudflare_tunnel'">
+                        Format: <code>account_id|tunnel_id|api_token</code> — token needs Account → Cloudflare Tunnel → Read.
+                        App URL can point to your tunnel hostname or Cloudflare dashboard.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'peanut'">
+                        Peanut/NUT base URL in the URL field. Leave credential empty if your instance has no API auth.
+                    </p>
                 </div>
 
                 <div class="form-group">
@@ -352,6 +404,17 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="checkbox-row" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="hidden" name="show_container_metrics" :value="editApp.show_container_metrics ? '1' : '0'">
+                        <input type="checkbox" id="edit-app-show-metrics" x-model="editApp.show_container_metrics" style="margin-top:0.15rem;">
+                        <span>
+                            Show CPU / RAM from host agent
+                            <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Disable when this app runs elsewhere — status badge still works.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-group">
                     <label for="edit-app-integration-type">Integration</label>
                     <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type">
                         <option value="">None</option>
@@ -361,12 +424,50 @@
                         <option value="sonarr">Sonarr</option>
                         <option value="overseerr">Overseerr</option>
                         <option value="jellyseerr">Jellyseerr</option>
+                        <option value="prowlarr">Prowlarr</option>
+                        <option value="uptime_kuma">Uptime Kuma</option>
+                        <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
+                        <option value="peanut">Peanut (UPS)</option>
                     </select>
                 </div>
 
                 <div class="form-group" x-show="editApp.integration_type !== ''">
-                    <label for="edit-app-api-key">API key / token</label>
-                    <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key" placeholder="Leave blank to keep unchanged">
+                    <label for="edit-app-api-key">
+                        <span x-show="editApp.integration_type === 'adguard'">Basic auth credential</span>
+                        <span x-show="editApp.integration_type === 'pihole'">API token</span>
+                        <span x-show="editApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
+                        <span x-show="editApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
+                        <span x-show="editApp.integration_type === 'peanut'">API token (optional)</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut'].includes(editApp.integration_type)">API key / token</span>
+                    </label>
+                    <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key"
+                        :placeholder="editApp.integration_type === 'adguard' ? 'Base64 username:password' : (editApp.integration_type === 'pihole' ? 'Leave blank to keep unchanged' : 'Leave blank to keep unchanged')">
+                    <p class="form-help" x-show="editApp.integration_type === 'adguard'">
+                        AdGuard Home does <strong>not</strong> use an API key. Encode your AdGuard UI login as Base64 <code>username:password</code>
+                        (Linux/macOS: <code>echo -n 'admin:yourpass' | base64</code>).
+                        <a href="https://boubli.github.io/AMUD-Dashboard/docs/configuration" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Configuration docs</a>
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'pihole'">
+                        Use the API token from Pi-hole <strong>Settings → API</strong>. Leave blank to keep the saved token.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'radarr' || editApp.integration_type === 'sonarr'">
+                        API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'overseerr' || editApp.integration_type === 'jellyseerr'">
+                        API key from service settings. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'prowlarr'">
+                        Prowlarr API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'uptime_kuma'">
+                        Status page slug or API key. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'cloudflare_tunnel'">
+                        <code>account_id|tunnel_id|api_token</code>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'peanut'">
+                        Optional API token. Leave blank to keep unchanged.
+                    </p>
                 </div>
 
                 <div class="form-group">
@@ -413,19 +514,9 @@
         const isAdmin = "{{is_admin}}" === "true";
         window.activeCategoryFilter = 'all';
         const knownAppNames = new Set({{app_names_json}});
-        let latestAppStatuses = {};
 
         function amudSafeLower(value) {
             return (value || '').trim().toLowerCase();
-        }
-
-        function setWsStatus(state) {
-            const pill = document.getElementById('ws-status-pill');
-            const text = document.getElementById('ws-status-text');
-            if (!pill || !text) return;
-            pill.classList.remove('ws-live', 'ws-connecting', 'ws-offline');
-            pill.classList.add(`ws-${state}`);
-            text.innerText = state === 'live' ? 'Live' : (state === 'offline' ? 'Offline' : 'Reconnecting');
         }
 
         function checkDuplicateAppName() {
@@ -440,48 +531,6 @@
                 warning.style.display = duplicate ? 'block' : 'none';
             });
         }
-
-        function updateClock() {
-            const now = new Date();
-
-            // Time
-            let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            document.getElementById('live-time').innerText = `${hours}:${minutes}`;
-            document.getElementById('live-ampm').innerText = ampm;
-
-            // Date
-            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const rawDate = now.toLocaleDateString('en-US', dateOptions);
-            const parts = rawDate.split(', ');
-            if (parts.length >= 3) {
-                document.getElementById('live-date').innerText = `${parts[0]} · ${parts[1]}, ${parts[2]}`;
-            } else {
-                document.getElementById('live-date').innerText = rawDate.replace(/,/g, ' ·');
-            }
-
-            // Greeting
-            const rawHours = now.getHours();
-            let greeting = "Hello";
-            if (rawHours >= 5 && rawHours < 12) {
-                greeting = "Good morning";
-            } else if (rawHours >= 12 && rawHours < 18) {
-                greeting = "Good afternoon";
-            } else if (rawHours >= 18 && rawHours < 22) {
-                greeting = "Good evening";
-            } else {
-                greeting = "Working late";
-            }
-            const greetingTextEl = document.getElementById('greeting-text');
-            if (greetingTextEl) {
-                greetingTextEl.textContent = greeting;
-            }
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
 
         // Search engine redirection
         document.getElementById('search-input').addEventListener('keydown', function(e) {
@@ -712,352 +761,6 @@
             });
         }
 
-        const hideTelemetry = "{{hide_telemetry}}" === "true";
-
-        if (hideTelemetry) {
-            const telemetrySection = document.getElementById('telemetry-section');
-            if (telemetrySection) {
-                telemetrySection.style.display = 'none';
-            }
-        }
-
-        setTimeout(() => {
-            let unknownCount = 0;
-            document.querySelectorAll('.status-badge').forEach(badge => {
-                if (!badge.dataset.lastStatus) {
-                    styleStatusBadge(badge, 'UNKNOWN');
-                    badge.title = 'No live status received yet';
-                    unknownCount += 1;
-                }
-            });
-            const hint = document.getElementById('health-status-hint');
-            if (hint && isAdmin && unknownCount > 0) {
-                hint.style.display = 'block';
-            }
-        }, 20000);
-
-        function normalizeToken(value) {
-            return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-        }
-
-        function findContainerByNames(containers, names) {
-            const tokens = names
-                .flatMap(n => String(n || '').toLowerCase().split(/[^a-z0-9]+/))
-                .map(normalizeToken)
-                .filter(Boolean);
-            return containers.find(lxc => {
-                const cname = normalizeToken(lxc.name);
-                return tokens.some(name =>
-                    cname === name ||
-                    name.includes(cname) ||
-                    cname.includes(name)
-                );
-            });
-        }
-
-        function containerNamesForCard(card) {
-            const aliases = card.getAttribute('data-container-aliases') || '';
-            const appName = card.getAttribute('data-app-name') || '';
-            return [appName, ...aliases.split(/\s+/).filter(Boolean)];
-        }
-
-        function setDashboardText(id, text) {
-            const el = document.getElementById(id);
-            if (el) el.innerText = text;
-        }
-
-        function setDashboardBar(id, pct) {
-            const el = document.getElementById(id);
-            if (el) el.style.width = `${Math.max(0, Math.min(100, pct))}%`;
-        }
-
-        function parseRateToBps(rateText) {
-            const s = String(rateText || '').trim();
-            const m = s.match(/^([\d.]+)\s*([KMG]?B)\/s$/i);
-            if (!m) return 0;
-            const v = parseFloat(m[1]);
-            const unit = (m[2] || 'B').toUpperCase();
-            const mult = unit === 'GB' ? 1024 * 1024 * 1024 : unit === 'MB' ? 1024 * 1024 : unit === 'KB' ? 1024 : 1;
-            return v * mult;
-        }
-
-        function formatRateFromBps(bytes) {
-            if (!bytes || bytes <= 0) return '—';
-            const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
-            let value = bytes;
-            let idx = 0;
-            while (value >= 1024 && idx < units.length - 1) {
-                value /= 1024;
-                idx++;
-            }
-            return `${value.toFixed(value < 10 && idx > 0 ? 1 : 0)} ${units[idx]}`;
-        }
-
-        function updateHostTelemetry(sys) {
-            if (!sys) return;
-            setDashboardText('val-pve-cpu', `${sys.cpu_usage ?? 0}%`);
-            setDashboardBar('bar-pve-cpu', sys.cpu_usage ?? 0);
-            setDashboardText('val-pve-mem', `${sys.ram_usage ?? 0}%`);
-            setDashboardBar('bar-pve-mem', sys.ram_usage ?? 0);
-            setDashboardText('val-cpu-model', sys.cpu_model ? String(sys.cpu_model).slice(0, 22) : 'Host CPU');
-            setDashboardText('val-cpu-temp', (sys.cpu_temp && sys.cpu_temp > 0) ? `${Number(sys.cpu_temp).toFixed(0)}°C` : '—');
-            setDashboardText('val-ram-used', `${(sys.ram_used_gb ?? 0).toFixed(1)} GB Used`);
-            setDashboardText('val-ram-total', `${(sys.ram_total_gb ?? 0).toFixed(1)} GB Total`);
-
-            const freeGb = (sys.disk_total_gb ?? 0) - (sys.disk_used_gb ?? 0);
-            setDashboardText('val-nas-free', `${freeGb.toFixed(1)} GB Free`);
-            setDashboardBar('bar-nas-usage', sys.disk_usage ?? 0);
-            setDashboardText('val-nas-used', `${(sys.disk_used_gb ?? 0).toFixed(1)} GB Used`);
-            setDashboardText('val-disk-total', `${(sys.disk_total_gb ?? 0).toFixed(1)} GB Total`);
-
-            const gpuName = (sys.gpu_name || '').trim();
-            const hasGpu = gpuName.length > 0 && (sys.gpu_usage ?? -1) >= 0;
-            const gpuCard = document.getElementById('gpu-card');
-            if (gpuCard) gpuCard.style.display = hasGpu ? '' : 'none';
-            if (hasGpu) {
-                setDashboardText('val-gpu-usage', `${sys.gpu_usage ?? 0}%`);
-                setDashboardBar('bar-gpu-usage', sys.gpu_usage ?? 0);
-                setDashboardText('val-gpu-name', gpuName.slice(0, 18));
-                const used = (sys.gpu_mem_used_mb ?? 0) / 1024;
-                const total = (sys.gpu_mem_total_mb ?? 0) / 1024;
-                setDashboardText('val-gpu-vram', total > 0 ? `VRAM ${used.toFixed(1)}/${total.toFixed(1)} GB` : 'VRAM —');
-            }
-        }
-
-        function updateStreamStatusBadges(containers) {
-            document.querySelectorAll('[data-stream-app]').forEach(badge => {
-                const names = badge.getAttribute('data-stream-app')
-                    .toLowerCase()
-                    .split(/\s+/)
-                    .filter(Boolean);
-                const match = findContainerByNames(containers, names);
-                if (!match) return;
-
-                styleStatusBadge(badge, match.status);
-            });
-        }
-
-        function styleStatusBadge(badge, status, latencyMs = null) {
-            const normalized = (status || '').toLowerCase();
-            const showLatency = isAdmin && latencyMs !== null && normalized === 'online';
-            if (showLatency) {
-                badge.innerText = `${latencyMs} ms`;
-            } else {
-                badge.innerText = (status || 'UNKNOWN').toUpperCase();
-            }
-
-            const isHealthy = ['running', 'online'].includes(normalized);
-            const isWarn = ['not configured', 'checking', 'unknown'].includes(normalized);
-            badge.classList.remove('status-online', 'status-offline', 'status-checking', 'status-unknown', 'ms');
-            if (showLatency) {
-                badge.classList.add('ms');
-            } else if (isHealthy) {
-                badge.classList.add('status-online');
-            } else if (isWarn) {
-                badge.classList.add(normalized === 'checking' ? 'status-checking' : 'status-unknown');
-            } else {
-                badge.classList.add('status-offline');
-            }
-            badge.dataset.lastStatus = normalized || 'unknown';
-        }
-
-        function updateAppUrlStatuses(statuses) {
-            latestAppStatuses = statuses || {};
-            document.querySelectorAll('.app-card').forEach(card => {
-                const appName = card.getAttribute('data-app-name');
-                if (!appName) return;
-
-                const status = latestAppStatuses[appName] || latestAppStatuses[appName.toLowerCase()];
-
-                const badge = card.querySelector('.status-badge');
-                if (!badge || badge.dataset.containerManaged === 'true') return;
-                if (!status) {
-                    styleStatusBadge(badge, 'UNKNOWN');
-                    badge.title = 'No URL health status has been received for this app';
-                    return;
-                }
-
-                badge.title = isAdmin ? 'URL health check' : 'Public availability check';
-                styleStatusBadge(badge, status.status, status.latency_ms);
-            });
-        }
-
-        function updateMediaStream(service, stream) {
-            const normalized = service === 'plex' ? 'plex' : 'jellyfin';
-            const track = document.getElementById(`${normalized}-track`);
-            const timer = document.getElementById(`${normalized}-timer`);
-            const progress = document.getElementById(`${normalized}-progress`);
-            const badge = document.querySelector(`[data-stream-service="${normalized}"]`)
-                || document.querySelector(`[data-stream-service="emby"]`);
-
-            if (track) track.innerText = stream.title;
-            if (timer) timer.innerText = stream.active ? `${stream.current_time} / ${stream.total_time}` : '-';
-            if (progress) progress.style.width = `${stream.progress_percent || 0}%`;
-            if (badge && stream.status) {
-                styleStatusBadge(badge, stream.status);
-            }
-        }
-
-        function onWsMessage(event) {
-            try {
-                const data = JSON.parse(event.data);
-                
-                // Update system metrics micro-bars
-                if (data.system) {
-                    const sys = data.system;
-                    updateHostTelemetry(sys);
-
-                    const containers = (sys.lxc_containers && sys.lxc_containers.length > 0) ? sys.lxc_containers : [];
-                    if (containers.length > 0) {
-                        updateStreamStatusBadges(containers);
-                    }
-                    const appCards = document.querySelectorAll('.app-card');
-                    appCards.forEach(card => {
-                        const match = findContainerByNames(containers, containerNamesForCard(card));
-                        const isHostAgentApp = card.getAttribute('data-host-agent-app') === 'true';
-
-                        if (match) {
-                                // Update container controls if they exist (only for admin)
-                                const ctrlContainer = card.querySelector('.container-controls');
-                                if (ctrlContainer) {
-                                    const isDocker = match.vmid < 0;
-                                    const provider = isDocker ? 'docker' : 'lxc';
-                                    const containerId = isDocker ? match.name : match.vmid;
-                                    
-                                    ctrlContainer.setAttribute('data-id', containerId);
-                                    ctrlContainer.setAttribute('data-provider', provider);
-                                    
-                                    // Check loading state to prevent flickering during action execution
-                                    if (!ctrlContainer.classList.contains('loading')) {
-                                        ctrlContainer.style.display = 'inline-flex';
-                                        
-                                        const isRunning = match.status === 'running';
-                                        const startBtn = ctrlContainer.querySelector('.btn-ctrl.start');
-                                        const stopBtn = ctrlContainer.querySelector('.btn-ctrl.stop');
-                                        const restartBtn = ctrlContainer.querySelector('.btn-ctrl.restart');
-                                        
-                                        if (startBtn) startBtn.style.display = isRunning ? 'none' : 'inline-flex';
-                                        if (stopBtn) stopBtn.style.display = isRunning ? 'inline-flex' : 'none';
-                                        if (restartBtn) restartBtn.style.display = isRunning ? 'inline-flex' : 'none';
-                                    }
-                                }
-
-                                const badgeContainer = card.querySelector('.app-card-badges');
-                                if (badgeContainer) {
-                                    const existingBadge = badgeContainer.querySelector('.status-badge');
-                                    
-                                    if (existingBadge && !existingBadge.classList.contains('ms')) {
-                                        existingBadge.dataset.containerManaged = 'true';
-                                        existingBadge.title = 'Container runtime status';
-                                        styleStatusBadge(existingBadge, match.status);
-                                    }
-                                }
-
-                                const metricsGrid = card.querySelector('[data-lxc-metrics]');
-                                if (shouldUpdateLxcMetrics(metricsGrid)) {
-                                    const cpuPct = match.cpu ? `${(match.cpu * 100).toFixed(1)}%` : '0%';
-                                    const ramPct = match.mem && match.maxmem
-                                        ? `${((match.mem / match.maxmem) * 100).toFixed(1)}%`
-                                        : '0%';
-                                    setMetricsGrid(metricsGrid, [
-                                        {
-                                            value: cpuPct,
-                                            label: 'CPU',
-                                            valueStyle: match.cpu > 0.8 ? 'color: #ef4444' : '',
-                                        },
-                                        { value: ramPct, label: 'RAM' },
-                                    ]);
-                                }
-                        }
-                        if (!match && isHostAgentApp) {
-                            const badgeContainer = card.querySelector('.app-card-badges');
-                            if (badgeContainer) {
-                                const existingBadge = badgeContainer.querySelector('.status-badge');
-                                if (existingBadge && !existingBadge.classList.contains('ms')) {
-                                    existingBadge.dataset.containerManaged = 'true';
-                                    existingBadge.title = 'Proxmox host agent status';
-                                    styleStatusBadge(existingBadge, data.agent_connected ? 'running' : 'offline');
-                                }
-                            }
-                            const metricsGrid = card.querySelector('[data-lxc-metrics]');
-                            if (shouldUpdateLxcMetrics(metricsGrid)) {
-                                setMetricsGrid(metricsGrid, [
-                                    { value: `${sys.cpu_usage ?? 0}%`, label: 'CPU' },
-                                    { value: `${sys.ram_usage ?? 0}%`, label: 'RAM' },
-                                ]);
-                            }
-                        }
-                    });
-                } else if (typeof data.agent_connected === 'boolean') {
-                    // no-op: Proxmox host card removed (Proxmox stays as a normal app card)
-                }
-
-                if (data.app_statuses) {
-                    updateAppUrlStatuses(data.app_statuses);
-                }
-
-                // Update network metrics
-                if (data.network) {
-                    const net = data.network;
-                    const tx = parseRateToBps(net.internal_tx) + parseRateToBps(net.external_tx);
-                    const rx = parseRateToBps(net.internal_rx) + parseRateToBps(net.external_rx);
-                    const total = tx + rx;
-                    setDashboardText('val-net-up', `↑ ${formatRateFromBps(tx)}`);
-                    setDashboardText('val-net-down', `↓ ${formatRateFromBps(rx)}`);
-                    setDashboardText('val-net-total', formatRateFromBps(total));
-                    setDashboardBar('bar-net-total', Math.min(100, total / (125 * 1024 * 1024) * 100));
-                }
-
-                // Agent connectivity indicator
-                if (typeof data.agent_connected === 'boolean') {
-                    document.querySelectorAll('.telemetry-card').forEach(card => {
-                        card.classList.toggle('agent-offline', !data.agent_connected);
-                    });
-                }
-
-                // Update active media playbacks
-                if (data.streams) {
-                    if (data.streams.plex) {
-                        updateMediaStream('plex', data.streams.plex);
-                    }
-                    const jellyfinStream = data.streams.jellyfin || data.streams.emby;
-                    if (jellyfinStream) {
-                        updateMediaStream('jellyfin', jellyfinStream);
-                    }
-                }
-
-                // Update smart home stats
-                if (data.smart_home) {
-                    const sh = data.smart_home;
-                    const haLights = document.getElementById('ha-lights');
-                    if (haLights) haLights.innerText = sh.lights_on;
-                    const haSwitches = document.getElementById('ha-switches');
-                    if (haSwitches) haSwitches.innerText = sh.switches_on;
-                    const haTemp = document.getElementById('ha-temp');
-                    if (haTemp) haTemp.innerText = sh.avg_temp !== null ? sh.avg_temp + '°' : '—';
-                }
-
-            } catch (err) {
-                console.error("Failed to parse websocket message:", err);
-            }
-        };
-
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const socketUrl = `${protocol}//${window.location.host}/ws`;
-        const ws = new WebSocket(socketUrl);
-
-            ws.onopen = () => {
-                setWsStatus('live');
-            };
-            ws.onmessage = onWsMessage;
-            ws.onerror = () => {
-                setWsStatus('offline');
-            };
-            ws.onclose = () => {
-                setWsStatus('offline');
-                console.warn("WebSocket closed. Attempting reload in 5s.");
-                setTimeout(() => { window.location.reload(); }, 5000);
-            };
     </script>
     <script nonce="{{csp_nonce}}">
         if ('serviceWorker' in navigator) {

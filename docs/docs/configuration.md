@@ -89,16 +89,60 @@ Per-app integrations are set when you **Add** or **Edit** an app (Integration dr
 | Integration | App URL field | Credential field | Notes |
 |-------------|---------------|------------------|-------|
 | **Pi-hole** | Pi-hole web UI base URL | Web password / API token | Shows ads blocked today; admin can disable 5 min |
-| **AdGuard Home** | AdGuard UI base URL | Base64 `user:password` for Basic auth | Shows blocked count and protection state |
+| **AdGuard Home** | AdGuard UI base URL | Basic auth credential | **Not an API key.** Base64-encoded `username:password` for the AdGuard UI login (see below) |
 | **Radarr** | Radarr base URL | API key (`X-Api-Key`) | Queue size |
 | **Sonarr** | Sonarr base URL | API key | Queue size |
 | **Overseerr** | Overseerr base URL | API key | Pending media requests |
 | **Jellyseerr** | Jellyseerr base URL | API key | Pending media requests |
+| **Prowlarr** | Prowlarr base URL | API key (`X-Api-Key`) | Enabled/total indexers + queue size |
+| **Uptime Kuma** | Uptime Kuma base URL | Status page slug **or** API key | Monitors up/down (status page JSON or `/api/monitors`) |
+| **Cloudflare Tunnel** | Tunnel hostname or dashboard URL | `account_id\|tunnel_id\|api_token` | Tunnel status + active connections |
+| **Peanut (UPS)** | Peanut/NUT base URL | API token (optional) | Battery % and UPS status |
 | **RSS / Atom** | — | — | Manage under **Settings → RSS Feeds**; top 3 headlines on `/feeds`; **visible to guests** |
 
 RSS feeds are not added via the dashboard **Add App** modal — use **Settings → RSS Feeds** (stored as `integration_type=rss` apps).
 
+### AdGuard Home credential (not an API key)
+
+AdGuard Home uses **HTTP Basic authentication**, not a Pi-hole-style API token. In the Add/Edit app form:
+
+1. Set **Integration** to **AdGuard Home**.
+2. Set **URL** to your AdGuard UI base (e.g. `http://192.168.1.10:3000`).
+3. In **Basic auth credential**, paste a **Base64-encoded** `username:password` string (the same credentials you use to log into AdGuard).
+
+Generate the value on Linux/macOS:
+
+```bash
+echo -n 'admin:your-adguard-password' | base64
+```
+
+Paste the output (e.g. `YWRtaW46eW91ci1hZGd1YXJkLXBhc3N3b3Jk`) into the credential field.
+
+On Windows PowerShell:
+
+```powershell
+[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('admin:your-adguard-password'))
+```
+
+The card shows blocked queries today and whether protection is enabled.
+
 Enable **Accept invalid TLS certificates** under **Settings → Privacy & Access** if your homelab services use self-signed HTTPS (applies to Jellyfin, Plex, app integrations, and Home Assistant).
+
+---
+
+## Host telemetry mapping
+
+Under **Settings → Privacy & Access → Host telemetry mapping**, you can override how the AMUD agent reports network and disk stats:
+
+| Setting | Example | Behavior |
+|---------|---------|----------|
+| **External network interfaces** | `eth0,enp3s0` | Count only these interfaces toward external bandwidth |
+| **Internal network interfaces** | `vmbr0,br-0` | Count only these toward internal bandwidth |
+| **Disk mount points** | `/,/mnt/user` | Sum storage usage only from these mounts |
+
+Leave fields **blank** for automatic detection (bridges/Docker → internal; other interfaces → external; all eligible disks → storage bar).
+
+Changes push to the connected agent when you save settings.
 
 ---
 
@@ -139,6 +183,17 @@ Live **RUNNING** / **STOPPED** badges and start/stop controls require:
 3. A working **amud-agent** on the hypervisor host
 
 See [Proxmox VE Installation](./installation/proxmox.md#5-proxmox-api-token-configuration) for token setup.
+
+### Per-app CPU / RAM row
+
+Each app card can show live **CPU** and **RAM** from the host agent when the container name matches. For services that run on **another server** (or cloud), those numbers are misleading.
+
+When adding or editing an app, use **Show CPU / RAM from host agent**:
+
+- **On** (default) — card shows agent metrics when a container match exists
+- **Off** — status badge still updates; CPU/RAM row is hidden
+
+Guests never see per-card CPU/RAM — only **ONLINE** / **OFFLINE** availability.
 
 ---
 

@@ -209,6 +209,75 @@ pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
     )
 }
 
+pub(crate) struct BrandingRenderOptions<'a> {
+    pub branding: &'a BrandingVars,
+    pub custom_css: &'a str,
+    pub default_tagline: &'a str,
+}
+
+/// Shared placeholders for guest-facing pages (login, etc.) that should match dashboard branding.
+pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptions<'_>) -> String {
+    let branding = opts.branding;
+    let root_css = build_root_css(branding);
+    let safe_app_name = escape_html(&branding.app_name);
+    let tagline = branding
+        .tagline
+        .as_deref()
+        .filter(|t| !t.trim().is_empty())
+        .unwrap_or(opts.default_tagline);
+    let safe_tagline = escape_html(tagline);
+    let safe_accent = escape_html(&branding.accent_color);
+    let safe_theme = escape_html(&branding.theme_mode);
+    let safe_app_logo_css = safe_css_url(&branding.app_logo);
+    let favicon_url = if branding.app_logo.is_empty() {
+        "/static/AMUD-logo.png".to_string()
+    } else {
+        escape_html(&branding.app_logo)
+    };
+
+    html = html.replace("/* ROOT_CSS */", &root_css);
+    html = html
+        .replace("{{app_name}}", &safe_app_name)
+        .replace("{{tagline}}", &safe_tagline)
+        .replace("{{accent_color}}", &safe_accent)
+        .replace("{{theme_mode}}", &safe_theme)
+        .replace("{{custom_css}}", opts.custom_css)
+        .replace("{{favicon_url}}", &favicon_url);
+
+    if branding.app_logo.is_empty() {
+        html = html.replace(
+            "{{if app_logo}}style=\"background-image: url('{{app_logo}}');\"{{end}}",
+            "",
+        );
+    } else {
+        html = html
+            .replace("{{if app_logo}}", "")
+            .replace("{{app_logo}}", &safe_app_logo_css)
+            .replace("{{end}}", "");
+    }
+
+    let bg_url = &branding.custom_bg_url;
+    let is_video_bg = bg_url.ends_with(".mp4") || bg_url.ends_with(".webm");
+    let video_bg_element = if is_video_bg {
+        format!(
+            r#"<video class="video-bg" autoplay muted loop playsinline><source src="{}" type="video/{}"></video>"#,
+            escape_html(bg_url),
+            if bg_url.ends_with(".webm") {
+                "webm"
+            } else {
+                "mp4"
+            }
+        )
+    } else {
+        String::new()
+    };
+    html.replace(
+        "{{video_bg_class}}",
+        if is_video_bg { "has-video-bg" } else { "" },
+    )
+    .replace("{{video_bg_element}}", &video_bg_element)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -219,5 +288,34 @@ mod tests {
         let css = build_root_css(&vars);
         assert!(css.contains(DEFAULT_OVERLAY_GRADIENT));
         assert!(!css.contains("overlay_theme"));
+    }
+
+    #[test]
+    fn apply_shared_branding_injects_theme_logo_and_custom_css() {
+        let mut settings = HashMap::new();
+        settings.insert("app_name".to_string(), "My Lab".to_string());
+        settings.insert("accent_color".to_string(), "#ff00aa".to_string());
+        settings.insert("theme_mode".to_string(), "light".to_string());
+        settings.insert(
+            "app_logo".to_string(),
+            "/static/custom-logo.png".to_string(),
+        );
+        settings.insert(
+            "custom_css".to_string(),
+            ".btn-primary { background: hotpink; }".to_string(),
+        );
+        let branding = branding_from_settings(&settings);
+        let html = apply_shared_branding(
+            r#"<html data-theme="{{theme_mode}}"><style>:root { /* ROOT_CSS */ }</style><style id="x">{{custom_css}}</style><div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>"#.to_string(),
+            &BrandingRenderOptions {
+                branding: &branding,
+                custom_css: ".btn-primary { background: hotpink; }",
+                default_tagline: "Sign in",
+            },
+        );
+        assert!(html.contains(r#"data-theme="light""#));
+        assert!(html.contains(".btn-primary { background: hotpink; }"));
+        assert!(html.contains("url('/static/custom-logo.png')"));
+        assert!(html.contains("--accent-color: #ff00aa"));
     }
 }

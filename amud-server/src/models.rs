@@ -30,6 +30,12 @@ pub struct App {
     pub(crate) sort_order: i64,
     #[serde(default)]
     pub(crate) card_span: String,
+    #[serde(default = "default_show_container_metrics")]
+    pub(crate) show_container_metrics: bool,
+}
+
+fn default_show_container_metrics() -> bool {
+    true
 }
 
 #[derive(Clone, Serialize, Deserialize)]

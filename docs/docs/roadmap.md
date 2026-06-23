@@ -18,6 +18,10 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 - **Webhook LAN toggle** + audit expansion + backup validate (v1.5.3.0)
 - **RSS / Atom feeds** — top 3 headlines on app cards; guest-readable (v1.5.2.0)
 - **Overseerr & Jellyseerr** — pending media request counts (v1.5.2.1)
+- **Prowlarr, Uptime Kuma, Cloudflare Tunnel, Peanut** — app card integrations (v1.5.5.0)
+- **Per-app CPU/RAM toggle** + guest ONLINE/OFFLINE + login branding (v1.5.5.0)
+- **Host telemetry mapping** — network interfaces and disk mounts in Settings (v1.5.5.0)
+- **Unraid permissions docs** + AdGuard credential clarity (v1.5.5.0)
 - **18 bundled offline themes** + theme gallery (v1.5.1.0)
 - **Drag-and-drop layout**, bento spans, light mode, video wallpapers (v1.5.0.0)
 - **Audit log** with settings tab and startup schema checks (v1.4.0.0+)
@@ -36,7 +40,6 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ## Next
 
-- **Guest vs Admin UX** — continue tightening what guests see on integration cards.
 - **Backup/restore UX** — export scheduling reminders (basic validate/counts shipped in v1.5.3.0).
 
 ---
@@ -61,6 +64,6 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ## Request a feature
 
-Open a [GitHub Discussion](https://github.com/boubli/AMUD-Dashboard/discussions) or an [Issue](https://github.com/boubli/AMUD-Dashboard/issues) with the `enhancement` label. If it fits the homelab/self-hosted scope, it lands here.
+Open a [GitHub Issue](https://github.com/boubli/AMUD-Dashboard/issues) with the `enhancement` label for **bugs and feature requests** (preferred — tracked per release). Use [Discussions](https://github.com/boubli/AMUD-Dashboard/discussions) for questions and screenshots. If it fits the homelab/self-hosted scope, it lands here.
 
 **Shipped something?** It's in the [Changelog](./changelog).

@@ -229,14 +229,45 @@ async fn run_uds_listener(path: &str, state: Arc<AppState>) {
     }
 }
 
-pub(crate) fn pve_config_payload(token: &str) -> serde_json::Value {
-    let configured = !token.trim().is_empty();
+pub(crate) fn agent_config_payload(
+    settings: &std::collections::HashMap<String, String>,
+    pve_token_override: Option<&str>,
+) -> serde_json::Value {
+    let token = pve_token_override
+        .map(str::trim)
+        .filter(|t| !t.is_empty())
+        .or_else(|| settings.get("pve_api_token").map(String::as_str))
+        .unwrap_or("");
+    let configured = !token.is_empty();
     serde_json::json!({
         "config": {
             "pve_api_token_configured": configured,
-            "pve_api_token": token
+            "pve_api_token": token,
+            "telemetry_external_ifaces": settings.get("telemetry_external_ifaces").cloned().unwrap_or_default(),
+            "telemetry_internal_ifaces": settings.get("telemetry_internal_ifaces").cloned().unwrap_or_default(),
+            "telemetry_disk_mounts": settings.get("telemetry_disk_mounts").cloned().unwrap_or_default(),
         }
     })
+}
+
+#[allow(dead_code)]
+pub(crate) fn pve_config_payload(token: &str) -> serde_json::Value {
+    let mut settings = std::collections::HashMap::new();
+    settings.insert("pve_api_token".to_string(), token.to_string());
+    agent_config_payload(&settings, Some(token))
+}
+
+pub(crate) fn push_agent_config(state: &Arc<AppState>, pve_token_override: Option<&str>) {
+    let cache = state.settings_cache.read().unwrap();
+    let payload = agent_config_payload(&cache, pve_token_override);
+    if let Ok(mut serialized) = serde_json::to_vec(&payload) {
+        serialized.push(b'\n');
+        if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {
+            let _ = tx
+                .tx
+                .send(String::from_utf8_lossy(&serialized).into_owned());
+        }
+    }
 }
 
 pub(crate) fn process_agent_line(
@@ -251,18 +282,15 @@ pub(crate) fn process_agent_line(
 
     if let Ok(req) = serde_json::from_str::<amud_protocol::ConfigRequest>(line) {
         if req.request == "get_config" {
-            let token = if req.pve_token_configured.unwrap_or(false) {
-                String::new()
-            } else {
-                state
-                    .settings_cache
-                    .read()
-                    .unwrap()
-                    .get("pve_api_token")
-                    .cloned()
-                    .unwrap_or_default()
-            };
-            let config_payload = pve_config_payload(&token);
+            let cache = state.settings_cache.read().unwrap();
+            let env_configured = req.pve_token_configured.unwrap_or(false);
+            let token_override = if env_configured { Some("") } else { None };
+            let mut config_payload = agent_config_payload(&cache, token_override);
+            if env_configured {
+                if let Some(config) = config_payload.get_mut("config") {
+                    config["pve_api_token_configured"] = serde_json::json!(true);
+                }
+            }
             if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
                 serialized.push(b'\n');
                 let _ = tx.send(String::from_utf8_lossy(&serialized).into_owned());

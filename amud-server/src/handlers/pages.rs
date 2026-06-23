@@ -249,6 +249,33 @@ pub async fn settings_page_handler(
         .replace(
             "{{last_backup_export_at}}",
             &escape_html(&last_backup_export_at),
+        )
+        .replace(
+            "{{telemetry_external_ifaces}}",
+            &escape_html(
+                settings
+                    .get("telemetry_external_ifaces")
+                    .map(String::as_str)
+                    .unwrap_or(""),
+            ),
+        )
+        .replace(
+            "{{telemetry_internal_ifaces}}",
+            &escape_html(
+                settings
+                    .get("telemetry_internal_ifaces")
+                    .map(String::as_str)
+                    .unwrap_or(""),
+            ),
+        )
+        .replace(
+            "{{telemetry_disk_mounts}}",
+            &escape_html(
+                settings
+                    .get("telemetry_disk_mounts")
+                    .map(String::as_str)
+                    .unwrap_or(""),
+            ),
         );
 
     Html(apply_csp_nonce(result, &csp.0))

@@ -11,6 +11,22 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.5.5.0 — Integrations, telemetry mapping, Unraid polish
+
+**2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.0) · [Compare v1.5.4.3…v1.5.5.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.4.3...v1.5.5.0)
+
+**Added**
+- **Prowlarr, Uptime Kuma, Cloudflare Tunnel, Peanut (UPS)** app card integrations
+- **Per-app CPU/RAM toggle**; **host telemetry mapping** (network interfaces + disk mounts)
+- Guest **ONLINE/OFFLINE** status; login page branding
+
+**Improved**
+- **AdGuard Home** credential UX and stats parsing; Unraid permission/password docs
+
+**Upgrade:** `curl -sSL …/update-amud.sh | bash` — verify **Settings → System** shows `v1.5.5.0`.
+
+---
+
 ## v1.5.4.2 — Fix live telemetry after feeds refactor
 
 **2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.2) · [Compare v1.5.4.1…v1.5.4.2](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.4.1...v1.5.4.2)

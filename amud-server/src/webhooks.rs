@@ -558,6 +558,7 @@ mod tests {
             api_key: String::new(),
             sort_order: 0,
             card_span: "1x1".to_string(),
+            show_container_metrics: true,
         }
     }
 
