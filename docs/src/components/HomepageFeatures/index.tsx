@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import clsx from 'clsx';
+import Link from '@docusaurus/Link';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
 
@@ -16,17 +17,17 @@ const FeatureList: FeatureItem[] = [
     icon: '⚙️',
     description: (
       <>
-        No more spending hours manually writing text files. AMUD provides a modern, responsive, built-in User Interface to configure all of your apps and settings instantly.
+        Every app, category, theme, and integration is stored in SQLite and edited through the built-in UI. No YAML files, no restarts for layout changes.
       </>
     ),
     className: 'bento-large',
   },
   {
-    title: 'Native LXC Telemetry',
+    title: 'Native Proxmox & Docker Telemetry',
     icon: '📊',
     description: (
       <>
-        AMUD natively polls your Proxmox VE host via the <code>pvesh</code> API to stream real-time CPU, RAM, and Status updates directly to your custom application cards.
+        <code>amud-agent</code> streams host CPU, RAM, GPU, disk, and bandwidth over WebSockets. LXC and Docker containers get live status badges and start/stop controls — native HTTPS, zero shell scripts.
       </>
     ),
     className: 'bento-tall',
@@ -36,37 +37,67 @@ const FeatureList: FeatureItem[] = [
     icon: '🪶',
     description: (
       <>
-        Built in pure, compiled Rust. AMUD executes native machine code with zero interpreter overhead, running the entire dashboard and telemetry layer in just 35-100MB of RAM.
+        Pure compiled Rust. Server and agent combined idle at 35–100MB RAM with sub-millisecond route execution — no PHP-FPM or Node.js runtime.
       </>
     ),
     className: 'bento-standard',
   },
   {
-    title: 'Smart Home Integration',
+    title: 'Live Media & Smart Home',
     icon: '🏠',
     description: (
       <>
-        Connect AMUD to your Home Assistant instance to pull live telemetry. View your active lights, switches, and average home temperature directly on your dashboard.
+        Jellyfin, Plex, and Home Assistant integrations show now-playing streams, lights, switches, and temperature right on your dashboard cards.
       </>
     ),
     className: 'bento-standard',
   },
   {
-    title: 'Built-in Wake-on-LAN',
+    title: 'Homelab Integrations',
+    icon: '🔌',
+    description: (
+      <>
+        Pi-hole, AdGuard, Radarr, Sonarr, Overseerr, Jellyseerr, and RSS feeds — each app card can show live stats. RSS headlines are guest-friendly.
+      </>
+    ),
+    className: 'bento-standard',
+  },
+  {
+    title: 'Wake-on-LAN & Webhooks',
     icon: '⚡',
     description: (
       <>
-        Easily wake up your offline servers or VMs via UDP Magic Packets directly from the dashboard UI with a single click. No external tools needed.
+        Wake offline machines with one click. Webhooks fire on container start/stop and agent connect/disconnect — Discord, Telegram, or generic JSON.
       </>
     ),
     className: 'bento-wide',
   },
   {
-    title: 'Database Backups & Custom CSS',
+    title: '18 Themes, Drag-and-Drop, Light Mode',
     icon: '🎨',
     description: (
       <>
-        Export your entire SQLite database config and restore it anywhere. Inject custom CSS directly from the UI to theme the dashboard exactly how you like it.
+        Bundled offline themes, custom CSS injection, bento card spans, admin drag-and-drop reorder, video wallpapers, and a full light-mode palette.
+      </>
+    ),
+    className: 'bento-standard',
+  },
+  {
+    title: 'Security Built In',
+    icon: '🔒',
+    description: (
+      <>
+        Admin and Guest roles, Argon2id passwords, encrypted API keys at rest, audit log, CSRF protection, rate limits, and SSRF-safe outbound requests.
+      </>
+    ),
+    className: 'bento-standard',
+  },
+  {
+    title: 'Backup, Updates & Audit',
+    icon: '💾',
+    description: (
+      <>
+        Export and restore your SQLite database from Settings. Native installs get in-app updates from GitHub Releases. Every admin action is audit-logged.
       </>
     ),
     className: 'bento-standard',
@@ -97,6 +128,11 @@ export default function HomepageFeatures(): ReactNode {
           {FeatureList.map((props) => (
             <Feature key={props.title} {...props} />
           ))}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+          <Link className="button button--primary button--lg" to="/docs/features">
+            Full feature list →
+          </Link>
         </div>
       </div>
     </section>

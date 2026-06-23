@@ -32,8 +32,13 @@ AMUD uses a decoupled client-server architecture to aggregate metrics and report
 ### 4. Admin vs. Guest Profiles
 * **Cryptographic Roles**: built-in user roles. Admins see the full cluster control array; guests or family profiles get a clean, read-only dashboard layout out of the box.
 
+## What AMUD includes
+
+See the full **[Features](./features.md)** page for every shipped capability — Proxmox/Docker telemetry, Jellyfin/Plex streams, Pi-hole and *arr integrations, RSS feeds, webhooks, Wake-on-LAN, 18 themes, audit log, and more.
+
 ## Next Steps
 
+- [Features](./features.md) — complete feature inventory (v1.5.2.1)
 - [FAQ](./faq.md) — common questions (install, RAM, YAML, comparisons)
 - [Blog](/blog) — guides and homelab notes (canonical source for cross-posts)
 - [Dashboard Configuration](./configuration.md) — appearance, custom CSS, smart home, and media integrations

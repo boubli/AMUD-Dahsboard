@@ -210,7 +210,7 @@ pub async fn upload_handler(
         .as_ref()
         .filter(|s| s.role == "Admin")
         .map(|s| s.username.clone());
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
         return Response::builder()
             .status(StatusCode::FORBIDDEN)
             .body(Body::from("Forbidden"))
@@ -620,7 +620,7 @@ pub async fn wake_app_handler(
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
         return Response::builder()
             .status(StatusCode::UNAUTHORIZED)
             .header("Content-Type", "application/json")
@@ -633,11 +633,16 @@ pub async fn wake_app_handler(
 
     if let Some(id_str) = form.get("id") {
         if let Ok(id) = id_str.parse::<i64>() {
-            let mac_str = with_db(state.db.clone(), move |db| {
-                fetch_wol_device_mac_address(db, id)
+            let admin_user = session
+                .as_ref()
+                .map(|s| s.username.clone())
+                .unwrap_or_default();
+            let headers = headers.clone();
+            let device = with_db(state.db.clone(), move |db| {
+                fetch_wol_device_for_wake(db, id)
             })
             .await;
-            if let Some(mac_str) = mac_str {
+            if let Some((device_name, mac_str)) = device {
                 if let Some(mac_bytes) = parse_mac(&mac_str) {
                     let mut magic_packet = vec![0xFF; 6];
                     for _ in 0..16 {
@@ -645,12 +650,26 @@ pub async fn wake_app_handler(
                     }
                     if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
                         let _ = socket.set_broadcast(true);
-                        let _ = socket.send_to(&magic_packet, "255.255.255.255:9");
-                        return Response::builder()
-                            .status(StatusCode::OK)
-                            .header("Content-Type", "application/json")
-                            .body(Body::from(r#"{"success":true}"#))
-                            .unwrap();
+                        if socket.send_to(&magic_packet, "255.255.255.255:9").is_ok() {
+                            let audit_name = device_name.clone();
+                            let audit_mac = mac_str.clone();
+                            with_db(state.db.clone(), move |db| {
+                                record_audit_blocking(
+                                    db,
+                                    &headers,
+                                    &admin_user,
+                                    "wol_wake",
+                                    &audit_name,
+                                    &audit_mac,
+                                );
+                            })
+                            .await;
+                            return Response::builder()
+                                .status(StatusCode::OK)
+                                .header("Content-Type", "application/json")
+                                .body(Body::from(r#"{"success":true}"#))
+                                .unwrap();
+                        }
                     }
                 }
             }
@@ -792,13 +811,33 @@ pub async fn reorder_apps_handler(
         return csrf_forbidden_response().into_response();
     }
 
+    let reorder_count = payload.ids.len();
     let result = with_db(state.db.clone(), move |db| {
         update_app_order(db, &payload.ids)
     })
     .await;
 
     match result {
-        Ok(()) => api_json(StatusCode::OK, serde_json::json!({"success": true})).into_response(),
+        Ok(()) => {
+            let admin_user = session
+                .as_ref()
+                .map(|s| s.username.clone())
+                .unwrap_or_default();
+            let headers = headers.clone();
+            let details = format!("{reorder_count} apps");
+            with_db(state.db.clone(), move |db| {
+                record_audit_blocking(
+                    db,
+                    &headers,
+                    &admin_user,
+                    "app_reorder",
+                    "dashboard",
+                    &details,
+                );
+            })
+            .await;
+            api_json(StatusCode::OK, serde_json::json!({"success": true})).into_response()
+        }
         Err(error) => api_json(
             StatusCode::BAD_REQUEST,
             serde_json::json!({"success": false, "error": error}),
@@ -828,4 +867,257 @@ fn encrypt_integration_api_key(integration_type: &str, api_key: &str) -> String 
         api_key.to_string()
     };
     crate::secrets::encrypt_value(&value_to_store).unwrap_or(value_to_store)
+}
+
+// ── RSS Feed API (Settings management) ──────────────────────────────────────
+
+/// GET /api/rss-feeds — returns JSON array of RSS feed entries for the admin panel.
+pub async fn list_rss_feeds_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> Response {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return api_json(
+            StatusCode::FORBIDDEN,
+            serde_json::json!({"error": "Forbidden"}),
+        );
+    }
+
+    let feeds = with_db(state.db.clone(), |db| {
+        let mut stmt = db
+            .prepare("SELECT id, name, url, icon, api_key FROM apps WHERE integration_type = 'rss' ORDER BY sort_order ASC, name ASC")
+            .unwrap();
+        let rows = stmt
+            .query_map([], |row| {
+                let id: i64 = row.get(0)?;
+                let name: String = row.get(1)?;
+                let url: String = row.get(2)?;
+                let icon: String = row.get(3)?;
+                let raw_key: String = row.get(4)?;
+                let feed_url = crate::secrets::decrypt_value(&raw_key).unwrap_or(raw_key);
+                Ok(serde_json::json!({
+                    "id": id,
+                    "name": name,
+                    "url": url,
+                    "icon": icon,
+                    "feed_url": feed_url,
+                }))
+            })
+            .unwrap();
+        rows.filter_map(|r| r.ok()).collect::<Vec<_>>()
+    })
+    .await;
+
+    api_json(StatusCode::OK, serde_json::json!(feeds))
+}
+
+/// POST /api/rss-feeds/add — AJAX handler for adding an RSS feed from settings.
+pub async fn add_rss_feed_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> Response {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return api_json(
+            StatusCode::FORBIDDEN,
+            serde_json::json!({"error": "Forbidden"}),
+        );
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return api_json(
+            StatusCode::FORBIDDEN,
+            serde_json::json!({"error": "Invalid CSRF token"}),
+        );
+    }
+
+    let name = form.get("name").cloned().unwrap_or_default();
+    let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
+    let icon = form
+        .get("icon")
+        .cloned()
+        .unwrap_or_else(|| "rss".to_string());
+    let feed_url = form.get("feed_url").cloned().unwrap_or_default();
+
+    if name.is_empty() || feed_url.is_empty() {
+        return api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"error": "Name and Feed URL are required"}),
+        );
+    }
+
+    if !rss_feed_api_key_valid("rss", &feed_url) {
+        return api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"error": "RSS feed URL must start with http:// or https://"}),
+        );
+    }
+
+    let encrypted = encrypt_integration_api_key("rss", &feed_url);
+    let admin_user = session
+        .as_ref()
+        .map(|s| s.username.clone())
+        .unwrap_or_default();
+    let headers_c = headers.clone();
+    let name_c = name.clone();
+    let url_c = url.clone();
+    with_db(state.db.clone(), move |db| {
+        let sort_order = crate::db::next_app_sort_order(db);
+        if db
+            .execute(
+                "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span) VALUES (?, ?, ?, '', 'General', 'Local', '', 'rss', ?, ?, '1x1')",
+                params![name_c, url_c, icon, encrypted, sort_order],
+            )
+            .is_ok()
+        {
+            record_audit_blocking(db, &headers_c, &admin_user, "rss_feed_create", &name_c, &url_c);
+        }
+    })
+    .await;
+
+    api_json(
+        StatusCode::OK,
+        serde_json::json!({"success": true, "name": name}),
+    )
+}
+
+/// POST /api/rss-feeds/edit — AJAX handler for editing an RSS feed.
+pub async fn edit_rss_feed_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> Response {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return api_json(
+            StatusCode::FORBIDDEN,
+            serde_json::json!({"error": "Forbidden"}),
+        );
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return api_json(
+            StatusCode::FORBIDDEN,
+            serde_json::json!({"error": "Invalid CSRF token"}),
+        );
+    }
+
+    let id: i64 = match form.get("id").and_then(|s| s.parse().ok()) {
+        Some(v) => v,
+        None => {
+            return api_json(
+                StatusCode::BAD_REQUEST,
+                serde_json::json!({"error": "Missing feed id"}),
+            )
+        }
+    };
+
+    let name = form.get("name").cloned().unwrap_or_default();
+    let url = normalize_url(&form.get("url").cloned().unwrap_or_default());
+    let icon = form
+        .get("icon")
+        .cloned()
+        .unwrap_or_else(|| "rss".to_string());
+    let feed_url = form.get("feed_url").cloned().unwrap_or_default();
+
+    if name.is_empty() || feed_url.is_empty() {
+        return api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"error": "Name and Feed URL are required"}),
+        );
+    }
+
+    if !rss_feed_api_key_valid("rss", &feed_url) {
+        return api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"error": "RSS feed URL must start with http:// or https://"}),
+        );
+    }
+
+    let encrypted = encrypt_integration_api_key("rss", &feed_url);
+    let admin_user = session
+        .as_ref()
+        .map(|s| s.username.clone())
+        .unwrap_or_default();
+    let headers_c = headers.clone();
+    let name_c = name.clone();
+    with_db(state.db.clone(), move |db| {
+        if db
+            .execute(
+                "UPDATE apps SET name = ?, url = ?, icon = ?, api_key = ? WHERE id = ? AND integration_type = 'rss'",
+                params![name_c, url, icon, encrypted, id],
+            )
+            .is_ok()
+        {
+            record_audit_blocking(db, &headers_c, &admin_user, "rss_feed_edit", &name_c, "updated");
+        }
+    })
+    .await;
+
+    api_json(StatusCode::OK, serde_json::json!({"success": true}))
+}
+
+/// POST /api/rss-feeds/delete — AJAX handler for deleting an RSS feed.
+pub async fn delete_rss_feed_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> Response {
+    let session = get_session(&headers, &state.sessions);
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
+        return api_json(
+            StatusCode::FORBIDDEN,
+            serde_json::json!({"error": "Forbidden"}),
+        );
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return api_json(
+            StatusCode::FORBIDDEN,
+            serde_json::json!({"error": "Invalid CSRF token"}),
+        );
+    }
+
+    let id: i64 = match form.get("id").and_then(|s| s.parse().ok()) {
+        Some(v) => v,
+        None => {
+            return api_json(
+                StatusCode::BAD_REQUEST,
+                serde_json::json!({"error": "Missing feed id"}),
+            )
+        }
+    };
+
+    let admin_user = session
+        .as_ref()
+        .map(|s| s.username.clone())
+        .unwrap_or_default();
+    let headers_c = headers.clone();
+    with_db(state.db.clone(), move |db| {
+        let feed_name: String = db
+            .query_row(
+                "SELECT name FROM apps WHERE id = ? AND integration_type = 'rss'",
+                params![id],
+                |row| row.get(0),
+            )
+            .unwrap_or_else(|_| format!("id:{id}"));
+        if db
+            .execute(
+                "DELETE FROM apps WHERE id = ? AND integration_type = 'rss'",
+                params![id],
+            )
+            .is_ok()
+        {
+            record_audit_blocking(
+                db,
+                &headers_c,
+                &admin_user,
+                "rss_feed_delete",
+                &feed_name,
+                "removed",
+            );
+        }
+    })
+    .await;
+
+    api_json(StatusCode::OK, serde_json::json!({"success": true}))
 }

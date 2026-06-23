@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>{{app_name}}</title>
+    <title>{{app_name}} {{page_title_suffix}}</title>
     <link rel="icon" href="/static/AMUD-logo.png" type="image/png">
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="{{accent_color}}">
@@ -39,7 +39,7 @@
         <header class="topbar">
             <div class="brand-section">
                 <div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
-                <h1 class="brand-title">{{app_name}} DASHBOARD</h1>
+                <h1 class="brand-title">{{app_name}} {{page_title_suffix}}</h1>
             </div>
             
             <div style="display: flex; align-items: center; gap: 1rem;">
@@ -54,6 +54,7 @@
                 </div>
                 
                 <!-- Admin Operations -->
+                <!-- FEEDS_NAV -->
                 <!-- AUTH_BUTTONS -->
             </div>
         </header>
@@ -269,16 +270,14 @@
                     <option value="sonarr">Sonarr</option>
                     <option value="overseerr">Overseerr</option>
                     <option value="jellyseerr">Jellyseerr</option>
-                    <option value="rss">RSS Feed</option>
+                    <option value="rss">RSS / Atom Feed</option>
                 </select>
-                <p class="form-help">Enables active API widgets on the dashboard card.</p>
+                <p class="form-help">Enables active API widgets on the dashboard card. RSS feeds appear on the <a href="/feeds" style="color:var(--accent-color);">Feeds</a> page.</p>
             </div>
 
             <div class="form-group" x-show="newApp.integration_type !== ''">
                 <label for="add-app-api-key" x-text="newApp.integration_type === 'rss' ? 'RSS Feed URL' : 'Integration API Key / Token'">Integration API Key / Token</label>
                 <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key" :placeholder="newApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
-                <p class="form-help" x-show="newApp.integration_type === 'rss'">Paste the full URL of the RSS or Atom feed (public or LAN). Loopback and metadata URLs are blocked. The top 3 headlines will appear on the card.</p>
-                <p class="form-help duplicate-warning" data-rss-url-warning style="display:none; color: var(--accent-color);">RSS feed URL must start with http:// or https://</p>
             </div>
 
             <div class="form-group">
@@ -368,16 +367,14 @@
                     <option value="sonarr">Sonarr</option>
                     <option value="overseerr">Overseerr</option>
                     <option value="jellyseerr">Jellyseerr</option>
-                    <option value="rss">RSS Feed</option>
+                    <option value="rss">RSS / Atom Feed</option>
                 </select>
-                <p class="form-help">Enables active API widgets on the dashboard card.</p>
+                <p class="form-help">Enables active API widgets on the dashboard card. RSS feeds appear on the <a href="/feeds" style="color:var(--accent-color);">Feeds</a> page.</p>
             </div>
 
             <div class="form-group" x-show="editApp.integration_type !== ''">
                 <label for="edit-app-api-key" x-text="editApp.integration_type === 'rss' ? 'RSS Feed URL' : 'Integration API Key / Token'">Integration API Key / Token</label>
                 <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key" :placeholder="editApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
-                <p class="form-help" x-show="editApp.integration_type === 'rss'">Paste the full URL of the RSS or Atom feed (public or LAN). Loopback and metadata URLs are blocked. The top 3 headlines will appear on the card.</p>
-                <p class="form-help duplicate-warning" data-rss-url-warning style="display:none; color: var(--accent-color);">RSS feed URL must start with http:// or https://</p>
             </div>
 
             <div class="form-group">

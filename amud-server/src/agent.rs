@@ -54,6 +54,13 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
                     .map(|s| s == "1")
                     .unwrap_or(false)
             };
+            let allow_private = {
+                let cache = state.settings_cache.read().unwrap();
+                cache
+                    .get("webhooks_allow_private_ips")
+                    .map(|s| s == "1")
+                    .unwrap_or(false)
+            };
             let event_filter = event.clone();
             let webhooks = with_db(state.db.clone(), move |db| {
                 load_active_webhooks_for_event(db, &event_filter)
@@ -74,6 +81,7 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
                         &status_str,
                         "System",
                         accept_invalid,
+                        allow_private,
                     )
                     .await;
                 });

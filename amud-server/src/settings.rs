@@ -37,6 +37,9 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "weather_latitude",
     "weather_longitude",
     "accept_invalid_certs",
+    "webhooks_allow_private_ips",
+    "enable_proxmox",
+    "last_backup_export_at",
 ];
 
 pub(crate) fn allowed_setting_keys() -> std::collections::HashSet<String> {

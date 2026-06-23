@@ -1,12 +1,35 @@
 use super::imports::*;
 use crate::models::App;
 
+#[derive(Clone, Copy)]
+enum PageMode {
+    Dashboard,
+    Feeds,
+}
+
 pub async fn dashboard_handler(
     Extension(csp): Extension<CspNonce>,
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
-    let session = get_session(&headers, &state.sessions);
+    render_page(PageMode::Dashboard, &csp.0, &headers, &state).await
+}
+
+pub async fn feeds_page_handler(
+    Extension(csp): Extension<CspNonce>,
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    render_page(PageMode::Feeds, &csp.0, &headers, &state).await
+}
+
+async fn render_page(
+    mode: PageMode,
+    nonce: &str,
+    headers: &HeaderMap,
+    state: &Arc<AppState>,
+) -> Html<String> {
+    let session = get_session(headers, &state.sessions);
 
     let settings = state.settings_cache.read().unwrap().clone();
 
@@ -30,24 +53,39 @@ pub async fn dashboard_handler(
         .get("telemetry_public")
         .map(|s| s.as_str())
         .unwrap_or("0");
-    let hide_telemetry = match &session {
-        None => telemetry_public != "1",
-        Some(s) if s.role == "Guest" => telemetry_public != "1",
-        _ => false,
+    let hide_telemetry = match mode {
+        PageMode::Feeds => true,
+        PageMode::Dashboard => match &session {
+            None => telemetry_public != "1",
+            Some(s) if s.role == "Guest" => telemetry_public != "1",
+            _ => false,
+        },
     };
     let logo_manifest = state.logo_manifest.clone();
     let custom_css = settings.get("custom_css").map(|s| s.as_str()).unwrap_or("");
-    let csrf_token = csrf_token_for_session(&headers, &state.sessions);
+    let csrf_token = csrf_token_for_session(headers, &state.sessions);
     let csrf_attr = escape_html(&csrf_token);
 
-    let (db_categories, apps, wol_devices) = with_db(state.db.clone(), |db| {
-        (
-            load_categories(db),
-            load_apps_from_db(db),
-            load_wol_devices_from_db(db),
-        )
+    let (db_categories, all_apps, wol_devices) = with_db(state.db.clone(), move |db| {
+        let wol = match mode {
+            PageMode::Dashboard => load_wol_devices_from_db(db),
+            PageMode::Feeds => vec![],
+        };
+        (load_categories(db), load_apps_from_db(db), wol)
     })
     .await;
+
+    // Filter apps based on page mode: dashboard hides RSS, feeds shows only RSS
+    let apps: Vec<App> = match mode {
+        PageMode::Dashboard => all_apps
+            .into_iter()
+            .filter(|a| a.integration_type != "rss")
+            .collect(),
+        PageMode::Feeds => all_apps
+            .into_iter()
+            .filter(|a| a.integration_type == "rss")
+            .collect(),
+    };
 
     let mut category_options_html = String::new();
     for (_id, cat_name) in &db_categories {
@@ -76,20 +114,27 @@ pub async fn dashboard_handler(
         &session,
         grid_columns_n,
         &logo_manifest,
+        mode,
     );
 
     let wol_html = render_wol_devices(&wol_devices, is_admin, &csrf_attr);
 
     let auth_buttons = render_auth_buttons(&session, &csrf_attr);
-    let streams_html = render_streams(
-        &apps,
-        &session,
-        is_admin,
-        &csrf_attr,
-        logo_manifest.as_ref(),
-    );
+    let streams_html = match mode {
+        PageMode::Dashboard => render_streams(
+            &apps,
+            &session,
+            is_admin,
+            &csrf_attr,
+            logo_manifest.as_ref(),
+        ),
+        PageMode::Feeds => String::new(),
+    };
     let category_tabs_html = render_category_tabs(&apps);
-    let support_html = render_support_section(&settings);
+    let support_html = match mode {
+        PageMode::Dashboard => render_support_section(&settings),
+        PageMode::Feeds => String::new(),
+    };
 
     let root_css = build_root_css(&branding);
 
@@ -98,8 +143,11 @@ pub async fn dashboard_handler(
         .as_ref()
         .map(|s| s.username.as_str())
         .unwrap_or("guest");
-    let proxmox_enabled =
-        std::env::var("AMUD_ENABLE_PROXMOX").unwrap_or_else(|_| "false".to_string()) == "true";
+    let proxmox_enabled = settings
+        .get("enable_proxmox")
+        .map(|s| s.as_str())
+        .unwrap_or("0")
+        == "1";
 
     let app_version = option_env!("GIT_TAG").unwrap_or(env!("CARGO_PKG_VERSION"));
     let app_version_formatted = if app_version.starts_with('v') {
@@ -162,10 +210,22 @@ pub async fn dashboard_handler(
     let safe_csrf_meta = escape_html(&csrf_token);
     let safe_app_version = escape_html(&app_version_formatted);
 
+    // Page mode variables
+    let page_title_suffix = match mode {
+        PageMode::Dashboard => "DASHBOARD",
+        PageMode::Feeds => "FEEDS",
+    };
+    let feeds_nav = match mode {
+        PageMode::Dashboard => r#"<a href="/feeds" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;"><i data-lucide="rss" style="width:0.95rem; height:0.95rem;"></i> Feeds</a>"#.to_string(),
+        PageMode::Feeds => r#"<a href="/" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;"><i data-lucide="arrow-left" style="width:0.95rem; height:0.95rem;"></i> Dashboard</a>"#.to_string(),
+    };
+
     let mut result = index_tmpl
         .replace("/* ROOT_CSS */", &root_css)
         .replace("{{app_name}}", &safe_app_name)
         .replace("{{tagline}}", &safe_tagline)
+        .replace("{{page_title_suffix}}", page_title_suffix)
+        .replace("<!-- FEEDS_NAV -->", &feeds_nav)
         .replace(
             "{{proxmox_enabled}}",
             if proxmox_enabled { "true" } else { "false" },
@@ -250,7 +310,7 @@ pub async fn dashboard_handler(
         )
         .replace("{{video_bg_element}}", &video_bg_element);
 
-    Html(apply_csp_nonce(result, &csp.0))
+    Html(apply_csp_nonce(result, nonce))
 }
 
 fn render_apps_grid(
@@ -261,13 +321,23 @@ fn render_apps_grid(
     session: &Option<Session>,
     _grid_columns_n: usize,
     logo_manifest: &HashMap<String, String>,
+    mode: PageMode,
 ) -> String {
     if apps.is_empty() {
-        return r#"
+        return match mode {
+            PageMode::Feeds => r#"
+        <div class="glass-panel app-card app-card--empty">
+            <p style="font-weight: 600; color: var(--text-secondary);">No RSS feeds configured yet</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Admins can add feeds under Settings → RSS Feeds or from the Add App modal (RSS integration).</p>
+        </div>"#
+                .to_string(),
+            PageMode::Dashboard => r#"
         <div class="glass-panel app-card app-card--empty">
             <p style="font-weight: 600; color: var(--text-secondary);">No services configured yet</p>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Log in as Admin and click "Add App" to register your infrastructure.</p>
-        </div>"#.to_string();
+        </div>"#
+                .to_string(),
+        };
     }
 
     let mut cards_html = String::new();

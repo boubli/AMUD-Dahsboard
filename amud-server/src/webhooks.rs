@@ -106,8 +106,9 @@ pub(crate) async fn send_webhook_notification(
     status: &str,
     provider: &str,
     accept_invalid_certs: bool,
+    allow_private_ips: bool,
 ) -> bool {
-    if !url_allowed_for_webhook(&url) {
+    if !url_allowed_for_webhook(&url, allow_private_ips) {
         eprintln!("Webhook '{}' blocked: URL failed SSRF policy check", name);
         return false;
     }
@@ -357,6 +358,13 @@ pub(crate) fn check_container_alerts(
                 .map(|s| s == "1")
                 .unwrap_or(false)
         };
+        let allow_private = {
+            let cache = state.settings_cache.read().unwrap();
+            cache
+                .get("webhooks_allow_private_ips")
+                .map(|s| s == "1")
+                .unwrap_or(false)
+        };
         let webhooks = crate::db::with_db(state.db.clone(), crate::db::load_active_webhooks).await;
         for (event_type, container_name, vmid, status_str, provider_str, _) in alert_jobs {
             for wh in &webhooks {
@@ -380,6 +388,7 @@ pub(crate) fn check_container_alerts(
                         &status_str,
                         &provider_str,
                         accept_invalid,
+                        allow_private,
                     )
                     .await;
                 });

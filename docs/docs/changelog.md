@@ -11,6 +11,31 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.5.3.0 — RSS management, audit expansion, homelab polish
+
+**2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.3.0) · [Compare v1.5.2.1…v1.5.3.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.2.1...v1.5.3.0)
+
+**RSS**
+- **Settings tab** — full CRUD for RSS/Atom feeds
+- **`/feeds` page** — RSS-only dashboard view; nav link visible to guests
+- **Add App modal** — RSS integration option with feed URL field
+
+**Security & audit**
+- **Webhook LAN toggle** — optional private-IP delivery for ntfy/Gotify on homelab LAN
+- **Audit expansion** — wake, reorder, and category actions logged
+- **Audit filter** — search and action dropdown in Settings
+
+**Backup**
+- **Validate before restore** — preview counts; confirm dialog before overwrite
+- **Last export timestamp** on Backup tab
+
+**Fixes**
+- Home Assistant polling respects self-signed TLS setting
+
+**Upgrade:** `curl -sSL …/update-amud.sh | bash` — verify **Settings → System** shows `v1.5.3.0`.
+
+---
+
 ## v1.5.2.1 — Overseerr integration and Docker optimizations
 
 **2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.2.1) · [Compare v1.5.2.0…v1.5.2.1](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.2.0...v1.5.2.1)

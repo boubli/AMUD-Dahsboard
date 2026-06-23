@@ -197,7 +197,14 @@ pub async fn system_version_handler(
 
     let update_available = semver_newer(&current_version, &latest);
 
-    let deployment_type = if std::env::var("AMUD_ENABLE_PROXMOX").unwrap_or_default() == "true" {
+    let proxmox_enabled = state
+        .settings_cache
+        .read()
+        .unwrap()
+        .get("enable_proxmox")
+        .map(|s| s.as_str() == "1")
+        .unwrap_or(false);
+    let deployment_type = if proxmox_enabled {
         "proxmox"
     } else if std::path::Path::new("/.dockerenv").exists() {
         "docker"
@@ -469,7 +476,14 @@ pub async fn system_update_handler(
         return csrf_forbidden_response().into_response();
     }
 
-    let deployment_type = if std::env::var("AMUD_ENABLE_PROXMOX").unwrap_or_default() == "true" {
+    let proxmox_enabled = state
+        .settings_cache
+        .read()
+        .unwrap()
+        .get("enable_proxmox")
+        .map(|s| s.as_str() == "1")
+        .unwrap_or(false);
+    let deployment_type = if proxmox_enabled {
         "proxmox"
     } else if std::path::Path::new("/.dockerenv").exists() {
         "docker"

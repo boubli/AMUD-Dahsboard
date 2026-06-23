@@ -8,6 +8,44 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.3.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.3.0) — 2026-06-23
+
+RSS management UI, homelab polish, and audit expansion.
+
+### Added
+- **RSS Feeds settings tab** — add, edit, and delete RSS/Atom feeds from Settings
+- **Dedicated `/feeds` page** — RSS-only view with nav link for all visitors
+- **RSS in Add/Edit App modal** — create feed cards from the dashboard
+- **Webhook private LAN toggle** — allow homelab webhooks to `192.168.x.x` (Settings → Privacy)
+- **Backup validate endpoint** — preview app/user/webhook counts before restore
+- **Audit log filter** — search and filter by action in Settings
+- **Webhook quick presets** — Discord, Telegram, and generic JSON shortcuts
+
+### Improved
+- **Audit logging** — wake-on-LAN, card reorder, and category CRUD now recorded
+- **Backup tab** — last export timestamp, secrets key reminder, import confirmation with counts
+- **Home Assistant TLS** — respects “Accept invalid TLS certificates” setting
+- **Docs** — full features page, updated roadmap and homepage
+
+### Fixed
+- Guest users can discover the Feeds page from the topbar
+- Feeds page shows a clear empty state when no RSS apps exist
+
+---
+
+## [v1.5.2.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.2.1) — 2026-06-23
+
+Overseerr/Jellyseerr integrations, multi-language READMEs, and Docker build optimizations.
+
+### Added
+- **Overseerr & Jellyseerr Integrations** — Native API support to display live pending media request counts on dashboard cards.
+- **Multi-Language Support** — README documentation in Arabic, Hindi, Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, and Korean.
+
+### Improved
+- **Docker Build Optimizations** — Overhauled `.dockerignore` to reduce image size and build times.
+
+---
+
 ## [v1.5.2.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.2.0) — 2026-06-23
 
 Native RSS and Atom feed integration for dashboard app cards.

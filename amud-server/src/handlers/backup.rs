@@ -1,4 +1,28 @@
 use super::imports::*;
+use rusqlite::Connection;
+
+fn count_table(conn: &Connection, sql: &str) -> i64 {
+    conn.query_row(sql, [], |row| row.get(0)).unwrap_or(0)
+}
+
+fn inspect_backup_bytes(bytes: &[u8]) -> Result<serde_json::Value, &'static str> {
+    if bytes.len() < 16 || &bytes[0..16] != b"SQLite format 3\0" {
+        return Err("Invalid SQLite database file");
+    }
+    let temp = std::env::temp_dir().join(format!("amud-val-{}.db", std::process::id()));
+    std::fs::write(&temp, bytes).map_err(|_| "Failed to read upload")?;
+    let conn = Connection::open(&temp).map_err(|_| "Invalid or corrupt database")?;
+    let stats = serde_json::json!({
+        "valid": true,
+        "apps": count_table(&conn, "SELECT COUNT(*) FROM apps"),
+        "users": count_table(&conn, "SELECT COUNT(*) FROM users"),
+        "webhooks": count_table(&conn, "SELECT COUNT(*) FROM webhooks"),
+        "categories": count_table(&conn, "SELECT COUNT(*) FROM categories"),
+        "rss_feeds": count_table(&conn, "SELECT COUNT(*) FROM apps WHERE integration_type = 'rss'"),
+    });
+    let _ = std::fs::remove_file(&temp);
+    Ok(stats)
+}
 
 pub async fn list_audit_handler(
     headers: HeaderMap,
@@ -51,6 +75,13 @@ pub async fn export_backup_handler(
             "amud.db",
             "database download",
         );
+        let now = chrono::Utc::now().to_rfc3339();
+        db.execute(
+            "INSERT INTO settings (key, value) VALUES ('last_backup_export_at', ?)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            params![now],
+        )
+        .ok();
     })
     .await;
     let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "data/amud.db".to_string());
@@ -64,6 +95,54 @@ pub async fn export_backup_handler(
         )
         .body(Body::from(data))
         .unwrap()
+}
+
+pub async fn validate_backup_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return (*resp).into_response();
+    }
+
+    let mut db_data = None;
+    let mut csrf = String::new();
+    while let Ok(Some(field)) = multipart.next_field().await {
+        let name = field.name().unwrap_or("").to_string();
+        if name == "csrf_token" {
+            if let Ok(text) = field.text().await {
+                csrf = text;
+            }
+        } else if name == "db_file" {
+            if let Ok(bytes) = field.bytes().await {
+                db_data = Some(bytes);
+            }
+        }
+    }
+
+    let mut form_map = HashMap::new();
+    form_map.insert("csrf_token".to_string(), csrf);
+    if !validate_csrf(&headers, &state.sessions, Some(&Form(form_map))) {
+        return csrf_forbidden_response().into_response();
+    }
+
+    let Some(bytes) = db_data else {
+        return api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"error": "No database file uploaded"}),
+        )
+        .into_response();
+    };
+
+    match inspect_backup_bytes(&bytes) {
+        Ok(stats) => api_json(StatusCode::OK, stats).into_response(),
+        Err(message) => api_json(
+            StatusCode::BAD_REQUEST,
+            serde_json::json!({"valid": false, "error": message}),
+        )
+        .into_response(),
+    }
 }
 
 pub async fn import_backup_handler(
@@ -97,19 +176,27 @@ pub async fn import_backup_handler(
     }
 
     if let Some(bytes) = db_data {
-        if bytes.len() < 16 || &bytes[0..16] != b"SQLite format 3\0" {
-            return Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .header("Content-Type", "application/json")
-                .body(Body::from(r#"{"error":"Invalid SQLite database file"}"#))
-                .unwrap()
+        let stats = match inspect_backup_bytes(&bytes) {
+            Ok(s) => s,
+            Err(message) => {
+                return api_json(
+                    StatusCode::BAD_REQUEST,
+                    serde_json::json!({"error": message}),
+                )
                 .into_response();
-        }
+            }
+        };
 
         let admin_user = get_session(&headers, &state.sessions)
             .map(|s| s.username)
             .unwrap_or_else(|| "admin".to_string());
         let headers = headers.clone();
+        let audit_details = format!(
+            "apps={}, users={}, webhooks={}",
+            stats.get("apps").and_then(|v| v.as_i64()).unwrap_or(0),
+            stats.get("users").and_then(|v| v.as_i64()).unwrap_or(0),
+            stats.get("webhooks").and_then(|v| v.as_i64()).unwrap_or(0),
+        );
 
         let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "data/amud.db".to_string());
         let backup_path = format!("{}.bak", db_path);
@@ -121,7 +208,7 @@ pub async fn import_backup_handler(
                 &admin_user,
                 "backup_import",
                 "amud.db",
-                "database restore initiated",
+                &audit_details,
             );
         })
         .await;
@@ -131,12 +218,11 @@ pub async fn import_backup_handler(
         }
 
         if std::fs::write(&db_path, &bytes).is_err() {
-            return Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .header("Content-Type", "application/json")
-                .body(Body::from(r#"{"error":"Failed to write database file"}"#))
-                .unwrap()
-                .into_response();
+            return api_json(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                serde_json::json!({"error": "Failed to write database file"}),
+            )
+            .into_response();
         }
 
         std::process::exit(0);

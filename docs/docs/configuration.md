@@ -82,6 +82,26 @@ When multiple clients are streaming, the badge may show the primary title plus `
 
 ---
 
+## App card integrations
+
+Per-app integrations are set when you **Add** or **Edit** an app (Integration dropdown). AMUD fetches data when the card loads.
+
+| Integration | App URL field | Credential field | Notes |
+|-------------|---------------|------------------|-------|
+| **Pi-hole** | Pi-hole web UI base URL | Web password / API token | Shows ads blocked today; admin can disable 5 min |
+| **AdGuard Home** | AdGuard UI base URL | Base64 `user:password` for Basic auth | Shows blocked count and protection state |
+| **Radarr** | Radarr base URL | API key (`X-Api-Key`) | Queue size |
+| **Sonarr** | Sonarr base URL | API key | Queue size |
+| **Overseerr** | Overseerr base URL | API key | Pending media requests |
+| **Jellyseerr** | Jellyseerr base URL | API key | Pending media requests |
+| **RSS / Atom** | Display name / icon URL | Feed URL | Top 3 headlines; **visible to guests** |
+
+RSS feeds can also be bulk-managed under **Settings → RSS Feeds** (creates `integration_type=rss` apps).
+
+Enable **Accept invalid TLS certificates** under **Settings → Privacy & Access** if your homelab services use self-signed HTTPS (applies to Jellyfin, Plex, app integrations, and Home Assistant).
+
+---
+
 ## Smart Home Integration (Home Assistant)
 
 Connect your dashboard to Home Assistant to view live sensor telemetry directly inside the Home Assistant app card.

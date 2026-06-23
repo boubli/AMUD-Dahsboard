@@ -102,11 +102,6 @@ async fn poll_ha_states_fallback(
 }
 
 pub async fn start_ha_polling(state: Arc<AppState>) {
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(8))
-        .build()
-        .unwrap_or_default();
-
     loop {
         tokio::time::sleep(Duration::from_secs(15)).await;
 
@@ -117,6 +112,16 @@ pub async fn start_ha_polling(state: Arc<AppState>) {
         if ha_url.is_empty() || ha_token.is_empty() {
             continue;
         }
+
+        let accept_invalid = settings
+            .get("accept_invalid_certs")
+            .map(|v| v == "1")
+            .unwrap_or(false);
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(8))
+            .danger_accept_invalid_certs(accept_invalid)
+            .build()
+            .unwrap_or_default();
 
         let telemetry = match poll_ha_template(&client, &ha_url, &ha_token).await {
             Some(summary) => summary,

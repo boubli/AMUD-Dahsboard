@@ -65,8 +65,10 @@ pub async fn settings_page_handler(
     let settings_tmpl = include_str!("../../../ui/templates/settings.html");
     let username = session.username.as_str();
     let app_version = option_env!("GIT_TAG").unwrap_or(env!("CARGO_PKG_VERSION"));
-    let proxmox_enabled =
-        std::env::var("AMUD_ENABLE_PROXMOX").unwrap_or_else(|_| "false".to_string()) == "true";
+    let proxmox_enabled = settings
+        .get("enable_proxmox")
+        .map(|s| s.as_str())
+        .unwrap_or("0");
 
     let mut result = settings_tmpl
         .replace("/* ROOT_CSS */", &root_css)
@@ -74,7 +76,11 @@ pub async fn settings_page_handler(
         .replace("{{app_version}}", app_version)
         .replace(
             "{{proxmox_enabled}}",
-            if proxmox_enabled { "true" } else { "false" },
+            if proxmox_enabled == "1" {
+                "true"
+            } else {
+                "false"
+            },
         )
         .replace("{{tagline}}", tagline)
         .replace("{{custom_bg_url}}", custom_bg_url);
@@ -158,6 +164,14 @@ pub async fn settings_page_handler(
         .get("accept_invalid_certs")
         .map(|s| s.as_str())
         .unwrap_or("0");
+    let webhooks_allow_private = settings
+        .get("webhooks_allow_private_ips")
+        .map(|s| s.as_str())
+        .unwrap_or("0");
+    let last_backup_export_at = settings
+        .get("last_backup_export_at")
+        .cloned()
+        .unwrap_or_else(|| "Never".to_string());
     let result = result
         .replace(
             "{{eq_telemetry_on}}",
@@ -199,7 +213,43 @@ pub async fn settings_page_handler(
             "{{eq_theme_light}}",
             crate::templates::theme_eq_attr(&branding.theme_mode, "light"),
         )
-        .replace("{{theme_mode}}", &escape_html(&branding.theme_mode));
+        .replace("{{theme_mode}}", &escape_html(&branding.theme_mode))
+        .replace(
+            "{{eq_enable_proxmox_on}}",
+            if proxmox_enabled == "1" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_enable_proxmox_off}}",
+            if proxmox_enabled != "1" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_webhooks_private_on}}",
+            if webhooks_allow_private == "1" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_webhooks_private_off}}",
+            if webhooks_allow_private != "1" {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{last_backup_export_at}}",
+            &escape_html(&last_backup_export_at),
+        );
 
     Html(apply_csp_nonce(result, &csp.0))
 }

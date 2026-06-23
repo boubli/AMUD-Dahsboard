@@ -242,6 +242,17 @@ pub async fn run() {
             )
             .ok();
         }
+        // Seed Proxmox toggle from env var on first boot only
+        let pve_seed = if std::env::var("AMUD_ENABLE_PROXMOX").unwrap_or_default() == "true" {
+            "1"
+        } else {
+            "0"
+        };
+        conn.execute(
+            "INSERT OR IGNORE INTO settings (key, value) VALUES ('enable_proxmox', ?)",
+            params![pve_seed],
+        )
+        .ok();
     }
 
     {
@@ -347,6 +358,7 @@ pub async fn run() {
 pub fn build_app_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/", get(dashboard_handler))
+        .route("/feeds", get(feeds_page_handler))
         .route("/login", get(login_page).post(login_handler))
         .route("/logout", post(logout_handler))
         .route("/ws", get(ws_handler))
@@ -363,6 +375,11 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         )
         .route("/admin/credentials", post(credentials_handler))
         .route("/admin/backup/export", post(export_backup_handler))
+        .route(
+            "/admin/backup/validate",
+            post(validate_backup_handler)
+                .layer(axum::extract::DefaultBodyLimit::max(50 * 1024 * 1024)),
+        )
         .route(
             "/admin/backup/import",
             post(import_backup_handler)
@@ -395,6 +412,10 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/webhooks/edit", post(edit_webhook_handler))
         .route("/api/webhooks/delete", post(delete_webhook_handler))
         .route("/api/webhooks/test", post(test_webhook_handler))
+        .route("/api/rss-feeds", get(list_rss_feeds_handler))
+        .route("/api/rss-feeds/add", post(add_rss_feed_handler))
+        .route("/api/rss-feeds/edit", post(edit_rss_feed_handler))
+        .route("/api/rss-feeds/delete", post(delete_rss_feed_handler))
         .route("/api/audit", get(list_audit_handler))
         .route("/api/system/version", get(system_version_handler))
         .route("/api/system/update", post(system_update_handler))

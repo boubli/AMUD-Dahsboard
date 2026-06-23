@@ -84,13 +84,21 @@
         }
 
         function cardFromPoint(clientX, clientY) {
-            const el = document.elementFromPoint(clientX, clientY);
-            if (!el) return null;
-            const card = el.closest('.app-card');
-            if (!card || card.classList.contains('filter-empty-msg') || card.classList.contains('app-card--empty')) {
-                return null;
+            const cards = getSortableCards();
+            for (let i = 0; i < cards.length; i++) {
+                const card = cards[i];
+                if (card === draggedCard) continue;
+                const rect = card.getBoundingClientRect();
+                if (
+                    clientX >= rect.left &&
+                    clientX <= rect.right &&
+                    clientY >= rect.top &&
+                    clientY <= rect.bottom
+                ) {
+                    return card;
+                }
             }
-            return card;
+            return null;
         }
 
         function injectDragHandles() {

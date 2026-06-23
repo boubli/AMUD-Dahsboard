@@ -28,7 +28,8 @@ pub(crate) fn mask_webhook_url(url: &str) -> String {
 }
 
 /// Block outbound webhook targets to localhost/metadata/link-local (SSRF mitigation).
-pub(crate) fn url_allowed_for_webhook(raw: &str) -> bool {
+/// When `allow_private` is true, RFC1918 LAN targets are permitted (homelab ntfy/Gotify).
+pub(crate) fn url_allowed_for_webhook(raw: &str, allow_private: bool) -> bool {
     let Ok(parsed) = reqwest::Url::parse(raw.trim()) else {
         return false;
     };
@@ -44,22 +45,31 @@ pub(crate) fn url_allowed_for_webhook(raw: &str) -> bool {
         return false;
     }
     if let Ok(ip) = host.parse::<std::net::IpAddr>() {
-        return !is_blocked_webhook_target(ip);
+        if allow_private {
+            return !is_blocked_webhook_target_strict(ip);
+        }
+        return !is_blocked_webhook_target_strict(ip) && !is_private_ip(ip);
     }
     !host_lower.contains("metadata.google")
 }
 
-fn is_blocked_webhook_target(ip: std::net::IpAddr) -> bool {
+fn is_private_ip(ip: std::net::IpAddr) -> bool {
+    match ip {
+        std::net::IpAddr::V4(v4) => v4.is_private(),
+        std::net::IpAddr::V6(v6) => v6.is_unique_local(),
+    }
+}
+
+fn is_blocked_webhook_target_strict(ip: std::net::IpAddr) -> bool {
     match ip {
         std::net::IpAddr::V4(v4) => {
             v4.is_loopback()
                 || v4.is_unspecified()
                 || v4.is_link_local()
-                || v4.is_private()
                 || v4.octets() == [169, 254, 169, 254]
                 || v4.octets()[0] == 0
         }
-        std::net::IpAddr::V6(v6) => v6.is_loopback() || v6.is_unspecified() || v6.is_unique_local(),
+        std::net::IpAddr::V6(v6) => v6.is_loopback() || v6.is_unspecified(),
     }
 }
 
@@ -215,6 +225,18 @@ mod tests {
     fn allows_private_homelab_targets() {
         assert!(url_allowed_for_health_check("http://192.168.1.50:8096"));
         assert!(url_allowed_for_health_check("https://10.0.0.12:32400"));
+    }
+
+    #[test]
+    fn webhook_blocks_private_ip_by_default() {
+        assert!(!url_allowed_for_webhook("http://192.168.1.50:8080", false));
+        assert!(!url_allowed_for_webhook("http://127.0.0.1:8080", false));
+    }
+
+    #[test]
+    fn webhook_allows_private_ip_when_enabled() {
+        assert!(url_allowed_for_webhook("http://192.168.1.50:8080", true));
+        assert!(!url_allowed_for_webhook("http://127.0.0.1:8080", true));
     }
 
     #[test]

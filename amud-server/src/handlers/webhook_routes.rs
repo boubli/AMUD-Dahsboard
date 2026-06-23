@@ -95,7 +95,16 @@ pub async fn add_webhook_handler(
         }
     };
 
-    if !url_allowed_for_webhook(&url) {
+    if !url_allowed_for_webhook(
+        &url,
+        state
+            .settings_cache
+            .read()
+            .unwrap()
+            .get("webhooks_allow_private_ips")
+            .map(|s| s == "1")
+            .unwrap_or(false),
+    ) {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .header("Content-Type", "application/json")
@@ -240,7 +249,16 @@ pub async fn edit_webhook_handler(
                 ))
                 .unwrap();
         }
-        if !url_allowed_for_webhook(&url_input) {
+        if !url_allowed_for_webhook(
+            &url_input,
+            state
+                .settings_cache
+                .read()
+                .unwrap()
+                .get("webhooks_allow_private_ips")
+                .map(|s| s == "1")
+                .unwrap_or(false),
+        ) {
             return Response::builder()
                 .status(StatusCode::BAD_REQUEST)
                 .header("Content-Type", "application/json")
@@ -410,6 +428,13 @@ pub async fn test_webhook_handler(
                 .map(|s| s == "1")
                 .unwrap_or(false)
         };
+        let allow_private = {
+            let cache = state.settings_cache.read().unwrap();
+            cache
+                .get("webhooks_allow_private_ips")
+                .map(|s| s == "1")
+                .unwrap_or(false)
+        };
         let delivered = send_webhook_notification(
             url,
             name,
@@ -419,6 +444,7 @@ pub async fn test_webhook_handler(
             "running",
             "Docker",
             accept_invalid,
+            allow_private,
         )
         .await;
 

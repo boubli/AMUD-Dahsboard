@@ -10,11 +10,13 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.2.1
+### What's new in v1.5.3.0
 
-- **Overseerr & Jellyseerr Integrations** — Native API support to display live pending media request counts directly on the dashboard.
-- **Multi-Language Support** — README documentation is now available in Arabic, Hindi, Spanish, French, and 7 other languages.
-- **Docker Build Optimizations** — Overhauled `.dockerignore` to drastically reduce image size and build times by stripping unneeded assets.
+- **RSS Feeds management** — Settings tab + `/feeds` page + Add App modal integration
+- **Webhook LAN toggle** — send alerts to private homelab IPs (ntfy, Gotify)
+- **Audit expansion** — wake, reorder, categories logged; filter/search in Settings
+- **Backup UX** — validate import, show counts, last export timestamp
+- **Home Assistant TLS fix** — self-signed certs when toggle enabled
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

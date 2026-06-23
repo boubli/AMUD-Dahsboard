@@ -5,7 +5,7 @@ pub async fn list_categories_handler(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
         return Response::builder()
             .status(StatusCode::FORBIDDEN)
             .header("Content-Type", "application/json")
@@ -29,7 +29,7 @@ pub async fn add_category_handler(
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
         return Response::builder()
             .status(StatusCode::FORBIDDEN)
             .header("Content-Type", "application/json")
@@ -60,12 +60,30 @@ pub async fn add_category_handler(
             .unwrap();
     }
 
+    let admin_user = session
+        .as_ref()
+        .map(|s| s.username.clone())
+        .unwrap_or_default();
+    let headers = headers.clone();
+    let name_for_audit = name.clone();
     let ok = with_db(state.db.clone(), move |db| {
-        db.execute(
-            "INSERT INTO categories (name, color, sort_order) VALUES (?, ?, ?)",
-            params![name, color, sort_order],
-        )
-        .is_ok()
+        let inserted = db
+            .execute(
+                "INSERT INTO categories (name, color, sort_order) VALUES (?, ?, ?)",
+                params![name, color, sort_order],
+            )
+            .is_ok();
+        if inserted {
+            record_audit_blocking(
+                db,
+                &headers,
+                &admin_user,
+                "category_create",
+                &name_for_audit,
+                "",
+            );
+        }
+        inserted
     })
     .await;
 
@@ -92,7 +110,7 @@ pub async fn delete_category_handler(
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
         return Response::builder()
             .status(StatusCode::FORBIDDEN)
             .header("Content-Type", "application/json")
@@ -105,7 +123,33 @@ pub async fn delete_category_handler(
 
     if let Some(id_str) = form.get("id") {
         if let Ok(id) = id_str.parse::<i64>() {
-            let result = with_db(state.db.clone(), move |db| delete_category_by_id(db, id)).await;
+            let admin_user = session
+                .as_ref()
+                .map(|s| s.username.clone())
+                .unwrap_or_default();
+            let headers = headers.clone();
+            let result = with_db(state.db.clone(), move |db| {
+                let cat_name: String = db
+                    .query_row(
+                        "SELECT name FROM categories WHERE id = ?",
+                        params![id],
+                        |row| row.get(0),
+                    )
+                    .unwrap_or_default();
+                let delete_result = delete_category_by_id(db, id);
+                if delete_result.is_ok() && !cat_name.is_empty() {
+                    record_audit_blocking(
+                        db,
+                        &headers,
+                        &admin_user,
+                        "category_delete",
+                        &cat_name,
+                        "",
+                    );
+                }
+                delete_result
+            })
+            .await;
             return match result {
                 Err(CategoryDeleteError::LastCategory) => api_json(
                     StatusCode::BAD_REQUEST,
@@ -133,7 +177,7 @@ pub async fn edit_category_handler(
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
-    if !session.map(|s| s.role == "Admin").unwrap_or(false) {
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
         return Response::builder()
             .status(StatusCode::FORBIDDEN)
             .header("Content-Type", "application/json")
@@ -156,8 +200,22 @@ pub async fn edit_category_handler(
                 .and_then(|v| v.parse::<i64>().ok())
                 .unwrap_or(0);
             if !name.is_empty() {
+                let admin_user = session
+                    .as_ref()
+                    .map(|s| s.username.clone())
+                    .unwrap_or_default();
+                let headers = headers.clone();
+                let name_for_audit = name.clone();
                 with_db(state.db.clone(), move |db| {
                     update_category_by_id(db, id, &name, &color, sort_order);
+                    record_audit_blocking(
+                        db,
+                        &headers,
+                        &admin_user,
+                        "category_update",
+                        &name_for_audit,
+                        "",
+                    );
                 })
                 .await;
             }

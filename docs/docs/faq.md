@@ -96,7 +96,7 @@ Details: [Troubleshooting](/docs/troubleshooting) · [Blog: Fix CHECKING... badg
 
 **Yes.** Accent color, grid layout, background image, and **Custom CSS** under **Settings → Appearance**.
 
-Browse 12 ready-made themes: [Theme Gallery](/themes)
+Browse 18 ready-made themes: [Theme Gallery](/themes)
 
 ---
 

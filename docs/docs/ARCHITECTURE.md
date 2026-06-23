@@ -54,7 +54,7 @@ graph TD
 
 ### 4. SQLite Storage & Concurrency
 - **Configuration**: Single-file SQLite database configured in Write-Ahead Logging (WAL) mode to allow concurrent readers without blocking writes.
-- **Secrets at rest**: All sensitive configuration variables (e.g., Plex Tokens, Jellyfin API Keys, Proxmox tokens, integration API keys) are AES-GCM encrypted at rest using a key derived from system environment or a secure host keyfile (`.amud-secrets-key`).
+- **Secrets at rest**: Integration API keys (Plex, Jellyfin, Proxmox, Pi-hole, etc.) are encrypted with ChaCha20-Poly1305 at rest using a key from `AMUD_SECRETS_KEY` or `data/.amud-secrets-key`.
 
 ---
 
@@ -67,5 +67,6 @@ graph TD
 4. Active guest or admin WebSocket clients receive the payload filtered by their authorization role (sensitive LXC/container names are hidden from Guest views).
 
 ### External Integrations
-- Integrations (AdGuard, Pi-hole, Radarr, Sonarr) are polled directly by `amud-server` on-demand or at short intervals.
-- The dashboard page loads the widget details asynchronously using authenticated, CSRF-hardened endpoint requests.
+- App-card integrations (AdGuard, Pi-hole, Radarr, Sonarr, Overseerr, Jellyseerr, RSS) are fetched by `amud-server` **on demand** when a card loads its integration widget.
+- Jellyfin, Plex, and Home Assistant are polled on background intervals when configured.
+- The dashboard loads widget details asynchronously via authenticated, CSRF-hardened API requests.
