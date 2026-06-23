@@ -442,7 +442,8 @@
         }
 
         function updateClock() {
-            
+            const now = new Date();
+
             // Time
             let hours = now.getHours();
             const minutes = String(now.getMinutes()).padStart(2, '0');

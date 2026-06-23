@@ -8,6 +8,15 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.4.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.2) — 2026-06-23
+
+Critical fix: live telemetry and status badges after feeds UI refactor.
+
+### Fixed
+- **Dashboard JavaScript crash** in `updateClock()` — WebSocket, GPU card, CPU/RAM bars, and CHECKING badges work again
+
+---
+
 ## [v1.5.4.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.1) — 2026-06-23
 
 Audit log migration fix for upgraded databases.

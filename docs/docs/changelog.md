@@ -11,6 +11,17 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.5.4.2 — Fix live telemetry after feeds refactor
+
+**2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.2) · [Compare v1.5.4.1…v1.5.4.2](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.4.1...v1.5.4.2)
+
+**Fix**
+- **Telemetry + badges** — `updateClock()` JS crash blocked WebSocket; GPU/CPU/RAM and status badges stuck at 0% / CHECKING
+
+**Upgrade:** `curl -sSL …/update-amud.sh | bash` then hard-refresh (`Ctrl+Shift+R`).
+
+---
+
 ## v1.5.4.1 — Audit log migration fix
 
 **2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.1) · [Compare v1.5.4.0…v1.5.4.1](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.4.0...v1.5.4.1)
