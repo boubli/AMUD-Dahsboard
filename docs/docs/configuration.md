@@ -94,9 +94,9 @@ Per-app integrations are set when you **Add** or **Edit** an app (Integration dr
 | **Sonarr** | Sonarr base URL | API key | Queue size |
 | **Overseerr** | Overseerr base URL | API key | Pending media requests |
 | **Jellyseerr** | Jellyseerr base URL | API key | Pending media requests |
-| **RSS / Atom** | Display name / icon URL | Feed URL | Top 3 headlines; **visible to guests** |
+| **RSS / Atom** | — | — | Manage under **Settings → RSS Feeds**; top 3 headlines on `/feeds`; **visible to guests** |
 
-RSS feeds can also be bulk-managed under **Settings → RSS Feeds** (creates `integration_type=rss` apps).
+RSS feeds are not added via the dashboard **Add App** modal — use **Settings → RSS Feeds** (stored as `integration_type=rss` apps).
 
 Enable **Accept invalid TLS certificates** under **Settings → Privacy & Access** if your homelab services use self-signed HTTPS (applies to Jellyfin, Plex, app integrations, and Home Assistant).
 

@@ -13,7 +13,7 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ## Recently shipped (v1.5.x)
 
-- **RSS management UI** — Settings CRUD, `/feeds` page, Add App modal (v1.5.3.0)
+- **RSS management UI** — Settings CRUD and `/feeds` page (v1.5.3.0)
 - **Webhook LAN toggle** + audit expansion + backup validate (v1.5.3.0)
 - **RSS / Atom feeds** — top 3 headlines on app cards; guest-readable (v1.5.2.0)
 - **Overseerr & Jellyseerr** — pending media request counts (v1.5.2.1)

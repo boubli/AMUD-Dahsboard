@@ -18,7 +18,6 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 **RSS**
 - **Settings tab** — full CRUD for RSS/Atom feeds
 - **`/feeds` page** — RSS-only dashboard view; nav link visible to guests
-- **Add App modal** — RSS integration option with feed URL field
 
 **Security & audit**
 - **Webhook LAN toggle** — optional private-IP delivery for ntfy/Gotify on homelab LAN

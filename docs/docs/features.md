@@ -55,7 +55,7 @@ Configure per app under **Add/Edit App → Integration**. Data loads when the ca
 | **Jellyseerr** | Pending media requests | — | No |
 | **RSS / Atom** | Top 3 headlines | — | **Yes** |
 
-RSS feeds can also be managed under **Settings → RSS Feeds**.
+RSS feeds are managed under **Settings → RSS Feeds** (not the Add App modal).
 
 ---
 

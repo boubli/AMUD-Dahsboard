@@ -1,0 +1,33 @@
+{
+  "sites": [
+    { "id": "bbc", "name": "BBC", "logo": "/static/feeds/icons/bbc.svg" },
+    { "id": "cnn", "name": "CNN", "logo": "/static/feeds/icons/cnn.svg" },
+    { "id": "reuters", "name": "Reuters", "logo": "/static/feeds/icons/reuters.svg" },
+    { "id": "nytimes", "name": "NY Times", "logo": "/static/feeds/icons/nytimes.svg" },
+    { "id": "guardian", "name": "The Guardian", "logo": "/static/feeds/icons/guardian.svg" },
+    { "id": "techcrunch", "name": "TechCrunch", "logo": "/static/feeds/icons/techcrunch.svg" },
+    { "id": "the-verge", "name": "The Verge", "logo": "/static/feeds/icons/the-verge.svg" },
+    { "id": "hackernews", "name": "Hacker News", "logo": "/static/feeds/icons/hackernews.svg" },
+    { "id": "ars-technica", "name": "Ars Technica", "logo": "/static/feeds/icons/ars-technica.svg" },
+    { "id": "espn", "name": "ESPN", "logo": "/static/feeds/icons/espn.svg" },
+    { "id": "bloomberg", "name": "Bloomberg", "logo": "/static/feeds/icons/bloomberg.svg" },
+    { "id": "nasa", "name": "NASA", "logo": "/static/logos/nasa.svg" },
+    { "id": "reddit", "name": "Reddit", "logo": "/static/logos/reddit.svg" },
+    { "id": "youtube", "name": "YouTube", "logo": "/static/logos/youtube.svg" },
+    { "id": "github", "name": "GitHub", "logo": "/static/logos/github.svg" },
+    { "id": "x", "name": "X / Twitter", "logo": "/static/logos/x.svg" },
+    { "id": "medium", "name": "Medium", "logo": "/static/logos/medium-dark.svg" },
+    { "id": "substack", "name": "Substack", "logo": "/static/feeds/icons/substack.svg" },
+    { "id": "fox-news", "name": "Fox News", "logo": "/static/feeds/icons/fox-news.svg" },
+    { "id": "ap-news", "name": "AP News", "logo": "/static/feeds/icons/ap-news.svg" },
+    { "id": "wired", "name": "Wired", "logo": "/static/feeds/icons/wired.svg" },
+    { "id": "engadget", "name": "Engadget", "logo": "/static/feeds/icons/engadget.svg" },
+    { "id": "politico", "name": "Politico", "logo": "/static/feeds/icons/politico.svg" },
+    { "id": "rss", "name": "Generic RSS", "logo": "/static/feeds/icons/rss.svg" }
+  ],
+  "categoryIcons": [
+    "globe", "newspaper", "cpu", "trophy", "clapperboard", "rocket",
+    "trending-up", "rss", "zap", "radio", "mic", "gamepad-2",
+    "heart", "book-open", "landmark", "flag", "flame", "star"
+  ]
+}

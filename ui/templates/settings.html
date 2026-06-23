@@ -806,13 +806,36 @@
                     <h1 class="settings-page-title" style="margin:0;">RSS Feeds</h1>
                     <button type="button" class="btn btn-primary" @click="openAddRssModal()"><i data-lucide="plus"></i> New RSS Feed</button>
                 </div>
-                <p class="settings-page-subtitle">Configure custom RSS or Atom XML feeds. Headlines will show up under your Feeds page view.</p>
-                
-                <div class="settings-block" style="padding: 0;">
+                <p class="settings-page-subtitle">Manage feed categories and news sources. Headlines appear on your <a href="/feeds" style="color:var(--accent-color);">Feeds</a> page.</p>
+
+                <div class="feed-categories-block settings-block" style="padding:0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 1rem 0.5rem;">
+                        <h2 style="margin:0; font-size:0.95rem; font-weight:700;">Feed Categories</h2>
+                        <button type="button" class="btn btn-secondary" style="font-size:0.78rem;" @click="openAddFeedCategoryModal()"><i data-lucide="plus"></i> Add Category</button>
+                    </div>
                     <table class="mgmt-table">
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Icon</th>
+                                <th>Color</th>
+                                <th>Order</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feed-categories-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="settings-block" style="padding: 0;">
+                    <div style="padding:1rem 1rem 0.5rem;">
+                        <h2 style="margin:0; font-size:0.95rem; font-weight:700;">Feeds</h2>
+                    </div>
+                    <table class="mgmt-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
                                 <th>Feed URL</th>
                                 <th>Site Link</th>
                                 <th>Icon</th>
@@ -1262,33 +1285,66 @@
 
     <!-- RSS Feed Modal -->
     <div class="drawer-backdrop" x-show="rssModalOpen" x-transition.opacity @click="rssModalOpen = false" style="display: none; z-index:90;"></div>
-    <div class="mgmt-modal" x-show="rssModalOpen" x-transition.opacity style="display: none;">
+    <div class="mgmt-modal" x-show="rssModalOpen" x-transition.opacity style="display: none; max-width: 520px;">
         <h3 style="margin-bottom:1.5rem;" x-text="rssEditing ? 'Edit RSS Feed' : 'Add RSS Feed'">Add RSS Feed</h3>
         <form @submit.prevent="saveRssFeed()" style="margin:0;">
             <input type="hidden" id="rss-id">
+            <input type="hidden" id="rss-icon" value="rss">
             <div class="form-group">
                 <label for="rss-name">Feed Name</label>
-                <input type="text" id="rss-name" class="form-control" placeholder="e.g. Hacker News" required autocomplete="off">
+                <input type="text" id="rss-name" class="form-control" placeholder="e.g. BBC News" required autocomplete="off">
+            </div>
+            <div class="form-group" style="margin-top:1rem;">
+                <label for="rss-category">Category</label>
+                <select id="rss-category" class="form-control" required></select>
             </div>
             <div class="form-group" style="margin-top:1rem;">
                 <label for="rss-feed-url">RSS XML Feed URL</label>
-                <input type="url" id="rss-feed-url" class="form-control" placeholder="e.g. https://news.ycombinator.com/rss" required autocomplete="off">
-                <p class="form-help">The full URL of the RSS or Atom XML feed (must start with http:// or https://).</p>
+                <input type="url" id="rss-feed-url" class="form-control" placeholder="e.g. https://feeds.bbci.co.uk/news/rss.xml" required autocomplete="off">
+                <p class="form-help">Must start with http:// or https://</p>
             </div>
             <div class="form-group" style="margin-top:1rem;">
-                <label for="rss-url">Site Link / Homepage URL (Optional)</label>
-                <input type="url" id="rss-url" class="form-control" placeholder="e.g. https://news.ycombinator.com" autocomplete="off">
-                <p class="form-help">The homepage link that opens when clicking the feed card.</p>
+                <label for="rss-url">Site Link (Optional)</label>
+                <input type="url" id="rss-url" class="form-control" placeholder="e.g. https://www.bbc.com/news" autocomplete="off">
             </div>
             <div class="form-group" style="margin-top:1rem;">
-                <label for="rss-icon">Icon (Lucide name, Optional)</label>
-                <input type="text" id="rss-icon" class="form-control" placeholder="e.g. rss, newspaper, globe" autocomplete="off">
+                <label>Source Icon</label>
+                <div id="rss-icon-picker" class="icon-picker-grid"></div>
+                <p class="form-help">Auto-detected from URL when left on Generic RSS.</p>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
                 <button type="button" class="btn btn-secondary" @click="rssModalOpen = false">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Feed</button>
             </div>
         </form>
+    </div>
+
+    <!-- Feed Category Modal -->
+    <div class="drawer-backdrop" x-show="feedCatModalOpen" x-transition.opacity @click="feedCatModalOpen = false" style="display: none; z-index:90;"></div>
+    <div class="mgmt-modal" x-show="feedCatModalOpen" x-transition.opacity style="display: none;">
+        <h3 style="margin-bottom:1.5rem;" x-text="feedCatEditing ? 'Edit Feed Category' : 'Add Feed Category'">Add Feed Category</h3>
+        <input type="hidden" id="feed-cat-id">
+        <input type="hidden" id="feed-cat-icon" value="rss">
+        <div class="form-group">
+            <label for="feed-cat-name">Name</label>
+            <input type="text" id="feed-cat-name" class="form-control" placeholder="e.g. Trending Tech" required>
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label for="feed-cat-color">Color</label>
+            <input type="color" id="feed-cat-color" class="form-control" style="height:3rem; padding:0.2rem;" value="#64748b">
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Tab Icon</label>
+            <div id="feed-cat-icon-picker" class="category-icon-picker"></div>
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+            <label for="feed-cat-order">Sort Order</label>
+            <input type="number" id="feed-cat-order" class="form-control" value="0">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+            <button type="button" class="btn btn-secondary" @click="feedCatModalOpen = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="saveFeedCategory()">Save</button>
+        </div>
     </div>
 
     <!-- Script logic for Settings Page -->
@@ -1307,6 +1363,8 @@
                 wolModalOpen: false,
                 rssModalOpen: false,
                 rssEditing: false,
+                feedCatModalOpen: false,
+                feedCatEditing: false,
 
                 // System Updates State
                 updateAvailable: false,
@@ -1355,7 +1413,7 @@
                     else if (this.activeTab === 'users') loadUsers();
                     else if (this.activeTab === 'audit') loadAuditLog();
                     else if (this.activeTab === 'wol') loadWolDevices();
-                    else if (this.activeTab === 'rss') loadRssFeeds();
+                    else if (this.activeTab === 'rss') loadRssTab();
                     else if (this.activeTab === 'system') {
                         this.systemTabVisited = true;
                         localStorage.setItem('amud_system_tab_visited', 'true');
@@ -1371,7 +1429,7 @@
                     if (tab === 'users') loadUsers();
                     if (tab === 'audit') loadAuditLog();
                     if (tab === 'wol') loadWolDevices();
-                    if (tab === 'rss') loadRssFeeds();
+                    if (tab === 'rss') loadRssTab();
                     if (tab === 'appearance' && typeof window.amudRefreshLivePreview === 'function') {
                         requestAnimationFrame(function() { window.amudRefreshLivePreview(); });
                     }
@@ -2157,6 +2215,148 @@
         }
 
         // RSS Feeds Logic
+        let feedIconPresets = [];
+        let feedCategoryIcons = [];
+        let feedCategoriesCache = [];
+
+        function feedLogoUrl(iconId) {
+            const preset = feedIconPresets.find(p => p.id === iconId);
+            if (preset) return preset.logo;
+            if (iconId && (iconId.startsWith('http') || iconId.startsWith('/'))) return iconId;
+            return `/static/feeds/icons/${iconId || 'rss'}.svg`;
+        }
+
+        async function loadFeedIconPresets() {
+            if (feedIconPresets.length) return;
+            try {
+                const res = await fetch('/static/feeds/presets.json');
+                const data = await res.json();
+                feedIconPresets = data.sites || [];
+                feedCategoryIcons = data.categoryIcons || [];
+            } catch (e) {
+                console.warn('Could not load feed icon presets', e);
+            }
+        }
+
+        function renderRssIconPicker(selectedId) {
+            const grid = document.getElementById('rss-icon-picker');
+            if (!grid) return;
+            grid.replaceChildren();
+            feedIconPresets.forEach(site => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'icon-picker-item' + (site.id === selectedId ? ' selected' : '');
+                btn.title = site.name;
+                const img = document.createElement('img');
+                img.src = site.logo;
+                img.alt = site.name;
+                img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
+                const label = document.createElement('span');
+                label.textContent = site.name;
+                btn.appendChild(img);
+                btn.appendChild(label);
+                btn.addEventListener('click', () => {
+                    document.getElementById('rss-icon').value = site.id;
+                    renderRssIconPicker(site.id);
+                });
+                grid.appendChild(btn);
+            });
+        }
+
+        function renderFeedCategoryIconPicker(selectedIcon) {
+            const grid = document.getElementById('feed-cat-icon-picker');
+            if (!grid) return;
+            grid.replaceChildren();
+            feedCategoryIcons.forEach(iconName => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'category-icon-option' + (iconName === selectedIcon ? ' selected' : '');
+                btn.title = iconName;
+                btn.innerHTML = `<i data-lucide="${iconName}"></i>`;
+                btn.addEventListener('click', () => {
+                    document.getElementById('feed-cat-icon').value = iconName;
+                    renderFeedCategoryIconPicker(iconName);
+                    if (window.lucide) window.lucide.createIcons();
+                });
+                grid.appendChild(btn);
+            });
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function populateRssCategorySelect(selected) {
+            const select = document.getElementById('rss-category');
+            if (!select) return;
+            select.replaceChildren();
+            feedCategoriesCache.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.name;
+                opt.textContent = cat.name;
+                if (cat.name === selected) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        async function loadFeedCategories() {
+            const res = await fetch('/api/feed-categories');
+            const { ok, data } = await parseApiResponse(res);
+            if (!ok) throw new Error(data.error || 'Failed to load feed categories');
+            feedCategoriesCache = data;
+            const tbody = document.getElementById('feed-categories-table-body');
+            if (!tbody) return;
+            tbody.replaceChildren();
+            if (!data.length) {
+                setTableMessage(tbody, 5, 'No feed categories yet.', { style: 'color:var(--text-muted);' });
+                return;
+            }
+            data.forEach(cat => {
+                const tr = document.createElement('tr');
+                appendTableCell(tr, cat.name, { strong: true });
+                const iconTd = document.createElement('td');
+                const iconWrap = document.createElement('span');
+                iconWrap.style.display = 'inline-flex';
+                iconWrap.style.alignItems = 'center';
+                iconWrap.style.gap = '0.35rem';
+                iconWrap.innerHTML = `<i data-lucide="${cat.icon || 'rss'}" style="width:1rem;height:1rem;"></i> <code style="font-size:0.72rem;">${cat.icon || 'rss'}</code>`;
+                iconTd.appendChild(iconWrap);
+                tr.appendChild(iconTd);
+                const colorTd = document.createElement('td');
+                const swatch = document.createElement('div');
+                swatch.style.width = '20px';
+                swatch.style.height = '20px';
+                swatch.style.borderRadius = '4px';
+                swatch.style.background = cat.color || '';
+                colorTd.appendChild(swatch);
+                tr.appendChild(colorTd);
+                appendTableCell(tr, String(Number(cat.sort_order)));
+                const actionsTd = document.createElement('td');
+                actionsTd.style.textAlign = 'right';
+                actionsTd.className = 'actions-cell';
+                const btnEdit = document.createElement('button');
+                btnEdit.type = 'button';
+                btnEdit.className = 'btn btn-secondary';
+                btnEdit.style.cssText = 'padding:0.3rem 0.6rem;font-size:0.75rem;margin-right:0.35rem;';
+                btnEdit.textContent = 'Edit';
+                btnEdit.addEventListener('click', () => openEditFeedCategoryModal(cat));
+                const btnDel = document.createElement('button');
+                btnDel.type = 'button';
+                btnDel.className = 'btn btn-danger';
+                btnDel.style.cssText = 'padding:0.3rem 0.6rem;font-size:0.75rem;';
+                btnDel.textContent = 'Delete';
+                btnDel.addEventListener('click', () => deleteFeedCategory(Number(cat.id)));
+                actionsTd.appendChild(btnEdit);
+                actionsTd.appendChild(btnDel);
+                tr.appendChild(actionsTd);
+                tbody.appendChild(tr);
+            });
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        async function loadRssTab() {
+            await loadFeedIconPresets();
+            await loadFeedCategories();
+            await loadRssFeeds();
+        }
+
         async function loadRssFeeds() {
             try {
                 const res = await fetch('/api/rss-feeds');
@@ -2166,15 +2366,23 @@
                 if (!tbody) return;
                 tbody.replaceChildren();
                 if (!data.length) {
-                    setTableMessage(tbody, 5, 'No RSS feeds configured yet. Click "New RSS Feed" to add one.', { style: 'color:var(--text-muted);' });
+                    setTableMessage(tbody, 6, 'No RSS feeds configured yet. Click "New RSS Feed" to add one.', { style: 'color:var(--text-muted);' });
                     return;
                 }
                 data.forEach(feed => {
                     const tr = document.createElement('tr');
                     appendTableCell(tr, feed.name, { strong: true });
+                    appendTableCell(tr, feed.category || 'General');
                     appendTableCell(tr, feed.feed_url, { code: true });
                     appendTableCell(tr, feed.url || '—');
-                    appendTableCell(tr, feed.icon || 'rss', { code: true });
+                    const iconTd = document.createElement('td');
+                    const img = document.createElement('img');
+                    img.className = 'feed-icon-thumb';
+                    img.src = feedLogoUrl(feed.icon || 'rss');
+                    img.alt = feed.name;
+                    img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
+                    iconTd.appendChild(img);
+                    tr.appendChild(iconTd);
 
                     const actionsTd = document.createElement('td');
                     actionsTd.style.textAlign = 'right';
@@ -2208,7 +2416,80 @@
             }
         }
 
-        function openAddRssModal() {
+        function openAddFeedCategoryModal() {
+            const state = Alpine.$data(document.body);
+            state.feedCatEditing = false;
+            document.getElementById('feed-cat-id').value = '';
+            document.getElementById('feed-cat-name').value = '';
+            document.getElementById('feed-cat-color').value = '#64748b';
+            document.getElementById('feed-cat-icon').value = 'rss';
+            document.getElementById('feed-cat-order').value = '0';
+            renderFeedCategoryIconPicker('rss');
+            state.feedCatModalOpen = true;
+        }
+
+        function openEditFeedCategoryModal(cat) {
+            const state = Alpine.$data(document.body);
+            state.feedCatEditing = true;
+            document.getElementById('feed-cat-id').value = cat.id;
+            document.getElementById('feed-cat-name').value = cat.name;
+            document.getElementById('feed-cat-color').value = cat.color || '#64748b';
+            document.getElementById('feed-cat-icon').value = cat.icon || 'rss';
+            document.getElementById('feed-cat-order').value = cat.sort_order || 0;
+            renderFeedCategoryIconPicker(cat.icon || 'rss');
+            state.feedCatModalOpen = true;
+        }
+
+        async function saveFeedCategory() {
+            const state = Alpine.$data(document.body);
+            const id = document.getElementById('feed-cat-id').value;
+            const name = document.getElementById('feed-cat-name').value;
+            const color = document.getElementById('feed-cat-color').value;
+            const icon = document.getElementById('feed-cat-icon').value;
+            const sort_order = document.getElementById('feed-cat-order').value;
+            const formData = new URLSearchParams();
+            formData.append('name', name);
+            formData.append('color', color);
+            formData.append('icon', icon);
+            formData.append('sort_order', sort_order);
+            formData.append('csrf_token', amudCsrfToken());
+            const url = state.feedCatEditing ? '/api/feed-categories/edit' : '/api/feed-categories';
+            if (state.feedCatEditing) formData.append('id', id);
+            try {
+                const res = await fetch(url, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) {
+                    showApiError(data.error || 'Failed to save feed category');
+                    return;
+                }
+                state.feedCatModalOpen = false;
+                await loadRssTab();
+            } catch (err) {
+                showApiError(err.message || 'Network error');
+            }
+        }
+
+        async function deleteFeedCategory(id) {
+            if (!confirm('Delete this feed category? Feeds will move to another category.')) return;
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            formData.append('csrf_token', amudCsrfToken());
+            try {
+                const res = await fetch('/api/feed-categories/delete', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) {
+                    showApiError(data.error || 'Failed to delete feed category');
+                    return;
+                }
+                await loadRssTab();
+            } catch (err) {
+                showApiError(err.message || 'Network error');
+            }
+        }
+
+        async function openAddRssModal() {
+            await loadFeedIconPresets();
+            if (!feedCategoriesCache.length) await loadFeedCategories();
             const state = Alpine.$data(document.body);
             state.rssEditing = false;
             document.getElementById('rss-id').value = '';
@@ -2216,10 +2497,14 @@
             document.getElementById('rss-feed-url').value = '';
             document.getElementById('rss-url').value = '';
             document.getElementById('rss-icon').value = 'rss';
+            populateRssCategorySelect('General');
+            renderRssIconPicker('rss');
             state.rssModalOpen = true;
         }
 
-        function openEditRssModal(feed) {
+        async function openEditRssModal(feed) {
+            await loadFeedIconPresets();
+            if (!feedCategoriesCache.length) await loadFeedCategories();
             const state = Alpine.$data(document.body);
             state.rssEditing = true;
             document.getElementById('rss-id').value = feed.id;
@@ -2227,6 +2512,8 @@
             document.getElementById('rss-feed-url').value = feed.feed_url;
             document.getElementById('rss-url').value = feed.url || '';
             document.getElementById('rss-icon').value = feed.icon || 'rss';
+            populateRssCategorySelect(feed.category || 'General');
+            renderRssIconPicker(feed.icon || 'rss');
             state.rssModalOpen = true;
         }
 
@@ -2237,12 +2524,14 @@
             const feed_url = document.getElementById('rss-feed-url').value;
             const url = document.getElementById('rss-url').value;
             const icon = document.getElementById('rss-icon').value;
+            const category = document.getElementById('rss-category').value;
 
             const formData = new URLSearchParams();
             formData.append('name', name);
             formData.append('feed_url', feed_url);
             formData.append('url', url);
             formData.append('icon', icon);
+            formData.append('category', category);
             formData.append('csrf_token', amudCsrfToken());
 
             const endpoint = state.rssEditing ? '/api/rss-feeds/edit' : '/api/rss-feeds/add';
