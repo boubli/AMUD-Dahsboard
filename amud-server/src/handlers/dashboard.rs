@@ -38,8 +38,6 @@ async fn render_page(
         .tagline
         .as_deref()
         .unwrap_or("Homelab Operations Cockpit");
-    let grid_columns = branding.grid_columns.as_deref().unwrap_or("3");
-    let grid_columns_n: usize = grid_columns.parse().unwrap_or(3).clamp(2, 5);
     let weather_lat = settings
         .get("weather_latitude")
         .map(|s| s.as_str())
@@ -112,7 +110,6 @@ async fn render_page(
         &csrf_token,
         &csrf_attr,
         &session,
-        grid_columns_n,
         &logo_manifest,
         mode,
     );
@@ -319,7 +316,6 @@ fn render_apps_grid(
     csrf_token: &str,
     csrf_attr: &str,
     session: &Option<Session>,
-    _grid_columns_n: usize,
     logo_manifest: &HashMap<String, String>,
     mode: PageMode,
 ) -> String {
