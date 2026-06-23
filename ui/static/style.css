@@ -656,6 +656,70 @@ body::-webkit-scrollbar-button {
     text-transform: uppercase;
 }
 
+/* ── RSS Feed Widget ───────────────────────────── */
+.rss-feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding-top: 0.5rem;
+}
+
+.rss-feed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem 0.4rem;
+    border-radius: var(--radius-sm, 6px);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease, transform 0.15s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.rss-feed-item:last-of-type {
+    border-bottom: none;
+}
+
+.rss-feed-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(2px);
+}
+
+.rss-feed-title {
+    flex: 1;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.rss-feed-date {
+    flex-shrink: 0;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+.rss-feed-empty {
+    padding: 0.75rem 0.4rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
 /* Wide bottom/list button links */
 .link-list-card {
     padding: 0.75rem 1rem;
@@ -2454,6 +2518,19 @@ body::after {
 
 :root[data-theme="light"] .metric-block {
     background: rgba(0, 0, 0, 0.02);
+}
+
+/* Light mode RSS feed widget */
+:root[data-theme="light"] .rss-feed-list {
+    border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .rss-feed-item {
+    border-bottom-color: rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .rss-feed-item:hover {
+    background: rgba(0, 0, 0, 0.03);
 }
 
 /* Light mode update banner */

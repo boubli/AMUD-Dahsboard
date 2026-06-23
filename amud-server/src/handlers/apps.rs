@@ -501,13 +501,7 @@ pub async fn integration_data_handler(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     let session = get_session(&headers, &state.sessions);
-    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
-        return Response::builder()
-            .status(StatusCode::FORBIDDEN)
-            .header("Content-Type", "application/json")
-            .body(Body::from(r#"{"error":"Forbidden"}"#))
-            .unwrap();
-    }
+    let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
 
     let app = with_db(state.db.clone(), move |db| {
         let mut apps = crate::db::load_apps_from_db(db);
@@ -515,6 +509,34 @@ pub async fn integration_data_handler(
         apps.pop()
     })
     .await;
+
+    match &app {
+        Some(app) => {
+            if app.integration_type.as_str() != "rss" && !is_admin {
+                return Response::builder()
+                    .status(StatusCode::FORBIDDEN)
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(r#"{"error":"Forbidden"}"#))
+                    .unwrap();
+            }
+        }
+        None => {
+            if !is_admin {
+                return Response::builder()
+                    .status(StatusCode::FORBIDDEN)
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(r#"{"error":"Forbidden"}"#))
+                    .unwrap();
+            } else {
+                return Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(Body::from("{}"))
+                    .unwrap();
+            }
+        }
+    }
+
+    let app = app.unwrap();
 
     let accept_invalid = {
         let cache = state.settings_cache.read().unwrap();
@@ -524,15 +546,12 @@ pub async fn integration_data_handler(
             .unwrap_or(false)
     };
 
-    if let Some(app) = app {
-        if let Some(data) = crate::integrations::fetch_integration_data(&app, accept_invalid).await
-        {
-            return Response::builder()
-                .status(StatusCode::OK)
-                .header("Content-Type", "application/json")
-                .body(Body::from(data.to_string()))
-                .unwrap();
-        }
+    if let Some(data) = crate::integrations::fetch_integration_data(&app, accept_invalid).await {
+        return Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "application/json")
+            .body(Body::from(data.to_string()))
+            .unwrap();
     }
 
     Response::builder()

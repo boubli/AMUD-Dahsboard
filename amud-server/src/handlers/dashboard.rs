@@ -404,6 +404,19 @@ fn render_apps_grid(
                             </div>
                         </div>
                     </template>
+                    <template x-if="integrationData.type === 'rss'">
+                        <div class="rss-feed-list">
+                            <template x-for="entry in integrationData.entries" :key="entry.link">
+                                <a :href="entry.link" target="_blank" rel="noopener" class="rss-feed-item">
+                                    <span class="rss-feed-title" x-text="entry.title"></span>
+                                    <span class="rss-feed-date" x-text="entry.date"></span>
+                                </a>
+                            </template>
+                            <div x-show="!integrationData.entries || integrationData.entries.length === 0" class="rss-feed-empty">
+                                <span>No entries found</span>
+                            </div>
+                        </div>
+                    </template>
                 </div>"#,
                 app.id, csrf_token, app.id
             );

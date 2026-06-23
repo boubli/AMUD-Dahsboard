@@ -113,6 +113,46 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 }));
             }
         }
+        "rss" => {
+            let feed_url = app.api_key.trim();
+            if feed_url.is_empty() {
+                return None;
+            }
+            let resp = client.get(feed_url).send().await.ok()?;
+            if resp.status().is_success() {
+                let bytes = resp.bytes().await.ok()?;
+                let feed = feed_rs::parser::parse(&bytes[..]).ok()?;
+                let entries: Vec<Value> = feed
+                    .entries
+                    .into_iter()
+                    .take(3)
+                    .map(|entry| {
+                        let title = entry
+                            .title
+                            .map(|t| t.content)
+                            .unwrap_or_else(|| "Untitled".to_string());
+                        let link = entry
+                            .links
+                            .first()
+                            .map(|l| l.href.clone())
+                            .unwrap_or_default();
+                        let date = entry.published.or(entry.updated);
+                        let date_str = date
+                            .map(|d| d.format("%b %d").to_string())
+                            .unwrap_or_default();
+                        json!({
+                            "title": title,
+                            "link": link,
+                            "date": date_str,
+                        })
+                    })
+                    .collect();
+                return Some(json!({
+                    "type": "rss",
+                    "entries": entries,
+                }));
+            }
+        }
         _ => return None,
     }
 

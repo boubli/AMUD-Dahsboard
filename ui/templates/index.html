@@ -267,13 +267,15 @@
                     <option value="adguard">AdGuard Home</option>
                     <option value="radarr">Radarr</option>
                     <option value="sonarr">Sonarr</option>
+                    <option value="rss">RSS Feed</option>
                 </select>
                 <p class="form-help">Enables active API widgets on the dashboard card.</p>
             </div>
 
             <div class="form-group" x-show="newApp.integration_type !== ''">
-                <label for="add-app-api-key">Integration API Key / Token</label>
-                <input type="text" id="add-app-api-key" name="api_key" class="form-control" placeholder="Paste the API key for the selected service">
+                <label for="add-app-api-key" x-text="newApp.integration_type === 'rss' ? 'RSS Feed URL' : 'Integration API Key / Token'">Integration API Key / Token</label>
+                <input type="text" id="add-app-api-key" name="api_key" class="form-control" :placeholder="newApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
+                <p class="form-help" x-show="newApp.integration_type === 'rss'">Paste the full URL of the RSS or Atom feed. The top 3 headlines will appear on the card.</p>
             </div>
 
             <div class="form-group">
@@ -361,13 +363,15 @@
                     <option value="adguard">AdGuard Home</option>
                     <option value="radarr">Radarr</option>
                     <option value="sonarr">Sonarr</option>
+                    <option value="rss">RSS Feed</option>
                 </select>
                 <p class="form-help">Enables active API widgets on the dashboard card.</p>
             </div>
 
             <div class="form-group" x-show="editApp.integration_type !== ''">
-                <label for="edit-app-api-key">Integration API Key / Token</label>
-                <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key" placeholder="Paste the API key for the selected service">
+                <label for="edit-app-api-key" x-text="editApp.integration_type === 'rss' ? 'RSS Feed URL' : 'Integration API Key / Token'">Integration API Key / Token</label>
+                <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key" :placeholder="editApp.integration_type === 'rss' ? 'https://example.com/feed.xml' : 'Paste the API key for the selected service'">
+                <p class="form-help" x-show="editApp.integration_type === 'rss'">Paste the full URL of the RSS or Atom feed. The top 3 headlines will appear on the card.</p>
             </div>
 
             <div class="form-group">
