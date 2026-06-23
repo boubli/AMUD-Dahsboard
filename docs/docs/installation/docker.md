@@ -86,7 +86,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
-      - AMUD_DOCKER=${AMUD_DOCKER:-0} # Set to 1 to enable Docker monitoring
+      - AMUD_DOCKER=${AMUD_DOCKER:-1} # Auto-enabled when docker.sock is mounted; set 0 to disable
     cap_drop:
       - ALL
     security_opt:
@@ -189,7 +189,7 @@ You can pass these environment variables to adjust container configurations:
 | `AMUD_AGENT_SECRET` | Both | *(Required)* | Shared authentication secret between dashboard and agent. |
 | `BIND_ADDR` | `amud_app` | `127.0.0.1` | Set to `0.0.0.0` inside Docker so the container accepts external connections. |
 | `AMUD_SECURE_COOKIES` | `amud_app` | `0` | Set to `1` to restrict session cookies to HTTPS connections. |
-| `AMUD_DOCKER` | `amud_agent` | `0` | Set to `1` to enable Docker container monitoring (requires the socket mount below). |
+| `AMUD_DOCKER` | `amud_agent` | auto | Enabled when `/var/run/docker.sock` is mounted. Set `0` to disable container monitoring and start/stop/restart controls. |
 | `PVE_NODE` | `amud_agent` | hostname | Proxmox node name when it differs from the container/host hostname. |
 | `PVE_API_TOKEN` | `amud_agent` | *(None)* | Proxmox API token (if using agent on a PVE host; not needed for Docker monitoring). |
 | `AMUD_ENABLE_PROXMOX` | `amud_app` | `false` | Set to `true` if installing on a Proxmox LXC to show the Proxmox settings tab in the UI. |
@@ -205,7 +205,7 @@ If you are deploying AMUD via Docker on a standard Linux distribution (like Ubun
 When running AMUD in production environments, implement these security practices:
 
 ### A. Docker Socket Trust Boundary
-Docker monitoring is **off by default** (`AMUD_DOCKER=0`). Only set `AMUD_DOCKER=1` when you need container status badges and mount `/var/run/docker.sock:/var/run/docker.sock:ro`. The `:ro` modifier protects the socket file from being modified through the bind mount, but Docker's HTTP API can still process lifecycle requests over that socket. Treat the agent as trusted, and use a Docker socket proxy if you need method-level filtering.
+When the agent mounts `/var/run/docker.sock`, Docker monitoring and container controls (start/stop/restart, CPU/RAM on app cards) are **enabled automatically**. Set `AMUD_DOCKER=0` on the agent to disable them while keeping the socket mount. The `:ro` modifier protects the socket file from being modified through the bind mount, but Docker's HTTP API can still process lifecycle requests over that socket. Treat the agent as trusted, and use a Docker socket proxy if you need method-level filtering.
 
 ### B. User Permissions (Non-Root Running)
 If your host enforces strict daemon security, configure the agent to run under the host's `docker` group ID so it does not require root privileges. 

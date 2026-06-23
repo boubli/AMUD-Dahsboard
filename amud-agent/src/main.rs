@@ -280,10 +280,19 @@ fn pve_token_from_env() -> Option<String> {
 
 #[cfg(unix)]
 fn docker_enabled() -> bool {
-    matches!(
-        std::env::var("AMUD_DOCKER").ok().as_deref(),
-        Some("1") | Some("true") | Some("yes")
-    )
+    match std::env::var("AMUD_DOCKER")
+        .ok()
+        .as_deref()
+        .map(str::trim)
+        .map(str::to_ascii_lowercase)
+        .as_deref()
+    {
+        Some("0") | Some("false") | Some("no") => false,
+        Some("1") | Some("true") | Some("yes") => true,
+        // When the socket is mounted (standard Docker Compose), enable monitoring and
+        // container controls without requiring users to set AMUD_DOCKER manually.
+        _ => std::path::Path::new("/var/run/docker.sock").exists(),
+    }
 }
 
 fn pve_node_name() -> String {
@@ -1091,7 +1100,10 @@ fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<St
     if !docker_enabled() {
         return (
             false,
-            Some("Docker integration disabled (set AMUD_DOCKER=1 to enable)".to_string()),
+            Some(
+                "Docker integration disabled (mount /var/run/docker.sock or set AMUD_DOCKER=1)"
+                    .to_string(),
+            ),
         );
     }
     if !std::path::Path::new("/var/run/docker.sock").exists() {

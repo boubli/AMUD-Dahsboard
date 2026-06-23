@@ -30,8 +30,8 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env or environment}
-      # Set AMUD_DOCKER=1 to enable Docker container monitoring (disabled by default)
-      - AMUD_DOCKER=${AMUD_DOCKER:-0}
+      # Auto-enabled when /var/run/docker.sock is mounted; set AMUD_DOCKER=0 to disable
+      - AMUD_DOCKER=${AMUD_DOCKER:-1}
       # Prefer agent-local PVE token — avoids plaintext over IPC (SEC-015)
       # - PVE_API_TOKEN=PVEAPIToken=root@pam!tokenid=secret
     cap_drop:

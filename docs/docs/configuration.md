@@ -285,7 +285,7 @@ These are set on the **server** or **agent** process (Docker `environment:`, sys
 | `AMUD_AGENT_SECRET` | Both | *(required)* | Shared secret for agent ↔ server IPC authentication |
 | `AMUD_SOCKET_PATH` | Both | `/var/run/amud/amud.sock` | Unix socket path for agent IPC |
 | `AMUD_ENABLE_PROXMOX` | Server | `false` | Set `true` on a Proxmox LXC host to show the Proxmox settings tab |
-| `AMUD_DOCKER` | Agent | `0` | Set `1` to enable Docker socket monitoring (requires socket mount) |
+| `AMUD_DOCKER` | Agent | auto | Enabled when `/var/run/docker.sock` is mounted. Set `0` to disable Docker monitoring and container controls. |
 | `PVE_NODE` | Agent | hostname | Proxmox node name for LXC API calls when it differs from `/etc/hostname` |
 | `PVE_API_TOKEN` | Agent | *(none)* | Proxmox API token; prefer setting on the agent host instead of over IPC |
 

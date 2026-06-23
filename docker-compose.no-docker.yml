@@ -4,5 +4,7 @@
 
 services:
   agent:
+    environment:
+      - AMUD_DOCKER=0
     volumes:
       - amud_run:/var/run/amud

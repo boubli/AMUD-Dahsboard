@@ -113,7 +113,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # MUST match the app secret above
-      - AMUD_DOCKER=0 # Set to 1 to enable Docker monitoring
+      - AMUD_DOCKER=1 # Auto-enabled when docker.sock is mounted; set 0 to disable
     cap_drop:
       - ALL
     security_opt:
