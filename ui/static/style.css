@@ -1211,12 +1211,26 @@ body::-webkit-scrollbar-button {
 }
 
 .form-group label,
-.form-group .form-label {
+.form-group .form-label,
+.form-group legend.form-label {
     display: block;
     margin-bottom: 0.45rem;
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--text-secondary);
+}
+
+.form-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    min-width: 0;
+}
+
+.form-fieldset legend.form-label {
+    padding: 0;
+    float: left;
+    width: 100%;
 }
 
 .upload-zone {

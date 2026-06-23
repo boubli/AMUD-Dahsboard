@@ -1329,11 +1329,11 @@
                 <label for="rss-url">Site Link (Optional)</label>
                 <input type="url" id="rss-url" class="form-control" placeholder="e.g. https://www.bbc.com/news" autocomplete="off" oninput="autoSuggestRssFields()">
             </div>
-            <div class="form-group" style="margin-top:1rem;" role="group" aria-labelledby="rss-icon-picker-label">
-                <span id="rss-icon-picker-label" class="form-label">Source Icon</span>
+            <fieldset class="form-group form-fieldset" style="margin-top:1rem;">
+                <legend class="form-label">Source Icon</legend>
                 <div id="rss-icon-picker" class="icon-picker-grid" role="radiogroup" aria-label="Source Icon"></div>
                 <p class="form-help">Auto-detected from URL when left on Generic RSS.</p>
-            </div>
+            </fieldset>
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
                 <button type="button" class="btn btn-secondary" @click="rssModalOpen = false">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Feed</button>
@@ -1355,10 +1355,10 @@
             <label for="feed-cat-color">Color</label>
             <input type="color" id="feed-cat-color" class="form-control" style="height:3rem; padding:0.2rem;" value="#64748b">
         </div>
-        <div class="form-group" style="margin-top:1rem;" role="group" aria-labelledby="feed-cat-icon-picker-label">
-            <span id="feed-cat-icon-picker-label" class="form-label">Tab Icon</span>
+        <fieldset class="form-group form-fieldset" style="margin-top:1rem;">
+            <legend class="form-label">Tab Icon</legend>
             <div id="feed-cat-icon-picker" class="category-icon-picker" role="radiogroup" aria-label="Tab Icon"></div>
-        </div>
+        </fieldset>
         <div class="form-group" style="margin-top:1rem;">
             <label for="feed-cat-order">Sort Order</label>
             <input type="number" id="feed-cat-order" class="form-control" value="0">
