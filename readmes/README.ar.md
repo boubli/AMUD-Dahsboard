@@ -6,7 +6,7 @@
 
 [![GitHub Release](https://img.shields.io/github/v/release/boubli/AMUD-Dashboard?style=flat-square)](https://github.com/boubli/AMUD-Dashboard/releases/latest)
 
-[English](README.md) | [Español](README.es.md) | [Português](README.pt.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Italiano](README.it.md) | [Русский](README.ru.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [हिन्दी](README.hi.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+[English](../README.md) | [Español](README.es.md) | [Português](README.pt.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Italiano](README.it.md) | [Русский](README.ru.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [हिन्दी](README.hi.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
