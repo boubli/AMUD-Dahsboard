@@ -15,8 +15,18 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
 
-
+      - name: Resolve AMUD release version
+        id: amud_version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "value=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            git fetch --tags --force
+            echo "value=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Log in to Docker Hub
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
@@ -31,6 +41,7 @@ jobs:
           images: tradmss/amud-dashboard
           tags: |
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=${{ steps.amud_version.outputs.value }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             type=ref,event=tag
 
       - name: Set up Docker Buildx
@@ -45,6 +56,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            GIT_TAG=${{ github.ref_name }}
+            GIT_TAG=${{ steps.amud_version.outputs.value }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
