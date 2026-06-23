@@ -8,6 +8,15 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.4.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.1) — 2026-06-23
+
+Audit log migration fix for upgraded databases.
+
+### Fixed
+- **Audit log schema** — auto-adds missing `username` column on startup; backfills from legacy `user` column when present
+
+---
+
 ## [v1.5.4.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.4.0) — 2026-06-23
 
 Feeds page polish: hero headline, category colors, and drag reorder.

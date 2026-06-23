@@ -625,6 +625,7 @@ pct exec <CT_ID> -- journalctl -u amud --no-pager -n 100 | grep -i AUDIT
 
 **Common fixes:**
 
+- **Missing `username` column** — server logs show `no column named username`. Fixed in **v1.5.4.1+** (auto-migration on start). Upgrade with `update-amud.sh` and `systemctl restart amud`, or manually: `ALTER TABLE audit_log ADD COLUMN username TEXT NOT NULL DEFAULT '';`
 - **Sign out and sign back in**, then change a setting and click **Save** — only actions after v1.4+ are recorded; older history is not backfilled.
 - **Database permissions** — if you restored or copied `amud.db` manually, ensure the service user can write:
 

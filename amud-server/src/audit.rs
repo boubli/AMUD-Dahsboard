@@ -42,6 +42,12 @@ fn audit_table_has_column(db: &Connection, column: &str) -> bool {
 /// Ensures audit_log exists and has all expected columns (handles partial upgrades).
 pub(crate) fn ensure_audit_log_schema(db: &Connection) -> Result<(), rusqlite::Error> {
     ensure_audit_log_table(db)?;
+    if !audit_table_has_column(db, "username") {
+        db.execute(
+            "ALTER TABLE audit_log ADD COLUMN username TEXT NOT NULL DEFAULT ''",
+            [],
+        )?;
+    }
     if !audit_table_has_column(db, "details") {
         let _ = db.execute(
             "ALTER TABLE audit_log ADD COLUMN details TEXT NOT NULL DEFAULT ''",
@@ -53,6 +59,13 @@ pub(crate) fn ensure_audit_log_schema(db: &Connection) -> Result<(), rusqlite::E
             "ALTER TABLE audit_log ADD COLUMN client_ip TEXT NOT NULL DEFAULT ''",
             [],
         )?;
+    }
+    // Some early databases used `user` instead of `username`.
+    if audit_table_has_column(db, "user") {
+        let _ = db.execute(
+            "UPDATE audit_log SET username = user WHERE username = '' AND user IS NOT NULL AND user != ''",
+            [],
+        );
     }
     Ok(())
 }
@@ -130,4 +143,69 @@ pub(crate) fn list_recent_audit(
         }));
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::HeaderMap;
+
+    #[test]
+    fn migrates_legacy_audit_log_without_username() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute(
+            "CREATE TABLE audit_log (
+                id INTEGER PRIMARY KEY,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                action TEXT NOT NULL,
+                target TEXT NOT NULL,
+                details TEXT DEFAULT ''
+            )",
+            [],
+        )
+        .unwrap();
+
+        ensure_audit_log_schema(&conn).unwrap();
+
+        record_audit(&conn, "admin", "login", "admin", "", &HeaderMap::new());
+
+        let username: String = conn
+            .query_row(
+                "SELECT username FROM audit_log WHERE action = 'login'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(username, "admin");
+    }
+
+    #[test]
+    fn backfills_username_from_legacy_user_column() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute(
+            "CREATE TABLE audit_log (
+                id INTEGER PRIMARY KEY,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                user TEXT NOT NULL,
+                action TEXT NOT NULL,
+                target TEXT NOT NULL
+            )",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO audit_log (user, action, target) VALUES ('TRADMSS', 'login', 'TRADMSS')",
+            [],
+        )
+        .unwrap();
+
+        ensure_audit_log_schema(&conn).unwrap();
+
+        let username: String = conn
+            .query_row("SELECT username FROM audit_log WHERE id = 1", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        assert_eq!(username, "TRADMSS");
+    }
 }
