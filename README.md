@@ -10,11 +10,11 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.2.0
+### What's new in v1.5.2.1
 
-- **RSS Feed Integration** — Stream the latest 3 headlines from any valid RSS/Atom feed directly on your app cards
-- **Guest-friendly Telemetry** — RSS widgets are visible to dashboard guests, safely decoupled from admin-only integrations
-- **Under the hood** — Natively powered by `feed-rs` with efficient fetching and error handling
+- **Overseerr & Jellyseerr Integrations** — Native API support to display live pending media request counts directly on the dashboard.
+- **Multi-Language Support** — README documentation is now available in Arabic, Hindi, Spanish, French, and 7 other languages.
+- **Docker Build Optimizations** — Overhauled `.dockerignore` to drastically reduce image size and build times by stripping unneeded assets.
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

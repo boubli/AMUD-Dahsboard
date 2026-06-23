@@ -11,6 +11,19 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.5.2.1 — Overseerr integration and Docker optimizations
+
+**2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.2.1) · [Compare v1.5.2.0…v1.5.2.1](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.2.0...v1.5.2.1)
+
+**New Integrations**
+- **Overseerr & Jellyseerr** — Added native API endpoints to monitor pending media requests directly on your dashboard widgets.
+
+**Improvements**
+- **Multi-Language READMEs** — Added documentation translations for Arabic, Hindi, Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, and Korean.
+- **Docker Optimizations** — Overhauled `.dockerignore` to block non-essential documentation and script files from entering the Docker build context, resulting in faster builds and smaller images.
+
+---
+
 ## v1.5.2.0 — RSS feed integration and guest telemetry
 
 **2026-06-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.2.0) · [Compare v1.5.1.0…v1.5.2.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.1.0...v1.5.2.0)
