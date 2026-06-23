@@ -819,6 +819,7 @@
                                 <th>Name</th>
                                 <th>Icon</th>
                                 <th>Color</th>
+                                <th>Feeds</th>
                                 <th>Order</th>
                                 <th style="text-align:right;">Actions</th>
                             </tr>
@@ -1292,7 +1293,7 @@
             <input type="hidden" id="rss-icon" value="rss">
             <div class="form-group">
                 <label for="rss-name">Feed Name</label>
-                <input type="text" id="rss-name" class="form-control" placeholder="e.g. BBC News" required autocomplete="off">
+                <input type="text" id="rss-name" class="form-control" placeholder="e.g. BBC News" required autocomplete="off" oninput="autoSuggestRssFields()">
             </div>
             <div class="form-group" style="margin-top:1rem;">
                 <label for="rss-category">Category</label>
@@ -1300,12 +1301,12 @@
             </div>
             <div class="form-group" style="margin-top:1rem;">
                 <label for="rss-feed-url">RSS XML Feed URL</label>
-                <input type="url" id="rss-feed-url" class="form-control" placeholder="e.g. https://feeds.bbci.co.uk/news/rss.xml" required autocomplete="off">
+                <input type="url" id="rss-feed-url" class="form-control" placeholder="e.g. https://feeds.bbci.co.uk/news/rss.xml" required autocomplete="off" oninput="autoSuggestRssFields()">
                 <p class="form-help">Must start with http:// or https://</p>
             </div>
             <div class="form-group" style="margin-top:1rem;">
                 <label for="rss-url">Site Link (Optional)</label>
-                <input type="url" id="rss-url" class="form-control" placeholder="e.g. https://www.bbc.com/news" autocomplete="off">
+                <input type="url" id="rss-url" class="form-control" placeholder="e.g. https://www.bbc.com/news" autocomplete="off" oninput="autoSuggestRssFields()">
             </div>
             <div class="form-group" style="margin-top:1rem;">
                 <label>Source Icon</label>
@@ -2218,6 +2219,60 @@
         let feedIconPresets = [];
         let feedCategoryIcons = [];
         let feedCategoriesCache = [];
+        let rssFeedsCache = [];
+
+        function feedHostFromUrl(url) {
+            const trimmed = (url || '').trim();
+            if (!trimmed) return '';
+            try {
+                return new URL(trimmed).hostname.replace(/^www\./, '').toLowerCase();
+            } catch {
+                return '';
+            }
+        }
+
+        function guessFeedIconId(name, siteUrl, feedUrl) {
+            const hosts = [siteUrl, feedUrl].map(feedHostFromUrl).filter(Boolean);
+            for (const site of feedIconPresets) {
+                if (!site.id || site.id === 'rss') continue;
+                const domains = site.domains || [];
+                for (const host of hosts) {
+                    if (domains.some(d => host === d || host.endsWith('.' + d))) {
+                        return site.id;
+                    }
+                }
+            }
+            const lower = (name || '').toLowerCase();
+            for (const site of feedIconPresets) {
+                if (!site.id || site.id === 'rss') continue;
+                const idSpaced = site.id.replace(/-/g, ' ');
+                if (lower.includes(idSpaced) || lower.includes(site.name.toLowerCase())) {
+                    return site.id;
+                }
+            }
+            return 'rss';
+        }
+
+        function autoSuggestRssFields() {
+            const nameEl = document.getElementById('rss-name');
+            const feedUrlEl = document.getElementById('rss-feed-url');
+            const siteEl = document.getElementById('rss-url');
+            const iconEl = document.getElementById('rss-icon');
+            if (!nameEl || !feedUrlEl || !siteEl || !iconEl) return;
+
+            const feedUrl = feedUrlEl.value.trim();
+            if (!siteEl.value.trim() && feedUrl) {
+                try {
+                    const parsed = new URL(feedUrl);
+                    siteEl.value = `${parsed.protocol}//${parsed.hostname}`;
+                } catch { /* ignore invalid URL while typing */ }
+            }
+
+            if (iconEl.dataset.userPicked === '1') return;
+            const guessed = guessFeedIconId(nameEl.value, siteEl.value, feedUrl);
+            iconEl.value = guessed;
+            renderRssIconPicker(guessed);
+        }
 
         function feedLogoUrl(iconId) {
             const preset = feedIconPresets.find(p => p.id === iconId);
@@ -2256,7 +2311,11 @@
                 btn.appendChild(img);
                 btn.appendChild(label);
                 btn.addEventListener('click', () => {
-                    document.getElementById('rss-icon').value = site.id;
+                    const iconEl = document.getElementById('rss-icon');
+                    if (iconEl) {
+                        iconEl.value = site.id;
+                        iconEl.dataset.userPicked = '1';
+                    }
                     renderRssIconPicker(site.id);
                 });
                 grid.appendChild(btn);
@@ -2305,7 +2364,7 @@
             if (!tbody) return;
             tbody.replaceChildren();
             if (!data.length) {
-                setTableMessage(tbody, 5, 'No feed categories yet.', { style: 'color:var(--text-muted);' });
+                setTableMessage(tbody, 6, 'No feed categories yet.', { style: 'color:var(--text-muted);' });
                 return;
             }
             data.forEach(cat => {
@@ -2327,6 +2386,8 @@
                 swatch.style.background = cat.color || '';
                 colorTd.appendChild(swatch);
                 tr.appendChild(colorTd);
+                const feedCount = rssFeedsCache.filter(f => (f.category || 'General') === cat.name).length;
+                appendTableCell(tr, String(feedCount), feedCount === 0 ? { style: 'color:var(--text-muted);' } : undefined);
                 appendTableCell(tr, String(Number(cat.sort_order)));
                 const actionsTd = document.createElement('td');
                 actionsTd.style.textAlign = 'right';
@@ -2353,8 +2414,8 @@
 
         async function loadRssTab() {
             await loadFeedIconPresets();
-            await loadFeedCategories();
             await loadRssFeeds();
+            await loadFeedCategories();
         }
 
         async function loadRssFeeds() {
@@ -2362,6 +2423,7 @@
                 const res = await fetch('/api/rss-feeds');
                 const { ok, data } = await parseApiResponse(res);
                 if (!ok) throw new Error(data.error || 'Failed to load RSS feeds');
+                rssFeedsCache = data;
                 const tbody = document.getElementById('rss-table-body');
                 if (!tbody) return;
                 tbody.replaceChildren();
@@ -2497,6 +2559,8 @@
             document.getElementById('rss-feed-url').value = '';
             document.getElementById('rss-url').value = '';
             document.getElementById('rss-icon').value = 'rss';
+            const iconEl = document.getElementById('rss-icon');
+            if (iconEl) delete iconEl.dataset.userPicked;
             populateRssCategorySelect('General');
             renderRssIconPicker('rss');
             state.rssModalOpen = true;
@@ -2512,6 +2576,8 @@
             document.getElementById('rss-feed-url').value = feed.feed_url;
             document.getElementById('rss-url').value = feed.url || '';
             document.getElementById('rss-icon').value = feed.icon || 'rss';
+            const iconEl = document.getElementById('rss-icon');
+            if (iconEl) iconEl.dataset.userPicked = '1';
             populateRssCategorySelect(feed.category || 'General');
             renderRssIconPicker(feed.icon || 'rss');
             state.rssModalOpen = true;

@@ -757,6 +757,14 @@ body::-webkit-scrollbar-button {
     padding: 2rem;
 }
 
+.feed-card.filter-empty-msg {
+    grid-column: 1 / -1;
+    min-height: 180px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
 .feed-card-header {
     display: flex;
     align-items: flex-start;

@@ -533,9 +533,15 @@
                 if (!emptyMsg) {
                     emptyMsg = document.createElement('div');
                     emptyMsg.className = 'glass-panel filter-empty-msg ' + (grid.classList.contains('feeds-grid') ? 'feed-card' : 'app-card');
-                    setFilterEmptyMessage(emptyMsg);
                     grid.appendChild(emptyMsg);
                 }
+                const categoryLabel = element
+                    ? element.textContent.replace(/\s*\d+\s*$/, '').trim()
+                    : category;
+                setFilterEmptyMessage(emptyMsg, {
+                    isFeeds: grid.classList.contains('feeds-grid'),
+                    categoryLabel: categoryLabel
+                });
                 emptyMsg.style.display = 'flex';
             } else if (emptyMsg) {
                 emptyMsg.style.display = 'none';

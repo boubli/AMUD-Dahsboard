@@ -102,18 +102,28 @@
         return true;
     }
 
-    function setFilterEmptyMessage(container) {
+    function setFilterEmptyMessage(container, options) {
         if (!container) return;
+        options = options || {};
+        const isFeeds = options.isFeeds || !!container.closest('.feeds-grid');
+        const categoryLabel = options.categoryLabel || '';
         container.replaceChildren();
         const line1 = document.createElement('p');
         line1.style.fontWeight = '600';
         line1.style.color = 'var(--text-secondary)';
-        line1.textContent = 'No apps in this category';
         const line2 = document.createElement('p');
         line2.style.fontSize = '0.8rem';
         line2.style.color = 'var(--text-muted)';
         line2.style.marginTop = '0.5rem';
-        line2.textContent = 'Switch tabs or add services under this category.';
+        if (isFeeds) {
+            line1.textContent = categoryLabel
+                ? `No feeds in ${categoryLabel}`
+                : 'No feeds in this category';
+            line2.innerHTML = 'Add one under <a href="/admin/settings?tab=rss" style="color:var(--accent-color);">Settings → RSS Feeds</a>.';
+        } else {
+            line1.textContent = 'No apps in this category';
+            line2.textContent = 'Switch tabs or add services under this category.';
+        }
         container.appendChild(line1);
         container.appendChild(line2);
     }

@@ -969,6 +969,7 @@ pub async fn add_rss_feed_handler(
     let name_c = name.clone();
     let url_c = url.clone();
     let category_c = category.clone();
+    let icon_c = icon.clone();
     with_db(state.db.clone(), move |db| {
         let sort_order = crate::db::next_app_sort_order(db);
         if db
@@ -978,7 +979,15 @@ pub async fn add_rss_feed_handler(
             )
             .is_ok()
         {
-            record_audit_blocking(db, &headers_c, &admin_user, "rss_feed_create", &name_c, &url_c);
+            let audit_details = format!("category={}; icon={}", category_c, icon_c);
+            record_audit_blocking(
+                db,
+                &headers_c,
+                &admin_user,
+                "rss_feed_create",
+                &name_c,
+                &audit_details,
+            );
         }
     })
     .await;
@@ -1052,6 +1061,8 @@ pub async fn edit_rss_feed_handler(
         .unwrap_or_default();
     let headers_c = headers.clone();
     let name_c = name.clone();
+    let category_c = category.clone();
+    let icon_c = icon.clone();
     with_db(state.db.clone(), move |db| {
         if db
             .execute(
@@ -1060,7 +1071,15 @@ pub async fn edit_rss_feed_handler(
             )
             .is_ok()
         {
-            record_audit_blocking(db, &headers_c, &admin_user, "rss_feed_edit", &name_c, "updated");
+            let audit_details = format!("category={}; icon={}", category_c, icon_c);
+            record_audit_blocking(
+                db,
+                &headers_c,
+                &admin_user,
+                "rss_feed_edit",
+                &name_c,
+                &audit_details,
+            );
         }
     })
     .await;

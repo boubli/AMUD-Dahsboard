@@ -692,6 +692,40 @@ async fn test_rss_feed_api_persists_category() {
         .unwrap()
     };
     assert_eq!(icon, "bbc");
+
+    let audit_app = build_app_router(state);
+    let audit_response = audit_app
+        .oneshot(
+            Request::builder()
+                .uri("/api/audit")
+                .header(header::COOKIE, format!("amud_session={session_token}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(audit_response.status(), StatusCode::OK);
+    let body_bytes = axum::body::to_bytes(audit_response.into_body(), 64 * 1024)
+        .await
+        .unwrap();
+    let entries: Vec<serde_json::Value> = serde_json::from_slice(&body_bytes).unwrap();
+    let create_entry = entries
+        .iter()
+        .find(|e| e.get("action").and_then(|v| v.as_str()) == Some("rss_feed_create"));
+    assert!(
+        create_entry.is_some(),
+        "expected rss_feed_create audit entry"
+    );
+    let details = create_entry
+        .unwrap()
+        .get("details")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default();
+    assert!(
+        details.contains("category=Tech"),
+        "audit details: {details}"
+    );
+    assert!(details.contains("icon=bbc"), "audit details: {details}");
 }
 
 #[tokio::test]
