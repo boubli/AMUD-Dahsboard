@@ -17,6 +17,19 @@ pub async fn login_page(
             default_tagline: "Access administrative operations cockpit",
         },
     );
+    let theme_config = build_theme_scheduler_json(&settings, &branding.theme_mode);
+    let oidc_enabled = settings
+        .get("oidc_enabled")
+        .map(|s| s.as_str())
+        .unwrap_or("0")
+        == "1";
+    let oidc_block = if oidc_enabled {
+        r#"<a href="/auth/oidc/login" class="btn btn-secondary" style="width:100%; text-align:center; text-decoration:none; display:block; padding:0.75rem;">Sign in with SSO</a>"#.to_string()
+    } else {
+        String::new()
+    };
+    let result = result.replace("{{theme_scheduler_config}}", &theme_config);
+    let result = result.replace("{{oidc_sso_block}}", &oidc_block);
     Html(apply_csp_nonce(result, &csp.0))
 }
 

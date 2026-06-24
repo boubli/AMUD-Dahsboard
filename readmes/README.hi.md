@@ -10,11 +10,25 @@
 
 **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ब्लॉग](https://boubli.github.io/AMUD-Dashboard/blog)** · **[थीम गैलरी](https://boubli.github.io/AMUD-Dashboard/themes)** · **[रोडमैप](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/)** · **[अक्सर पूछे जाने वाले सवाल](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.2.0 में नया क्या है
+### v1.5.5.3 में नया क्या है
 
-- **RSS फ़ीड एकीकरण** — किसी भी मान्य RSS/Atom फ़ीड की नवीनतम 3 सुर्खियां सीधे अपने ऐप कार्ड पर स्ट्रीम करें।
-- **अतिथि-अनुकूल टेलीमेट्री** — RSS विजेट्स डैशबोर्ड के मेहमानों को भी दिखाई देते हैं, जो एडमिन-ओनली एकीकरणों से सुरक्षित रूप से अलग हैं।
-- **आंतरिक कार्यप्रणाली** — कुशल फ़ेचिंग और त्रुटि प्रबंधन के साथ मूल रूप से `feed-rs` द्वारा संचालित।
+- **इंटीग्रेशन होवर ठीक** — आँकड़े कार्ड के अंदर बदलते हैं (CPU/RAM ↔ Prowlarr/*arr); नीचे की कार्ड्स पर ओवरलैप नहीं
+- **एडमिन सेटिंग्स** — केवल «पहुँच अस्वीकृत» के बजाय लॉगिन पर रीडायरेक्ट
+- **Docker `:latest` फ़िक्स** + स्वचालित कंटेनर नियंत्रण + RSS ऑटो-फ़ेविकॉन (v1.5.5.2 से)
+
+पूरा इतिहास: **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+
+### रिलीज़ स्थिति (2026-06-24 ऑडिट)
+
+साफ Proxmox टेस्ट कंटेनर में मैन्युअल सत्यापन के बाद, ये संस्करण ज्ञात स्थिर बेसलाइन के रूप में रखे गए हैं:
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3` (वर्तमान में अनुशंसित नवीनतम)
+
+ऑडिट में पहचाने गए टूटे टैग GitHub releases/tags से हटा दिए गए हैं — उनका उपयोग न करें।
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
@@ -114,7 +128,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # ऊपर दिए गए ऐप सीक्रेट से मेल खाना चाहिए
-      - AMUD_DOCKER=0 # डॉकर निगरानी को सक्षम करने के लिए 1 पर सेट करें
+      - AMUD_DOCKER=1 # docker.sock माउंट पर स्वतः सक्षम; अक्षम करने के लिए 0
     cap_drop:
       - ALL
     security_opt:
@@ -160,6 +174,10 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 ---
 
 ## समर्थन और दान
+
+**बग और फ़ीचर अनुरोध:** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues) (पसंदीदा — प्रति रिलीज़ ट्रैक)  
+**प्रश्न और चैट:** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
+**दस्तावेज़ / समस्या निवारण:** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 
 * [GitHub Sponsors](https://github.com/sponsors/boubli)
 * [Stripe के माध्यम से दान करें](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)

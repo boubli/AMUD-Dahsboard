@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amud-dashboard-v9';
+const CACHE_NAME = 'amud-dashboard-v12';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/AMUD-logo.png',
@@ -6,7 +6,11 @@ const ASSETS_TO_CACHE = [
   '/static/vendor/alpine.min.js',
   '/static/vendor/lucide.min.js',
   '/static/admin.js',
-  '/static/dashboard-live.js'
+  '/static/dashboard-live.js',
+  '/static/theme-scheduler.js',
+  '/static/app-search.js',
+  '/static/shortcuts.js',
+  '/static/embed-tabs.js'
 ];
 
 globalThis.addEventListener('install', event => {

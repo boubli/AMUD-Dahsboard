@@ -307,6 +307,10 @@ pub(crate) fn process_agent_line(
         );
     } else if let Ok(msg) = serde_json::from_str::<PveTestMsg>(line) {
         *state.pve_test_response.write().unwrap() = Some(msg.test_pve_result);
+    } else if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
+        if val.get("discover_docker_result").is_some() {
+            *state.docker_discover_response.write().unwrap() = Some(val);
+        }
     } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(line) {
         handle_new_telemetry(state, metrics);
     }

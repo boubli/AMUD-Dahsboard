@@ -10,11 +10,25 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.2.0 新增功能
+### v1.5.5.3 新增功能
 
-- **RSS 订阅源集成** — 直接在应用卡片上展示任何有效 RSS/Atom 订阅源的最新 3 条头条新闻。
-- **访客友好遥测** — RSS 小部件对仪表板访客可见，与仅限管理员的集成安全解耦。
-- **底层架构** — 原生由 `feed-rs` 驱动，具备高效的获取和错误处理能力。
+- **集成悬停已修复** — 统计信息在卡片内切换（CPU/RAM ↔ Prowlarr/*arr）；不再遮挡下方卡片
+- **管理员设置** — 重定向到登录页，而非仅显示「访问被拒绝」
+- **Docker `:latest` 修复** + 自动容器控制 + RSS 自动 favicon（来自 v1.5.5.2）
+
+完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+
+### 版本状态（2026-06-24 审计）
+
+在干净的 Proxmox 测试容器中手动验证后，以下版本为当前已知稳定基线：
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3`（当前推荐最新版）
+
+审计中发现的损坏标签已从 GitHub releases/tags 中移除，请勿使用。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
@@ -114,7 +128,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # 必须与上方的应用密钥一致
-      - AMUD_DOCKER=0 # 设置为 1 以启用 Docker 监控
+      - AMUD_DOCKER=1 # 挂载 docker.sock 时自动启用；设为 0 可禁用
     cap_drop:
       - ALL
     security_opt:
@@ -160,6 +174,10 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 ---
 
 ## 支持与赞助
+
+**错误与功能请求：** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues)（首选 — 按版本跟踪）  
+**问题与讨论：** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
+**文档 / 故障排除：** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 
 * [GitHub 赞助](https://github.com/sponsors/boubli)
 * [通过 Stripe 捐赠](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)

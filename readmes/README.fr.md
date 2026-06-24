@@ -10,11 +10,25 @@
 
 **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galerie de thèmes](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Feuille de route](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Nouveautés de la v1.5.2.0
+### Nouveautés de la v1.5.5.3
 
-- **Intégration de flux RSS** — Diffusez les 3 derniers titres de n'importe quel flux RSS/Atom valide directement sur les cartes de vos applications
-- **Télémétrie accessible aux invités** — Les widgets RSS sont visibles par les invités du tableau de bord, découplés de manière sécurisée des intégrations réservées aux administrateurs
-- **Sous le capot** — Propulsé nativement par `feed-rs` avec une récupération efficace et une gestion optimisée des erreurs
+- **Survol d'intégration corrigé** — les stats alternent dans la carte (CPU/RAM ↔ Prowlarr/*arr) ; plus de chevauchement sur les cartes en dessous
+- **Paramètres admin** — redirection vers la connexion au lieu d'un simple « Accès refusé »
+- **Correctif Docker `:latest`** + contrôles conteneur automatiques + favicons RSS auto (depuis v1.5.5.2)
+
+Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+
+### État des versions (audit 2026-06-24)
+
+Après validation manuelle dans un conteneur Proxmox propre, ces versions sont conservées comme références stables connues :
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3` (dernière recommandée actuellement)
+
+Les tags cassés identifiés lors de l'audit ont été retirés des releases/tags GitHub et ne doivent pas être utilisés.
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
@@ -114,7 +128,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # DOIT correspondre au secret de l'application ci-dessus
-      - AMUD_DOCKER=0 # Définir à 1 pour activer la surveillance Docker
+      - AMUD_DOCKER=1 # Activé automatiquement quand docker.sock est monté ; mettre 0 pour désactiver
     cap_drop:
       - ALL
     security_opt:
@@ -160,6 +174,10 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 ---
 
 ## Support & Don
+
+**Bugs et demandes de fonctionnalités :** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues) (recommandé — suivi par version)  
+**Questions et discussions :** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
+**Documentation / dépannage :** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 
 * [Sponsors GitHub](https://github.com/sponsors/boubli)
 * [Faire un don via Stripe](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)

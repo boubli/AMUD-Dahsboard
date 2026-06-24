@@ -10,11 +10,25 @@
 
 **[Список изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Блог](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Галерея тем](https://boubli.github.io/AMUD-Dashboard/themes)** · **[План разработки](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Документация](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Что нового в версии v1.5.2.0
+### Что нового в v1.5.5.3
 
-- **Интеграция RSS-ленты** — транслируйте 3 последних заголовка из любого корректного RSS/Atom-фида прямо на карточки ваших приложений.
-- **Гостевая телеметрия** — виджеты RSS видны гостям панели управления, они надежно отделены от интеграций, доступных только администратору.
-- **Под капотом** — нативная работа на базе библиотеки `feed-rs` с эффективным получением данных и обработкой ошибок.
+- **Исправлен hover интеграций** — статистика переключается внутри карточки (CPU/RAM ↔ Prowlarr/*arr); без наложения на карточки ниже
+- **Настройки администратора** — перенаправление на вход вместо простого «Доступ запрещён»
+- **Исправление Docker `:latest`** + автоматическое управление контейнерами + авто-favicon RSS (с v1.5.5.2)
+
+Полная история: **[Список изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+
+### Статус релизов (аудит 2026-06-24)
+
+После ручной проверки в чистом тестовом контейнере Proxmox эти версии считаются проверенными стабильными:
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3` (текущая рекомендуемая)
+
+Сломанные теги, выявленные при аудите, удалены из релизов/тегов GitHub и не должны использоваться.
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
@@ -114,7 +128,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # ДОЛЖЕН совпадать с секретом приложения выше
-      - AMUD_DOCKER=0 # Установите в 1, чтобы включить мониторинг Docker
+      - AMUD_DOCKER=1 # Включается автоматически при монтировании docker.sock; 0 — отключить
     cap_drop:
       - ALL
     security_opt:
@@ -160,6 +174,10 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 ---
 
 ## Поддержка и пожертвования
+
+**Ошибки и запросы функций:** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues) (предпочтительно — отслеживаются по релизам)  
+**Вопросы и обсуждения:** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
+**Документация / устранение неполадок:** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 
 * [GitHub Sponsors](https://github.com/sponsors/boubli)
 * [Поддержать через Stripe](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)

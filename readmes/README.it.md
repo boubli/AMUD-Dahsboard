@@ -10,11 +10,25 @@
 
 **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galleria dei Temi](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Tabella di marcia](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentazione](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novità nella v1.5.2.0
+### Novità nella v1.5.5.3
 
-- **Integrazione Feed RSS** — Ricevi gli ultimi 3 titoli da qualsiasi feed RSS/Atom valido direttamente sulle schede delle tue app.
-- **Telemetria visibile agli ospiti** — I widget RSS sono visibili anche agli ospiti della dashboard, disaccoppiati in modo sicuro dalle integrazioni riservate agli amministratori.
-- **Sotto il cofano** — Alimentato nativamente da `feed-rs` con recupero efficiente e gestione degli errori.
+- **Hover integrazione corretto** — le statistiche si alternano nella scheda (CPU/RAM ↔ Prowlarr/*arr); niente sovrapposizione sulle schede sottostanti
+- **Impostazioni admin** — reindirizza al login invece del semplice «Accesso negato»
+- **Fix Docker `:latest`** + controlli container automatici + favicon RSS automatiche (da v1.5.5.2)
+
+Cronologia completa: **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+
+### Stato release (audit 2026-06-24)
+
+Dopo validazione manuale in un container Proxmox pulito, queste versioni sono mantenute come baseline stabili note:
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3` (ultima consigliata al momento)
+
+I tag difettosi individuati nell'audit sono stati rimossi da release/tag GitHub e non vanno usati.
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
@@ -114,7 +128,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # DEVE corrispondere alla chiave segreta dell'applicazione sopra
-      - AMUD_DOCKER=0 # Impostare a 1 per abilitare il monitoraggio Docker
+      - AMUD_DOCKER=1 # Abilitato automaticamente con docker.sock montato; impostare 0 per disabilitare
     cap_drop:
       - ALL
     security_opt:
@@ -160,6 +174,10 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 ---
 
 ## Supporto e Donazione
+
+**Bug e richieste di funzionalità:** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues) (preferito — tracciati per release)  
+**Domande e chat:** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
+**Documentazione / risoluzione problemi:** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 
 * [GitHub Sponsors](https://github.com/sponsors/boubli)
 * [Dona tramite Stripe](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)

@@ -181,6 +181,8 @@ mod tests {
             agent_command_tx: Arc::new(Mutex::new(None)),
             next_agent_conn_id: Arc::new(AtomicU64::new(1)),
             pve_test_response: Arc::new(RwLock::new(None)),
+            docker_discover_response: Arc::new(RwLock::new(None)),
+            share_sessions: Arc::new(RwLock::new(HashMap::new())),
             action_results: Arc::new(RwLock::new(HashMap::new())),
             settings_cache: Arc::new(RwLock::new(HashMap::new())),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),

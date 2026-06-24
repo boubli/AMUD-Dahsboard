@@ -45,10 +45,16 @@ pub(crate) fn generate_csp_nonce() -> String {
     generate_session_token()
 }
 
-pub(crate) fn csp_header_value(nonce: &str) -> String {
+pub(crate) fn csp_header_value(nonce: &str, iframe_embeds: bool) -> String {
+    let frame_src = if iframe_embeds {
+        " frame-src 'self' http: https:;"
+    } else {
+        ""
+    };
     format!(
-        "default-src 'self'; script-src 'self' 'nonce-{nonce}' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; connect-src 'self' ws: wss: http: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
-        nonce = nonce
+        "default-src 'self'; script-src 'self' 'nonce-{nonce}' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; connect-src 'self' ws: wss: http: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';{frame_src}",
+        nonce = nonce,
+        frame_src = frame_src
     )
 }
 
@@ -66,15 +72,27 @@ pub(crate) fn rate_limit_response() -> Response {
         .unwrap()
 }
 
-pub async fn security_headers(mut req: Request<Body>, next: Next) -> Response {
+pub async fn security_headers(
+    axum::extract::State(state): axum::extract::State<std::sync::Arc<crate::models::AppState>>,
+    mut req: Request<Body>,
+    next: Next,
+) -> Response {
+    let iframe_embeds = {
+        let settings = state.settings_cache.read().unwrap();
+        settings
+            .get("iframe_embeds_enabled")
+            .map(|s| s.as_str())
+            .unwrap_or("0")
+            == "1"
+    };
     let nonce = generate_csp_nonce();
     req.extensions_mut().insert(CspNonce(nonce.clone()));
     let mut response = next.run(req).await;
     let headers = response.headers_mut();
-    headers.insert(
-        HeaderName::from_static("x-frame-options"),
-        HeaderValue::from_static("DENY"),
-    );
+    let frame_opt = if iframe_embeds { "SAMEORIGIN" } else { "DENY" };
+    if let Ok(val) = HeaderValue::from_str(frame_opt) {
+        headers.insert(HeaderName::from_static("x-frame-options"), val);
+    }
     headers.insert(
         HeaderName::from_static("x-content-type-options"),
         HeaderValue::from_static("nosniff"),
@@ -83,7 +101,7 @@ pub async fn security_headers(mut req: Request<Body>, next: Next) -> Response {
         HeaderName::from_static("referrer-policy"),
         HeaderValue::from_static("same-origin"),
     );
-    if let Ok(csp) = HeaderValue::from_str(&csp_header_value(&nonce)) {
+    if let Ok(csp) = HeaderValue::from_str(&csp_header_value(&nonce, iframe_embeds)) {
         headers.insert(HeaderName::from_static("content-security-policy"), csp);
     }
     if secure_transport_enabled() {

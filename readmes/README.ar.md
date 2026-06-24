@@ -10,11 +10,25 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### ما الجديد في الإصدار v1.5.2.0
+### ما الجديد في v1.5.5.3
 
-- **تكامل موجز RSS** — بث آخر 3 عناوين من أي موجز RSS/Atom صالح مباشرة على بطاقات تطبيقاتك.
-- **القياس عن بعد الصديق للضيوف** — عناصر واجهة مستخدم RSS مرئية لضيوف لوحة التحكم، معزولة بأمان عن التكاملات الخاصة بالمسؤول فقط.
-- **تحت الغطاء** — مدعوم أصليًا بواسطة `feed-rs` مع جلب فعال ومعالجة الأخطاء.
+- **إصلاح تمرير التكامل** — تتبدل الإحصائيات داخل البطاقة (CPU/RAM ↔ Prowlarr/*arr) دون تداخل مع البطاقات أسفلها
+- **إعدادات المسؤول** — إعادة توجيه إلى تسجيل الدخول بدلًا من «تم رفض الوصول» فقط
+- **إصلاح Docker `:latest`** + تحكم تلقائي بالحاويات + أيقونات RSS تلقائية (من v1.5.5.2)
+
+السجل الكامل: **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+
+### حالة الإصدارات (تدقيق 2026-06-24)
+
+بعد التحقق اليدوي في حاوية Proxmox نظيفة، تُحفظ هذه الإصدارات كخطوط أساس مستقرة معروفة:
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3` (الأحدث الموصى به حاليًا)
+
+أُزيلت الوسوم المعطوبة المكتشفة أثناء التدقيق من إصدارات/وسوم GitHub ولا يجب استخدامها.
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
@@ -114,7 +128,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # يجب أن يتطابق مع السر أعلاه
-      - AMUD_DOCKER=0 # اضبط على 1 لتمكين مراقبة Docker
+      - AMUD_DOCKER=1 # يُفعَّل تلقائيًا عند mount لـ docker.sock؛ اضبط 0 للتعطيل
     cap_drop:
       - ALL
     security_opt:
@@ -160,6 +174,10 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 ---
 
 ## الدعم والتبرع
+
+**الأخطاء وطلبات الميزات:** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues) (مفضّل — متابعة لكل إصدار)  
+**الأسئلة والمحادثة:** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
+**المستندات / استكشاف الأخطاء:** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 
 * [رعاة GitHub](https://github.com/sponsors/boubli)
 * [تبرع عبر Stripe](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)

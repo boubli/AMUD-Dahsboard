@@ -20,8 +20,13 @@
     <!-- Lucide Vector Icons -->
     <script src="/static/vendor/lucide.min.js"></script>
     <script src="/static/admin.js"></script>
+    <script id="amud-theme-config" type="application/json">{{theme_scheduler_config}}</script>
+    <script src="/static/theme-scheduler.js?v={{app_version}}"></script>
     <script id="amud-live-config" type="application/json">{"isAdmin":{{is_admin}},"hideTelemetry":{{hide_telemetry}}}</script>
     <script src="/static/dashboard-live.js?v={{app_version}}"></script>
+    <script src="/static/app-search.js?v={{app_version}}"></script>
+    <script src="/static/shortcuts.js?v={{app_version}}"></script>
+    <script src="/static/embed-tabs.js?v={{app_version}}"></script>
     {{admin_drag_script}}
 
     <!-- Inline variables setup for clean database variable override -->
@@ -32,7 +37,7 @@
     </style>
     <style id="amud-custom-css">{{custom_css}}</style>
 </head>
-<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true } }" class="{{video_bg_class}} {{body_page_class}}">
+<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' } }" class="{{video_bg_class}} {{body_page_class}}">
     {{video_bg_element}}
     {{update_banner}}
     <div class="dashboard-container">
@@ -81,6 +86,11 @@
         <!-- Search Bar Widget -->
         <div class="search-bar-wrapper">
             <div class="search-bar glass-panel">
+                <div class="search-mode-toggle" role="group" aria-label="Search mode">
+                    <button type="button" id="search-mode-apps" class="search-mode-btn active">Apps</button>
+                    <button type="button" id="search-mode-web" class="search-mode-btn">Web</button>
+                </div>
+                <div class="search-input-divider"></div>
                 <label for="search-engine" class="visually-hidden">Search engine</label>
                 <select id="search-engine" class="search-engine-select" aria-label="Search engine">
                     <option value="google">Google</option>
@@ -89,9 +99,9 @@
                 </select>
                 <div class="search-input-divider"></div>
                 <div class="search-input-wrapper">
-                    <label for="search-input" class="visually-hidden">Search the web</label>
+                    <label for="search-input" class="visually-hidden">Search</label>
                     <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
-                    <input type="text" id="search-input" class="search-input" placeholder="Search the web..." aria-label="Search the web">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search apps... (Ctrl+K)" aria-label="Search apps">
                 </div>
             </div>
         </div>
@@ -174,6 +184,14 @@
             <div class="category-filters" id="category-tabs-container">
                 <!-- CATEGORY_TABS -->
             </div>
+        </div>
+
+        <!-- Custom dashboard widgets -->
+        <!-- DASHBOARD_WIDGETS -->
+
+        <!-- Embed panel (Organizr-style) -->
+        <div id="embed-panel" class="embed-panel glass-panel" style="display:none; margin: 1rem 0; padding: 0; overflow: hidden;">
+            <iframe id="embed-panel-frame" class="embed-panel-frame" title="Embedded app" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style="width:100%; min-height:70vh; border:0;"></iframe>
         </div>
 
         <!-- Second Row: Media / Proxmox stream cards -->
@@ -272,6 +290,23 @@
                             <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Turn off for remote services (not on this Proxmox/Docker host) so the card stays clean.</span>
                         </span>
                     </label>
+                </div>
+
+                <div class="form-group">
+                    <input type="hidden" name="guest_visible" :value="newApp.guest_visible ? '1' : '0'">
+                    <label class="checkbox-row" for="add-app-guest-visible" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="add-app-guest-visible" x-model="newApp.guest_visible" style="margin-top:0.15rem;">
+                        <span>Visible to guests and anonymous visitors</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="add-app-embed-mode">Open behavior</label>
+                    <select id="add-app-embed-mode" name="embed_mode" x-model="newApp.embed_mode" class="form-control">
+                        <option value="link">Open in new tab</option>
+                        <option value="iframe">Embed in dashboard (iframe)</option>
+                        <option value="tab">Embed tab panel</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -426,6 +461,23 @@
                 </div>
 
                 <div class="form-group">
+                    <input type="hidden" name="guest_visible" :value="editApp.guest_visible ? '1' : '0'">
+                    <label class="checkbox-row" for="edit-app-guest-visible" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="edit-app-guest-visible" x-model="editApp.guest_visible" style="margin-top:0.15rem;">
+                        <span>Visible to guests and anonymous visitors</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-app-embed-mode">Open behavior</label>
+                    <select id="edit-app-embed-mode" name="embed_mode" x-model="editApp.embed_mode" class="form-control">
+                        <option value="link">Open in new tab</option>
+                        <option value="iframe">Embed in dashboard (iframe)</option>
+                        <option value="tab">Embed tab panel</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="edit-app-integration-type">Integration</label>
                     <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type">
                         <option value="">None</option>
@@ -552,24 +604,7 @@
             });
         }
 
-        // Search engine redirection
-        document.getElementById('search-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const query = encodeURIComponent(this.value.trim());
-                if (!query) return;
-                const engine = document.getElementById('search-engine').value;
-                let url = `https://www.google.com/search?q=${query}`;
-                if (engine === 'duckduckgo') {
-                    url = `https://duckduckgo.com/?q=${query}`;
-                } else if (engine === 'bing') {
-                    url = `https://www.bing.com/search?q=${query}`;
-                }
-                window.open(url, '_blank');
-                this.value = '';
-            }
-        });
-
-        // Client-side category filtering
+        // Category filtering — app search handled by app-search.js
         function filterCategory(category, element) {
             window.activeCategoryFilter = category;
             document.dispatchEvent(new CustomEvent('amud:category-filter', { detail: { category: category } }));

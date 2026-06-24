@@ -441,6 +441,8 @@ mod tests {
             app_statuses: Arc::new(RwLock::new(HashMap::new())),
             agent_command_tx: Arc::new(Mutex::new(None)),
             pve_test_response: Arc::new(RwLock::new(None)),
+            docker_discover_response: Arc::new(RwLock::new(None)),
+            share_sessions: Arc::new(RwLock::new(HashMap::new())),
             action_results: Arc::new(RwLock::new(HashMap::new())),
             settings_cache: Arc::new(RwLock::new(HashMap::new())),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
@@ -506,6 +508,8 @@ mod tests {
             app_statuses: Arc::new(RwLock::new(HashMap::new())),
             agent_command_tx: Arc::new(Mutex::new(None)),
             pve_test_response: Arc::new(RwLock::new(None)),
+            docker_discover_response: Arc::new(RwLock::new(None)),
+            share_sessions: Arc::new(RwLock::new(HashMap::new())),
             action_results: Arc::new(RwLock::new(HashMap::new())),
             settings_cache: Arc::new(RwLock::new(HashMap::new())),
             alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
@@ -559,6 +563,8 @@ mod tests {
             sort_order: 0,
             card_span: "1x1".to_string(),
             show_container_metrics: true,
+            guest_visible: true,
+            embed_mode: "link".to_string(),
         }
     }
 

@@ -46,6 +46,26 @@ pub async fn settings_handler(
                 sanitize_integration_url(&val)
             } else if key == "theme_mode" {
                 sanitize_theme_mode(&val)
+            } else if key == "theme_scheduler" {
+                sanitize_theme_scheduler(&val)
+            } else if key == "theme_light_at" {
+                sanitize_time_hhmm(&val, "07:00")
+            } else if key == "theme_dark_at" {
+                sanitize_time_hhmm(&val, "19:00")
+            } else if key == "guest_category_restrict" {
+                sanitize_bool_setting(&val)
+            } else if key == "guest_visible_categories" {
+                sanitize_guest_visible_categories(&val)
+            } else if key == "dashboard_layout" {
+                sanitize_dashboard_layout(&val)
+            } else if key == "embed_mode" {
+                sanitize_embed_mode(&val)
+            } else if key == "oidc_enabled"
+                || key == "status_page_public"
+                || key == "kiosk_mode"
+                || key == "iframe_embeds_enabled"
+            {
+                sanitize_bool_setting(&val)
             } else if key == "telemetry_external_ifaces" || key == "telemetry_internal_ifaces" {
                 sanitize_iface_list(&val)
             } else if key == "telemetry_disk_mounts" {
@@ -92,6 +112,23 @@ pub async fn test_proxmox_handler(
     State(state): State<Arc<AppState>>,
     Form(form): Form<HashMap<String, String>>,
 ) -> impl IntoResponse {
+    let session = match get_session(&headers, &state.sessions) {
+        Some(s) if s.role == "Admin" => s,
+        _ => {
+            if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+                return *resp;
+            }
+            return Response::builder()
+                .status(StatusCode::FORBIDDEN)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(
+                    r#"{"success":false,"error":"Admin required"}"#,
+                ))
+                .unwrap();
+        }
+    };
+    let admin_user = session.username.clone();
+
     if let Err(resp) = require_admin_session(&headers, &state.sessions) {
         return *resp;
     }
@@ -103,9 +140,19 @@ pub async fn test_proxmox_handler(
     if !form_token.trim().is_empty() {
         let token_trim = form_token.trim().to_string();
         let settings_cache = state.settings_cache.clone();
+        let headers_clone = headers.clone();
+        let admin_user_clone = admin_user.clone();
         with_db(state.db.clone(), move |db| {
             crate::db::upsert_setting(db, "pve_api_token", &token_trim);
             refresh_settings_cache(db, &settings_cache);
+            record_audit_blocking(
+                db,
+                &headers_clone,
+                &admin_user_clone,
+                "proxmox_token_update",
+                "pve_api_token",
+                "updated via Proxmox test panel",
+            );
         })
         .await;
         let config_payload = {
@@ -168,6 +215,33 @@ pub async fn test_proxmox_handler(
         "success": success,
         "error": error
     });
+
+    let headers_clone = headers.clone();
+    let admin_user_clone = admin_user.clone();
+    let action = if success {
+        "proxmox_test_success"
+    } else {
+        "proxmox_test_failed"
+    }
+    .to_string();
+    let details = if success {
+        "connection test succeeded".to_string()
+    } else {
+        error
+            .clone()
+            .unwrap_or_else(|| "connection test failed".to_string())
+    };
+    with_db(state.db.clone(), move |db| {
+        record_audit_blocking(
+            db,
+            &headers_clone,
+            &admin_user_clone,
+            &action,
+            "proxmox",
+            &details,
+        );
+    })
+    .await;
 
     Response::builder()
         .status(StatusCode::OK)

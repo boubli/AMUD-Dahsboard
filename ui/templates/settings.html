@@ -20,6 +20,8 @@
     <!-- Lucide Vector Icons -->
     <script src="/static/vendor/lucide.min.js"></script>
     <script src="/static/admin.js"></script>
+    <script id="amud-theme-config" type="application/json">{{theme_scheduler_config}}</script>
+    <script src="/static/theme-scheduler.js?v={{app_version}}"></script>
 
     <style>
         :root {
@@ -374,6 +376,9 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Account</div>
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'widgets' }" @click="switchTab('widgets')">
+                    <i data-lucide="layout-grid"></i> Widgets
+                </button>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'security' }" @click="switchTab('security')">
                     <i data-lucide="shield-check"></i> Security
                 </button>
@@ -506,8 +511,32 @@
                                                 <option value="dark" {{eq_theme_dark}}>Dark Mode</option>
                                                 <option value="light" {{eq_theme_light}}>Light Mode</option>
                                             </select>
+                                            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Used when the scheduler is off, or as fallback when sunrise times cannot be resolved.</p>
                                         </div>
                                     </div>
+                                </div>
+
+                                <div class="settings-block" style="margin:0;">
+                                    <h3><i data-lucide="sun-moon" style="color:var(--accent-color);"></i> Theme Scheduler</h3>
+                                    <div class="form-group">
+                                        <label for="theme-scheduler-select">Automatic light / dark</label>
+                                        <select name="theme_scheduler" id="theme-scheduler-select" class="form-control" style="height:3rem; cursor:pointer;">
+                                            <option value="off" {{eq_theme_scheduler_off}}>Off — use fixed theme mode</option>
+                                            <option value="sunrise_sunset" {{eq_theme_scheduler_sunrise}}>Sunrise / sunset (Weather coordinates)</option>
+                                            <option value="manual" {{eq_theme_scheduler_manual}}>Manual schedule</option>
+                                        </select>
+                                    </div>
+                                    <div id="theme-scheduler-manual-fields" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="theme-light-at">Switch to light at</label>
+                                            <input type="time" id="theme-light-at" name="theme_light_at" class="form-control" value="{{theme_light_at}}" style="height:3rem;">
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="theme-dark-at">Switch to dark at</label>
+                                            <input type="time" id="theme-dark-at" name="theme_dark_at" class="form-control" value="{{theme_dark_at}}" style="height:3rem;">
+                                        </div>
+                                    </div>
+                                    <p id="theme-scheduler-hint" style="font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">Sunrise/sunset mode uses the latitude and longitude from the Weather tab.</p>
                                 </div>
 
                                 <div class="settings-block" style="margin:0;">
@@ -525,6 +554,14 @@
                                             <option value="5" {{eq_grid_5}}>5 columns</option>
                                         </select>
                                         <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Controls the main app card grid on desktop screens.</p>
+                                    </div>
+                                    <div class="form-group" style="margin-top:1.5rem;">
+                                        <label for="setting-dashboard-layout">Category navigation</label>
+                                        <select id="setting-dashboard-layout" name="dashboard_layout" class="form-control">
+                                            <option value="tabs" {{eq_dashboard_layout_tabs}}>Horizontal tabs</option>
+                                            <option value="sections" {{eq_dashboard_layout_sections}}>Collapsible sections</option>
+                                        </select>
+                                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">How categories are shown on the main dashboard.</p>
                                     </div>
                                     <div class="form-group" style="margin-top:1.5rem;">
                                         <label for="setting-glass-opacity">Glass Panel Opacity</label>
@@ -623,6 +660,13 @@
                         </div>
 
                         <div class="settings-block">
+                            <h3><i data-lucide="container" style="color:var(--accent-color);"></i> Docker app discovery</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Scan labeled containers via the host agent (<code>amud.enable=true</code>, <code>amud.url</code>, etc.) and import as dashboard apps.</p>
+                            <button type="button" class="btn btn-secondary" id="btn-docker-scan" style="margin-top:0.75rem;">Scan Docker</button>
+                            <div id="docker-discover-results" style="display:none; margin-top:1rem; font-size:0.85rem;"></div>
+                        </div>
+
+                        <div class="settings-block">
                             <h3><i data-lucide="tv" style="color:var(--accent-color);"></i> Jellyfin / Emby</h3>
                             <div class="form-group">
                                 <label for="setting-jellyfin-url">Jellyfin URL</label>
@@ -662,6 +706,7 @@
                                 </select>
                                 <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">When enabled, guests see host CPU model, usage, memory, and GPU stats (if the agent reports them). Container names, VMIDs, latency, per-app metrics, streams, and admin controls stay hidden.</p>
                             </div>
+                            {{guest_category_controls}}
                         </div>
 
                         <div class="settings-block">
@@ -930,6 +975,58 @@
                 </div>
             </div>
 
+            <!-- TAB: WIDGETS -->
+            <div x-show="activeTab === 'widgets'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
+                <h1 class="settings-page-title">Dashboard Widgets</h1>
+                <p class="settings-page-subtitle">Add custom notes, link lists, or sanitized HTML blocks above the app grid.</p>
+
+                <div class="settings-block">
+                    <h3><i data-lucide="plus" style="color:var(--accent-color);"></i> Add widget</h3>
+                    <form action="/api/widgets/add" method="POST" style="display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                        <div class="form-group">
+                            <label for="widget-title">Title</label>
+                            <input type="text" id="widget-title" name="title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="widget-type">Type</label>
+                            <select id="widget-type" name="widget_type" class="form-control">
+                                <option value="note">Note</option>
+                                <option value="links">Links (JSON array)</option>
+                                <option value="html">HTML (sanitized)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="widget-content">Content</label>
+                            <textarea id="widget-content" name="content" class="form-control" rows="4" placeholder="Text, JSON links, or HTML"></textarea>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                            <div class="form-group">
+                                <label for="widget-span">Grid span</label>
+                                <select id="widget-span" name="grid_span" class="form-control">
+                                    <option value="1x1">1×1</option>
+                                    <option value="2x1">2×1</option>
+                                    <option value="1x2">1×2</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="widget-guest-visible">Guest visible</label>
+                                <select id="widget-guest-visible" name="guest_visible" class="form-control">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Add widget</button>
+                    </form>
+                </div>
+
+                <div class="settings-block" style="margin-top:1.5rem;">
+                    <h3><i data-lucide="list" style="color:var(--accent-color);"></i> Existing widgets</h3>
+                    <div id="widgets-list" style="font-size:0.85rem; color:var(--text-muted);">Loading…</div>
+                </div>
+            </div>
+
             <!-- TAB: SECURITY (Self Password) -->
             <div x-show="activeTab === 'security'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <h1 class="settings-page-title">Security</h1>
@@ -962,9 +1059,82 @@
                         Update Credentials
                     </button>
                 </div>
-            </div>
 
-            <!-- TAB: SYSTEM -->
+                <div class="settings-block" style="margin-top:1.5rem;">
+                    <h3><i data-lucide="key" style="color:var(--accent-color);"></i> OIDC / SSO</h3>
+                    <div class="form-group">
+                        <label for="setting-oidc-enabled">Enable OIDC login</label>
+                        <select id="setting-oidc-enabled" name="oidc_enabled" class="form-control">
+                            <option value="0" {{eq_oidc_enabled_off}}>Disabled</option>
+                            <option value="1" {{eq_oidc_enabled_on}}>Enabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-oidc-issuer">Issuer URL</label>
+                        <input type="url" id="setting-oidc-issuer" name="oidc_issuer" class="form-control" value="{{oidc_issuer}}" placeholder="https://auth.example.com/realms/homelab">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-oidc-client-id">Client ID</label>
+                        <input type="text" id="setting-oidc-client-id" name="oidc_client_id" class="form-control" value="{{oidc_client_id}}">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-oidc-client-secret">Client secret</label>
+                        <input type="password" id="setting-oidc-client-secret" name="oidc_client_secret" class="form-control" placeholder="Leave blank to keep unchanged">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-oidc-redirect">Redirect URI</label>
+                        <input type="url" id="setting-oidc-redirect" name="oidc_redirect_uri" class="form-control" value="{{oidc_redirect_uri}}" placeholder="https://dashboard.example.com/auth/oidc/callback">
+                    </div>
+                </div>
+
+                <div class="settings-block" style="margin-top:1.5rem;">
+                    <h3><i data-lucide="ticket" style="color:var(--accent-color);"></i> API tokens</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted);">Create scoped read-only tokens for external scripts.</p>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem;">
+                        <input type="text" id="new-api-token-name" class="form-control" placeholder="Token name" style="flex:1; min-width:160px;">
+                        <button type="button" class="btn btn-secondary" id="btn-create-api-token">Create token</button>
+                    </div>
+                    <p id="api-token-result" style="font-size:0.8rem; color:var(--accent-color); margin-top:0.5rem;"></p>
+                </div>
+
+                <div class="settings-block" style="margin-top:1.5rem;">
+                    <h3><i data-lucide="monitor" style="color:var(--accent-color);"></i> Kiosk &amp; share links</h3>
+                    <div class="form-group">
+                        <label for="setting-kiosk-mode">Kiosk mode</label>
+                        <select id="setting-kiosk-mode" name="kiosk_mode" class="form-control">
+                            <option value="0" {{eq_kiosk_off}}>Off</option>
+                            <option value="1" {{eq_kiosk_on}}>On — hide sign-in for anonymous wall displays</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-status-public">Public status page</label>
+                        <select id="setting-status-public" name="status_page_public" class="form-control">
+                            <option value="0" {{eq_status_public_off}}>Require login</option>
+                            <option value="1" {{eq_status_public_on}}>Allow anonymous /status</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-iframe-embeds">Iframe embeds</label>
+                        <select id="setting-iframe-embeds" name="iframe_embeds_enabled" class="form-control">
+                            <option value="0" {{eq_iframe_embeds_off}}>Disabled</option>
+                            <option value="1" {{eq_iframe_embeds_on}}>Enabled (per-app embed mode)</option>
+                        </select>
+                    </div>
+                    <form action="/api/share/create" method="POST" style="margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:flex-end;">
+                        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                        <div class="form-group" style="flex:1; min-width:140px; margin:0;">
+                            <label for="share-link-label">Share link label</label>
+                            <input type="text" id="share-link-label" name="label" class="form-control" placeholder="Wall display">
+                        </div>
+                        <div class="form-group" style="flex:1; min-width:140px; margin:0;">
+                            <label for="share-link-paths">Allowed paths</label>
+                            <input type="text" id="share-link-paths" name="allowed_paths" class="form-control" value="/" placeholder="/ or /feeds">
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Create share link</button>
+                    </form>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.5rem;">Share URLs look like <code>/s/&lt;token&gt;</code> — copy from audit log after creation or check the database.</p>
+                </div>
+            </div>
             <div x-show="activeTab === 'system'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <h1 class="settings-page-title">System Settings</h1>
                 <p class="settings-page-subtitle">Manage AMUD Dashboard version, check for updates, and perform system operations.</p>
@@ -1442,6 +1612,7 @@
                     else if (this.activeTab === 'audit') loadAuditLog();
                     else if (this.activeTab === 'wol') loadWolDevices();
                     else if (this.activeTab === 'rss') loadRssTab();
+                    else if (this.activeTab === 'widgets') loadWidgetsList();
                     else if (this.activeTab === 'system') {
                         this.systemTabVisited = true;
                         localStorage.setItem('amud_system_tab_visited', 'true');
@@ -1458,6 +1629,7 @@
                     if (tab === 'audit') loadAuditLog();
                     if (tab === 'wol') loadWolDevices();
                     if (tab === 'rss') loadRssTab();
+                    if (tab === 'widgets') loadWidgetsList();
                     if (tab === 'appearance' && typeof window.amudRefreshLivePreview === 'function') {
                         requestAnimationFrame(function() { window.amudRefreshLivePreview(); });
                     }
@@ -1705,13 +1877,34 @@
                 customCssTimer = setTimeout(updateCustomCssPreview, 150);
             }
 
-            function updatePreview() {
+            function readThemeSchedulerConfig() {
+                const schedulerSelect = document.getElementById('theme-scheduler-select');
+                const lightAt = document.getElementById('theme-light-at');
+                const darkAt = document.getElementById('theme-dark-at');
+                const latInput = document.getElementById('setting-weather-latitude');
+                const lonInput = document.getElementById('setting-weather-longitude');
+                return {
+                    scheduler: schedulerSelect ? schedulerSelect.value : 'off',
+                    lightAt: lightAt ? lightAt.value : '07:00',
+                    darkAt: darkAt ? darkAt.value : '19:00',
+                    baseMode: themeModeSelect ? themeModeSelect.value : 'dark',
+                    lat: latInput ? latInput.value : '',
+                    lon: lonInput ? lonInput.value : ''
+                };
+            }
+
+            function syncThemeConfigScript() {
+                const el = document.getElementById('amud-theme-config');
+                if (!el) return;
+                el.textContent = JSON.stringify(readThemeSchedulerConfig());
+            }
+
+            function renderPreview(themeMode) {
                 const accent = accentInput ? accentInput.value : '#cf6427';
                 const blur = blurInput ? blurInput.value : '16';
                 const opacity = opacityInput ? opacityInput.value : '0.45';
                 const radius = radiusInput ? radiusInput.value : '16';
                 const gridColumns = gridColumnsSelect ? gridColumnsSelect.value : '3';
-                const themeMode = themeModeSelect ? themeModeSelect.value : 'dark';
                 const wallpaper = bgInput ? bgInput.value : '';
                 const accentGlow = accentGlowFromHex(accent);
                 const safeUrl = safeWallpaperUrl(wallpaper);
@@ -1760,6 +1953,18 @@
                 }
             }
 
+            function updatePreview() {
+                syncThemeConfigScript();
+                const cfg = readThemeSchedulerConfig();
+                if (cfg.scheduler && cfg.scheduler !== 'off' && typeof window.amudEffectiveThemeMode === 'function') {
+                    window.amudEffectiveThemeMode(cfg).then(renderPreview).catch(function() {
+                        renderPreview(cfg.baseMode);
+                    });
+                    return;
+                }
+                renderPreview(cfg.baseMode);
+            }
+
             panel.addEventListener('input', function(e) {
                 if (e.target === customCssInput) {
                     scheduleCustomCssPreview();
@@ -1775,9 +1980,84 @@
             updatePreview();
         }
 
+        function initThemeSchedulerUI() {
+            const select = document.getElementById('theme-scheduler-select');
+            const manualFields = document.getElementById('theme-scheduler-manual-fields');
+            const hint = document.getElementById('theme-scheduler-hint');
+            const lightAt = document.getElementById('theme-light-at');
+            const darkAt = document.getElementById('theme-dark-at');
+
+            function refresh() {
+                const mode = select ? select.value : 'off';
+                if (manualFields) {
+                    manualFields.style.display = mode === 'manual' ? 'grid' : 'none';
+                }
+                if (hint) {
+                    if (mode === 'sunrise_sunset') {
+                        hint.textContent = 'Sunrise/sunset mode uses the latitude and longitude from the Weather tab.';
+                    } else if (mode === 'manual') {
+                        hint.textContent = 'Dark mode applies from the dark time until the light time.';
+                    } else {
+                        hint.textContent = 'Scheduler disabled — the fixed theme mode above is used everywhere.';
+                    }
+                }
+            }
+
+            function onSchedulerChange() {
+                refresh();
+                if (typeof window.amudApplyScheduledTheme === 'function') {
+                    window.amudApplyScheduledTheme();
+                }
+                if (typeof window.amudRefreshLivePreview === 'function') {
+                    window.amudRefreshLivePreview();
+                }
+            }
+
+            if (select) select.addEventListener('change', onSchedulerChange);
+            if (lightAt) lightAt.addEventListener('change', onSchedulerChange);
+            if (darkAt) darkAt.addEventListener('change', onSchedulerChange);
+            refresh();
+        }
+
+        function initGuestCategoryControls() {
+            const restrictSelect = document.getElementById('setting-guest-category-restrict');
+            const picker = document.getElementById('guest-category-picker');
+            const hidden = document.getElementById('guest-visible-categories-input');
+
+            function syncHidden() {
+                if (!hidden) return;
+                const names = [];
+                document.querySelectorAll('.guest-category-checkbox:checked').forEach(function(cb) {
+                    names.push(cb.getAttribute('data-category'));
+                });
+                hidden.value = names.join(',');
+            }
+
+            function refreshPicker() {
+                const restricted = restrictSelect && restrictSelect.value === '1';
+                if (picker) {
+                    picker.style.opacity = restricted ? '1' : '0.55';
+                }
+                document.querySelectorAll('.guest-category-checkbox').forEach(function(cb) {
+                    cb.disabled = !restricted;
+                });
+            }
+
+            document.querySelectorAll('.guest-category-checkbox').forEach(function(cb) {
+                cb.addEventListener('change', syncHidden);
+            });
+            if (restrictSelect) {
+                restrictSelect.addEventListener('change', refreshPicker);
+            }
+            syncHidden();
+            refreshPicker();
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
             initLivePreview();
+            initThemeSchedulerUI();
+            initGuestCategoryControls();
             initBundledThemes();
         });
 
@@ -2404,6 +2684,115 @@
             await loadFeedIconPresets();
             await loadRssFeeds();
             await loadFeedCategories();
+        }
+
+        async function loadWidgetsList() {
+            const el = document.getElementById('widgets-list');
+            if (!el) return;
+            try {
+                const res = await fetch('/api/widgets');
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) throw new Error(data.error || 'Failed to load widgets');
+                const widgets = data.widgets || [];
+                if (!widgets.length) {
+                    el.textContent = 'No custom widgets yet.';
+                    return;
+                }
+                el.replaceChildren();
+                widgets.forEach((w) => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:0.75rem; padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.06);';
+                    const label = document.createElement('span');
+                    const strong = document.createElement('strong');
+                    strong.textContent = w.title || 'Widget';
+                    label.appendChild(strong);
+                    label.appendChild(document.createTextNode(' (' + (w.widget_type || 'note') + ')'));
+                    row.appendChild(label);
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/api/widgets/delete';
+                    const csrf = document.createElement('input');
+                    csrf.type = 'hidden';
+                    csrf.name = 'csrf_token';
+                    csrf.value = amudCsrfToken();
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = 'id';
+                    idInput.value = String(w.id);
+                    const delBtn = document.createElement('button');
+                    delBtn.type = 'submit';
+                    delBtn.className = 'btn btn-secondary';
+                    delBtn.style.cssText = 'font-size:0.75rem; padding:0.25rem 0.5rem;';
+                    delBtn.textContent = 'Delete';
+                    form.append(csrf, idInput, delBtn);
+                    row.appendChild(form);
+                    el.appendChild(row);
+                });
+            } catch (e) {
+                el.textContent = e.message || 'Failed to load widgets';
+            }
+        }
+
+        async function scanDockerContainers() {
+            const results = document.getElementById('docker-discover-results');
+            const btn = document.getElementById('btn-docker-scan');
+            if (!results || !btn) return;
+            btn.disabled = true;
+            results.style.display = 'block';
+            results.textContent = 'Scanning Docker via agent…';
+            const formData = new URLSearchParams();
+            formData.append('csrf_token', amudCsrfToken());
+            try {
+                const res = await fetch('/api/discover/docker', { method: 'POST', body: formData, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) throw new Error(data.error || 'Scan failed');
+                const apps = data.apps || [];
+                if (!apps.length) {
+                    results.textContent = 'No labeled containers found. Add amud.enable=true and amud.url labels.';
+                    return;
+                }
+                results.innerHTML = `<p><strong>${apps.length}</strong> container(s) found.</p>`;
+                const importBtn = document.createElement('button');
+                importBtn.type = 'button';
+                importBtn.className = 'btn btn-primary';
+                importBtn.style.marginTop = '0.5rem';
+                importBtn.textContent = 'Import all new apps';
+                importBtn.onclick = async () => {
+                    const payload = new URLSearchParams();
+                    payload.append('csrf_token', amudCsrfToken());
+                    payload.append('apps_json', JSON.stringify(apps));
+                    const imp = await fetch('/api/discover/import', { method: 'POST', body: payload, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+                    if (imp.ok) {
+                        results.textContent = 'Imported. Refresh the dashboard to see new apps.';
+                    } else {
+                        results.textContent = 'Import failed.';
+                    }
+                };
+                results.appendChild(importBtn);
+            } catch (e) {
+                results.textContent = e.message || 'Scan failed';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function createApiToken() {
+            const nameEl = document.getElementById('new-api-token-name');
+            const out = document.getElementById('api-token-result');
+            if (!nameEl || !out) return;
+            const formData = new URLSearchParams();
+            formData.append('name', nameEl.value.trim());
+            formData.append('scopes', 'read:apps,read:status');
+            formData.append('csrf_token', amudCsrfToken());
+            try {
+                const res = await fetch('/api/tokens/create', { method: 'POST', body: formData, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) throw new Error(data.error || 'Failed to create token');
+                out.textContent = data.token ? `Token (copy now): ${data.token}` : (data.message || 'Created');
+                nameEl.value = '';
+            } catch (e) {
+                out.textContent = e.message || 'Failed';
+            }
         }
 
         async function loadRssFeeds() {
@@ -3142,6 +3531,8 @@
     </div>
 
     <script nonce="{{csp_nonce}}">
+        document.getElementById('btn-docker-scan')?.addEventListener('click', scanDockerContainers);
+        document.getElementById('btn-create-api-token')?.addEventListener('click', createApiToken);
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/sw.js');

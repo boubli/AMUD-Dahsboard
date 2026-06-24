@@ -942,6 +942,88 @@ fn send_action_result(
     }
 }
 
+#[cfg(unix)]
+fn discover_docker_apps() -> Vec<serde_json::Value> {
+    if !docker_enabled() || !std::path::Path::new("/var/run/docker.sock").exists() {
+        return Vec::new();
+    }
+    let rt = agent_runtime();
+    rt.block_on(async {
+        use http_body_util::{BodyExt, Empty};
+        use hyper::body::Bytes;
+        use hyper_util::client::legacy::Client;
+        use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
+
+        let client: Client<UnixConnector, Empty<Bytes>> = Client::unix();
+        let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", "/containers/json").into();
+        let req = hyper::Request::builder()
+            .method("GET")
+            .uri(uri)
+            .header("Host", "localhost")
+            .body(Empty::<Bytes>::new())
+            .ok()?;
+        let resp = client.request(req).await.ok()?;
+        let body = resp.into_body().collect().await.ok()?.to_bytes();
+        #[derive(serde::Deserialize)]
+        struct Row {
+            #[serde(rename = "Id")]
+            id: String,
+            #[serde(rename = "Names")]
+            names: Vec<String>,
+            #[serde(default)]
+            Labels: std::collections::HashMap<String, String>,
+        }
+        let rows: Vec<Row> = serde_json::from_slice(&body).ok()?;
+        let mut out = Vec::new();
+        for row in rows {
+            let enabled = row
+                .Labels
+                .get("amud.enable")
+                .map(|s| s == "true")
+                .unwrap_or(false);
+            let url = row
+                .Labels
+                .get("amud.url")
+                .cloned()
+                .or_else(|| row.Labels.get("traefik.http.routers.amud.rule").cloned());
+            if !enabled && url.is_none() {
+                continue;
+            }
+            let name = row
+                .Labels
+                .get("amud.name")
+                .cloned()
+                .or_else(|| {
+                    row.names
+                        .first()
+                        .map(|n| n.trim_start_matches('/').to_string())
+                })
+                .unwrap_or_else(|| "container".to_string());
+            let url = url.unwrap_or_else(|| "http://localhost".to_string());
+            let category = row
+                .Labels
+                .get("amud.category")
+                .cloned()
+                .unwrap_or_else(|| "General".to_string());
+            let icon = row.Labels.get("amud.icon").cloned().unwrap_or_default();
+            out.push(serde_json::json!({
+                "name": name,
+                "url": url,
+                "category": category,
+                "icon": icon,
+                "container_id": row.id,
+            }));
+        }
+        Some(out)
+    })
+    .unwrap_or_default()
+}
+
+#[cfg(not(unix))]
+fn discover_docker_apps() -> Vec<serde_json::Value> {
+    Vec::new()
+}
+
 fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
     if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
         if let Some(config) = val.get("config") {
@@ -955,7 +1037,16 @@ fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
                 }
             }
         } else if let Some(action) = val.get("action").and_then(|a| a.as_str()) {
-            if action == "test_pve" {
+            if action == "discover_docker" {
+                let apps = discover_docker_apps();
+                let response = serde_json::json!({ "discover_docker_result": { "apps": apps } });
+                if let Ok(mut serialized) = serde_json::to_vec(&response) {
+                    serialized.push(b'\n');
+                    use std::io::Write;
+                    let _ = response_stream.write_all(&serialized);
+                    let _ = response_stream.flush();
+                }
+            } else if action == "test_pve" {
                 let token = val
                     .get("id")
                     .and_then(|i| i.as_str())

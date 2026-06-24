@@ -32,6 +32,18 @@ pub struct App {
     pub(crate) card_span: String,
     #[serde(default = "default_show_container_metrics")]
     pub(crate) show_container_metrics: bool,
+    #[serde(default = "default_guest_visible")]
+    pub(crate) guest_visible: bool,
+    #[serde(default = "default_embed_mode")]
+    pub(crate) embed_mode: String,
+}
+
+fn default_guest_visible() -> bool {
+    true
+}
+
+fn default_embed_mode() -> String {
+    "link".to_string()
 }
 
 fn default_show_container_metrics() -> bool {
@@ -110,6 +122,23 @@ pub struct ActionResultPayload {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
+pub struct DashboardWidget {
+    pub(crate) id: i64,
+    pub(crate) widget_type: String,
+    pub(crate) title: String,
+    pub(crate) content: String,
+    pub(crate) sort_order: i64,
+    pub(crate) guest_visible: bool,
+    pub(crate) grid_span: String,
+}
+
+#[derive(Clone)]
+pub struct ShareSession {
+    pub allowed_paths: String,
+    pub expires_at_epoch: u64,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Webhook {
     pub(crate) id: i64,
     pub(crate) name: String,
@@ -129,6 +158,8 @@ pub struct AppState {
     pub agent_command_tx: Arc<Mutex<Option<AgentCommandHandle>>>,
     pub next_agent_conn_id: Arc<AtomicU64>,
     pub pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
+    pub docker_discover_response: Arc<RwLock<Option<serde_json::Value>>>,
+    pub share_sessions: Arc<RwLock<HashMap<String, ShareSession>>>,
     pub action_results: Arc<RwLock<HashMap<String, ActionResult>>>,
     pub settings_cache: Arc<RwLock<HashMap<String, String>>>,
     pub alert_cooldowns: Arc<Mutex<HashMap<String, std::time::Instant>>>,

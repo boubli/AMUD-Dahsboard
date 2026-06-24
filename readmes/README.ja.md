@@ -10,11 +10,25 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.2.0 の新機能
+### v1.5.5.3 の新機能
 
-- **RSSフィードの統合** — 有効なRSS/Atomフィードから最新の3つのヘッドラインをアプリカードに直接ストリーミングします。
-- **ゲストに優しいテレメトリ** — RSSウィジェットはダッシュボードのゲストにも表示され、管理者限定の統合とは安全に分離されています。
-- **内部の仕組み** — 効率的なフェッチとエラー処理を備えた `feed-rs` によってネイティブに強化されています。
+- **統合ホバーを修正** — 統計がカード内で切り替わります（CPU/RAM ↔ Prowlarr/*arr）。下のカードに重なりません
+- **管理者設定** — 「アクセス拒否」のみではなくログインへリダイレクト
+- **Docker `:latest` 修正** + コンテナ自動制御 + RSS 自動 favicon（v1.5.5.2 より）
+
+完全な履歴：**[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+
+### リリース状況（2026-06-24 監査）
+
+クリーンな Proxmox テストコンテナで手動検証後、以下のバージョンが既知の安定ベースラインとして維持されています：
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3`（現在推奨の最新版）
+
+監査で特定された破損タグは GitHub のリリース/タグから削除されており、使用しないでください。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
@@ -114,7 +128,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # 上のアプリの秘密鍵と一致する必要があります
-      - AMUD_DOCKER=0 # Docker監視を有効にするには1に設定します
+      - AMUD_DOCKER=1 # docker.sock マウント時に自動有効；無効化は 0
     cap_drop:
       - ALL
     security_opt:
@@ -160,6 +174,10 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 ---
 
 ## サポートと寄付
+
+**バグと機能リクエスト：** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues)（推奨 — リリースごとに追跡）  
+**質問とチャット：** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
+**ドキュメント / トラブルシューティング：** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 
 * [GitHub Sponsors](https://github.com/sponsors/boubli)
 * [Stripe経由での寄付](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)

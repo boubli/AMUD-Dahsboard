@@ -115,6 +115,54 @@ pub async fn run() {
         "ALTER TABLE apps ADD COLUMN show_container_metrics INTEGER DEFAULT 1",
         [],
     );
+    let _ = conn.execute(
+        "ALTER TABLE apps ADD COLUMN guest_visible INTEGER DEFAULT 1",
+        [],
+    );
+    let _ = conn.execute(
+        "ALTER TABLE apps ADD COLUMN embed_mode TEXT DEFAULT 'link'",
+        [],
+    );
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS dashboard_widgets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        widget_type TEXT NOT NULL DEFAULT 'note',
+        title TEXT NOT NULL DEFAULT '',
+        content TEXT NOT NULL DEFAULT '',
+        sort_order INTEGER DEFAULT 0,
+        guest_visible INTEGER NOT NULL DEFAULT 1,
+        grid_span TEXT DEFAULT '1x1'
+    );",
+        [],
+    )
+    .unwrap();
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS api_tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        token_hash TEXT NOT NULL UNIQUE,
+        scopes TEXT NOT NULL DEFAULT 'read:apps',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME
+    );",
+        [],
+    )
+    .unwrap();
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS share_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        token TEXT NOT NULL UNIQUE,
+        label TEXT NOT NULL DEFAULT '',
+        allowed_paths TEXT NOT NULL DEFAULT '/',
+        expires_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );",
+        [],
+    )
+    .unwrap();
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS wol_devices (
@@ -348,6 +396,8 @@ pub async fn run() {
     let app_statuses = Arc::new(RwLock::new(HashMap::new()));
     let agent_command_tx = Arc::new(Mutex::new(None));
     let pve_test_response = Arc::new(RwLock::new(None));
+    let docker_discover_response = Arc::new(RwLock::new(None));
+    let share_sessions = Arc::new(RwLock::new(HashMap::new()));
     let action_results = Arc::new(RwLock::new(HashMap::new()));
     let settings_cache = Arc::new(RwLock::new(HashMap::new()));
     {
@@ -368,6 +418,8 @@ pub async fn run() {
         agent_command_tx: agent_command_tx.clone(),
         next_agent_conn_id: Arc::new(std::sync::atomic::AtomicU64::new(1)),
         pve_test_response: pve_test_response.clone(),
+        docker_discover_response: docker_discover_response.clone(),
+        share_sessions: share_sessions.clone(),
         action_results: action_results.clone(),
         settings_cache: settings_cache.clone(),
         alert_cooldowns: Arc::new(Mutex::new(HashMap::new())),
@@ -403,7 +455,12 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/", get(dashboard_handler))
         .route("/feeds", get(feeds_page_handler))
+        .route("/status", get(status_page_handler))
+        .route("/embed/:app_id", get(embed_app_handler))
+        .route("/s/:token", get(share_link_handler))
         .route("/login", get(login_page).post(login_handler))
+        .route("/auth/oidc/login", get(oidc_login_handler))
+        .route("/auth/oidc/callback", get(oidc_callback_handler))
         .route("/logout", post(logout_handler))
         .route("/ws", get(ws_handler))
         .route("/health", get(health_handler))
@@ -438,6 +495,7 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/wol", get(list_wol_devices_handler))
         .route("/api/wol/add", post(add_wol_device_handler))
         .route("/api/wol/delete", post(delete_wol_device_handler))
+        .route("/api/apps", get(list_apps_api_handler))
         .route("/api/apps/:id/integration", get(integration_data_handler))
         .route(
             "/api/apps/:id/integration/action",
@@ -474,6 +532,17 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/rss-feeds/delete", post(delete_rss_feed_handler))
         .route("/api/rss-feeds/reorder", post(reorder_rss_feeds_handler))
         .route("/api/audit", get(list_audit_handler))
+        .route("/api/status", get(api_status_handler))
+        .route("/api/widgets", get(list_widgets_handler))
+        .route("/api/widgets/add", post(add_widget_handler))
+        .route("/api/widgets/delete", post(delete_widget_handler))
+        .route("/api/discover/docker", post(discover_docker_handler))
+        .route("/api/discover/import", post(import_discovered_apps_handler))
+        .route("/api/tokens", get(list_api_tokens_handler))
+        .route("/api/tokens/create", post(create_api_token_handler))
+        .route("/api/tokens/delete", post(delete_api_token_handler))
+        .route("/api/share/create", post(create_share_link_handler))
+        .route("/api/share/delete", post(delete_share_link_handler))
         .route("/api/system/version", get(system_version_handler))
         .route("/api/system/update", post(system_update_handler))
         .route("/api/users", get(list_users_handler).post(add_user_handler))
@@ -481,6 +550,9 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/users/delete", post(delete_user_handler))
         .route("/uploads/:filename", get(serve_upload_handler))
         .nest_service("/static", tower_http::services::ServeDir::new("ui/static"))
-        .layer(middleware::from_fn(security_headers))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            security_headers,
+        ))
         .with_state(state)
 }

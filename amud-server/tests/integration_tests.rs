@@ -37,7 +37,9 @@ fn setup_test_db() -> Connection {
             api_key TEXT DEFAULT '',
             sort_order INTEGER DEFAULT 0,
             card_span TEXT DEFAULT '1x1',
-            show_container_metrics INTEGER DEFAULT 1
+            show_container_metrics INTEGER DEFAULT 1,
+            guest_visible INTEGER NOT NULL DEFAULT 1,
+            embed_mode TEXT NOT NULL DEFAULT 'link'
         );
         CREATE TABLE IF NOT EXISTS categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,6 +105,8 @@ fn setup_test_state() -> Arc<AppState> {
         smart_home_telemetry: Arc::new(RwLock::new(Default::default())),
         logo_manifest: Arc::new(HashMap::new()),
         telemetry_broadcast,
+        docker_discover_response: Arc::new(RwLock::new(None)),
+        share_sessions: Arc::new(RwLock::new(HashMap::new())),
     })
 }
 

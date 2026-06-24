@@ -10,11 +10,25 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.2.0 새로운 기능
+### v1.5.5.3 새로운 기능
 
-- **RSS 피드 통합** — 유효한 RSS/Atom 피드의 최신 헤드라인 3개를 앱 카드에 직접 스트리밍합니다.
-- **게스트 친화적 원격 측정** — RSS 위젯은 대시보드 게스트에게도 표시되며, 관리자 전용 통합과는 안전하게 분리되어 있습니다.
-- **내부 구조** — 효율적인 가져오기 및 오류 처리를 통해 `feed-rs`로 기본 구동됩니다.
+- **통합 호버 수정** — 통계가 카드 안에서 전환됩니다 (CPU/RAM ↔ Prowlarr/*arr). 아래 카드와 겹치지 않음
+- **관리자 설정** — «액세스 거부»만 표시하지 않고 로그인으로 리디렉션
+- **Docker `:latest` 수정** + 자동 컨테이너 제어 + RSS 자동 파비콘 (v1.5.5.2부터)
+
+전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+
+### 릴리스 상태 (2026-06-24 감사)
+
+깨끗한 Proxmox 테스트 컨테이너에서 수동 검증 후, 다음 버전이 알려진 안정 기준선으로 유지됩니다:
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3` (현재 권장 최신)
+
+감사에서 확인된 손상된 태그는 GitHub releases/tags에서 제거되었으며 사용하지 마세요.
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
@@ -114,7 +128,7 @@ services:
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # 위의 앱 비밀 키와 일치해야 합니다
-      - AMUD_DOCKER=0 # Docker 모니터링을 활성화하려면 1로 설정합니다
+      - AMUD_DOCKER=1 # docker.sock 마운트 시 자동 활성화; 비활성화는 0
     cap_drop:
       - ALL
     security_opt:
@@ -160,6 +174,10 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 ---
 
 ## 지원 및 후원
+
+**버그 및 기능 요청:** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues) (권장 — 릴리스별 추적)  
+**질문 및 채팅:** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
+**문서 / 문제 해결:** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 
 * [GitHub Sponsors](https://github.com/sponsors/boubli)
 * [Stripe을 통한 기부](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)

@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex, RwLock};
 pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
     let mut apps = Vec::new();
     let Ok(mut stmt) = db.prepare(
-        "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics FROM apps ORDER BY sort_order ASC, id ASC",
+        "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode FROM apps ORDER BY sort_order ASC, id ASC",
     ) else {
         return apps;
     };
@@ -37,6 +37,8 @@ pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
                 sort_order: row.get(10).unwrap_or(0),
                 card_span: row.get(11).unwrap_or_else(|_| "1x1".to_string()),
                 show_container_metrics: row.get::<_, i64>(12).unwrap_or(1) != 0,
+                guest_visible: row.get::<_, i64>(13).unwrap_or(1) != 0,
+                embed_mode: row.get(14).unwrap_or_else(|_| "link".to_string()),
             })
         })() {
             apps.push(app);
@@ -777,6 +779,63 @@ pub(crate) fn update_rss_feed_order(db: &Connection, ids: &[i64]) -> Result<(), 
         .map_err(|e| e.to_string())?;
     }
     tx.commit().map_err(|e| e.to_string())
+}
+
+pub(crate) fn load_dashboard_widgets(db: &Connection) -> Vec<crate::models::DashboardWidget> {
+    let mut widgets = Vec::new();
+    let Ok(mut stmt) = db.prepare(
+        "SELECT id, widget_type, title, content, sort_order, guest_visible, grid_span FROM dashboard_widgets ORDER BY sort_order ASC, id ASC",
+    ) else {
+        return widgets;
+    };
+    let Ok(mut rows) = stmt.query([]) else {
+        return widgets;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if let Ok(w) = (|| -> rusqlite::Result<crate::models::DashboardWidget> {
+            Ok(crate::models::DashboardWidget {
+                id: row.get(0)?,
+                widget_type: row.get(1)?,
+                title: row.get(2)?,
+                content: row.get(3)?,
+                sort_order: row.get(4)?,
+                guest_visible: row.get::<_, i64>(5).unwrap_or(1) != 0,
+                grid_span: row.get(6).unwrap_or_else(|_| "1x1".to_string()),
+            })
+        })() {
+            widgets.push(w);
+        }
+    }
+    widgets
+}
+
+pub(crate) fn hash_api_token(token: &str) -> String {
+    use sha2::{Digest, Sha256};
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+pub(crate) fn load_api_token_by_hash(
+    db: &Connection,
+    token_hash: &str,
+) -> Option<(i64, String, Option<String>)> {
+    db.query_row(
+        "SELECT id, scopes, expires_at FROM api_tokens WHERE token_hash = ?",
+        params![token_hash],
+        |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+    )
+    .ok()
+}
+
+pub(crate) fn load_share_link_by_token(
+    db: &Connection,
+    token: &str,
+) -> Option<(String, Option<String>)> {
+    db.query_row(
+        "SELECT allowed_paths, expires_at FROM share_links WHERE token = ?",
+        params![token],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    )
+    .ok()
 }
 
 #[cfg(test)]

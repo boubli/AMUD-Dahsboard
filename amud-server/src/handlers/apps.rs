@@ -1,4 +1,38 @@
+use super::api_tokens::api_token_authorized;
 use super::imports::*;
+
+pub async fn list_apps_api_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "api_apps", 60, 60) {
+        return resp.into_response();
+    }
+    let session = get_session(&headers, &state.sessions);
+    if session.is_none() && !api_token_authorized(&headers, &state, "read:apps") {
+        return Response::builder()
+            .status(StatusCode::UNAUTHORIZED)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Unauthorized"}"#))
+            .unwrap()
+            .into_response();
+    }
+    let apps = with_db(state.db.clone(), load_apps_from_db).await;
+    let list: Vec<serde_json::Value> = apps
+        .into_iter()
+        .map(|a| {
+            serde_json::json!({
+                "id": a.id,
+                "name": a.name,
+                "url": a.url,
+                "category": a.category,
+                "guest_visible": a.guest_visible,
+                "embed_mode": a.embed_mode,
+            })
+        })
+        .collect();
+    api_json(StatusCode::OK, serde_json::json!({ "apps": list })).into_response()
+}
 
 pub async fn add_app_handler(
     headers: HeaderMap,
@@ -43,13 +77,17 @@ pub async fn add_app_handler(
             .unwrap_or_else(|| "1x1".to_string());
         let show_container_metrics =
             parse_show_container_metrics(form.get("show_container_metrics").map(|s| s.as_str()));
+        let guest_visible =
+            parse_show_container_metrics(form.get("guest_visible").map(|s| s.as_str()));
+        let embed_mode =
+            sanitize_embed_mode(form.get("embed_mode").map(|s| s.as_str()).unwrap_or("link"));
         with_db(state.db.clone(), move |db| {
             let category = crate::db::resolve_app_category(db, &category_input);
             let sort_order = crate::db::next_app_sort_order(db);
             if db
                 .execute(
-                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, sort_order, card_span, show_container_metrics],
+                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode],
                 )
                 .is_ok()
             {
@@ -152,6 +190,11 @@ pub async fn edit_app_handler(
                 let show_container_metrics = parse_show_container_metrics(
                     form.get("show_container_metrics").map(|s| s.as_str()),
                 );
+                let guest_visible =
+                    parse_show_container_metrics(form.get("guest_visible").map(|s| s.as_str()));
+                let embed_mode = sanitize_embed_mode(
+                    form.get("embed_mode").map(|s| s.as_str()).unwrap_or("link"),
+                );
                 with_db(state.db.clone(), move |db| {
                     let category = crate::db::resolve_app_category(db, &category_input);
                     let final_api_key = if api_key.trim().is_empty() || api_key == "Configured — leave blank to keep unchanged" {
@@ -163,8 +206,8 @@ pub async fn edit_app_handler(
                     };
                     if db
                         .execute(
-                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ?, card_span = ?, show_container_metrics = ? WHERE id = ?",
-                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, card_span, show_container_metrics, id],
+                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ?, card_span = ?, show_container_metrics = ?, guest_visible = ?, embed_mode = ? WHERE id = ?",
+                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, card_span, show_container_metrics, guest_visible, embed_mode, id],
                         )
                         .is_ok()
                     {

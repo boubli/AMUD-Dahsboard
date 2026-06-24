@@ -1,4 +1,5 @@
 use super::imports::*;
+use super::share::share_session_from_headers;
 use crate::models::App;
 
 #[derive(Clone, Copy)]
@@ -30,9 +31,30 @@ async fn render_page(
     state: &Arc<AppState>,
 ) -> Html<String> {
     let session = get_session(headers, &state.sessions);
+    let share_session = share_session_from_headers(headers, state);
 
     let settings = state.settings_cache.read().unwrap().clone();
 
+    let mode_path = match mode {
+        PageMode::Dashboard => "/",
+        PageMode::Feeds => "/feeds",
+    };
+    if let Some(share) = &share_session {
+        if !share
+            .allowed_paths
+            .split(',')
+            .map(str::trim)
+            .any(|p| p == mode_path)
+        {
+            return Html("<html><body><p>Share link does not allow this page.</p><a href=\"/\">Home</a></body></html>".to_string());
+        }
+    }
+
+    let iframe_embeds_enabled = settings
+        .get("iframe_embeds_enabled")
+        .map(|s| s.as_str())
+        .unwrap_or("0")
+        == "1";
     let branding = branding_from_settings(&settings);
     let tagline = branding
         .tagline
@@ -74,7 +96,7 @@ async fn render_page(
     .await;
 
     // Filter apps based on page mode: dashboard hides RSS, feeds shows only RSS
-    let apps: Vec<App> = match mode {
+    let mut apps: Vec<App> = match mode {
         PageMode::Dashboard => all_apps
             .into_iter()
             .filter(|a| a.integration_type != "rss")
@@ -84,6 +106,21 @@ async fn render_page(
             .filter(|a| a.integration_type == "rss")
             .collect(),
     };
+
+    let is_guest = !is_admin && is_guest_session(&session);
+    if is_guest {
+        if let Some(allowed) = parse_guest_visible_categories(&settings) {
+            apps.retain(|app| {
+                let cat = if app.category.is_empty() {
+                    "General"
+                } else {
+                    app.category.as_str()
+                };
+                allowed.contains(cat)
+            });
+        }
+        apps.retain(|app| app.guest_visible);
+    }
 
     let mut category_options_html = String::new();
     for (_id, cat_name) in &db_categories {
@@ -117,14 +154,24 @@ async fn render_page(
             &logo_manifest,
             &feed_categories,
         ),
-        PageMode::Dashboard => {
-            render_apps_grid(&apps, is_admin, &csrf_token, &csrf_attr, &logo_manifest)
-        }
+        PageMode::Dashboard => render_apps_grid(
+            &apps,
+            is_admin,
+            &csrf_token,
+            &csrf_attr,
+            &logo_manifest,
+            iframe_embeds_enabled,
+        ),
     };
 
     let wol_html = render_wol_devices(&wol_devices, is_admin, &csrf_attr);
 
-    let auth_buttons = render_auth_buttons(&session, &csrf_attr, mode);
+    let kiosk_mode = settings
+        .get("kiosk_mode")
+        .map(|s| s.as_str())
+        .unwrap_or("0")
+        == "1";
+    let auth_buttons = render_auth_buttons(&session, &csrf_attr, mode, kiosk_mode);
     let streams_html = match mode {
         PageMode::Dashboard => render_streams(
             &apps,
@@ -137,7 +184,26 @@ async fn render_page(
     };
     let category_tabs_html = match mode {
         PageMode::Feeds => render_feed_category_tabs(&apps, &feed_categories),
-        PageMode::Dashboard => render_category_tabs(&apps),
+        PageMode::Dashboard => {
+            let layout = sanitize_dashboard_layout(
+                settings
+                    .get("dashboard_layout")
+                    .map(|s| s.as_str())
+                    .unwrap_or("tabs"),
+            );
+            if layout == "sections" {
+                render_category_sections(&apps)
+            } else {
+                render_category_tabs(&apps)
+            }
+        }
+    };
+    let widgets_html = match mode {
+        PageMode::Dashboard => {
+            let widgets = with_db(state.db.clone(), load_dashboard_widgets).await;
+            super::widgets::render_dashboard_widgets(&widgets, is_guest)
+        }
+        PageMode::Feeds => String::new(),
     };
     let support_html = match mode {
         PageMode::Dashboard => render_support_section(&settings),
@@ -279,6 +345,7 @@ async fn render_page(
         .replace("<!-- STREAMS_ROW -->", &streams_html)
         .replace("<!-- FEED_HERO -->", &feed_hero_html)
         .replace("<!-- CATEGORY_TABS -->", &category_tabs_html)
+        .replace("<!-- DASHBOARD_WIDGETS -->", &widgets_html)
         .replace("<!-- SUPPORT_SECTION -->", &support_html)
         .replace("<!-- AUTH_BUTTONS -->", &auth_buttons)
         .replace("{{username}}", &escape_html(username))
@@ -311,7 +378,10 @@ async fn render_page(
 
     // Theme mode (light/dark)
     let theme_mode = &branding.theme_mode;
-    let result = result.replace("{{theme_mode}}", &escape_html(theme_mode));
+    let theme_scheduler_config = build_theme_scheduler_json(&settings, theme_mode);
+    let result = result
+        .replace("{{theme_mode}}", &escape_html(theme_mode))
+        .replace("{{theme_scheduler_config}}", &theme_scheduler_config);
 
     // Video wallpaper support
     let bg_url = &branding.custom_bg_url;
@@ -339,12 +409,20 @@ async fn render_page(
     Html(apply_csp_nonce(result, nonce))
 }
 
+fn is_guest_session(session: &Option<Session>) -> bool {
+    match session {
+        None => true,
+        Some(s) => s.role == "Guest",
+    }
+}
+
 fn render_apps_grid(
     apps: &[App],
     is_admin: bool,
     csrf_token: &str,
     csrf_attr: &str,
     logo_manifest: &HashMap<String, String>,
+    iframe_embeds_enabled: bool,
 ) -> String {
     if apps.is_empty() {
         return r#"
@@ -670,11 +748,30 @@ fn render_apps_grid(
             )
         };
 
+        let open_url =
+            if iframe_embeds_enabled && (app.embed_mode == "iframe" || app.embed_mode == "tab") {
+                format!("/embed/{}", app.id)
+            } else {
+                app.url.clone()
+            };
+        let link_target = if app.embed_mode == "tab" && iframe_embeds_enabled {
+            ""
+        } else if app.embed_mode == "iframe" && iframe_embeds_enabled {
+            r#" target="_blank" rel="noopener noreferrer""#
+        } else {
+            r#" target="_blank" rel="noopener noreferrer""#
+        };
+        let embed_mode_attr = if iframe_embeds_enabled && !app.embed_mode.is_empty() {
+            format!(r#" data-embed-mode="{}""#, escape_html(&app.embed_mode))
+        } else {
+            String::new()
+        };
+
         let card = format!(
             r#"
             <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" {}>
                 <div class="app-card-header">
-                    <a href="{}" target="_blank" rel="noopener noreferrer" class="app-card-identity" style="text-decoration:none; color:inherit;">
+                    <a href="{}"{}{} class="app-card-identity app-card-open" style="text-decoration:none; color:inherit;">
                         <div class="app-card-icon">
                             <img src="{}" onerror="this.src='/static/fallback.svg'">
                         </div>
@@ -704,7 +801,9 @@ fn render_apps_grid(
                 "false"
             },
             alpine_init,
-            escape_html(&app.url),
+            escape_html(&open_url),
+            link_target,
+            embed_mode_attr,
             escape_html(&brand_logo),
             escape_html(&app.name),
             escape_html(&app.description),
@@ -888,7 +987,16 @@ fn render_feed_category_tabs(apps: &[App], feed_categories: &[serde_json::Value]
     category_tabs_html
 }
 
-fn render_auth_buttons(session: &Option<Session>, csrf_attr: &str, mode: PageMode) -> String {
+fn render_auth_buttons(
+    session: &Option<Session>,
+    csrf_attr: &str,
+    mode: PageMode,
+    kiosk_mode: bool,
+) -> String {
+    let status_link = r#"<a href="/status" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; font-weight:600; font-size:0.82rem; text-decoration:none; color:#fff; border:1px solid rgba(255,255,255,0.06); display:inline-flex; align-items:center; gap:0.35rem;"><i data-lucide="activity" style="width:0.95rem; height:0.95rem;"></i> Status</a>"#;
+    if kiosk_mode && session.is_none() {
+        return status_link.to_string();
+    }
     if let Some(ref sess) = session {
         let admin_settings_btn = if sess.role == "Admin" {
             match mode {
@@ -1175,6 +1283,34 @@ fn render_category_tabs(apps: &[App]) -> String {
         ));
     }
     category_tabs_html
+}
+
+fn render_category_sections(apps: &[App]) -> String {
+    let mut categories = Vec::<String>::new();
+    for app in apps.iter() {
+        if !app.category.is_empty() && !categories.contains(&app.category) {
+            categories.push(app.category.clone());
+        }
+    }
+    if categories.is_empty() {
+        categories.push("General".to_string());
+    }
+    let mut html = String::from(r#"<div class="category-sections">"#);
+    html.push_str(
+        r#"<details class="category-section" open data-filter-section="all"><summary class="category-section-title">All apps</summary></details>"#,
+    );
+    for cat in &categories {
+        let cat_slug = category_slug(cat);
+        let count = apps.iter().filter(|a| &a.category == cat).count();
+        html.push_str(&format!(
+            r#"<details class="category-section" open data-filter-section="{}"><summary class="category-section-title">{} <span class="filter-count">{}</span></summary></details>"#,
+            escape_html(&cat_slug),
+            escape_html(cat),
+            count
+        ));
+    }
+    html.push_str("</div>");
+    html
 }
 
 fn render_support_section(settings: &HashMap<String, String>) -> String {

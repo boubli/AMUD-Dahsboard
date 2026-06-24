@@ -1714,6 +1714,68 @@ select.form-control option {
     background: rgba(15, 20, 25, calc(var(--glass-opacity) - 0.1));
 }
 
+.search-mode-toggle {
+    display: flex;
+    gap: 0.15rem;
+    flex-shrink: 0;
+}
+
+.search-mode-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.35rem 0.55rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.search-mode-btn.active {
+    background: var(--accent-glow);
+    color: var(--accent-color);
+}
+
+.shortcuts-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+}
+
+.shortcuts-panel {
+    padding: 1.5rem;
+    max-width: 420px;
+    width: 90%;
+}
+
+.shortcuts-panel h3 {
+    margin: 0 0 1rem;
+}
+
+.shortcuts-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+}
+
+.shortcuts-panel li {
+    padding: 0.35rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.shortcuts-panel kbd {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.8rem;
+}
+
 .search-engine-select {
     background: none;
     border: none;
@@ -3168,3 +3230,49 @@ body.has-video-bg {
     }
 }
 
+.category-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.category-section {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--bento-radius, 12px);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.category-section-title {
+    cursor: pointer;
+    padding: 0.65rem 1rem;
+    font-weight: 600;
+    list-style: none;
+}
+
+.dashboard-widgets-row {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.dashboard-widget-card {
+    padding: 1rem;
+}
+
+.status-table th,
+.status-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.embed-panel {
+    min-height: 70vh;
+}
+
+.embed-panel-frame {
+    display: block;
+    width: 100%;
+    min-height: 70vh;
+    border: 0;
+}

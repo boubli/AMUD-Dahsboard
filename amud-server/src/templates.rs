@@ -278,6 +278,54 @@ pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptio
     .replace("{{video_bg_element}}", &video_bg_element)
 }
 
+/// JSON config for client-side theme scheduler (`theme-scheduler.js`).
+pub(crate) fn build_theme_scheduler_json(
+    settings: &std::collections::HashMap<String, String>,
+    base_mode: &str,
+) -> String {
+    use crate::settings::{sanitize_theme_scheduler, sanitize_time_hhmm};
+    use serde_json::json;
+
+    let scheduler = sanitize_theme_scheduler(
+        settings
+            .get("theme_scheduler")
+            .map(|s| s.as_str())
+            .unwrap_or("off"),
+    );
+    let light_at = sanitize_time_hhmm(
+        settings
+            .get("theme_light_at")
+            .map(|s| s.as_str())
+            .unwrap_or("07:00"),
+        "07:00",
+    );
+    let dark_at = sanitize_time_hhmm(
+        settings
+            .get("theme_dark_at")
+            .map(|s| s.as_str())
+            .unwrap_or("19:00"),
+        "19:00",
+    );
+    let lat = settings
+        .get("weather_latitude")
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    let lon = settings
+        .get("weather_longitude")
+        .map(|s| s.as_str())
+        .unwrap_or("");
+
+    serde_json::to_string(&json!({
+        "scheduler": scheduler,
+        "lightAt": light_at,
+        "darkAt": dark_at,
+        "baseMode": if base_mode == "light" { "light" } else { "dark" },
+        "lat": lat,
+        "lon": lon,
+    }))
+    .unwrap_or_else(|_| "{}".to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
