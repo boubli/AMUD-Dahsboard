@@ -43,38 +43,52 @@
         tabs[index].click();
     }
 
+    function handleQuestionKey(e, typing) {
+        if (e.key !== '?' || typing) return false;
+        e.preventDefault();
+        showOverlay();
+        return true;
+    }
+
+    function handleEscapeKey() {
+        hideOverlay();
+        if (typeof globalThis.amudClearAppSearch === 'function') {
+            globalThis.amudClearAppSearch();
+        }
+    }
+
+    function handleSearchFocusKey(e, typing) {
+        const mod = e.ctrlKey || e.metaKey;
+        if (!((mod && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing))) return false;
+        e.preventDefault();
+        if (typeof globalThis.amudFocusAppSearch === 'function') {
+            globalThis.amudFocusAppSearch();
+        }
+        return true;
+    }
+
+    function handleCategoryShortcut(e, typing, mod) {
+        if (typing || e.key < '1' || e.key > '9' || mod || e.altKey) return;
+        const input = document.getElementById('search-input');
+        if (input?.value.trim()) return;
+        switchCategoryByIndex(Number.parseInt(e.key, 10) - 1);
+    }
+
     document.addEventListener('keydown', function (e) {
         const typing = isTypingTarget(document.activeElement);
         const mod = e.ctrlKey || e.metaKey;
 
-        if (e.key === '?' && !typing) {
-            e.preventDefault();
-            showOverlay();
-            return;
-        }
+        if (handleQuestionKey(e, typing)) return;
 
         if (e.key === 'Escape') {
-            hideOverlay();
-            if (typeof window.amudClearAppSearch === 'function') {
-                window.amudClearAppSearch();
-            }
+            handleEscapeKey();
             return;
         }
 
         if (typing && !(mod && e.key.toLowerCase() === 'k')) return;
 
-        if ((mod && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing)) {
-            e.preventDefault();
-            if (typeof window.amudFocusAppSearch === 'function') {
-                window.amudFocusAppSearch();
-            }
-            return;
-        }
+        if (handleSearchFocusKey(e, typing)) return;
 
-        if (!typing && e.key >= '1' && e.key <= '9' && !mod && !e.altKey) {
-            const input = document.getElementById('search-input');
-            if (input && input.value.trim()) return;
-            switchCategoryByIndex(Number.parseInt(e.key, 10) - 1);
-        }
+        handleCategoryShortcut(e, typing, mod);
     });
 })();

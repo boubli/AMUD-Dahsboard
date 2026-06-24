@@ -1957,8 +1957,9 @@
             function updatePreview() {
                 syncThemeConfigScript();
                 const cfg = readThemeSchedulerConfig();
-                if (cfg.scheduler && cfg.scheduler !== 'off' && typeof window.amudEffectiveThemeMode === 'function') {
-                    window.amudEffectiveThemeMode(cfg).then(renderPreview).catch(function() {
+                if (cfg.scheduler && cfg.scheduler !== 'off' && typeof globalThis.amudEffectiveThemeMode === 'function') {
+                    globalThis.amudEffectiveThemeMode(cfg).then(renderPreview).catch(function (err) {
+                        console.warn('theme preview failed:', err);
                         renderPreview(cfg.baseMode);
                     });
                     return;
@@ -2752,7 +2753,12 @@
                     results.textContent = 'No labeled containers found. Add amud.enable=true and amud.url labels.';
                     return;
                 }
-                results.innerHTML = `<p><strong>${apps.length}</strong> container(s) found.</p>`;
+                results.replaceChildren();
+                const summary = document.createElement('p');
+                const count = document.createElement('strong');
+                count.textContent = String(apps.length);
+                summary.append(count, document.createTextNode(' container(s) found.'));
+                results.appendChild(summary);
                 const importBtn = document.createElement('button');
                 importBtn.type = 'button';
                 importBtn.className = 'btn btn-primary';

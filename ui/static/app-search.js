@@ -1,18 +1,29 @@
 (function () {
     const MODE_KEY = 'amud_search_mode';
 
-    function getMode() {
+    function readStorage(key, fallback) {
         try {
-            return localStorage.getItem(MODE_KEY) || 'apps';
-        } catch (_e) {
-            return 'apps';
+            return localStorage.getItem(key) || fallback;
+        } catch (err) {
+            console.warn('localStorage read failed:', err);
+            return fallback;
         }
     }
 
-    function setMode(mode) {
+    function writeStorage(key, value) {
         try {
-            localStorage.setItem(MODE_KEY, mode);
-        } catch (_e) { /* ignore */ }
+            localStorage.setItem(key, value);
+        } catch (err) {
+            console.warn('localStorage write failed:', err);
+        }
+    }
+
+    function getMode() {
+        return readStorage(MODE_KEY, 'apps');
+    }
+
+    function setMode(mode) {
+        writeStorage(MODE_KEY, mode);
         refreshModeUi();
     }
 
@@ -31,7 +42,7 @@
         }
         if (input) {
             input.placeholder = mode === 'web' ? 'Search the web...' : 'Search apps... (Ctrl+K)';
-            input.setAttribute('aria-label', mode === 'web' ? 'Search the web' : 'Search apps');
+            input.ariaLabel = mode === 'web' ? 'Search the web' : 'Search apps';
         }
         if (modeApps) modeApps.classList.toggle('active', mode === 'apps');
         if (modeWeb) modeWeb.classList.toggle('active', mode === 'web');
@@ -44,18 +55,18 @@
         let visible = 0;
         cards.forEach(function (card) {
             if (!q) {
-                const cat = window.activeCategoryFilter || 'all';
+                const cat = globalThis.activeCategoryFilter || 'all';
                 if (cat === 'all') {
                     card.style.display = 'flex';
                     visible += 1;
                 } else {
-                    const show = card.getAttribute('data-category') === cat;
+                    const show = card.dataset.category === cat;
                     card.style.display = show ? 'flex' : 'none';
                     if (show) visible += 1;
                 }
                 return;
             }
-            const name = (card.getAttribute('data-app-name') || '').toLowerCase();
+            const name = (card.dataset.appName || '').toLowerCase();
             const title = (card.querySelector('.app-card-title, .feed-card-title')?.textContent || '').toLowerCase();
             const match = name.includes(q) || title.includes(q);
             card.style.display = match ? 'flex' : 'none';
@@ -86,7 +97,7 @@
         } else if (engine === 'bing') {
             url = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
         }
-        window.open(url, '_blank');
+        globalThis.open(url, '_blank');
     }
 
     function init() {
@@ -127,12 +138,12 @@
             }
         });
 
-        window.amudFocusAppSearch = function () {
+        globalThis.amudFocusAppSearch = function () {
             if (getMode() !== 'apps') setMode('apps');
             input.focus();
             input.select();
         };
-        window.amudClearAppSearch = function () {
+        globalThis.amudClearAppSearch = function () {
             input.value = '';
             applyAppFilter('');
         };

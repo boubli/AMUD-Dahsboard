@@ -86,10 +86,11 @@
         <!-- Search Bar Widget -->
         <div class="search-bar-wrapper">
             <div class="search-bar glass-panel">
-                <div class="search-mode-toggle" role="group" aria-label="Search mode">
+                <fieldset class="search-mode-toggle">
+                    <legend class="visually-hidden">Search mode</legend>
                     <button type="button" id="search-mode-apps" class="search-mode-btn active">Apps</button>
                     <button type="button" id="search-mode-web" class="search-mode-btn">Web</button>
-                </div>
+                </fieldset>
                 <div class="search-input-divider"></div>
                 <label for="search-engine" class="visually-hidden">Search engine</label>
                 <select id="search-engine" class="search-engine-select" aria-label="Search engine">
@@ -584,7 +585,7 @@
         document.addEventListener('DOMContentLoaded', checkUpdateBannerDismissal);
 
         const isAdmin = "{{is_admin}}" === "true";
-        window.activeCategoryFilter = 'all';
+        globalThis.activeCategoryFilter = 'all';
         const knownAppNames = new Set({{app_names_json}});
 
         function amudSafeLower(value) {
@@ -606,7 +607,7 @@
 
         // Category filtering — app search handled by app-search.js
         function filterCategory(category, element) {
-            window.activeCategoryFilter = category;
+            globalThis.activeCategoryFilter = category;
             document.dispatchEvent(new CustomEvent('amud:category-filter', { detail: { category: category } }));
             document.querySelectorAll('.filter-tab').forEach(tab => {
                 tab.classList.remove('active');

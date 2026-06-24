@@ -6,7 +6,7 @@
         const panel = document.getElementById('embed-panel');
         const frame = document.getElementById('embed-panel-frame');
         if (!panel || !frame) return;
-        frame.src = link.getAttribute('href') || '';
+        frame.src = link.href || '';
         panel.style.display = 'block';
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });

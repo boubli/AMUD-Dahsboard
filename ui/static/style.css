@@ -1718,6 +1718,10 @@ select.form-control option {
     display: flex;
     gap: 0.15rem;
     flex-shrink: 0;
+    border: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
 }
 
 .search-mode-btn {
