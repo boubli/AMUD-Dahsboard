@@ -10,11 +10,11 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### ما الجديد في v1.5.5.3
+### ما الجديد في v1.5.5.5
 
-- **إصلاح تمرير التكامل** — تتبدل الإحصائيات داخل البطاقة (CPU/RAM ↔ Prowlarr/*arr) دون تداخل مع البطاقات أسفلها
-- **إعدادات المسؤول** — إعادة توجيه إلى تسجيل الدخول بدلًا من «تم رفض الوصول» فقط
-- **إصلاح Docker `:latest`** + تحكم تلقائي بالحاويات + أيقونات RSS تلقائية (من v1.5.5.2)
+- **إصلاح عاجل لقياسات الوكيل** — استعادة GPU وCPU/RAM/القرص والتحكم بالحاويات وشارات ONLINE/OFFLINE (**لا تستخدم v1.5.5.4** — خط أنابيب الوكيل معطّل)
+- **بحث عام** — تصفية التطبيقات أو التبديل إلى بحث الويب (Google / DuckDuckGo / Bing)؛ اختصارات `Ctrl+K` و`/` و`1`–`9` و`?`
+- **توافق لوحة التحكم** — عناصر واجهة، استيراد Docker بالوسوم، OIDC SSO، رموز API، وضع الكشك/روابط المشاركة، تضمين iframe، ظهور للضيوف لكل تطبيق، تبويبات مقابل أقسام قابلة للطي، صفحة `/status`
 
 السجل الكامل: **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -26,9 +26,10 @@
 - `v1.3.6`
 - `v1.3.7`
 - `v1.4.1.0`
-- `v1.5.5.3` (الأحدث الموصى به حاليًا)
+- `v1.5.5.3`
+- `v1.5.5.5` (الأحدث الموصى به حاليًا)
 
-أُزيلت الوسوم المعطوبة المكتشفة أثناء التدقيق من إصدارات/وسوم GitHub ولا يجب استخدامها.
+أُزيلت الوسوم المعطوبة المكتشفة أثناء التدقيق من إصدارات/وسوم GitHub ولا يجب استخدامها. **لا تستخدم `v1.5.5.4`.**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

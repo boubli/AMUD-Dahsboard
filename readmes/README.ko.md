@@ -10,11 +10,11 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.3 새로운 기능
+### v1.5.5.5 새로운 기능
 
-- **통합 호버 수정** — 통계가 카드 안에서 전환됩니다 (CPU/RAM ↔ Prowlarr/*arr). 아래 카드와 겹치지 않음
-- **관리자 설정** — «액세스 거부»만 표시하지 않고 로그인으로 리디렉션
-- **Docker `:latest` 수정** + 자동 컨테이너 제어 + RSS 자동 파비콘 (v1.5.5.2부터)
+- **에이전트 원격 측정 핫픽스** — GPU, 호스트 CPU/RAM/디스크, 컨테이너 제어 및 ONLINE/OFFLINE 배지 복구 (**v1.5.5.4 사용 금지** — 에이전트 파이프라인 손상)
+- **전역 검색** — 앱 필터 또는 웹 검색(Google / DuckDuckGo / Bing) 전환; 단축키 `Ctrl+K`, `/`, `1`–`9`, `?`
+- **대시보드 패리티** — 위젯, Docker 라벨 가져오기, OIDC SSO, API 토큰, 키오스크/공유 링크, iframe 임베드, 앱별 게스트 표시, 탭 vs 접이식 레이아웃, `/status` 페이지
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -26,9 +26,10 @@
 - `v1.3.6`
 - `v1.3.7`
 - `v1.4.1.0`
-- `v1.5.5.3` (현재 권장 최신)
+- `v1.5.5.3`
+- `v1.5.5.5` (현재 권장 최신)
 
-감사에서 확인된 손상된 태그는 GitHub releases/tags에서 제거되었으며 사용하지 마세요.
+감사에서 확인된 손상된 태그는 GitHub releases/tags에서 제거되었으며 사용하지 마세요. **`v1.5.5.4`는 사용하지 마세요.**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

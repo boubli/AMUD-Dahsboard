@@ -10,11 +10,11 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.5.3
+### What's new in v1.5.5.5
 
-- **Integration hover fixed** — stats swap inside the card (CPU/RAM ↔ Prowlarr/*arr); no overlap on cards below
-- **Admin settings** — redirects to login instead of plain “Access Denied”
-- **Docker `:latest` fix** + auto container controls + RSS auto-favicons (from v1.5.5.2)
+- **Agent telemetry hotfix** — GPU, host CPU/RAM/disk, container start/stop/restart, and ONLINE/OFFLINE badges work again (**skip v1.5.5.4** — it broke the agent pipeline)
+- **Global search** — filter apps or switch to web search (Google / DuckDuckGo / Bing); shortcuts `Ctrl+K`, `/`, `1`–`9`, `?`
+- **Dashboard parity** — widgets, Docker label import, OIDC SSO, API tokens, kiosk/share links, iframe embeds, per-app guest visibility, tabs vs collapsible layout, `/status` page
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -26,9 +26,10 @@ After manual validation in a clean Proxmox test container, these releases are cu
 - `v1.3.6`
 - `v1.3.7`
 - `v1.4.1.0`
-- `v1.5.5.3` (current latest recommended)
+- `v1.5.5.3`
+- `v1.5.5.5` (current latest recommended)
 
-Broken tags identified during audit were removed from GitHub releases/tags and should not be used.
+Broken tags identified during audit were removed from GitHub releases/tags and should not be used. **Do not use `v1.5.5.4`.**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

@@ -10,11 +10,11 @@
 
 **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ब्लॉग](https://boubli.github.io/AMUD-Dashboard/blog)** · **[थीम गैलरी](https://boubli.github.io/AMUD-Dashboard/themes)** · **[रोडमैप](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/)** · **[अक्सर पूछे जाने वाले सवाल](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.3 में नया क्या है
+### v1.5.5.5 में नया क्या है
 
-- **इंटीग्रेशन होवर ठीक** — आँकड़े कार्ड के अंदर बदलते हैं (CPU/RAM ↔ Prowlarr/*arr); नीचे की कार्ड्स पर ओवरलैप नहीं
-- **एडमिन सेटिंग्स** — केवल «पहुँच अस्वीकृत» के बजाय लॉगिन पर रीडायरेक्ट
-- **Docker `:latest` फ़िक्स** + स्वचालित कंटेनर नियंत्रण + RSS ऑटो-फ़ेविकॉन (v1.5.5.2 से)
+- **एजेंट टेलीमेट्री हॉटफ़िक्स** — GPU, होस्ट CPU/RAM/डिस्क, कंटेनर नियंत्रण और ONLINE/OFFLINE बैज फिर काम कर रहे हैं (**v1.5.5.4 न उपयोग करें** — एजेंट पाइपलाइन टूटी)
+- **वैश्विक खोज** — ऐप्स फ़िल्टर करें या वेब खोज (Google / DuckDuckGo / Bing) पर जाएँ; शॉर्टकट `Ctrl+K`, `/`, `1`–`9`, `?`
+- **डैशबोर्ड पैरिटी** — विजेट, Docker लेबल आयात, OIDC SSO, API टोकन, कियोस्क/शेयर लिंक, iframe एम्बेड, प्रति-ऐप अतिथि दृश्यता, टैब vs संक्षिप्त अनुभाग, `/status` पेज
 
 पूरा इतिहास: **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -26,9 +26,10 @@
 - `v1.3.6`
 - `v1.3.7`
 - `v1.4.1.0`
-- `v1.5.5.3` (वर्तमान में अनुशंसित नवीनतम)
+- `v1.5.5.3`
+- `v1.5.5.5` (वर्तमान में अनुशंसित नवीनतम)
 
-ऑडिट में पहचाने गए टूटे टैग GitHub releases/tags से हटा दिए गए हैं — उनका उपयोग न करें।
+ऑडिट में पहचाने गए टूटे टैग GitHub releases/tags से हटा दिए गए हैं — उनका उपयोग न करें। **`v1.5.5.4` न उपयोग करें।**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

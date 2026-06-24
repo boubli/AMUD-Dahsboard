@@ -10,11 +10,11 @@
 
 **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galería de temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Hoja de ruta](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentación](https://boubli.github.io/AMUD-Dashboard/)** · **[Preguntas frecuentes](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novedades en v1.5.5.3
+### Novedades en v1.5.5.5
 
-- **Hover de integración corregido** — las estadísticas cambian dentro de la tarjeta (CPU/RAM ↔ Prowlarr/*arr); sin superposición en las tarjetas inferiores
-- **Ajustes de administrador** — redirige al inicio de sesión en lugar de mostrar solo «Acceso denegado»
-- **Corrección de Docker `:latest`** + controles automáticos de contenedores + favicons RSS automáticos (desde v1.5.5.2)
+- **Hotfix de telemetría del agente** — GPU, CPU/RAM/disco del host, controles de contenedor y badges ONLINE/OFFLINE vuelven a funcionar (**no uses v1.5.5.4** — rompió el pipeline del agente)
+- **Búsqueda global** — filtra apps o cambia a búsqueda web (Google / DuckDuckGo / Bing); atajos `Ctrl+K`, `/`, `1`–`9`, `?`
+- **Paridad del panel** — widgets, importación Docker por etiquetas, OIDC SSO, tokens API, kiosk/enlaces compartidos, iframes, visibilidad por app para invitados, pestañas vs secciones plegables, página `/status`
 
 Historial completo: **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -26,9 +26,10 @@ Tras validación manual en un contenedor Proxmox limpio, estas versiones se mant
 - `v1.3.6`
 - `v1.3.7`
 - `v1.4.1.0`
-- `v1.5.5.3` (última recomendada actualmente)
+- `v1.5.5.3`
+- `v1.5.5.5` (última recomendada actualmente)
 
-Las etiquetas rotas identificadas durante la auditoría se eliminaron de releases/tags de GitHub y no deben usarse.
+Las etiquetas rotas identificadas durante la auditoría se eliminaron de releases/tags de GitHub y no deben usarse. **No uses `v1.5.5.4`.**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

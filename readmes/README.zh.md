@@ -10,11 +10,11 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.3 新增功能
+### v1.5.5.5 新增功能
 
-- **集成悬停已修复** — 统计信息在卡片内切换（CPU/RAM ↔ Prowlarr/*arr）；不再遮挡下方卡片
-- **管理员设置** — 重定向到登录页，而非仅显示「访问被拒绝」
-- **Docker `:latest` 修复** + 自动容器控制 + RSS 自动 favicon（来自 v1.5.5.2）
+- **代理遥测热修复** — GPU、主机 CPU/RAM/磁盘、容器控制及 ONLINE/OFFLINE 徽章已恢复（**请勿使用 v1.5.5.4** — 代理管道已损坏）
+- **全局搜索** — 筛选应用或切换网页搜索（Google / DuckDuckGo / Bing）；快捷键 `Ctrl+K`、`/`、`1`–`9`、`?`
+- **面板功能对齐** — 小组件、Docker 标签导入、OIDC SSO、API 令牌、信息亭/分享链接、iframe 嵌入、按应用访客可见性、标签页 vs 可折叠分区、`/status` 页面
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -26,9 +26,10 @@
 - `v1.3.6`
 - `v1.3.7`
 - `v1.4.1.0`
-- `v1.5.5.3`（当前推荐最新版）
+- `v1.5.5.3`
+- `v1.5.5.5`（当前推荐最新版）
 
-审计中发现的损坏标签已从 GitHub releases/tags 中移除，请勿使用。
+审计中发现的损坏标签已从 GitHub releases/tags 中移除，请勿使用。**请勿使用 `v1.5.5.4`。**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
