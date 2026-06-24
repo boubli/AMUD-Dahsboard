@@ -1900,8 +1900,18 @@
                 el.textContent = JSON.stringify(readThemeSchedulerConfig());
             }
 
+            function readAccentColor() {
+                if (accentInput && accentInput.value) {
+                    return accentInput.value;
+                }
+                const fromRoot = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--accent-color')
+                    .trim();
+                return fromRoot || '#cf6427';
+            }
+
             function renderPreview(themeMode) {
-                const accent = accentInput ? accentInput.value : '#cf6427';
+                const accent = readAccentColor();
                 const blur = blurInput ? blurInput.value : '16';
                 const opacity = opacityInput ? opacityInput.value : '0.45';
                 const radius = radiusInput ? radiusInput.value : '16';

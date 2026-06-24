@@ -46,6 +46,8 @@
         }
         if (modeApps) modeApps.classList.toggle('active', mode === 'apps');
         if (modeWeb) modeWeb.classList.toggle('active', mode === 'web');
+        if (modeApps) modeApps.setAttribute('aria-checked', mode === 'apps' ? 'true' : 'false');
+        if (modeWeb) modeWeb.setAttribute('aria-checked', mode === 'web' ? 'true' : 'false');
     }
 
     function applyAppFilter(query) {

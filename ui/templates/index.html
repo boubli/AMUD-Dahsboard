@@ -86,11 +86,10 @@
         <!-- Search Bar Widget -->
         <div class="search-bar-wrapper">
             <div class="search-bar glass-panel">
-                <fieldset class="search-mode-toggle">
-                    <legend class="visually-hidden">Search mode</legend>
-                    <button type="button" id="search-mode-apps" class="search-mode-btn active">Apps</button>
-                    <button type="button" id="search-mode-web" class="search-mode-btn">Web</button>
-                </fieldset>
+                <div class="search-mode-toggle" role="radiogroup" aria-label="Search mode">
+                    <button type="button" id="search-mode-apps" class="search-mode-btn active" role="radio" aria-checked="true">Apps</button>
+                    <button type="button" id="search-mode-web" class="search-mode-btn" role="radio" aria-checked="false">Web</button>
+                </div>
                 <div class="search-input-divider"></div>
                 <label for="search-engine" class="visually-hidden">Search engine</label>
                 <select id="search-engine" class="search-engine-select" aria-label="Search engine">

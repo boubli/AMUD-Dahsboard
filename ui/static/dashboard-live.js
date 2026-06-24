@@ -103,20 +103,16 @@
 
     function styleStatusBadge(badge, status, latencyMs = null) {
         const normalized = (status || '').toLowerCase();
-        const showLatency = isAdmin && latencyMs !== null && normalized === 'online';
-        if (showLatency) {
-            badge.innerText = `${latencyMs} ms`;
-        } else {
-            badge.innerText = (status || 'UNKNOWN').toUpperCase();
-        }
+        badge.innerText = (status || 'UNKNOWN').toUpperCase();
 
         const isHealthy = ['running', 'online'].includes(normalized);
         const isWarn = ['not configured', 'checking', 'unknown'].includes(normalized);
         badge.classList.remove('status-online', 'status-offline', 'status-checking', 'status-unknown', 'ms');
-        if (showLatency) {
-            badge.classList.add('ms');
-        } else if (isHealthy) {
+        if (isHealthy) {
             badge.classList.add('status-online');
+            if (isAdmin && latencyMs !== null) {
+                badge.title = `Online — ${latencyMs} ms`;
+            }
         } else if (isWarn) {
             badge.classList.add(normalized === 'checking' ? 'status-checking' : 'status-unknown');
         } else {
@@ -145,7 +141,9 @@
         const gpuName = (sys.gpu_name || '').trim();
         const hasGpu = gpuName.length > 0 && (sys.gpu_usage ?? -1) >= 0;
         const gpuCard = document.getElementById('gpu-card');
+        const telemetryRow = document.getElementById('telemetry-section');
         if (gpuCard) gpuCard.style.display = hasGpu ? '' : 'none';
+        if (telemetryRow) telemetryRow.classList.toggle('has-gpu', hasGpu);
         if (hasGpu) {
             setDashboardText('val-gpu-usage', `${sys.gpu_usage ?? 0}%`);
             setDashboardBar('bar-gpu-usage', sys.gpu_usage ?? 0);

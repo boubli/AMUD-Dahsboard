@@ -1715,29 +1715,38 @@ select.form-control option {
 }
 
 .search-mode-toggle {
-    display: flex;
-    gap: 0.15rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
     flex-shrink: 0;
-    border: none;
-    margin: 0;
-    padding: 0;
-    min-width: 0;
+    padding: 0.2rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.28);
 }
 
 .search-mode-btn {
     border: none;
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    padding: 0.35rem 0.55rem;
+    padding: 0.4rem 0.7rem;
     border-radius: 6px;
     cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.search-mode-btn:hover {
+    color: var(--text-secondary);
 }
 
 .search-mode-btn.active {
     background: var(--accent-glow);
     color: var(--accent-color);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color) 35%, transparent);
 }
 
 .shortcuts-overlay {
