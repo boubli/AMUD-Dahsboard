@@ -8,6 +8,17 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.5.5](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.5) — 2026-06-24
+
+Hotfix: restore agent telemetry broken in v1.5.5.4.
+
+### Fixed
+- **Agent telemetry** — Docker discover handler no longer blocks GPU, host stats, container controls, or container status
+- **Status badges** — ONLINE/OFFLINE/RUNNING text restored (latency in tooltip)
+- **Search toggle UI**, **accent preview**, **GPU row layout**, service worker cache bump
+
+---
+
 ## [v1.5.5.4](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.4) — 2026-06-24
 
 Dashboard parity batch: search, layout, widgets, Docker import, OIDC, API tokens, kiosk/share, iframe embeds.
