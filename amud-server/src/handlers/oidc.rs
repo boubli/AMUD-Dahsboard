@@ -1,10 +1,21 @@
 use super::imports::*;
 use axum::extract::Query;
 use oauth2::{
-    basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
-    Scope, TokenResponse, TokenUrl,
+    basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, HttpRequest,
+    HttpResponse, RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 use std::sync::RwLock;
+
+#[derive(Debug)]
+struct OidcHttpError(String);
+
+impl std::fmt::Display for OidcHttpError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for OidcHttpError {}
 
 static OIDC_STATES: once_cell::sync::Lazy<RwLock<Vec<String>>> =
     once_cell::sync::Lazy::new(|| RwLock::new(Vec::new()));
@@ -70,7 +81,7 @@ pub async fn oidc_callback_handler(
 
     let token = match client
         .exchange_code(code)
-        .request_async(oauth2::reqwest::async_http_client)
+        .request_async(oauth_http_client)
         .await
     {
         Ok(t) => t,
@@ -146,6 +157,51 @@ pub async fn oidc_callback_handler(
     );
     let _ = headers;
     response
+}
+
+async fn oauth_http_client(request: HttpRequest) -> Result<HttpResponse, OidcHttpError> {
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .map_err(|e| OidcHttpError(e.to_string()))?;
+    let method = match request.method {
+        req if req == oauth2::http::Method::GET => reqwest::Method::GET,
+        req if req == oauth2::http::Method::POST => reqwest::Method::POST,
+        other => {
+            return Err(OidcHttpError(format!(
+                "unsupported OAuth HTTP method: {other}"
+            )))
+        }
+    };
+    let mut req = client.request(method, request.url.to_string());
+    for (name, value) in request.headers.iter() {
+        req = req.header(name.as_str(), value.as_bytes());
+    }
+    if !request.body.is_empty() {
+        req = req.body(request.body);
+    }
+    let response = req.send().await.map_err(|e| OidcHttpError(e.to_string()))?;
+    let status_code = oauth2::http::StatusCode::from_u16(response.status().as_u16())
+        .map_err(|e| OidcHttpError(e.to_string()))?;
+    let mut headers = oauth2::http::HeaderMap::new();
+    for (name, value) in response.headers().iter() {
+        if let (Ok(header_name), Ok(header_value)) = (
+            oauth2::http::header::HeaderName::from_bytes(name.as_str().as_bytes()),
+            oauth2::http::HeaderValue::from_bytes(value.as_bytes()),
+        ) {
+            headers.insert(header_name, header_value);
+        }
+    }
+    let body = response
+        .bytes()
+        .await
+        .map_err(|e| OidcHttpError(e.to_string()))?
+        .to_vec();
+    Ok(HttpResponse {
+        status_code,
+        headers,
+        body,
+    })
 }
 
 async fn build_oauth_client(settings: &HashMap<String, String>) -> Result<BasicClient, String> {
