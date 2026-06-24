@@ -12,8 +12,8 @@
     function parseMinutes(str) {
         var parts = (str || '').split(':');
         if (parts.length !== 2) return null;
-        var h = parseInt(parts[0], 10);
-        var m = parseInt(parts[1], 10);
+        var h = Number.parseInt(parts[0], 10);
+        var m = Number.parseInt(parts[1], 10);
         if (Number.isNaN(h) || Number.isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) {
             return null;
         }
@@ -65,8 +65,8 @@
             return isDarkManual(now, cfg.lightAt, cfg.darkAt) ? 'dark' : 'light';
         }
         if (cfg.scheduler === 'sunrise_sunset') {
-            var lat = parseFloat(cfg.lat);
-            var lon = parseFloat(cfg.lon);
+            var lat = Number.parseFloat(cfg.lat);
+            var lon = Number.parseFloat(cfg.lon);
             if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
                 return base;
             }

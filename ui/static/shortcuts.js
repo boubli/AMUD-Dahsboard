@@ -74,7 +74,7 @@
         if (!typing && e.key >= '1' && e.key <= '9' && !mod && !e.altKey) {
             const input = document.getElementById('search-input');
             if (input && input.value.trim()) return;
-            switchCategoryByIndex(parseInt(e.key, 10) - 1);
+            switchCategoryByIndex(Number.parseInt(e.key, 10) - 1);
         }
     });
 })();
