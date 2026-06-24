@@ -7,7 +7,7 @@ pub async fn settings_page_handler(
 ) -> impl IntoResponse {
     let session = match require_admin_session(&headers, &state.sessions) {
         Ok(s) => s,
-        Err(_resp) => return Html("<h1>Access Denied: Admins Only</h1>".to_string()),
+        Err(_resp) => return Redirect::to("/login").into_response(),
     };
 
     let settings = state.settings_cache.read().unwrap().clone();
@@ -278,5 +278,5 @@ pub async fn settings_page_handler(
             ),
         );
 
-    Html(apply_csp_nonce(result, &csp.0))
+    Html(apply_csp_nonce(result, &csp.0)).into_response()
 }

@@ -10,12 +10,11 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.5.2
+### What's new in v1.5.5.3
 
-- **Docker `:latest` fix** — Settings shows the real release tag; container start/stop/restart + CPU/RAM when the socket is mounted
-- **Integration slide-down drawer** — hover app cards for Prowlarr/*arr stats without shifting the grid
-- **RSS auto-favicons** — feed icons fetched from the website when you add a feed
-- **qBittorrent & Bazarr** integrations + hover stats (v1.5.5.1)
+- **Integration hover fixed** — stats swap inside the card (CPU/RAM ↔ Prowlarr/*arr); no overlap on cards below
+- **Admin settings** — redirects to login instead of plain “Access Denied”
+- **Docker `:latest` fix** + auto container controls + RSS auto-favicons (from v1.5.5.2)
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

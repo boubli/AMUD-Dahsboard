@@ -11,17 +11,21 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
-## v1.5.5.2 — Docker fixes, hover drawer, RSS favicons
+## v1.5.5.3 — Fix integration hover + admin redirect
 
-**2026-06-24** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.2) · [Compare v1.5.5.1…v1.5.5.2](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.1...v1.5.5.2)
+**2026-06-24** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.3) · [Compare v1.5.5.2…v1.5.5.3](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.2...v1.5.5.3)
 
-**Improved**
-- Docker `:latest` shows the real release tag in Settings (not `vmain`)
-- Docker container monitoring and controls auto-enable when `docker.sock` is mounted
-- Integration stats **slide-down drawer** on hover (grid layout unchanged)
-- RSS feeds use **automatic website favicons**
+**Fixed**
+- Integration stats swap inside a **fixed metrics slot** (replaces broken v1.5.5.2 drawer)
+- `/admin/settings` redirects to **login** for non-admins
 
-**Upgrade:** Proxmox — `curl -sSL …/update-amud.sh | bash` · Docker — `docker compose pull && docker compose up -d` — verify **Settings → System** shows `v1.5.5.2`.
+**Upgrade:** Proxmox — `curl -sSL …/update-amud.sh | bash` · Docker — `docker compose pull && docker compose up -d` — verify **Settings → System** shows `v1.5.5.3`.
+
+---
+
+## v1.5.5.2 — superseded (do not use)
+
+Broken integration hover drawer overlapped cards below. Use **v1.5.5.3** instead.
 
 ---
 

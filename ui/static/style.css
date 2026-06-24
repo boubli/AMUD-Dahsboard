@@ -656,79 +656,104 @@ body::-webkit-scrollbar-button {
     text-transform: uppercase;
 }
 
-/* Integration stats — slide-down drawer on hover (compact cards; no grid shift) */
-.integration-widget--hover {
+/* Fixed metrics slot — same card footprint; integration swaps in on hover */
+.app-card:has(.app-card-metrics-slot) {
+    overflow: hidden;
+}
+
+.app-card-metrics-slot {
+    position: relative;
+    flex-shrink: 0;
+    min-height: 3.65rem;
     margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding-top: 0.75rem;
+}
+
+.app-card-metrics-slot .nested-metrics-grid {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.app-card-metrics-layer--infra {
+    transition: opacity 0.16s ease;
+}
+
+.app-card-metrics-layer--integration {
+    position: absolute;
+    inset: 0.75rem 0 0 0;
+    display: flex;
+    align-items: stretch;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.app-card-metrics-layer--integration .nested-metrics-grid {
+    width: 100%;
+    align-self: stretch;
+}
+
+.app-card-metrics-slot--solo::before {
+    content: 'Hover for stats';
+    position: absolute;
+    inset: 0.75rem 0 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.16s ease;
 }
 
 @media (hover: hover) {
-    .app-card:has(.integration-widget--hover):hover,
-    .app-card:has(.integration-widget--hover):focus-within {
-        z-index: 30;
-        overflow: visible;
-    }
-
-    .app-card .integration-widget--hover {
-        position: absolute;
-        left: -1px;
-        right: -1px;
-        top: calc(100% - 1px);
-        z-index: 5;
-        margin-top: 0;
-        padding: 0 1rem;
-        max-height: 0;
-        overflow: hidden;
+    .app-card-metrics-slot--dual:hover .app-card-metrics-layer--infra {
         opacity: 0;
-        pointer-events: none;
-        transform: translateY(-6px);
-        transform-origin: top center;
-        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-        background: rgba(12, 14, 18, 0.96);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-        box-shadow:
-            0 12px 28px rgba(0, 0, 0, 0.45),
-            0 0 0 1px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(12px);
-        transition:
-            max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-            opacity 0.2s ease,
-            transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-            padding 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .app-card .integration-widget--hover .nested-metrics-grid {
-        margin-top: 0;
-        padding-top: 0;
-        border-top: none;
-    }
-
-    .app-card:hover .integration-widget--hover,
-    .app-card:focus-within .integration-widget--hover {
-        max-height: 5.5rem;
-        padding: 0.65rem 1rem 0.85rem;
+    .app-card-metrics-slot--dual:hover .app-card-metrics-layer--integration,
+    .app-card-metrics-slot--solo:hover .app-card-metrics-layer--integration {
         opacity: 1;
         pointer-events: auto;
         transform: translateY(0);
     }
+
+    .app-card-metrics-slot--solo:hover::before {
+        opacity: 0;
+    }
+
+    .app-card:has(.app-card-metrics-slot).glass-panel:hover {
+        transform: translateY(-2px);
+    }
 }
 
 @media (hover: none) {
-    .app-card .integration-widget--hover {
-        margin-top: auto;
+    .app-card-metrics-slot--solo::before,
+    .app-card-metrics-slot--dual .app-card-metrics-layer--infra {
+        display: none;
     }
+
+    .app-card-metrics-layer--integration {
+        position: static;
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
+    }
+}
+
+.integration-widget--hover {
+    margin-top: 0;
 }
 
 .integration-widget--always {
     margin-top: auto;
-}
-
-:root[data-theme="light"] .app-card .integration-widget--hover {
-    background: rgba(248, 250, 252, 0.98);
-    border-color: rgba(15, 23, 42, 0.1);
-    box-shadow:
-        0 12px 28px rgba(15, 23, 42, 0.12),
-        0 0 0 1px rgba(15, 23, 42, 0.06);
 }
 
 /* ── RSS Feed Widget ───────────────────────────── */

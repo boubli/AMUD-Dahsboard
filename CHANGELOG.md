@@ -8,17 +8,23 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
-## [v1.5.5.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.2) — 2026-06-24
+## [v1.5.5.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.3) — 2026-06-24
 
-Docker UX fixes, integration hover drawer, and automatic RSS favicons.
+Fix broken integration hover from v1.5.5.2; admin settings redirect.
 
-### Improved
-- **Docker `:latest`** — correct release version in Settings (fixes `vmain` display)
-- **Docker container control** — auto-enable monitoring and start/stop/restart when the socket is mounted
-- **Integration hover drawer** — stats slide down on hover without moving other cards
-- **RSS favicons** — automatic website icons when adding feeds
+### Fixed
+- **Integration hover** — fixed metrics slot swap inside the card (no overlap on neighbors)
+- **Admin settings** — redirect to `/login` when not signed in as admin
+
+### Improved (carried from v1.5.5.2)
+- Docker `:latest` version display, Docker auto-enable controls, RSS auto-favicons
 
 ---
+
+## [v1.5.5.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.2) — 2026-06-24
+
+**Superseded by v1.5.5.3** — integration hover drawer overlapped other cards. Do not use.
+
 
 ## [v1.5.5.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.1) — 2026-06-24
 

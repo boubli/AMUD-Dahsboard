@@ -405,8 +405,15 @@ fn render_apps_grid(
                 </div>"#
                     .to_string()
             } else if app.show_container_metrics {
-                r#"
-                <div class="nested-metrics-grid cols-2" data-lxc-metrics>
+                let infra_layer =
+                    if !app.integration_type.is_empty() && app.integration_type != "rss" {
+                        " app-card-metrics-layer app-card-metrics-layer--infra"
+                    } else {
+                        ""
+                    };
+                format!(
+                    r#"
+                <div class="nested-metrics-grid cols-2{infra_layer}" data-lxc-metrics>
                     <div class="metric-block">
                         <span class="metric-value">—</span>
                         <span class="metric-label">CPU</span>
@@ -416,7 +423,7 @@ fn render_apps_grid(
                         <span class="metric-label">RAM</span>
                     </div>
                 </div>"#
-                    .to_string()
+                )
             } else {
                 String::new()
             }
@@ -479,7 +486,7 @@ fn render_apps_grid(
             let integration_class = if app.integration_type == "rss" {
                 "integration-widget integration-widget--always"
             } else {
-                "integration-widget integration-widget--hover"
+                "integration-widget integration-widget--hover app-card-metrics-layer app-card-metrics-layer--integration"
             };
             integration_widget = format!(
                 r#"
@@ -644,6 +651,31 @@ fn render_apps_grid(
             _ => "",
         };
 
+        let metrics_slot = if app.integration_type == "rss" {
+            if sub_metrics.is_empty() {
+                integration_widget.clone()
+            } else {
+                format!("{}{}", sub_metrics, integration_widget)
+            }
+        } else if sub_metrics.is_empty() && integration_widget.is_empty() {
+            String::new()
+        } else if integration_widget.is_empty() {
+            format!(
+                r#"<div class="app-card-metrics-slot">{}</div>"#,
+                sub_metrics
+            )
+        } else if sub_metrics.is_empty() {
+            format!(
+                r#"<div class="app-card-metrics-slot app-card-metrics-slot--solo">{}</div>"#,
+                integration_widget
+            )
+        } else {
+            format!(
+                r#"<div class="app-card-metrics-slot app-card-metrics-slot--dual">{}{}</div>"#,
+                sub_metrics, integration_widget
+            )
+        };
+
         let card = format!(
             r#"
             <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" {}>
@@ -663,7 +695,6 @@ fn render_apps_grid(
                         {}
                     </div>
                 </div>
-                {}
                 {}
             </div>"#,
             guest_compact_class,
@@ -686,8 +717,7 @@ fn render_apps_grid(
             status_badge,
             ctrl_container,
             delete_btn,
-            sub_metrics,
-            integration_widget
+            metrics_slot
         );
         cards_html.push_str(&card);
     }
