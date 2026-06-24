@@ -756,8 +756,6 @@ fn render_apps_grid(
             };
         let link_target = if app.embed_mode == "tab" && iframe_embeds_enabled {
             ""
-        } else if app.embed_mode == "iframe" && iframe_embeds_enabled {
-            r#" target="_blank" rel="noopener noreferrer""#
         } else {
             r#" target="_blank" rel="noopener noreferrer""#
         };

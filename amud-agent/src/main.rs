@@ -970,27 +970,27 @@ fn discover_docker_apps() -> Vec<serde_json::Value> {
             id: String,
             #[serde(rename = "Names")]
             names: Vec<String>,
-            #[serde(default)]
-            Labels: std::collections::HashMap<String, String>,
+            #[serde(default, rename = "Labels")]
+            labels: std::collections::HashMap<String, String>,
         }
         let rows: Vec<Row> = serde_json::from_slice(&body).ok()?;
         let mut out = Vec::new();
         for row in rows {
             let enabled = row
-                .Labels
+                .labels
                 .get("amud.enable")
                 .map(|s| s == "true")
                 .unwrap_or(false);
             let url = row
-                .Labels
+                .labels
                 .get("amud.url")
                 .cloned()
-                .or_else(|| row.Labels.get("traefik.http.routers.amud.rule").cloned());
+                .or_else(|| row.labels.get("traefik.http.routers.amud.rule").cloned());
             if !enabled && url.is_none() {
                 continue;
             }
             let name = row
-                .Labels
+                .labels
                 .get("amud.name")
                 .cloned()
                 .or_else(|| {
@@ -1001,11 +1001,11 @@ fn discover_docker_apps() -> Vec<serde_json::Value> {
                 .unwrap_or_else(|| "container".to_string());
             let url = url.unwrap_or_else(|| "http://localhost".to_string());
             let category = row
-                .Labels
+                .labels
                 .get("amud.category")
                 .cloned()
                 .unwrap_or_else(|| "General".to_string());
-            let icon = row.Labels.get("amud.icon").cloned().unwrap_or_default();
+            let icon = row.labels.get("amud.icon").cloned().unwrap_or_default();
             out.push(serde_json::json!({
                 "name": name,
                 "url": url,
