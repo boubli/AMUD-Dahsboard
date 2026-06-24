@@ -10,13 +10,14 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.3.0
+### What's new in v1.5.5.2
 
-- **RSS Feeds management** — Settings tab + `/feeds` page + Add App modal integration
-- **Webhook LAN toggle** — send alerts to private homelab IPs (ntfy, Gotify)
-- **Audit expansion** — wake, reorder, categories logged; filter/search in Settings
-- **Backup UX** — validate import, show counts, last export timestamp
-- **Home Assistant TLS fix** — self-signed certs when toggle enabled
+- **Docker `:latest` fix** — Settings shows the real release tag; container start/stop/restart + CPU/RAM when the socket is mounted
+- **Integration slide-down drawer** — hover app cards for Prowlarr/*arr stats without shifting the grid
+- **RSS auto-favicons** — feed icons fetched from the website when you add a feed
+- **qBittorrent & Bazarr** integrations + hover stats (v1.5.5.1)
+
+Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

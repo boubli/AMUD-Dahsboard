@@ -1013,8 +1013,8 @@ pub async fn add_rss_feed_handler(
         .cloned()
         .unwrap_or_else(|| "General".to_string());
     let mut icon = form.get("icon").cloned().unwrap_or_default();
-    if icon.is_empty() || icon == "rss" {
-        icon = guess_feed_icon_key(&name, &url, &feed_url);
+    if icon.is_empty() || icon == "rss" || icon == "auto" {
+        icon = crate::feed_icons::auto_feed_icon_url(&url, &feed_url);
     }
 
     if name.is_empty() || feed_url.is_empty() {
@@ -1107,8 +1107,8 @@ pub async fn edit_rss_feed_handler(
         .cloned()
         .unwrap_or_else(|| "General".to_string());
     let mut icon = form.get("icon").cloned().unwrap_or_default();
-    if icon.is_empty() || icon == "rss" {
-        icon = guess_feed_icon_key(&name, &url, &feed_url);
+    if icon.is_empty() || icon == "rss" || icon == "auto" {
+        icon = crate::feed_icons::auto_feed_icon_url(&url, &feed_url);
     }
 
     if name.is_empty() || feed_url.is_empty() {

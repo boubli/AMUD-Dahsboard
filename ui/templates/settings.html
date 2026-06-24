@@ -1333,11 +1333,13 @@
                 <label for="rss-url">Site Link (Optional)</label>
                 <input type="url" id="rss-url" class="form-control" placeholder="e.g. https://www.bbc.com/news" autocomplete="off" oninput="autoSuggestRssFields()">
             </div>
-            <fieldset class="form-group form-fieldset" style="margin-top:1rem;">
-                <legend class="form-label">Source Icon</legend>
-                <div id="rss-icon-picker" class="icon-picker-grid" role="radiogroup" aria-label="Source Icon"></div>
-                <p class="form-help">Auto-detected from URL when left on Generic RSS.</p>
-            </fieldset>
+            <div class="form-group" style="margin-top:1rem;">
+                <label for="rss-icon-preview-img">Source Icon</label>
+                <div id="rss-icon-preview" style="display:flex; align-items:center; gap:0.75rem; padding:0.65rem 0.75rem; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);">
+                    <img id="rss-icon-preview-img" src="/static/feeds/icons/rss.svg" alt="" width="32" height="32" style="border-radius:6px; object-fit:contain; background:rgba(0,0,0,0.2);">
+                    <p class="form-help" style="margin:0;">Loaded automatically from the site or feed URL (favicon).</p>
+                </div>
+            </div>
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
                 <button type="button" class="btn btn-secondary" @click="rssModalOpen = false">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Feed</button>
@@ -2256,26 +2258,10 @@
             }
         }
 
-        function guessFeedIconId(name, siteUrl, feedUrl) {
-            const hosts = [siteUrl, feedUrl].map(feedHostFromUrl).filter(Boolean);
-            for (const site of feedIconPresets) {
-                if (!site.id || site.id === 'rss') continue;
-                const domains = site.domains || [];
-                for (const host of hosts) {
-                    if (domains.some(d => host === d || host.endsWith('.' + d))) {
-                        return site.id;
-                    }
-                }
-            }
-            const lower = (name || '').toLowerCase();
-            for (const site of feedIconPresets) {
-                if (!site.id || site.id === 'rss') continue;
-                const idSpaced = site.id.replace(/-/g, ' ');
-                if (lower.includes(idSpaced) || lower.includes(site.name.toLowerCase())) {
-                    return site.id;
-                }
-            }
-            return 'rss';
+        function feedFaviconUrl(siteUrl, feedUrl) {
+            const host = feedHostFromUrl(siteUrl) || feedHostFromUrl(feedUrl);
+            if (!host) return '/static/feeds/icons/rss.svg';
+            return `https://icons.duckduckgo.com/ip3/${host}.ico`;
         }
 
         function autoSuggestRssFields() {
@@ -2293,21 +2279,20 @@
                 } catch { /* ignore invalid URL while typing */ }
             }
 
-            if (iconEl.dataset.userPicked === '1') return;
-            const guessed = guessFeedIconId(nameEl.value, siteEl.value, feedUrl);
-            iconEl.value = guessed;
-            renderRssIconPicker(guessed);
+            const iconUrl = feedFaviconUrl(siteEl.value, feedUrl);
+            iconEl.value = iconUrl;
+            renderRssIconPreview(iconUrl);
         }
 
         function feedLogoUrl(iconId) {
+            if (iconId && (iconId.startsWith('http') || iconId.startsWith('/'))) return iconId;
             const preset = feedIconPresets.find(p => p.id === iconId);
             if (preset) return preset.logo;
-            if (iconId && (iconId.startsWith('http') || iconId.startsWith('/'))) return iconId;
             return `/static/feeds/icons/${iconId || 'rss'}.svg`;
         }
 
         async function loadFeedIconPresets() {
-            if (feedIconPresets.length) return;
+            if (feedCategoryIcons.length) return;
             try {
                 const res = await fetch('/static/feeds/presets.json');
                 const data = await res.json();
@@ -2318,33 +2303,11 @@
             }
         }
 
-        function renderRssIconPicker(selectedId) {
-            const grid = document.getElementById('rss-icon-picker');
-            if (!grid) return;
-            grid.replaceChildren();
-            feedIconPresets.forEach(site => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'icon-picker-item' + (site.id === selectedId ? ' selected' : '');
-                btn.title = site.name;
-                const img = document.createElement('img');
-                img.src = site.logo;
-                img.alt = site.name;
-                img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
-                const label = document.createElement('span');
-                label.textContent = site.name;
-                btn.appendChild(img);
-                btn.appendChild(label);
-                btn.addEventListener('click', () => {
-                    const iconEl = document.getElementById('rss-icon');
-                    if (iconEl) {
-                        iconEl.value = site.id;
-                        iconEl.dataset.userPicked = '1';
-                    }
-                    renderRssIconPicker(site.id);
-                });
-                grid.appendChild(btn);
-            });
+        function renderRssIconPreview(iconUrl) {
+            const img = document.getElementById('rss-icon-preview-img');
+            if (!img) return;
+            img.src = feedLogoUrl(iconUrl);
+            img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
         }
 
         function renderFeedCategoryIconPicker(selectedIcon) {
@@ -2648,11 +2611,9 @@
             document.getElementById('rss-name').value = '';
             document.getElementById('rss-feed-url').value = '';
             document.getElementById('rss-url').value = '';
-            document.getElementById('rss-icon').value = 'rss';
-            const iconEl = document.getElementById('rss-icon');
-            if (iconEl) delete iconEl.dataset.userPicked;
+            document.getElementById('rss-icon').value = '/static/feeds/icons/rss.svg';
             populateRssCategorySelect('General');
-            renderRssIconPicker('rss');
+            renderRssIconPreview('/static/feeds/icons/rss.svg');
             state.rssModalOpen = true;
         }
 
@@ -2665,11 +2626,10 @@
             document.getElementById('rss-name').value = feed.name;
             document.getElementById('rss-feed-url').value = feed.feed_url;
             document.getElementById('rss-url').value = feed.url || '';
-            document.getElementById('rss-icon').value = feed.icon || 'rss';
-            const iconEl = document.getElementById('rss-icon');
-            if (iconEl) iconEl.dataset.userPicked = '1';
+            const iconValue = feed.icon || feedFaviconUrl(feed.url, feed.feed_url);
+            document.getElementById('rss-icon').value = iconValue;
             populateRssCategorySelect(feed.category || 'General');
-            renderRssIconPicker(feed.icon || 'rss');
+            renderRssIconPreview(iconValue);
             state.rssModalOpen = true;
         }
 

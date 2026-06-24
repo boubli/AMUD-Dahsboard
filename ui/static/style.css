@@ -656,30 +656,45 @@ body::-webkit-scrollbar-button {
     text-transform: uppercase;
 }
 
-/* Integration stats — reveal on card hover (compact cards) */
+/* Integration stats — slide-down drawer on hover (compact cards; no grid shift) */
 .integration-widget--hover {
     margin-top: auto;
 }
 
 @media (hover: hover) {
+    .app-card:has(.integration-widget--hover):hover,
+    .app-card:has(.integration-widget--hover):focus-within {
+        z-index: 30;
+        overflow: visible;
+    }
+
     .app-card .integration-widget--hover {
         position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 2;
-        padding: 0.65rem 1rem 0.85rem;
-        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-        background: linear-gradient(
-            to top,
-            rgba(12, 14, 18, 0.97) 70%,
-            rgba(12, 14, 18, 0.82) 100%
-        );
-        backdrop-filter: blur(10px);
+        left: -1px;
+        right: -1px;
+        top: calc(100% - 1px);
+        z-index: 5;
+        margin-top: 0;
+        padding: 0 1rem;
+        max-height: 0;
+        overflow: hidden;
         opacity: 0;
         pointer-events: none;
-        transform: translateY(6px);
-        transition: opacity 0.18s ease, transform 0.18s ease;
+        transform: translateY(-6px);
+        transform-origin: top center;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        background: rgba(12, 14, 18, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow:
+            0 12px 28px rgba(0, 0, 0, 0.45),
+            0 0 0 1px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(12px);
+        transition:
+            max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.2s ease,
+            transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+            padding 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .app-card .integration-widget--hover .nested-metrics-grid {
@@ -690,6 +705,8 @@ body::-webkit-scrollbar-button {
 
     .app-card:hover .integration-widget--hover,
     .app-card:focus-within .integration-widget--hover {
+        max-height: 5.5rem;
+        padding: 0.65rem 1rem 0.85rem;
         opacity: 1;
         pointer-events: auto;
         transform: translateY(0);
@@ -707,11 +724,11 @@ body::-webkit-scrollbar-button {
 }
 
 :root[data-theme="light"] .app-card .integration-widget--hover {
-    background: linear-gradient(
-        to top,
-        rgba(248, 250, 252, 0.98) 70%,
-        rgba(248, 250, 252, 0.88) 100%
-    );
+    background: rgba(248, 250, 252, 0.98);
+    border-color: rgba(15, 23, 42, 0.1);
+    box-shadow:
+        0 12px 28px rgba(15, 23, 42, 0.12),
+        0 0 0 1px rgba(15, 23, 42, 0.06);
 }
 
 /* ── RSS Feed Widget ───────────────────────────── */

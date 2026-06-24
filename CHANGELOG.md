@@ -8,6 +8,18 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.5.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.2) — 2026-06-24
+
+Docker UX fixes, integration hover drawer, and automatic RSS favicons.
+
+### Improved
+- **Docker `:latest`** — correct release version in Settings (fixes `vmain` display)
+- **Docker container control** — auto-enable monitoring and start/stop/restart when the socket is mounted
+- **Integration hover drawer** — stats slide down on hover without moving other cards
+- **RSS favicons** — automatic website icons when adding feeds
+
+---
+
 ## [v1.5.5.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.1) — 2026-06-24
 
 qBittorrent and Bazarr integrations plus compact hover stats on app cards.

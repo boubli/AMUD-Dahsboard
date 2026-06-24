@@ -18,7 +18,7 @@ pub(crate) use crate::db::{
     update_category_by_id, update_feed_category_by_id, update_rss_feed_order, with_db,
     CategoryDeleteError, DeleteUserError, FeedCategoryDeleteError,
 };
-pub(crate) use crate::feed_icons::{guess_feed_icon_key, host_from_url, resolve_feed_logo};
+pub(crate) use crate::feed_icons::{host_from_url, resolve_feed_logo};
 pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};
 pub(crate) use crate::models::{AppState, Session};
 pub(crate) use crate::security::{sanitize_rss_feed_url, url_allowed_for_webhook};

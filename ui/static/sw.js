@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amud-dashboard-v6';
+const CACHE_NAME = 'amud-dashboard-v7';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/AMUD-logo.png',
