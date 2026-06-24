@@ -11,6 +11,27 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## Release validation audit (2026-06-24)
+
+Manual validation was run in a clean Proxmox test container.
+
+**Validated good**
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3` (latest)
+
+**Removed as broken during audit**
+- `v1.1.0.0`, `v1.2.0.0`, `v1.3.0.0`, `v1.3.1.5`
+- `v1.3.7.1`, `v1.3.7.2`, `v1.3.7.3`
+- `v1.4.0.0`, `v1.4.2.0`, `v1.4.2.1`, `v1.4.2.2`
+- `v1.5.0.0`, `v1.5.5.2`
+
+If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.5.3` or newer.
+
+---
+
 ## v1.5.5.3 — Fix integration hover + admin redirect
 
 **2026-06-24** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.3) · [Compare v1.5.5.2…v1.5.5.3](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.2...v1.5.5.3)

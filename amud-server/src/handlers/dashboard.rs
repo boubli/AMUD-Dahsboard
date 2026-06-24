@@ -117,14 +117,9 @@ async fn render_page(
             &logo_manifest,
             &feed_categories,
         ),
-        PageMode::Dashboard => render_apps_grid(
-            &apps,
-            is_admin,
-            &csrf_token,
-            &csrf_attr,
-            &session,
-            &logo_manifest,
-        ),
+        PageMode::Dashboard => {
+            render_apps_grid(&apps, is_admin, &csrf_token, &csrf_attr, &logo_manifest)
+        }
     };
 
     let wol_html = render_wol_devices(&wol_devices, is_admin, &csrf_attr);
@@ -349,7 +344,6 @@ fn render_apps_grid(
     is_admin: bool,
     csrf_token: &str,
     csrf_attr: &str,
-    session: &Option<Session>,
     logo_manifest: &HashMap<String, String>,
 ) -> String {
     if apps.is_empty() {
@@ -386,7 +380,7 @@ fn render_apps_grid(
         let cat_slug = category_slug(&app.category);
 
         let name_lower = app.name.to_lowercase();
-        let sub_metrics = if session.is_some() {
+        let sub_metrics = if is_admin {
             if name_lower.contains("home") && name_lower.contains("assistant") {
                 r#"
                 <div class="nested-metrics-grid cols-3" id="ha-metrics-grid">
@@ -482,7 +476,7 @@ fn render_apps_grid(
         };
 
         let mut integration_widget = String::new();
-        if !app.integration_type.is_empty() {
+        if is_admin && !app.integration_type.is_empty() {
             let integration_class = if app.integration_type == "rss" {
                 "integration-widget integration-widget--always"
             } else {
@@ -613,7 +607,7 @@ fn render_apps_grid(
             );
         }
 
-        let alpine_init = if !app.integration_type.is_empty() {
+        let alpine_init = if is_admin && !app.integration_type.is_empty() {
             format!(
                 r#"x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }}).catch(() => {{}})""#,
                 app.id
@@ -639,7 +633,7 @@ fn render_apps_grid(
         let is_host_agent_app = alias_tokens
             .iter()
             .any(|t| t == "proxmox" || t == "pve" || t == "beszel" || t == "filebrowser");
-        let guest_compact_class = if session.is_none() {
+        let guest_compact_class = if !is_admin {
             " app-card--guest-compact"
         } else {
             ""

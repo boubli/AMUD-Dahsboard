@@ -18,6 +18,18 @@
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
+### Release status (audit 2026-06-24)
+
+After manual validation in a clean Proxmox test container, these releases are currently kept as known-good baselines:
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3` (current latest recommended)
+
+Broken tags identified during audit were removed from GitHub releases/tags and should not be used.
+
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
 A compiled, zero-dependency homelab control center and telemetry dashboard.
