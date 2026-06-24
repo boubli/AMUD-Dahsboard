@@ -8,6 +8,27 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.5.4](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.4) — 2026-06-24
+
+Dashboard parity batch: search, layout, widgets, Docker import, OIDC, API tokens, kiosk/share, iframe embeds.
+
+### Added
+- **Global search** — app filter + web search toggle; keyboard shortcuts (`Ctrl+K`, `/`, `1`–`9`, `?`)
+- **Dashboard layout** — tabs vs collapsible category sections (Settings → Appearance)
+- **Status page** — `/status` and `/api/status`
+- **Dashboard widgets** — Settings → Widgets CRUD
+- **Per-app guest visibility** — hide individual apps from guest sessions
+- **Docker discovery** — agent label scan + Settings import UI
+- **OIDC SSO** — Security settings + login SSO button
+- **API tokens** — Bearer auth on read-only API routes
+- **Kiosk mode** + **share links** (`/s/:token`)
+- **Iframe embeds** — per-app embed mode, `/embed/:id`, CSP frame-src allowlist
+
+### Fixed
+- CI: clippy, cargo audit (oauth2 dep), SonarCloud gate on parity UI code
+
+---
+
 ## [v1.5.5.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.3) — 2026-06-24
 
 Fix broken integration hover from v1.5.5.2; admin settings redirect.
