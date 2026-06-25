@@ -14,6 +14,11 @@ From your screenshot it looks like the **app name and ONLINE badge** render, but
 
 **Optional but very helpful:** View page source on the dashboard, search inside one card for `app-card-metrics-slot` or `data-lxc-metrics`. If those tags are missing, metrics are turned off in app settings. If they are present but invisible, that points to a layout/CSS issue we are fixing.
 
-We are testing a Docker bridge setup on Proxmox to mirror Unraid and have a CSS patch ready for card metrics clipping after the v1.5.5.9 bento grid change. I will not ask you to upgrade again until we have a build we have validated — will follow up here with a tag when ready.
+We are testing a Docker bridge setup on Proxmox to mirror Unraid. The fix includes:
+
+1. **CSS** — stop v1.5.5.9 bento grid from clipping the metrics area inside cards
+2. **HTML** — integration apps (Radarr, Sonarr, etc.) now show a visible `— / Loading` row in the page source before the integration API responds (so the body is not empty while Alpine fetches)
+
+I will not ask you to upgrade again until we have a build we have validated — will follow up here with a tag when ready.
 
 Thanks for sticking with the project.

@@ -562,7 +562,14 @@ fn render_apps_grid(
             };
             integration_widget = format!(
                 r#"
-                <div class="{}" x-show="integrationData && integrationData.type">
+                <div class="{}">
+                    <div class="nested-metrics-grid app-card-metrics-fallback" x-show="!integrationData || !integrationData.type">
+                        <div class="metric-block">
+                            <span class="metric-value">—</span>
+                            <span class="metric-label">Loading</span>
+                        </div>
+                    </div>
+                    <div x-show="integrationData && integrationData.type">
                     <template x-if="integrationData.type === 'pihole' || integrationData.type === 'adguard'">
                         <div class="nested-metrics-grid cols-2">
                             <div class="metric-block">
@@ -680,6 +687,7 @@ fn render_apps_grid(
                             </div>
                         </div>
                     </template>
+                    </div>
                 </div>"#,
                 integration_class, app.id, csrf_token, app.id
             );

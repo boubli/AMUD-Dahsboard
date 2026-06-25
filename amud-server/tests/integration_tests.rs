@@ -919,4 +919,74 @@ async fn test_dashboard_hides_lxc_metrics_when_disabled_per_app() {
         app_card_html(&html, "localapp").contains("data-lxc-metrics"),
         "local app should still render CPU/RAM grid"
     );
+    let local_card = app_card_html(&html, "localapp");
+    assert!(
+        local_card.contains("metric-label") && local_card.contains("CPU"),
+        "local app card body should include visible CPU metric row"
+    );
+}
+
+#[tokio::test]
+async fn test_dashboard_integration_app_renders_visible_body_placeholder() {
+    let state = setup_test_state();
+    {
+        let db = state.db.lock().unwrap();
+        db.execute(
+            "INSERT INTO apps (id, name, url, category, node_tag, integration_type, show_container_metrics) VALUES (1, 'Radarr', 'https://radarr.example', 'Media', 'Local', 'radarr', 0)",
+            [],
+        )
+        .unwrap();
+    }
+
+    let session_token = "admin-radarr-body-test";
+    state.sessions.write().unwrap().insert(
+        session_token.to_string(),
+        Session {
+            username: "admin".to_string(),
+            role: "Admin".to_string(),
+            expires_at_epoch: amud_server::auth::now_epoch_secs() + 3600,
+            csrf_token: "csrf-radarr".to_string(),
+        },
+    );
+
+    let app = build_app_router(state);
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/")
+                .header(header::COOKIE, format!("amud_session={}", session_token))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let html = String::from_utf8(
+        axum::body::to_bytes(response.into_body(), 2 * 1024 * 1024)
+            .await
+            .unwrap()
+            .to_vec(),
+    )
+    .unwrap();
+
+    assert!(
+        html.contains("app-card-metrics-fallback"),
+        "dashboard HTML should include integration loading placeholder"
+    );
+
+    let start = html.find(r#"data-app-name="radarr""#).expect("radarr card");
+    let card = &html[start..html.len().min(start + 6000)];
+    assert!(
+        card.contains("app-card-metrics-fallback"),
+        "integration-only app should render server-side loading placeholder"
+    );
+    assert!(
+        card.contains("app-card-metrics-slot"),
+        "integration app should include metrics slot in HTML"
+    );
+    assert!(
+        card.contains("Loading"),
+        "placeholder should show Loading label before integration fetch"
+    );
 }
