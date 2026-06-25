@@ -10,7 +10,7 @@
 
 **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galleria dei Temi](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Tabella di marcia](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentazione](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novità nella v1.5.5.5
+### Novità nella v1.5.5.6
 
 - **Hotfix telemetria agente** — GPU, CPU/RAM/disco host, controlli container e badge ONLINE/OFFLINE di nuovo funzionanti (**non usare v1.5.5.4** — pipeline agente rotta)
 - **Ricerca globale** — filtra le app o passa alla ricerca web (Google / DuckDuckGo / Bing); scorciatoie `Ctrl+K`, `/`, `1`–`9`, `?`
@@ -27,7 +27,7 @@ Dopo validazione manuale in un container Proxmox pulito, queste versioni sono ma
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.5` (ultima consigliata al momento)
+- `v1.5.5.6` (ultima consigliata al momento)
 
 I tag difettosi individuati nell'audit sono stati rimossi da release/tag GitHub e non vanno usati. **Non usare `v1.5.5.4`.**
 

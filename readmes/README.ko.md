@@ -10,7 +10,7 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.5 새로운 기능
+### v1.5.5.6 새로운 기능
 
 - **에이전트 원격 측정 핫픽스** — GPU, 호스트 CPU/RAM/디스크, 컨테이너 제어 및 ONLINE/OFFLINE 배지 복구 (**v1.5.5.4 사용 금지** — 에이전트 파이프라인 손상)
 - **전역 검색** — 앱 필터 또는 웹 검색(Google / DuckDuckGo / Bing) 전환; 단축키 `Ctrl+K`, `/`, `1`–`9`, `?`
@@ -27,7 +27,7 @@
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.5` (현재 권장 최신)
+- `v1.5.5.6` (현재 권장 최신)
 
 감사에서 확인된 손상된 태그는 GitHub releases/tags에서 제거되었으며 사용하지 마세요. **`v1.5.5.4`는 사용하지 마세요.**
 

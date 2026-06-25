@@ -10,7 +10,7 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### ما الجديد في v1.5.5.5
+### ما الجديد في v1.5.5.6
 
 - **إصلاح عاجل لقياسات الوكيل** — استعادة GPU وCPU/RAM/القرص والتحكم بالحاويات وشارات ONLINE/OFFLINE (**لا تستخدم v1.5.5.4** — خط أنابيب الوكيل معطّل)
 - **بحث عام** — تصفية التطبيقات أو التبديل إلى بحث الويب (Google / DuckDuckGo / Bing)؛ اختصارات `Ctrl+K` و`/` و`1`–`9` و`?`
@@ -27,7 +27,7 @@
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.5` (الأحدث الموصى به حاليًا)
+- `v1.5.5.6` (الأحدث الموصى به حاليًا)
 
 أُزيلت الوسوم المعطوبة المكتشفة أثناء التدقيق من إصدارات/وسوم GitHub ولا يجب استخدامها. **لا تستخدم `v1.5.5.4`.**
 

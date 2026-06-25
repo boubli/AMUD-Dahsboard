@@ -10,7 +10,7 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.5 新增功能
+### v1.5.5.6 新增功能
 
 - **代理遥测热修复** — GPU、主机 CPU/RAM/磁盘、容器控制及 ONLINE/OFFLINE 徽章已恢复（**请勿使用 v1.5.5.4** — 代理管道已损坏）
 - **全局搜索** — 筛选应用或切换网页搜索（Google / DuckDuckGo / Bing）；快捷键 `Ctrl+K`、`/`、`1`–`9`、`?`
@@ -27,7 +27,7 @@
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.5`（当前推荐最新版）
+- `v1.5.5.6`（当前推荐最新版）
 
 审计中发现的损坏标签已从 GitHub releases/tags 中移除，请勿使用。**请勿使用 `v1.5.5.4`。**
 

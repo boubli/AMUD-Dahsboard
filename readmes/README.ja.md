@@ -10,7 +10,7 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.5 の新機能
+### v1.5.5.6 の新機能
 
 - **エージェントテレメトリのホットフィックス** — GPU、ホスト CPU/RAM/ディスク、コンテナ制御、ONLINE/OFFLINE バッジが復旧（**v1.5.5.4 は使用しないでください** — エージェントパイプラインが破損）
 - **グローバル検索** — アプリをフィルタまたはウェブ検索（Google / DuckDuckGo / Bing）に切替；ショートカット `Ctrl+K`、`/`、`1`–`9`、`?`
@@ -27,7 +27,7 @@
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.5`（現在推奨の最新版）
+- `v1.5.5.6`（現在推奨の最新版）
 
 監査で特定された破損タグは GitHub のリリース/タグから削除されており、使用しないでください。**`v1.5.5.4` は使用しないでください。**
 

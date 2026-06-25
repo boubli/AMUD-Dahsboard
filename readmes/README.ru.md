@@ -10,7 +10,7 @@
 
 **[Список изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Блог](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Галерея тем](https://boubli.github.io/AMUD-Dashboard/themes)** · **[План разработки](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Документация](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Что нового в v1.5.5.5
+### Что нового в v1.5.5.6
 
 - **Хотфикс телеметрии агента** — GPU, CPU/RAM/диск хоста, управление контейнерами и бейджи ONLINE/OFFLINE снова работают (**не используйте v1.5.5.4** — сломан конвейер агента)
 - **Глобальный поиск** — фильтр приложений или веб-поиск (Google / DuckDuckGo / Bing); горячие клавиши `Ctrl+K`, `/`, `1`–`9`, `?`
@@ -27,7 +27,7 @@
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.5` (текущая рекомендуемая)
+- `v1.5.5.6` (текущая рекомендуемая)
 
 Сломанные теги, выявленные при аудите, удалены из релизов/тегов GitHub и не должны использоваться. **Не используйте `v1.5.5.4`.**
 

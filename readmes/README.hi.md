@@ -10,7 +10,7 @@
 
 **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ब्लॉग](https://boubli.github.io/AMUD-Dashboard/blog)** · **[थीम गैलरी](https://boubli.github.io/AMUD-Dashboard/themes)** · **[रोडमैप](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/)** · **[अक्सर पूछे जाने वाले सवाल](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.5 में नया क्या है
+### v1.5.5.6 में नया क्या है
 
 - **एजेंट टेलीमेट्री हॉटफ़िक्स** — GPU, होस्ट CPU/RAM/डिस्क, कंटेनर नियंत्रण और ONLINE/OFFLINE बैज फिर काम कर रहे हैं (**v1.5.5.4 न उपयोग करें** — एजेंट पाइपलाइन टूटी)
 - **वैश्विक खोज** — ऐप्स फ़िल्टर करें या वेब खोज (Google / DuckDuckGo / Bing) पर जाएँ; शॉर्टकट `Ctrl+K`, `/`, `1`–`9`, `?`
@@ -27,7 +27,7 @@
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.5` (वर्तमान में अनुशंसित नवीनतम)
+- `v1.5.5.6` (वर्तमान में अनुशंसित नवीनतम)
 
 ऑडिट में पहचाने गए टूटे टैग GitHub releases/tags से हटा दिए गए हैं — उनका उपयोग न करें। **`v1.5.5.4` न उपयोग करें।**
 
