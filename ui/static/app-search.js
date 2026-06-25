@@ -46,47 +46,58 @@
         }
         if (modeApps) modeApps.classList.toggle('active', mode === 'apps');
         if (modeWeb) modeWeb.classList.toggle('active', mode === 'web');
-        if (modeApps) modeApps.setAttribute('aria-checked', mode === 'apps' ? 'true' : 'false');
-        if (modeWeb) modeWeb.setAttribute('aria-checked', mode === 'web' ? 'true' : 'false');
+        if (modeApps) modeApps.setAttribute('aria-pressed', mode === 'apps' ? 'true' : 'false');
+        if (modeWeb) modeWeb.setAttribute('aria-pressed', mode === 'web' ? 'true' : 'false');
+    }
+
+    function applyCategoryVisibility(card, category) {
+        const show = category === 'all' || card.dataset.category === category;
+        card.style.display = show ? 'flex' : 'none';
+        return show;
+    }
+
+    function getCardSearchText(card) {
+        const name = (card.dataset.appName || '').toLowerCase();
+        const title = (card.querySelector('.app-card-title, .feed-card-title')?.textContent || '').toLowerCase();
+        return name + '\n' + title;
+    }
+
+    function getOrCreateEmptyMessage(grid) {
+        let emptyMsg = grid.querySelector('.filter-empty-msg');
+        if (!emptyMsg) {
+            emptyMsg = document.createElement('div');
+            emptyMsg.className = 'glass-panel filter-empty-msg ' + (grid.classList.contains('feeds-grid') ? 'feed-card' : 'app-card');
+            grid.appendChild(emptyMsg);
+        }
+        return emptyMsg;
     }
 
     function applyAppFilter(query) {
         const q = (query || '').trim().toLowerCase();
         const cardSelector = '.app-card:not(.filter-empty-msg), .feed-card:not(.filter-empty-msg)';
         const cards = document.querySelectorAll(cardSelector);
+        const category = globalThis.activeCategoryFilter || 'all';
         let visible = 0;
+
         cards.forEach(function (card) {
             if (!q) {
-                const cat = globalThis.activeCategoryFilter || 'all';
-                if (cat === 'all') {
-                    card.style.display = 'flex';
-                    visible += 1;
-                } else {
-                    const show = card.dataset.category === cat;
-                    card.style.display = show ? 'flex' : 'none';
-                    if (show) visible += 1;
-                }
+                if (applyCategoryVisibility(card, category)) visible += 1;
                 return;
             }
-            const name = (card.dataset.appName || '').toLowerCase();
-            const title = (card.querySelector('.app-card-title, .feed-card-title')?.textContent || '').toLowerCase();
-            const match = name.includes(q) || title.includes(q);
+            const match = getCardSearchText(card).includes(q);
             card.style.display = match ? 'flex' : 'none';
             if (match) visible += 1;
         });
 
         const grid = document.querySelector('.bento-grid, .feeds-grid');
         if (!grid) return;
-        let emptyMsg = grid.querySelector('.filter-empty-msg');
         if (q && visible === 0) {
-            if (!emptyMsg) {
-                emptyMsg = document.createElement('div');
-                emptyMsg.className = 'glass-panel filter-empty-msg ' + (grid.classList.contains('feeds-grid') ? 'feed-card' : 'app-card');
-                grid.appendChild(emptyMsg);
-            }
+            const emptyMsg = getOrCreateEmptyMessage(grid);
             emptyMsg.textContent = 'No apps match "' + query.trim() + '"';
             emptyMsg.style.display = 'flex';
-        } else if (emptyMsg && q) {
+        } else if (q) {
+            const emptyMsg = grid.querySelector('.filter-empty-msg');
+            if (!emptyMsg) return;
             emptyMsg.style.display = 'none';
         }
     }
