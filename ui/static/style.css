@@ -160,9 +160,48 @@ body::-webkit-scrollbar-button {
     font-size: 1.5rem;
     font-weight: 800;
     letter-spacing: -0.04em;
-    background: linear-gradient(135deg, #ffffff 60%, var(--accent-color));
+    background: linear-gradient(135deg, var(--text-primary) 60%, var(--accent-color));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.topbar-action {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    border: 1px solid var(--border-card);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    background: transparent;
+    font-family: inherit;
+}
+
+.topbar-action:hover {
+    border-color: var(--border-hover);
+}
+
+.topbar-action i,
+.topbar-action svg {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.topbar-action--accent {
+    background: var(--accent-glow);
+    border-color: var(--accent-color);
 }
 
 .weather-widget {
@@ -179,10 +218,6 @@ body::-webkit-scrollbar-button {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 1rem;
-}
-
-.telemetry-row.has-gpu {
-    grid-template-columns: repeat(6, 1fr);
 }
 
 .telemetry-card--host {
@@ -2924,8 +2959,9 @@ body::after {
 
 /* Light mode brand title */
 :root[data-theme="light"] .brand-title {
-    background: linear-gradient(135deg, #1e293b 60%, var(--accent-color));
+    background: linear-gradient(135deg, var(--text-primary) 60%, var(--accent-color));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 

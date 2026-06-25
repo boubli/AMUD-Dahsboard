@@ -297,8 +297,8 @@ async fn render_page(
         PageMode::Feeds => "FEEDS",
     };
     let feeds_nav = match mode {
-        PageMode::Dashboard => r#"<a href="/feeds" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;"><i data-lucide="rss" style="width:0.95rem; height:0.95rem;"></i> Feeds</a>"#.to_string(),
-        PageMode::Feeds => r#"<a href="/" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;"><i data-lucide="arrow-left" style="width:0.95rem; height:0.95rem;"></i> Dashboard</a>"#.to_string(),
+        PageMode::Dashboard => r#"<a href="/feeds" class="glass-panel topbar-action"><i data-lucide="rss"></i> Feeds</a>"#.to_string(),
+        PageMode::Feeds => r#"<a href="/" class="glass-panel topbar-action"><i data-lucide="arrow-left"></i> Dashboard</a>"#.to_string(),
     };
     let main_grid_class = match mode {
         PageMode::Feeds => "feeds-grid",
@@ -991,7 +991,7 @@ fn render_auth_buttons(
     mode: PageMode,
     kiosk_mode: bool,
 ) -> String {
-    let status_link = r#"<a href="/status" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; font-weight:600; font-size:0.82rem; text-decoration:none; color:#fff; border:1px solid rgba(255,255,255,0.06); display:inline-flex; align-items:center; gap:0.35rem;"><i data-lucide="activity" style="width:0.95rem; height:0.95rem;"></i> Status</a>"#;
+    let status_link = r#"<a href="/status" class="glass-panel topbar-action"><i data-lucide="activity"></i> Status</a>"#;
     if kiosk_mode && session.is_none() {
         return status_link.to_string();
     }
@@ -1000,21 +1000,21 @@ fn render_auth_buttons(
             match mode {
                 PageMode::Feeds => {
                     r#"
-            <a href="/admin/settings?tab=rss" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
-                <i data-lucide="rss" style="width:0.95rem; height:0.95rem;"></i> Add RSS Feed
+            <a href="/admin/settings?tab=rss" class="glass-panel topbar-action btn-admin">
+                <i data-lucide="rss"></i> Add RSS Feed
             </a>
-            <a href="/admin/settings" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
-                <i data-lucide="sliders-horizontal" style="width:0.95rem; height:0.95rem;"></i> Settings
+            <a href="/admin/settings" class="glass-panel topbar-action btn-admin">
+                <i data-lucide="sliders-horizontal"></i> Settings
             </a>
             "#
                 }
                 PageMode::Dashboard => {
                     r#"
-            <button type="button" class="glass-panel btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true };" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06);">
-                <i data-lucide="plus" style="width:0.95rem; height:0.95rem;"></i> Add App
+            <button type="button" class="glass-panel topbar-action btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true };">
+                <i data-lucide="plus"></i> Add App
             </button>
-            <a href="/admin/settings" class="glass-panel btn-admin" style="padding:0.5rem 1rem; border-radius:8px; background:rgba(255,255,255,0.02); font-weight:600; cursor:pointer; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:#fff; border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
-                <i data-lucide="sliders-horizontal" style="width:0.95rem; height:0.95rem;"></i> Settings
+            <a href="/admin/settings" class="glass-panel topbar-action btn-admin">
+                <i data-lucide="sliders-horizontal"></i> Settings
             </a>
             "#
                 }
@@ -1027,8 +1027,8 @@ fn render_auth_buttons(
             {}
             <form action="/logout" method="POST" style="margin:0; display:inline-flex;">
                 <input type="hidden" name="csrf_token" value="{}">
-                <button type="submit" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; font-weight:600; font-size:0.82rem; color:var(--text-secondary); border:1px solid rgba(255,255,255,0.06); display:inline-flex; align-items:center; gap:0.35rem; background:rgba(255,255,255,0.02); cursor:pointer;">
-                    <i data-lucide="log-out" style="width:0.95rem; height:0.95rem;"></i> Sign Out ({})
+                <button type="submit" class="glass-panel topbar-action">
+                    <i data-lucide="log-out"></i> Sign Out ({})
                 </button>
             </form>
             "#,
@@ -1038,10 +1038,11 @@ fn render_auth_buttons(
         )
     } else {
         r#"
-        <a href="/login" class="glass-panel" style="padding:0.5rem 1rem; border-radius:8px; font-weight:600; font-size:0.82rem; text-decoration:none; color:#fff; border:1px solid rgba(255,255,255,0.06); display:inline-flex; align-items:center; gap:0.35rem; background:var(--accent-glow);">
-            <i data-lucide="key-round" style="width:0.95rem; height:0.95rem;"></i> Sign In
+        <a href="/login" class="glass-panel topbar-action topbar-action--accent">
+            <i data-lucide="key-round"></i> Sign In
         </a>
-        "#.to_string()
+        "#
+        .to_string()
     }
 }
 

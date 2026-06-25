@@ -141,9 +141,7 @@
         const gpuName = (sys.gpu_name || '').trim();
         const hasGpu = gpuName.length > 0 && (sys.gpu_usage ?? -1) >= 0;
         const gpuCard = document.getElementById('gpu-card');
-        const telemetryRow = document.getElementById('telemetry-section');
         if (gpuCard) gpuCard.style.display = hasGpu ? '' : 'none';
-        if (telemetryRow) telemetryRow.classList.toggle('has-gpu', hasGpu);
         if (hasGpu) {
             setDashboardText('val-gpu-usage', `${sys.gpu_usage ?? 0}%`);
             setDashboardBar('bar-gpu-usage', sys.gpu_usage ?? 0);

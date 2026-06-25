@@ -59,3 +59,13 @@ body {
 :root[data-theme="light"] .glass-panel {
     background: #ffffff !important;
 }
+
+.brand-title {
+    letter-spacing: -0.02em;
+}
+
+.topbar-action {
+    border-width: 3px;
+    border-radius: 0;
+    box-shadow: 4px 4px 0 #0a0a0a;
+}

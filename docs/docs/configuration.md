@@ -134,7 +134,9 @@ Enable **Accept invalid TLS certificates** under **Settings → Privacy & Access
 
 ## Host telemetry mapping
 
-Under **Settings → Privacy & Access → Host telemetry mapping**, you can override how the AMUD agent reports network and disk stats:
+**amud-agent** reads disk and network stats from the **host it runs on**. This works the same on **Proxmox**, **Unraid**, **Docker** hosts, bare-metal **Linux**, and most other setups — as long as the agent is installed on the machine that owns the disks and NICs you care about (not inside a random LXC/UI container unless the agent runs there too).
+
+Under **Settings → Privacy & Access → Host telemetry mapping**, you can override what the dashboard shows:
 
 | Setting | Example | Behavior |
 |---------|---------|----------|
@@ -144,11 +146,25 @@ Under **Settings → Privacy & Access → Host telemetry mapping**, you can over
 
 Leave fields **blank** for automatic detection (bridges/Docker → internal; other interfaces → external; all eligible disks → storage bar).
 
+Names and paths are **case-insensitive**; duplicates and extra spaces are cleaned up when you save (v1.5.5.6+).
+
 Changes push to the connected agent when you save settings.
+
+### Supported platforms (quick reference)
+
+| Platform | Where to run discovery | Disk mounts (examples) | Network (examples) |
+|----------|------------------------|------------------------|---------------------|
+| **Proxmox VE** | Proxmox **host** (not the AMUD LXC unless agent is in that LXC) | `/` OS disk, `/var/lib/vz` VM storage | `eno1` / `eth0` → external; `vmbr0` → internal |
+| **Unraid** | Unraid **terminal** / host where AMUD Agent runs | `/mnt/user` full array, `/mnt/cache` cache pool only | Main NIC (`eth0`, `bond0`) → external; `br0`, `docker0`, `br-*` → internal |
+| **Docker / Compose** | Machine with `docker.sock` mounted into the agent | Host root `/` or your data path | Host WAN NIC → external; `docker0`, `br-*` → internal |
+| **Bare metal / VM Linux** | SSH or console on that host | `/` or e.g. `/mnt/data` | Any NIC from `/proc/net/dev` (skip `lo`) |
+| **Other OS** | Same rule: run commands on the **agent host** | Any path from `df -h` | Any interface from `/proc/net/dev` |
+
+If you are unsure, leave all three fields **empty** first. Only override when the Disk or Bandwidth widgets do not match what you expect.
 
 ### How to find your interface names and mount paths
 
-The **amud-agent** runs on the **host** (Proxmox bare metal, Unraid, or the machine that owns the Docker socket). Run the discovery commands **on that host**, not inside the AMUD dashboard container/LXC unless the agent also runs there.
+The **amud-agent** runs on the **host** (Proxmox bare metal, Unraid, Docker host, or any Linux box). Run the discovery commands **on that host**, not inside the AMUD dashboard container/LXC unless the agent also runs there.
 
 #### Find network interface names
 
@@ -172,9 +188,18 @@ cat /proc/net/dev
 # Example result: eno1 (external), vmbr0 (internal)
 ```
 
-**Unraid:** run in the **Unraid terminal** (or the host where **AMUD Agent** runs). Use the NIC that faces your router for **External**; Docker `br-*` bridges for **Internal** if you care about container traffic separately.
+**Unraid:** run in the **Unraid terminal** (or wherever **AMUD Agent** runs). Array totals → `/mnt/user`; cache-only → `/mnt/cache`. Main NIC toward your router → **External**; Docker `br-*` / `docker0` → **Internal** if you want container traffic split out.
 
-**Docker / Portainer:** the agent needs the host network view. Interface names come from the **Docker host**, not from inside the dashboard container.
+```bash
+# On Unraid (host terminal)
+cat /proc/net/dev
+df -h | grep -E '/mnt|Filesystem'
+# Example: eth0 (external), br0 (internal), disk: /mnt/user
+```
+
+**Docker / Portainer / Compose:** the agent needs the **host** network and disk view. Interface names and mounts come from the **Docker host**, not from inside the dashboard app container. Mount `docker.sock` into the agent container and run discovery on the host (or `nsenter` / host shell).
+
+**Other Linux / VMs:** same commands everywhere — `cat /proc/net/dev` for NICs, `df -h` for mounts. Pick the paths and interfaces that match how **you** want the dashboard summarized.
 
 #### Find disk mount paths
 
@@ -205,6 +230,22 @@ AMUD skips virtual/temporary filesystems (`tmpfs`, `overlay`, etc.) automaticall
 External network interfaces:  eno1
 Internal network interfaces:  vmbr0
 Disk mount points:            /,/var/lib/vz
+```
+
+**Example (Unraid):**
+
+```
+External network interfaces:  eth0
+Internal network interfaces:  br0
+Disk mount points:            /mnt/user
+```
+
+**Example (Docker host):**
+
+```
+External network interfaces:  eth0
+Internal network interfaces:  docker0,br-1234
+Disk mount points:            /
 ```
 
 #### Rules and tips
