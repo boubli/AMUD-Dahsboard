@@ -731,6 +731,14 @@
                                 <input type="text" id="setting-telemetry-disk-mounts" name="telemetry_disk_mounts" class="form-control" value="{{telemetry_disk_mounts}}" placeholder="/,/mnt/user (blank = auto)">
                                 <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Comma-separated mount paths for storage usage (e.g. Unraid array <code>/mnt/user</code> or cache pool only). Paths are matched by prefix and normalised (trailing slashes and duplicates are ignored).</p>
                             </div>
+                            <div class="form-group" style="margin-top:1.25rem;">
+                                <button type="button" id="btn-telemetry-discover" class="btn btn-secondary" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                                    <i data-lucide="radar" style="width:1rem; height:1rem;"></i>
+                                    Test host visibility
+                                </button>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Asks the connected agent which network interfaces and disk mounts it can see. Use this after enabling host network or bind-mounts on Unraid/Docker.</p>
+                                <pre id="telemetry-discover-result" style="display:none; margin-top:0.75rem; padding:0.75rem 1rem; font-size:0.75rem; background:rgba(0,0,0,0.25); border-radius:0.5rem; white-space:pre-wrap; word-break:break-word; max-height:12rem; overflow:auto;"></pre>
+                            </div>
                         </div>
 
                         <div class="settings-block">
@@ -2150,7 +2158,50 @@
             initThemeSchedulerUI();
             initGuestCategoryControls();
             initBundledThemes();
+            initTelemetryDiscover();
         });
+
+        function initTelemetryDiscover() {
+            const btn = document.getElementById('btn-telemetry-discover');
+            const resultEl = document.getElementById('telemetry-discover-result');
+            if (!btn || !resultEl) return;
+
+            btn.addEventListener('click', async () => {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    || document.querySelector('input[name="csrf_token"]')?.value
+                    || '';
+                btn.disabled = true;
+                btn.setAttribute('aria-busy', 'true');
+                resultEl.style.display = 'none';
+                resultEl.textContent = '';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('csrf_token', csrfToken);
+                    const res = await fetch('/api/telemetry/discover', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin',
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        throw new Error(data.error || `Request failed (${res.status})`);
+                    }
+                    const scope = data.scope || 'unknown';
+                    const ifaces = Array.isArray(data.ifaces) ? data.ifaces.join(', ') : '—';
+                    const mounts = Array.isArray(data.mounts) ? data.mounts.join(', ') : '—';
+                    resultEl.textContent = `Scope: ${scope}\nInterfaces: ${ifaces || '—'}\nMounts: ${mounts || '—'}`;
+                    resultEl.style.display = 'block';
+                } catch (err) {
+                    resultEl.textContent = err.message || 'Discovery failed';
+                    resultEl.style.display = 'block';
+                } finally {
+                    btn.disabled = false;
+                    btn.removeAttribute('aria-busy');
+                    if (window.lucide) window.lucide.createIcons();
+                }
+            });
+        }
 
         function initBundledThemes() {
             const select = document.getElementById('bundled-theme-select');

@@ -150,7 +150,7 @@
                 </div>
             </div>
 
-            <div class="glass-panel telemetry-card">
+            <div class="glass-panel telemetry-card" id="disk-aggregate-card">
                 <div class="telemetry-header">
                     <span class="telemetry-title">Disk</span>
                     <span class="telemetry-value" id="val-nas-used">0 GB Used</span>
@@ -164,6 +164,7 @@
                     <span id="val-disk-hint" style="font-size:0.72rem;color:var(--text-muted);"></span>
                 </div>
             </div>
+            <div id="disk-volumes-container" class="disk-volumes-container" aria-live="polite"></div>
 
             <div class="glass-panel telemetry-card">
                 <div class="telemetry-header">

@@ -159,6 +159,7 @@ pub struct AppState {
     pub next_agent_conn_id: Arc<AtomicU64>,
     pub pve_test_response: Arc<RwLock<Option<PveTestResult>>>,
     pub docker_discover_response: Arc<RwLock<Option<serde_json::Value>>>,
+    pub telemetry_discover_response: Arc<RwLock<Option<serde_json::Value>>>,
     pub share_sessions: Arc<RwLock<HashMap<String, ShareSession>>>,
     pub action_results: Arc<RwLock<HashMap<String, ActionResult>>>,
     pub settings_cache: Arc<RwLock<HashMap<String, String>>>,

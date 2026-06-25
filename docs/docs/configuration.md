@@ -144,7 +144,9 @@ Under **Settings → Privacy & Access → Host telemetry mapping**, you can over
 | **Internal network interfaces** | `vmbr0,br-0` | Count only these toward internal bandwidth |
 | **Disk mount points** | `/,/mnt/user` | Sum storage usage only from these mounts |
 
-Leave fields **blank** for automatic detection (bridges/`br*`/`docker*` → internal; physical NICs and bonds → external; all eligible disks → storage bar). If configured mounts or interfaces are **not all visible** inside the agent (common on Unraid Docker without bind-mounts), the agent **falls back to auto-detect**. Admins see an **(auto-detect)** hint on the Disk and Bandwidth cards when this happens.
+Leave fields **blank** for automatic detection (bridges/`br*`/`docker*` → internal; physical NICs and bonds → external; all eligible disks → storage bar). If configured mounts or interfaces are **not all visible** inside the agent (common on Unraid Docker without host network or bind-mounts), the agent **falls back to auto-detect**. Admins see an **(auto-detect)** hint on the Disk and Bandwidth cards when this happens. When the agent runs in a Docker container without host network, `telemetry_scope` is **container** and admins see **(container scope)** — fix by using host network and bind-mounting disk paths (see [Unraid Step 3b](./installation/unraid.md#step-3b--host-network-and-disk-bind-mounts-v1557)).
+
+When multiple disk mounts are configured **and** all are visible to the agent, the dashboard shows **one tile per mount** (e.g. separate **user** and **cache** cards on Unraid) plus aggregate fields for compatibility.
 
 Names and paths are **case-insensitive**; duplicates and extra spaces are cleaned up when you save (v1.5.5.6+).
 
@@ -252,7 +254,8 @@ Disk mount points:            /
 
 - **Blank = auto** — start here; only override if the dashboard disk or network numbers look wrong.
 - **If you set either network list**, only interfaces you list are counted. Unlisted interfaces are ignored — fill **both** external and internal lists when overriding. If a listed interface name does not exist on the host (e.g. `eth0` vs `bond0`), the agent falls back to auto-detect.
-- **Disk mounts** must all be visible inside the agent process. On Unraid Docker, bind-mount host paths (e.g. `- /mnt/user:/mnt/user:ro`) or leave disk mapping blank for auto-detect.
+- **Disk mounts** must all be visible inside the agent process. On Unraid Docker, use **host network** on the agent and bind-mount host paths (e.g. `- /mnt/user:/mnt/user:ro`) or leave disk mapping blank for auto-detect. See [Unraid Step 3b](./installation/unraid.md#step-3b--host-network-and-disk-bind-mounts-v1557).
+- **Test host visibility** — **Settings → Privacy & Access → Host telemetry mapping → Test host visibility** asks the agent which interfaces and mounts it sees (`scope: host` vs `container`).
 - **Troubleshooting inside the agent container:**
 
 ```bash

@@ -6,4 +6,4 @@ pub mod telemetry;
 pub use ipc::{
     agent_auth_proof, AgentAuthMessage, AuthProofMessage, ChallengeMessage, ConfigRequest,
 };
-pub use telemetry::{AgentTelemetry, LxcContainer, NetworkTelemetry};
+pub use telemetry::{AgentTelemetry, DiskMountTelemetry, LxcContainer, NetworkTelemetry};

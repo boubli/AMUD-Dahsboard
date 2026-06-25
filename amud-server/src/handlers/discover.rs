@@ -44,6 +44,49 @@ pub async fn discover_docker_handler(
     }
 }
 
+pub async fn telemetry_discover_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return *resp;
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response();
+    }
+
+    *state.telemetry_discover_response.write().unwrap() = None;
+    let cmd = serde_json::json!({ "action": "telemetry_discover" });
+    if let Ok(serialized) = serde_json::to_string(&cmd) {
+        if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {
+            let _ = tx.tx.send(format!("{serialized}\n"));
+        }
+    }
+
+    for _ in 0..20 {
+        tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+        if state.telemetry_discover_response.read().unwrap().is_some() {
+            break;
+        }
+    }
+
+    let result = state.telemetry_discover_response.read().unwrap().clone();
+    match result {
+        Some(val) => {
+            let payload = val
+                .get("telemetry_discover_result")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({}));
+            api_json(StatusCode::OK, payload)
+        }
+        None => api_json(
+            StatusCode::SERVICE_UNAVAILABLE,
+            serde_json::json!({ "error": "Agent not connected" }),
+        ),
+    }
+}
+
 pub async fn import_discovered_apps_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,

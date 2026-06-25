@@ -397,6 +397,7 @@ pub async fn run() {
     let agent_command_tx = Arc::new(Mutex::new(None));
     let pve_test_response = Arc::new(RwLock::new(None));
     let docker_discover_response = Arc::new(RwLock::new(None));
+    let telemetry_discover_response = Arc::new(RwLock::new(None));
     let share_sessions = Arc::new(RwLock::new(HashMap::new()));
     let action_results = Arc::new(RwLock::new(HashMap::new()));
     let settings_cache = Arc::new(RwLock::new(HashMap::new()));
@@ -419,6 +420,7 @@ pub async fn run() {
         next_agent_conn_id: Arc::new(std::sync::atomic::AtomicU64::new(1)),
         pve_test_response: pve_test_response.clone(),
         docker_discover_response: docker_discover_response.clone(),
+        telemetry_discover_response: telemetry_discover_response.clone(),
         share_sessions: share_sessions.clone(),
         action_results: action_results.clone(),
         settings_cache: settings_cache.clone(),
@@ -537,6 +539,7 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/widgets/add", post(add_widget_handler))
         .route("/api/widgets/delete", post(delete_widget_handler))
         .route("/api/discover/docker", post(discover_docker_handler))
+        .route("/api/telemetry/discover", post(telemetry_discover_handler))
         .route("/api/discover/import", post(import_discovered_apps_handler))
         .route("/api/tokens", get(list_api_tokens_handler))
         .route("/api/tokens/create", post(create_api_token_handler))

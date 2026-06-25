@@ -182,6 +182,7 @@ mod tests {
             next_agent_conn_id: Arc::new(AtomicU64::new(1)),
             pve_test_response: Arc::new(RwLock::new(None)),
             docker_discover_response: Arc::new(RwLock::new(None)),
+            telemetry_discover_response: Arc::new(RwLock::new(None)),
             share_sessions: Arc::new(RwLock::new(HashMap::new())),
             action_results: Arc::new(RwLock::new(HashMap::new())),
             settings_cache: Arc::new(RwLock::new(HashMap::new())),

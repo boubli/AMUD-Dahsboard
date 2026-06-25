@@ -623,30 +623,74 @@ ls -la /opt/amud/run
 
 ## Host telemetry mapping
 
-**Symptom:** Disk or network widgets on the dashboard do not match what you expect, or you need help filling **Settings → Privacy & Access → Host telemetry mapping**.
+**Symptom:** Disk shows **0.0 GB**, bandwidth shows **—**, numbers do not match the host, or you need help filling **Settings → Privacy & Access → Host telemetry mapping**.
 
 **Full guide:** [Configuration — Host telemetry mapping](./configuration.md#host-telemetry-mapping) (how to find interface names and mount paths on Proxmox, Unraid, and Docker).
+
+### Decision tree
+
+```text
+Disk 0 GB or Bandwidth — ?
+├─ Admin sees (container scope) on dashboard
+│  └─ Agent runs in Docker bridge mode without host mounts
+│     → Unraid: Force Update agent, set Network=host, bind /mnt/user and /mnt/cache
+│     → Docker Compose: network_mode: host + volume bind-mounts (see docker-compose.yml comments)
+├─ Admin sees (auto-detect)
+│  └─ Configured iface/mount names not visible inside agent
+│     → Settings → Test host visibility; fix names or host network/mounts
+├─ Mapping blank but still wrong
+│  └─ Agent not connected — check agent logs / container status
+└─ Proxmox: discovery must run on hypervisor host (agent runs on host, not dashboard LXC)
+```
+
+### Platform quick fixes
+
+| Platform | Network fix | Disk fix |
+|----------|-------------|----------|
+| **Unraid CA** | AMUD Agent template: **Network = host** (v1.5.5.7+) | Bind `/mnt/user` and `/mnt/cache` read-only in agent template |
+| **Docker Compose** | `network_mode: host` on `agent` service | `- /mnt/user:/mnt/user:ro` (adjust paths) |
+| **Proxmox** | Run `cat /proc/net/dev` on **host**; map `eno1`/`bond0` external, `vmbr0` internal | `df -h` on host; e.g. `/,/var/lib/vz` |
+| **Bare metal** | Auto usually works; override only if needed | Auto or explicit `df -h` paths |
+
+**Unraid worked example (after v1.5.5.7 host network + mounts):**
+
+```
+External: eth0
+Internal: br0,br0.40
+Disk:     /mnt/cache,/mnt/user
+```
+
+Expect two disk tiles (**cache** and **user**) and non-zero bandwidth under load.
 
 **Quick checks:**
 
 1. Leave all three fields **blank** first — auto mode works for most installs.
-2. Discovery commands run on the **host where amud-agent runs** (not the dashboard LXC unless agent is there too):
+2. Use **Settings → Test host visibility** — confirm `Scope: host` and listed ifaces/mounts match your mapping.
+3. Discovery commands run on the **host where amud-agent runs** (not the dashboard container unless agent is there too):
 
 ```bash
 cat /proc/net/dev    # interface names (first column)
 df -h                # mount paths (Mounted on column)
 ```
 
-3. After saving settings, confirm values persisted:
+4. Inside the **agent container** (Unraid: Docker → AMUD-Agent → Console):
 
 ```bash
-pct exec <CT_ID> -- sqlite3 /opt/amud/data/amud.db \
-  "SELECT key, value FROM settings WHERE key LIKE 'telemetry_%';"
+cat /proc/net/dev
+df -h
 ```
 
-4. Agent must be connected — `systemctl status amud-agent` on the host should be **active**.
+Compare to Settings. If `br0` / `/mnt/user` are missing, fix network mode and bind-mounts.
 
-If you override network interfaces, list **both** external and internal names; unlisted interfaces are not counted.
+5. After saving settings, confirm values persisted (dashboard container or host with DB access):
+
+```bash
+sqlite3 /opt/amud/data/amud.db "SELECT key, value FROM settings WHERE key LIKE 'telemetry_%';"
+```
+
+6. Agent must be connected — check **AMUD-Agent** logs on Unraid or `systemctl status amud-agent` on bare metal.
+
+If you override network interfaces, list **both** external and internal names; unlisted interfaces are not counted. If WAN uses **bond0** but you configured **eth0**, the agent may fall back to auto-detect after a few samples — try `bond0` as external instead.
 
 ---
 

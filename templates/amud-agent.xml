@@ -3,17 +3,17 @@
   <Name>AMUD-Agent</Name>
   <Repository>tradmss/amud-dashboard:latest</Repository>
   <Registry>https://hub.docker.com/r/tradmss/amud-dashboard</Registry>
-  <Network>bridge</Network>
+  <Network>host</Network>
   <MyIP/>
   <Shell/>
   <Privileged>false</Privileged>
   <Support>https://github.com/boubli/AMUD-Dashboard/discussions</Support>
   <Project>https://boubli.github.io/AMUD-Dashboard/</Project>
-  <Overview><![CDATA[Telemetry sidecar for **AMUD Dashboard**. Polls the Unraid Docker socket and streams host/container metrics to the dashboard over a local Unix socket.
+  <Overview><![CDATA[Telemetry sidecar for **AMUD Dashboard**. Uses **host network** so bandwidth mapping sees real Unraid NICs (`eth0`, `bond0`, `br0`, etc.). Optionally bind-mount array/cache paths for disk telemetry mapping.
 
-**Install AMUD Dashboard first** (or ensure both are running). The Agent Secret and Socket Path must match the dashboard container exactly.
+**Install AMUD Dashboard first**. Agent Secret and Socket Path must match the dashboard container exactly.
 
-This container has no web UI. After install, open AMUD Dashboard on port 8000 and check that live telemetry appears within a few seconds.
+For **Settings → Host telemetry mapping** (disk + network), enable the optional **Array** and **Cache** path mappings below when you use `/mnt/user` or `/mnt/cache` in settings.
 
 Docs: https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid]]></Overview>
   <Category>Tools:Utilities Network:Management</Category>
@@ -24,6 +24,8 @@ Docs: https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid]]></Overv
   <Requires>Requires **AMUD Dashboard** from the same repository with matching Agent Secret and Socket Path.</Requires>
   <Config Name="Agent Socket Dir" Target="/var/run/amud" Default="/mnt/user/appdata/amud-dashboard/run" Mode="rw" Description="Shared directory for the Unix socket. Must match the AMUD Dashboard container exactly." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/amud-dashboard/run</Config>
   <Config Name="Docker Socket" Target="/var/run/docker.sock" Default="/var/run/docker.sock" Mode="ro" Description="Read-only Docker socket for container discovery and stats." Type="Path" Display="always" Required="true" Mask="false">/var/run/docker.sock</Config>
+  <Config Name="Array Mount (Unraid)" Target="/mnt/user" Default="/mnt/user" Mode="ro" Description="Optional. Bind Unraid array path for disk telemetry mapping (/mnt/user in Settings)." Type="Path" Display="always" Required="false" Mask="false">/mnt/user</Config>
+  <Config Name="Cache Mount (Unraid)" Target="/mnt/cache" Default="/mnt/cache" Mode="ro" Description="Optional. Bind Unraid cache pool for disk telemetry mapping (/mnt/cache in Settings)." Type="Path" Display="always" Required="false" Mask="false">/mnt/cache</Config>
   <Config Name="Agent Secret" Target="AMUD_AGENT_SECRET" Default="" Mode="" Description="Must be identical to the value on the AMUD Dashboard container." Type="Variable" Display="always" Required="true" Mask="true"></Config>
   <Config Name="Docker Monitoring" Target="AMUD_DOCKER" Default="1" Mode="" Description="1 = enable Docker container telemetry (recommended on Unraid). 0 = host metrics only." Type="Variable" Display="always" Required="false" Mask="false">1</Config>
   <Config Name="AMUD_SOCKET_PATH" Target="AMUD_SOCKET_PATH" Default="/var/run/amud/amud.sock" Mode="" Description="Unix socket path inside the container." Type="Variable" Display="advanced" Required="false" Mask="false">/var/run/amud/amud.sock</Config>

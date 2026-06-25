@@ -151,14 +151,19 @@
         setDashboardText('val-disk-total', `${(sys.disk_total_gb ?? 0).toFixed(1)} GB Total`);
         const diskHint = document.getElementById('val-disk-hint');
         if (diskHint) {
+            const hints = [];
             if (isAdmin && sys.disk_mapping_fallback) {
-                diskHint.textContent = '(auto-detect)';
+                hints.push('(auto-detect)');
                 diskHint.title = 'Configured disk mounts were not all visible inside the agent; showing auto-detected storage.';
-            } else {
-                diskHint.textContent = '';
-                diskHint.removeAttribute('title');
+            } else if (isAdmin && sys.telemetry_scope === 'container') {
+                hints.push('(container scope)');
+                diskHint.title = 'Agent sees container resources, not the host. Use host network and bind-mount disk paths on Unraid/Docker.';
             }
+            diskHint.textContent = hints.join(' ');
+            if (!hints.length) diskHint.removeAttribute('title');
         }
+
+        updateDiskVolumes(sys);
 
         const gpuName = (sys.gpu_name || '').trim();
         const hasGpu = gpuName.length > 0 && (sys.gpu_usage ?? -1) >= 0;
@@ -172,6 +177,71 @@
             const total = (sys.gpu_mem_total_mb ?? 0) / 1024;
             setDashboardText('val-gpu-vram', total > 0 ? `VRAM ${used.toFixed(1)}/${total.toFixed(1)} GB` : 'VRAM —');
         }
+    }
+
+    function updateDiskVolumes(sys) {
+        const container = document.getElementById('disk-volumes-container');
+        const aggregateCard = document.getElementById('disk-aggregate-card');
+        if (!container) return;
+
+        const volumes = Array.isArray(sys.disk_volumes) ? sys.disk_volumes : [];
+        const showPerMount = volumes.length > 1 && !sys.disk_mapping_fallback;
+
+        if (aggregateCard) {
+            aggregateCard.style.display = showPerMount ? 'none' : '';
+        }
+
+        const keepIds = new Set();
+        volumes.forEach((vol, index) => {
+            if (!showPerMount) return;
+            const mountKey = String(vol.mount || vol.label || index)
+                .replace(/[^a-zA-Z0-9_-]/g, '_');
+            const cardId = `disk-volume-${mountKey}`;
+            keepIds.add(cardId);
+
+            let card = document.getElementById(cardId);
+            if (!card) {
+                card = document.createElement('div');
+                card.id = cardId;
+                card.className = 'glass-panel telemetry-card disk-volume-card';
+                card.innerHTML = `
+                    <div class="telemetry-header">
+                        <span class="telemetry-title"></span>
+                        <span class="telemetry-value disk-volume-used">0 GB Used</span>
+                    </div>
+                    <div class="telemetry-bar-container">
+                        <div class="telemetry-bar-fill disk-volume-bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="telemetry-subinfo">
+                        <span class="disk-volume-free">0 GB Free</span>
+                        <span class="disk-volume-total">0 GB Total</span>
+                    </div>`;
+                container.appendChild(card);
+            }
+
+            const label = vol.label || vol.mount || 'Disk';
+            const titleEl = card.querySelector('.telemetry-title');
+            if (titleEl) titleEl.textContent = label;
+
+            const usedGb = vol.used_gb ?? 0;
+            const totalGb = vol.total_gb ?? 0;
+            const freeGb = totalGb - usedGb;
+            const usage = vol.usage ?? 0;
+
+            const usedEl = card.querySelector('.disk-volume-used');
+            if (usedEl) usedEl.textContent = `${usedGb.toFixed(1)} GB Used`;
+            const freeEl = card.querySelector('.disk-volume-free');
+            if (freeEl) freeEl.textContent = `${freeGb.toFixed(1)} GB Free`;
+            const totalEl = card.querySelector('.disk-volume-total');
+            if (totalEl) totalEl.textContent = `${totalGb.toFixed(1)} GB Total`;
+            const barEl = card.querySelector('.disk-volume-bar');
+            if (barEl) barEl.style.width = `${Math.min(100, Math.max(0, usage))}%`;
+        });
+
+        container.querySelectorAll('.disk-volume-card').forEach(card => {
+            if (!keepIds.has(card.id)) card.remove();
+        });
+        container.style.display = showPerMount ? '' : 'none';
     }
 
     function updateStreamStatusBadges(containers) {
@@ -334,13 +404,16 @@
                 setDashboardBar('bar-net-total', Math.min(100, total / (125 * 1024 * 1024) * 100));
                 const netHint = document.getElementById('val-net-hint');
                 if (netHint) {
+                    const hints = [];
                     if (isAdmin && data.system && data.system.network_mapping_fallback) {
-                        netHint.textContent = '(auto-detect)';
+                        hints.push('(auto-detect)');
                         netHint.title = 'Configured network interfaces were not all visible inside the agent; showing auto-detected bandwidth.';
-                    } else {
-                        netHint.textContent = '';
-                        netHint.removeAttribute('title');
+                    } else if (isAdmin && data.system && data.system.telemetry_scope === 'container') {
+                        hints.push('(container scope)');
+                        netHint.title = 'Agent sees container NICs, not the host. Use host network on Unraid/Docker for br0/bond0 mapping.';
                     }
+                    netHint.textContent = hints.join(' ');
+                    if (!hints.length) netHint.removeAttribute('title');
                 }
             }
 

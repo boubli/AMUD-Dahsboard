@@ -67,6 +67,39 @@ To customize which network interfaces or disk mounts appear on the dashboard, se
 
 ---
 
+## Step 3b — Host network and disk bind-mounts (v1.5.5.7+)
+
+**Why:** On Unraid, the AMUD Agent container used **bridge** networking by default. Bridge mode hides host interfaces (`br0`, `bond0`) and host disk paths (`/mnt/user`, `/mnt/cache`) from the agent. If you set host interface names in Settings but see **Bandwidth —** or **Disk 0.0 GB**, this is the usual cause.
+
+The **AMUD Agent** CA template (v1.5.5.7+) uses **host** network and optional read-only bind-mounts:
+
+| Template field | Default | Purpose |
+|----------------|---------|---------|
+| **Network** | `host` | Agent reads host `/proc/net/dev` (sees `br0`, `bond0`, etc.) |
+| **Array mount** | `/mnt/user:/mnt/user:ro` | Array storage for disk telemetry |
+| **Cache mount** | `/mnt/cache:/mnt/cache:ro` | Cache pool for disk telemetry |
+
+**Upgrade steps:**
+
+1. **Force Update** both **AMUD-Dashboard** and **AMUD-Agent** to `v1.5.5.7` (or `latest`).
+2. Re-apply the agent template so **Network** is **host** and array/cache paths are mapped (or add them manually under **Extra Parameters** / path mappings).
+3. Hard-refresh the dashboard (`Ctrl+Shift+R`).
+4. Open **Settings → Privacy & Access → Host telemetry mapping** and click **Test host visibility**. You should see `Scope: host` and your Unraid interfaces/mounts listed.
+
+**Example mapping (Inch-high / typical Unraid):**
+
+```
+External network interfaces:  eth0
+Internal network interfaces:  br0,br0.40
+Disk mount points:            /mnt/cache,/mnt/user
+```
+
+With both array and cache configured, the dashboard shows **separate disk tiles** for each mount (v1.5.5.7+).
+
+**Still on bridge network?** The agent reports `scope: container` and admins see **(container scope)** on Disk/Bandwidth cards. Switch the agent to host network or leave mapping blank for auto-detect inside the container.
+
+---
+
 ## Permission errors on appdata
 
 **Symptom:** The **AMUD-Dashboard** container fails to start, restarts in a loop, or logs show **permission denied** when writing to `/data` or the agent cannot use the shared socket under `run/`.

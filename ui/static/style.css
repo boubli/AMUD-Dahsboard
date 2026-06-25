@@ -216,8 +216,16 @@ body::-webkit-scrollbar-button {
 /* Row 1: Telemetry micro-bars */
 .telemetry-row {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1rem;
+}
+
+.disk-volumes-container {
+    display: contents;
+}
+
+.disk-volume-card .telemetry-title {
+    text-transform: capitalize;
 }
 
 .telemetry-card--host {

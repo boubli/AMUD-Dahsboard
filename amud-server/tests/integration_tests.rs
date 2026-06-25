@@ -106,6 +106,7 @@ fn setup_test_state() -> Arc<AppState> {
         logo_manifest: Arc::new(HashMap::new()),
         telemetry_broadcast,
         docker_discover_response: Arc::new(RwLock::new(None)),
+        telemetry_discover_response: Arc::new(RwLock::new(None)),
         share_sessions: Arc::new(RwLock::new(HashMap::new())),
     })
 }

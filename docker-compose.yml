@@ -27,6 +27,8 @@ services:
     image: tradmss/amud-dashboard:latest
     container_name: amud_agent
     entrypoint: ["/app/amud-agent"]
+    # For host telemetry mapping (custom NICs / disk paths), use host network + bind mounts:
+    # network_mode: host
     environment:
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env or environment}
@@ -42,6 +44,9 @@ services:
       - amud_run:/var/run/amud
       # :ro does not limit Docker API power — use AMUD_DOCKER=0 or a socket proxy for hardening
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Unraid / host disk mapping examples (uncomment with network_mode: host):
+      # - /mnt/user:/mnt/user:ro
+      # - /mnt/cache:/mnt/cache:ro
     restart: always
 
 volumes:

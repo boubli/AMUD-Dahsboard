@@ -1,6 +1,6 @@
 use amud_protocol::{
     agent_auth_proof, AgentTelemetry, AuthProofMessage, ChallengeMessage, ConfigRequest,
-    LxcContainer, NetworkTelemetry,
+    DiskMountTelemetry, LxcContainer, NetworkTelemetry,
 };
 use serde::Serialize;
 use std::io::Write;
@@ -276,6 +276,133 @@ fn configured_mounts_satisfied(disks: &sysinfo::Disks, cfg: &TelemetryConfig) ->
         .collect();
     let visible_refs: Vec<&str> = visible.iter().map(String::as_str).collect();
     configured_mounts_satisfied_paths(&visible_refs, cfg)
+}
+
+fn proc_net_dev_path() -> String {
+    std::env::var("AMUD_PROC_NET_DEV").unwrap_or_else(|_| "/proc/net/dev".to_string())
+}
+
+fn read_proc_net_dev_content() -> Option<String> {
+    std::fs::read_to_string(proc_net_dev_path()).ok()
+}
+
+fn list_visible_mounts(disks: &sysinfo::Disks) -> Vec<String> {
+    disks
+        .iter()
+        .map(|d| d.mount_point().to_string_lossy().to_string())
+        .collect()
+}
+
+fn mount_label(mount: &str) -> String {
+    mount
+        .trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .unwrap_or("disk")
+        .to_string()
+}
+
+fn aggregate_disk_per_mount(
+    disks: &sysinfo::Disks,
+    cfg: &TelemetryConfig,
+) -> Vec<DiskMountTelemetry> {
+    let mut volumes = Vec::new();
+    for mount_cfg in &cfg.disk_mounts {
+        let single = TelemetryConfig {
+            disk_mounts: vec![mount_cfg.clone()],
+            ..cfg.clone()
+        };
+        let (total, avail, _) = aggregate_disk_bytes(disks, &single);
+        if total == 0 {
+            continue;
+        }
+        let used = total.saturating_sub(avail);
+        let usage = ((used as f64 / total as f64) * 100.0).round() as i32;
+        volumes.push(DiskMountTelemetry {
+            mount: mount_cfg.clone(),
+            label: mount_label(mount_cfg),
+            usage,
+            used_gb: (used as f64 / 1_073_741_824.0 * 100.0).round() / 100.0,
+            total_gb: (total as f64 / 1_073_741_824.0 * 100.0).round() / 100.0,
+        });
+    }
+    volumes
+}
+
+fn detect_telemetry_scope(cfg: &TelemetryConfig, _ifaces: &[String], mounts: &[&str]) -> String {
+    if !std::path::Path::new("/.dockerenv").exists() {
+        return "host".to_string();
+    }
+    if let Some(content) = read_proc_net_dev_content() {
+        let present = list_proc_net_ifaces(&content);
+        if !cfg.internal_ifaces.is_empty()
+            && !cfg
+                .internal_ifaces
+                .iter()
+                .any(|iface| present.contains(iface))
+        {
+            return "container".to_string();
+        }
+    }
+    if !cfg.disk_mounts.is_empty() && !configured_mounts_satisfied_paths(mounts, cfg) {
+        return "container".to_string();
+    }
+    "host".to_string()
+}
+
+fn telemetry_discover_payload() -> serde_json::Value {
+    let disks = sysinfo::Disks::new_with_refreshed_list();
+    let mounts = list_visible_mounts(&disks);
+    let mount_refs: Vec<&str> = mounts.iter().map(String::as_str).collect();
+    let ifaces: Vec<String> = read_proc_net_dev_content()
+        .map(|c| list_proc_net_ifaces(&c).into_iter().collect())
+        .unwrap_or_default();
+    let cfg = telemetry_config().read().unwrap().clone();
+    serde_json::json!({
+        "ifaces": ifaces,
+        "mounts": mounts,
+        "scope": detect_telemetry_scope(&cfg, &ifaces, &mount_refs),
+    })
+}
+
+fn snapshot_external_delta(previous: &NetworkSnapshot, current: &NetworkSnapshot) -> u64 {
+    current
+        .external_rx
+        .saturating_sub(previous.external_rx)
+        .saturating_add(current.external_tx.saturating_sub(previous.external_tx))
+}
+
+struct NetworkHeuristicState {
+    zero_external_ticks: u32,
+    bond_warn_logged: bool,
+}
+
+fn network_heuristic_state() -> &'static Mutex<NetworkHeuristicState> {
+    static STATE: OnceLock<Mutex<NetworkHeuristicState>> = OnceLock::new();
+    STATE.get_or_init(|| {
+        Mutex::new(NetworkHeuristicState {
+            zero_external_ticks: 0,
+            bond_warn_logged: false,
+        })
+    })
+}
+
+fn build_network_snapshot(content: &str, cfg: &TelemetryConfig) -> (NetworkSnapshot, bool) {
+    let custom = !cfg.external_ifaces.is_empty() || !cfg.internal_ifaces.is_empty();
+    if custom && !configured_network_ifaces_satisfied(content, cfg) {
+        return (
+            collect_network_snapshot(content, &TelemetryConfig::default()).0,
+            true,
+        );
+    }
+    let (snapshot, matched) = collect_network_snapshot(content, cfg);
+    if custom && matched == 0 {
+        return (
+            collect_network_snapshot(content, &TelemetryConfig::default()).0,
+            true,
+        );
+    }
+    (snapshot, false)
 }
 
 fn main() {
@@ -670,25 +797,11 @@ fn collect_network_snapshot(content: &str, cfg: &TelemetryConfig) -> (NetworkSna
 }
 
 fn read_network_snapshot() -> (NetworkSnapshot, bool) {
-    let Ok(content) = std::fs::read_to_string("/proc/net/dev") else {
+    let Some(content) = read_proc_net_dev_content() else {
         return (NetworkSnapshot::default(), false);
     };
     let cfg = telemetry_config().read().unwrap().clone();
-    let custom = !cfg.external_ifaces.is_empty() || !cfg.internal_ifaces.is_empty();
-    if custom && !configured_network_ifaces_satisfied(&content, &cfg) {
-        return (
-            collect_network_snapshot(&content, &TelemetryConfig::default()).0,
-            true,
-        );
-    }
-    let (snapshot, matched) = collect_network_snapshot(&content, &cfg);
-    if custom && matched == 0 {
-        return (
-            collect_network_snapshot(&content, &TelemetryConfig::default()).0,
-            true,
-        );
-    }
-    (snapshot, false)
+    build_network_snapshot(&content, &cfg)
 }
 
 fn network_rates(
@@ -1012,16 +1125,23 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         }
 
         let disks = sysinfo::Disks::new_with_refreshed_list();
+        let visible_mounts = list_visible_mounts(&disks);
+        let visible_mount_refs: Vec<&str> = visible_mounts.iter().map(String::as_str).collect();
         let disk_cfg = telemetry_config().read().unwrap().clone();
         let mut disk_mapping_fallback = false;
+        let mut disk_volumes = Vec::new();
         let (mut total_disk, mut avail_disk, _) = aggregate_disk_bytes(&disks, &disk_cfg);
         if !disk_cfg.disk_mounts.is_empty() && !configured_mounts_satisfied(&disks, &disk_cfg) {
             disk_mapping_fallback = true;
             let auto_cfg = TelemetryConfig {
                 disk_mounts: vec![],
-                ..disk_cfg
+                ..disk_cfg.clone()
             };
             (total_disk, avail_disk, _) = aggregate_disk_bytes(&disks, &auto_cfg);
+        } else if disk_cfg.disk_mounts.len() > 1 {
+            disk_volumes = aggregate_disk_per_mount(&disks, &disk_cfg);
+        } else if disk_cfg.disk_mounts.len() == 1 {
+            disk_volumes = aggregate_disk_per_mount(&disks, &disk_cfg);
         }
         let used_disk = total_disk - avail_disk;
         let disk_usage = if total_disk > 0 {
@@ -1040,19 +1160,62 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
         lxc_containers.extend(fetch_docker_containers());
 
-        let (now_network_snapshot, network_mapping_fallback) = read_network_snapshot();
+        let proc_content = read_proc_net_dev_content();
+        let net_cfg = telemetry_config().read().unwrap().clone();
+        let custom_net = !net_cfg.external_ifaces.is_empty() || !net_cfg.internal_ifaces.is_empty();
+        let (now_custom_snapshot, mut network_mapping_fallback) = proc_content
+            .as_ref()
+            .map(|c| build_network_snapshot(c, &net_cfg))
+            .unwrap_or((NetworkSnapshot::default(), false));
+        let now_auto_snapshot = proc_content
+            .as_ref()
+            .map(|c| collect_network_snapshot(c, &TelemetryConfig::default()).0)
+            .unwrap_or_default();
+
+        let visible_ifaces: Vec<String> = proc_content
+            .as_ref()
+            .map(|c| list_proc_net_ifaces(c).into_iter().collect())
+            .unwrap_or_default();
+        let telemetry_scope =
+            detect_telemetry_scope(&disk_cfg, &visible_ifaces, &visible_mount_refs);
+
         let network = {
             let mut baseline = network_baseline().lock().unwrap();
-            let network = if let Some(sample_at) = baseline.sample_at {
-                network_rates(
-                    &baseline.snapshot,
-                    &now_network_snapshot,
-                    sample_at.elapsed().as_secs_f64(),
-                )
+            let (network, snapshot_for_baseline) = if let Some(sample_at) = baseline.sample_at {
+                let elapsed = sample_at.elapsed().as_secs_f64();
+                let mut snapshot_for_baseline = now_custom_snapshot.clone();
+                let mut rates = network_rates(&baseline.snapshot, &now_custom_snapshot, elapsed);
+                if custom_net {
+                    let ext_delta =
+                        snapshot_external_delta(&baseline.snapshot, &now_custom_snapshot);
+                    let mut heuristic = network_heuristic_state().lock().unwrap();
+                    if ext_delta == 0 {
+                        heuristic.zero_external_ticks =
+                            heuristic.zero_external_ticks.saturating_add(1);
+                    } else {
+                        heuristic.zero_external_ticks = 0;
+                    }
+                    if heuristic.zero_external_ticks >= 3 {
+                        let auto_ext_delta =
+                            snapshot_external_delta(&baseline.snapshot, &now_auto_snapshot);
+                        if auto_ext_delta > 0 {
+                            network_mapping_fallback = true;
+                            if !heuristic.bond_warn_logged {
+                                eprintln!(
+                                    "[telemetry] External interfaces show no traffic; falling back to auto-detect. If WAN uses bond0, try bond0 instead of eth0 in Settings."
+                                );
+                                heuristic.bond_warn_logged = true;
+                            }
+                            rates = network_rates(&baseline.snapshot, &now_auto_snapshot, elapsed);
+                            snapshot_for_baseline = now_auto_snapshot.clone();
+                        }
+                    }
+                }
+                (rates, snapshot_for_baseline)
             } else {
-                NetworkTelemetry::default()
+                (NetworkTelemetry::default(), now_custom_snapshot.clone())
             };
-            baseline.snapshot = now_network_snapshot;
+            baseline.snapshot = snapshot_for_baseline;
             baseline.sample_at = Some(Instant::now());
             network
         };
@@ -1077,6 +1240,10 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             network: Some(network),
             disk_mapping_fallback,
             network_mapping_fallback,
+            telemetry_scope,
+            visible_ifaces,
+            visible_mounts,
+            disk_volumes,
         };
 
         let mut serialized = serde_json::to_vec(&telemetry).unwrap_or_default();
@@ -1210,6 +1377,15 @@ fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
             if action == "discover_docker" {
                 let apps = discover_docker_apps();
                 let response = serde_json::json!({ "discover_docker_result": { "apps": apps } });
+                if let Ok(mut serialized) = serde_json::to_vec(&response) {
+                    serialized.push(b'\n');
+                    use std::io::Write;
+                    let _ = response_stream.write_all(&serialized);
+                    let _ = response_stream.flush();
+                }
+            } else if action == "telemetry_discover" {
+                let result = telemetry_discover_payload();
+                let response = serde_json::json!({ "telemetry_discover_result": result });
                 if let Ok(mut serialized) = serde_json::to_vec(&response) {
                     serialized.push(b'\n');
                     use std::io::Write;
@@ -1567,5 +1743,55 @@ mod tests {
         assert_eq!(snap.external_tx, 2000);
         assert_eq!(snap.internal_rx, 3000);
         assert_eq!(snap.internal_tx, 4000);
+    }
+
+    #[test]
+    fn mount_label_short_name() {
+        assert_eq!(mount_label("/mnt/user"), "user");
+        assert_eq!(mount_label("/mnt/cache/"), "cache");
+        assert_eq!(mount_label("/"), "");
+    }
+
+    #[test]
+    fn detect_telemetry_scope_missing_mounts() {
+        let cfg = TelemetryConfig {
+            disk_mounts: vec!["/mnt/user".into(), "/mnt/cache".into()],
+            ..Default::default()
+        };
+        let ifaces = vec!["eth0".to_string()];
+        let mounts = vec!["/"];
+        let scope = detect_telemetry_scope(&cfg, &ifaces, &mounts);
+        if std::path::Path::new("/.dockerenv").exists() {
+            assert_eq!(scope, "container");
+        } else {
+            assert_eq!(scope, "host");
+        }
+    }
+
+    #[test]
+    fn build_network_snapshot_missing_iface_fallback() {
+        let sample = "Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+  bond0: 1000 10 0 0 0 0 0 0 2000 20 0 0 0 0 0 0
+  br0: 3000 30 0 0 0 0 0 0 4000 40 0 0 0 0 0 0
+";
+        let cfg = TelemetryConfig {
+            external_ifaces: vec!["eth0".into()],
+            internal_ifaces: vec!["br0".into()],
+            ..Default::default()
+        };
+        let (snap, fallback) = build_network_snapshot(sample, &cfg);
+        assert!(fallback);
+        assert!(snap.external_rx > 0);
+    }
+
+    #[test]
+    fn configured_mounts_satisfied_paths_single() {
+        let cfg = TelemetryConfig {
+            disk_mounts: vec!["/mnt/user".into()],
+            ..Default::default()
+        };
+        assert!(configured_mounts_satisfied_paths(&["/mnt/user"], &cfg));
+        assert!(!configured_mounts_satisfied_paths(&["/mnt/cache"], &cfg));
     }
 }

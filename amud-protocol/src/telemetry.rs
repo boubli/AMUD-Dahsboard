@@ -1,6 +1,15 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize, Default)]
+pub struct DiskMountTelemetry {
+    pub mount: String,
+    pub label: String,
+    pub usage: i32,
+    pub used_gb: f64,
+    pub total_gb: f64,
+}
+
+#[derive(Clone, Serialize, Deserialize, Default)]
 pub struct AgentTelemetry {
     pub cpu_usage: i32,
     pub ram_usage: i32,
@@ -32,6 +41,14 @@ pub struct AgentTelemetry {
     pub disk_mapping_fallback: bool,
     #[serde(default)]
     pub network_mapping_fallback: bool,
+    #[serde(default)]
+    pub telemetry_scope: String,
+    #[serde(default)]
+    pub visible_ifaces: Vec<String>,
+    #[serde(default)]
+    pub visible_mounts: Vec<String>,
+    #[serde(default)]
+    pub disk_volumes: Vec<DiskMountTelemetry>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]

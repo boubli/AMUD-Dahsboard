@@ -311,6 +311,10 @@ pub(crate) fn process_agent_line(
         if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
             *state.docker_discover_response.write().unwrap() = Some(val);
         }
+    } else if line.contains("telemetry_discover_result") {
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(line) {
+            *state.telemetry_discover_response.write().unwrap() = Some(val);
+        }
     } else if let Ok(metrics) = serde_json::from_str::<AgentTelemetry>(line) {
         handle_new_telemetry(state, metrics);
     }
