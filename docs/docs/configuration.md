@@ -29,6 +29,16 @@ Other appearance options on the same tab include accent color, glass blur/opacit
 
 ---
 
+## Dashboard widgets
+
+Custom **note**, **link list**, and **HTML** blocks can be added above the main app grid under **Settings → Account → Widgets**.
+
+Each widget supports bento spans (`1×1`, `2×1`, `1×2`) and an optional **guest visible** toggle. Twenty copy-paste homelab examples (welcome notes, *arr quick links, status strips, and more) are in the dedicated guide:
+
+**[Dashboard Widgets](./dashboard-widgets)**
+
+---
+
 ## Media integrations (Jellyfin & Plex)
 
 Open **Settings → Integrations** to connect live stream detection for Jellyfin and Plex cards on the dashboard.

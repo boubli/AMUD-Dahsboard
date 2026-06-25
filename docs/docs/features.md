@@ -14,6 +14,7 @@ Complete inventory of what AMUD Dashboard ships today (v1.5.2.1). Everything bel
 | Feature | Details |
 |---------|---------|
 | **Bento app grid** | Drag-and-drop reorder (admin), card spans (`1x1`, `2x1`, `1x2`), category filter tabs |
+| **Dashboard widgets** | Custom note, link list, or HTML blocks above the app grid — see [Dashboard Widgets](./dashboard-widgets) |
 | **~2000 bundled logos** | Offline SVG library plus custom URL icons |
 | **Light & dark mode** | System-wide theme toggle with 18 bundled CSS themes |
 | **Video wallpapers** | `.mp4`, `.webm`, `.ogg` background support |
