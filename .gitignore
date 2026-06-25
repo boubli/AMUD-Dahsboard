@@ -40,6 +40,8 @@ test_result.md
 
 # Rust
 target/
+target-run/
+target-test/
 *.log
 
 # AMUD runtime secrets (local dev)
@@ -53,6 +55,10 @@ target/
 .cursor/
 agent-tools/
 AUDIT_TASKS.md
+
+# Local GitHub reply drafts (paste manually — never commit)
+.github/*-reply-draft.md
+.github/*-draft.md
 
 # Local-only planning notes
 *.local.md
