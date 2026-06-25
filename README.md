@@ -12,9 +12,9 @@
 
 ### What's new in v1.5.5.6
 
-- **Agent telemetry hotfix** — GPU, host CPU/RAM/disk, container start/stop/restart, and ONLINE/OFFLINE badges work again (**skip v1.5.5.4** — it broke the agent pipeline)
-- **Global search** — filter apps or switch to web search (Google / DuckDuckGo / Bing); shortcuts `Ctrl+K`, `/`, `1`–`9`, `?`
-- **Dashboard parity** — widgets, Docker label import, OIDC SSO, API tokens, kiosk/share links, iframe embeds, per-app guest visibility, tabs vs collapsible layout, `/status` page
+- **Full-card click** — open an app by clicking anywhere on the card; buttons and controls inside the card still work normally
+- **Integration stats on the card** — AdGuard, *arr, qBittorrent, etc. show by default without hover
+- **Disk & network mapping** — telemetry interface and mount lists are normalized and deduplicated on save; Settings help text updated
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

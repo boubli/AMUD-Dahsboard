@@ -12,9 +12,9 @@
 
 ### Novità nella v1.5.5.6
 
-- **Hotfix telemetria agente** — GPU, CPU/RAM/disco host, controlli container e badge ONLINE/OFFLINE di nuovo funzionanti (**non usare v1.5.5.4** — pipeline agente rotta)
-- **Ricerca globale** — filtra le app o passa alla ricerca web (Google / DuckDuckGo / Bing); scorciatoie `Ctrl+K`, `/`, `1`–`9`, `?`
-- **Parità dashboard** — widget, import Docker da label, OIDC SSO, token API, kiosk/link condivisi, iframe, visibilità ospite per app, schede vs sezioni comprimibili, pagina `/status`
+- **Clic su tutta la card** — apre l’app cliccando ovunque sulla card; pulsanti e controlli interni restano invariati
+- **Metriche di integrazione visibili** — AdGuard, *arr, qBittorrent, ecc. mostrate sulla card senza hover
+- **Mapping disco/rete** — elenchi di interfacce e mount point normalizzati e deduplicati al salvataggio; testo guida aggiornato in Impostazioni
 
 Cronologia completa: **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

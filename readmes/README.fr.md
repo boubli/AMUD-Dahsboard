@@ -12,9 +12,9 @@
 
 ### Nouveautés de la v1.5.5.6
 
-- **Correctif télémétrie agent** — GPU, CPU/RAM/disque hôte, contrôles conteneur et badges ONLINE/OFFLINE rétablis (**ne pas utiliser v1.5.5.4** — pipeline agent cassé)
-- **Recherche globale** — filtrez les apps ou passez à la recherche web (Google / DuckDuckGo / Bing) ; raccourcis `Ctrl+K`, `/`, `1`–`9`, `?`
-- **Parité tableau de bord** — widgets, import Docker par labels, OIDC SSO, jetons API, kiosk/liens partagés, iframes, visibilité invité par app, onglets vs sections repliables, page `/status`
+- **Clic sur toute la carte** — ouvre l’app en cliquant n’importe où sur la carte ; les boutons et contrôles internes restent inchangés
+- **Stats d’intégration visibles** — AdGuard, *arr, qBittorrent, etc. s’affichent sur la carte sans survol
+- **Liaison disque/réseau** — listes d’interfaces et points de montage normalisées et dédupliquées à l’enregistrement ; aide mise à jour dans Paramètres
 
 Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

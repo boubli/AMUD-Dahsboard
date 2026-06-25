@@ -12,9 +12,9 @@
 
 ### Novidades na v1.5.5.6
 
-- **Hotfix de telemetria do agente** — GPU, CPU/RAM/disco do host, controles de contêiner e badges ONLINE/OFFLINE voltam a funcionar (**não use v1.5.5.4** — quebrou o pipeline do agente)
-- **Busca global** — filtre apps ou mude para busca web (Google / DuckDuckGo / Bing); atalhos `Ctrl+K`, `/`, `1`–`9`, `?`
-- **Paridade do painel** — widgets, importação Docker por labels, OIDC SSO, tokens API, kiosk/links compartilhados, iframes, visibilidade por app para convidados, abas vs seções recolhíveis, página `/status`
+- **Clique em toda a carta** — abre o app ao clicar em qualquer lugar; botões e controles internos continuam normais
+- **Estatísticas de integração visíveis** — AdGuard, *arr, qBittorrent, etc. aparecem no card sem hover
+- **Mapeamento disco/rede** — listas de interfaces e pontos de montagem normalizadas e sem duplicados; texto de ajuda atualizado em Configurações
 
 Histórico completo: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

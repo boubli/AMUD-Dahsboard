@@ -12,9 +12,9 @@
 
 ### v1.5.5.6 新增功能
 
-- **代理遥测热修复** — GPU、主机 CPU/RAM/磁盘、容器控制及 ONLINE/OFFLINE 徽章已恢复（**请勿使用 v1.5.5.4** — 代理管道已损坏）
-- **全局搜索** — 筛选应用或切换网页搜索（Google / DuckDuckGo / Bing）；快捷键 `Ctrl+K`、`/`、`1`–`9`、`?`
-- **面板功能对齐** — 小组件、Docker 标签导入、OIDC SSO、API 令牌、信息亭/分享链接、iframe 嵌入、按应用访客可见性、标签页 vs 可折叠分区、`/status` 页面
+- **整卡点击** — 点击卡片任意位置即可打开应用；卡片内按钮和控制项行为不变
+- **集成指标默认显示** — AdGuard、*arr、qBittorrent 等无需悬停即可在卡片上显示
+- **磁盘与网络映射** — 保存时规范化并去重接口与挂载点列表；设置页帮助文字已更新
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
