@@ -546,6 +546,37 @@ Required assets:
 
 ---
 
+## App card body empty but ONLINE shows
+
+**Symptom:** App name and **ONLINE** / **RUNNING** badge render, but the card body is empty — no CPU/RAM row, no Radarr queue, no integration stats. Often reported on **Unraid Docker** after an upgrade ([#15](https://github.com/boubli/AMUD-Dashboard/issues/15)).
+
+**What still works:** URL health checks (the status badge). That does **not** prove container metrics or integrations are loading.
+
+### Quick checks
+
+1. **Hard refresh** — `Ctrl+Shift+R` (see [PWA / Browser Cache](#pwa--browser-cache-issues) below).
+2. **WebSocket pill** (top bar) — should say **Live**. If **Offline** / **Reconnecting**, fix `/ws` first ([Reverse Proxy WebSockets](#reverse-proxy-websockets-disconnect-0-metrics)).
+3. **Edit one app** — confirm **Show container metrics** is enabled if you expect CPU/RAM.
+4. **Integration apps** (Radarr, Prowlarr, etc.) — need a valid API URL + key; open browser DevTools → Network and check `/api/apps/<id>/integration` is not 401/500.
+5. **View page source** on the dashboard — search for `data-lxc-metrics` or `app-card-metrics-slot` inside the card. If missing, metrics are disabled in app settings, not a CSS issue.
+
+### Unraid Docker
+
+- **AMUD-Agent** should use **host** network and bind-mount disk paths when using host telemetry mapping ([Unraid Step 3b](./installation/unraid.md#step-3b--host-network-and-disk-bind-mounts-v1557)).
+- Agent needs Docker socket access for per-container CPU/RAM on cards.
+
+### Simulate Unraid on Proxmox (bridge Docker)
+
+If you only have Proxmox, you can approximate an Unraid-style stack:
+
+1. Run **AMUD-Dashboard** and **AMUD-Agent** in Docker with **bridge** network (default), agent with `/var/run/docker.sock` mounted.
+2. Label a test container with `amud.enable=true` and `amud.url`.
+3. Add the app in AMUD with **Show container metrics** on.
+4. Expect at least `—` CPU/RAM in the card body (static HTML). Live values need the agent to match the container name.
+5. Switch agent to `network_mode: host` and compare — mirrors the Unraid fix from v1.5.5.7+.
+
+---
+
 ## PWA / Browser Cache Issues
 
 After upgrading AMUD, stale service worker cache can make the UI look old or keep old JavaScript loaded.
