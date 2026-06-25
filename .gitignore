@@ -33,6 +33,20 @@ scratch/
 test_reports/
 memory/
 
+# Local-only tests (run before release; not published to GitHub)
+amud-server/tests/
+scripts/test_local.sh
+scripts/test-dashboard-rates.mjs
+scripts/test-disk-volumes.mjs
+scripts/test-*.mjs
+
+# Local Sonar / review notes
+.github/SONAR_HOTSPOT_REVIEW.md
+sonar-project.properties
+
+# Local dev canvases / experiments
+canvases/
+
 # Local Dev Files (Never push to public GitHub repo)
 backend_test.py
 contracts.md
