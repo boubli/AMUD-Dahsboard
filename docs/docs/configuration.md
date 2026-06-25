@@ -33,7 +33,7 @@ Other appearance options on the same tab include accent color, glass blur/opacit
 
 Custom **note**, **link list**, and **HTML** blocks can be added above the main app grid under **Settings → Account → Widgets**.
 
-Each widget supports bento spans (`1×1`, `2×1`, `1×2`) and an optional **guest visible** toggle. Twenty copy-paste homelab examples (welcome notes, *arr quick links, status strips, and more) are in the dedicated guide:
+Each widget supports bento spans (`1×1`, `2×1`, `1×2`) and an optional **guest visible** toggle. Copy-paste examples for Note, Links, and HTML are in the dedicated guide:
 
 **[Dashboard Widgets](./dashboard-widgets)**
 

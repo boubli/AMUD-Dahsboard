@@ -78,6 +78,11 @@ AUDIT_TASKS.md
 *.local.md
 assist/*-pr.md
 assist/*-notes.md
+assist/AMUD Active Control Cockpit.png
+assist/AMUD-logo.png
+
+# Docusaurus local build output
+docs/build/
 docs/AMUD_AUDIT_TASKS.md
 docs/NEXT_SESSION*.md
 AUDIT_TASKS.md
