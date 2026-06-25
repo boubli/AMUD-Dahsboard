@@ -48,6 +48,13 @@
 
     function parseRateToBps(rateText) {
         const s = String(rateText || '').trim();
+        const bitMatch = s.match(/^([\d.]+)\s*([kM]?)bit\/s$/i);
+        if (bitMatch) {
+            const v = parseFloat(bitMatch[1]);
+            const unit = (bitMatch[2] || '').toUpperCase();
+            const bitsPerSec = unit === 'M' ? v * 1_000_000 : v * 1_000;
+            return bitsPerSec / 8;
+        }
         const m = s.match(/^([\d.]+)\s*([KMG]?B)\/s$/i);
         if (!m) return 0;
         const v = parseFloat(m[1]);

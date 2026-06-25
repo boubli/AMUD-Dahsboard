@@ -105,29 +105,73 @@ fn telemetry_config() -> &'static std::sync::RwLock<TelemetryConfig> {
     CONFIG.get_or_init(|| std::sync::RwLock::new(TelemetryConfig::default()))
 }
 
-fn parse_csv_list(raw: &str) -> Vec<String> {
+fn parse_iface_list(raw: &str) -> Vec<String> {
     raw.split(',')
         .map(|s| s.trim().to_ascii_lowercase())
         .filter(|s| !s.is_empty())
         .collect()
 }
 
+fn parse_mount_list(raw: &str) -> Vec<String> {
+    let mut seen = std::collections::HashSet::new();
+    raw.split(',')
+        .map(str::trim)
+        .filter(|s| s.starts_with('/') && !s.contains(".."))
+        .map(|s| {
+            let mut v = s.to_string();
+            while v.ends_with('/') && v.len() > 1 {
+                v.pop();
+            }
+            v
+        })
+        .filter(|s| seen.insert(s.clone()))
+        .collect()
+}
+
+// #region agent log
+fn debug_session_log(hypothesis_id: &str, location: &str, message: &str, data: serde_json::Value) {
+    let Ok(path) = std::env::var("AMUD_DEBUG_LOG") else {
+        return;
+    };
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0);
+    let line = serde_json::json!({
+        "sessionId": "ab4039",
+        "hypothesisId": hypothesis_id,
+        "location": location,
+        "message": message,
+        "data": data,
+        "timestamp": ts,
+    });
+    if let Ok(mut file) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+    {
+        use std::io::Write;
+        let _ = writeln!(file, "{line}");
+    }
+}
+// #endregion
+
 fn apply_telemetry_config(config: &serde_json::Value) {
     let mut tc = telemetry_config().write().unwrap();
     tc.external_ifaces = config
         .get("telemetry_external_ifaces")
         .and_then(|v| v.as_str())
-        .map(parse_csv_list)
+        .map(parse_iface_list)
         .unwrap_or_default();
     tc.internal_ifaces = config
         .get("telemetry_internal_ifaces")
         .and_then(|v| v.as_str())
-        .map(parse_csv_list)
+        .map(parse_iface_list)
         .unwrap_or_default();
     tc.disk_mounts = config
         .get("telemetry_disk_mounts")
         .and_then(|v| v.as_str())
-        .map(parse_csv_list)
+        .map(parse_mount_list)
         .unwrap_or_default();
 }
 
@@ -153,11 +197,62 @@ fn mount_matches(path: &str, cfg: &TelemetryConfig) -> bool {
     if cfg.disk_mounts.is_empty() {
         return true;
     }
-    let path_lower = path.to_ascii_lowercase();
+    let path_norm = {
+        let mut p = path.to_string();
+        while p.ends_with('/') && p.len() > 1 {
+            p.pop();
+        }
+        p.to_ascii_lowercase()
+    };
     cfg.disk_mounts.iter().any(|m| {
-        let mount = m.trim_end_matches('/');
-        path_lower == mount || path_lower.starts_with(&format!("{mount}/"))
+        let mount = m.trim_end_matches('/').to_ascii_lowercase();
+        path_norm == mount || path_norm.starts_with(&format!("{mount}/"))
     })
+}
+
+fn is_skipped_disk_fs(fs: &str) -> bool {
+    matches!(
+        fs,
+        "tmpfs"
+            | "overlay"
+            | "squashfs"
+            | "devtmpfs"
+            | "sysfs"
+            | "proc"
+            | "devpts"
+            | "cgroup"
+            | "cgroup2"
+            | "none"
+            | "ramfs"
+    )
+}
+
+fn aggregate_disk_bytes(disks: &sysinfo::Disks, cfg: &TelemetryConfig) -> (u64, u64, u32) {
+    let mut total_disk: u64 = 0;
+    let mut avail_disk: u64 = 0;
+    let mut matched_mounts = 0u32;
+    let mut seen_devices = std::collections::HashSet::new();
+    for disk in disks {
+        let fs = disk.file_system().to_string_lossy().to_lowercase();
+        let mount = disk.mount_point().to_string_lossy().to_string();
+        if !mount_matches(&mount, cfg) {
+            continue;
+        }
+        if is_skipped_disk_fs(&fs) {
+            continue;
+        }
+        if mount.starts_with("/snap") || mount.starts_with("/dev/loop") {
+            continue;
+        }
+        let device_name = disk.name().to_string_lossy().to_string();
+        if !seen_devices.insert(device_name) {
+            continue;
+        }
+        matched_mounts += 1;
+        total_disk += disk.total_space();
+        avail_disk += disk.available_space();
+    }
+    (total_disk, avail_disk, matched_mounts)
 }
 
 fn main() {
@@ -476,12 +571,9 @@ fn format_rate(bytes_per_sec: u64) -> String {
     }
 }
 
-fn read_network_snapshot() -> NetworkSnapshot {
-    let Ok(content) = std::fs::read_to_string("/proc/net/dev") else {
-        return NetworkSnapshot::default();
-    };
-    let cfg = telemetry_config().read().unwrap().clone();
+fn collect_network_snapshot(content: &str, cfg: &TelemetryConfig) -> (NetworkSnapshot, u32) {
     let mut snapshot = NetworkSnapshot::default();
+    let mut matched = 0u32;
 
     for line in content.lines().skip(2) {
         let Some((iface, stats)) = line.split_once(':') else {
@@ -501,12 +593,14 @@ fn read_network_snapshot() -> NetworkSnapshot {
 
         let rx = values[0];
         let tx = values[8];
-        match iface_classify(iface, &cfg) {
+        match iface_classify(iface, cfg) {
             Some("internal") => {
+                matched += 1;
                 snapshot.internal_rx = snapshot.internal_rx.saturating_add(rx);
                 snapshot.internal_tx = snapshot.internal_tx.saturating_add(tx);
             }
             Some("external") => {
+                matched += 1;
                 snapshot.external_rx = snapshot.external_rx.saturating_add(rx);
                 snapshot.external_tx = snapshot.external_tx.saturating_add(tx);
             }
@@ -514,6 +608,30 @@ fn read_network_snapshot() -> NetworkSnapshot {
         }
     }
 
+    (snapshot, matched)
+}
+
+fn read_network_snapshot() -> NetworkSnapshot {
+    let Ok(content) = std::fs::read_to_string("/proc/net/dev") else {
+        return NetworkSnapshot::default();
+    };
+    let cfg = telemetry_config().read().unwrap().clone();
+    let custom = !cfg.external_ifaces.is_empty() || !cfg.internal_ifaces.is_empty();
+    let (mut snapshot, matched) = collect_network_snapshot(&content, &cfg);
+    if custom && matched == 0 {
+        // #region agent log
+        debug_session_log(
+            "H2",
+            "read_network_snapshot",
+            "no iface matched; auto fallback",
+            serde_json::json!({
+                "external": cfg.external_ifaces,
+                "internal": cfg.internal_ifaces,
+            }),
+        );
+        // #endregion
+        snapshot = collect_network_snapshot(&content, &TelemetryConfig::default()).0;
+    }
     snapshot
 }
 
@@ -830,38 +948,28 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
         let disks = sysinfo::Disks::new_with_refreshed_list();
         let disk_cfg = telemetry_config().read().unwrap().clone();
-        let mut total_disk: u64 = 0;
-        let mut avail_disk: u64 = 0;
-        let mut seen_devices = std::collections::HashSet::new();
-        for disk in &disks {
-            let fs = disk.file_system().to_string_lossy().to_lowercase();
-            let mount = disk.mount_point().to_string_lossy().to_string();
-            if !mount_matches(&mount, &disk_cfg) {
-                continue;
-            }
-            if fs == "tmpfs"
-                || fs == "overlay"
-                || fs == "squashfs"
-                || fs == "devtmpfs"
-                || fs == "sysfs"
-                || fs == "proc"
-                || fs == "devpts"
-                || fs == "cgroup"
-                || fs == "cgroup2"
-                || fs == "none"
-                || fs == "ramfs"
-            {
-                continue;
-            }
-            if mount.starts_with("/snap") || mount.starts_with("/dev/loop") {
-                continue;
-            }
-            let device_name = disk.name().to_string_lossy().to_string();
-            if !seen_devices.insert(device_name) {
-                continue;
-            }
-            total_disk += disk.total_space();
-            avail_disk += disk.available_space();
+        let (mut total_disk, mut avail_disk, matched_mounts) =
+            aggregate_disk_bytes(&disks, &disk_cfg);
+        if !disk_cfg.disk_mounts.is_empty() && matched_mounts == 0 {
+            // #region agent log
+            debug_session_log(
+                "H1",
+                "telemetry_loop",
+                "no disk mount matched; auto fallback",
+                serde_json::json!({
+                    "configured": disk_cfg.disk_mounts,
+                    "visible_mounts": disks
+                        .iter()
+                        .map(|d| d.mount_point().to_string_lossy().to_string())
+                        .collect::<Vec<_>>(),
+                }),
+            );
+            // #endregion
+            let auto_cfg = TelemetryConfig {
+                disk_mounts: vec![],
+                ..disk_cfg
+            };
+            (total_disk, avail_disk, _) = aggregate_disk_bytes(&disks, &auto_cfg);
         }
         let used_disk = total_disk - avail_disk;
         let disk_usage = if total_disk > 0 {
@@ -1263,4 +1371,53 @@ fn execute_docker_action(_container_name: &str, _action: &str) -> (bool, Option<
         false,
         Some("Docker actions are unavailable on this platform".to_string()),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mount_matches_unraid_paths() {
+        let cfg = TelemetryConfig {
+            disk_mounts: vec!["/mnt/user".into(), "/mnt/cache".into()],
+            ..Default::default()
+        };
+        assert!(mount_matches("/mnt/user", &cfg));
+        assert!(mount_matches("/mnt/cache/", &cfg));
+        assert!(mount_matches("/mnt/user/data", &cfg));
+        assert!(!mount_matches("/mnt/disk1", &cfg));
+    }
+
+    #[test]
+    fn iface_classify_vlan_internal() {
+        let cfg = TelemetryConfig {
+            internal_ifaces: vec!["br0".into(), "br0.40".into()],
+            external_ifaces: vec!["eth0".into()],
+            ..Default::default()
+        };
+        assert_eq!(iface_classify("br0.40", &cfg), Some("internal"));
+        assert_eq!(iface_classify("eth0", &cfg), Some("external"));
+        assert_eq!(iface_classify("bond0", &cfg), None);
+    }
+
+    #[test]
+    fn collect_network_snapshot_respects_mapping() {
+        let sample = "Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+  eth0: 1000 10 0 0 0 0 0 0 2000 20 0 0 0 0 0 0
+  br0: 3000 30 0 0 0 0 0 0 4000 40 0 0 0 0 0 0
+";
+        let cfg = TelemetryConfig {
+            external_ifaces: vec!["eth0".into()],
+            internal_ifaces: vec!["br0".into()],
+            ..Default::default()
+        };
+        let (snap, matched) = collect_network_snapshot(sample, &cfg);
+        assert_eq!(matched, 2);
+        assert_eq!(snap.external_rx, 1000);
+        assert_eq!(snap.external_tx, 2000);
+        assert_eq!(snap.internal_rx, 3000);
+        assert_eq!(snap.internal_tx, 4000);
+    }
 }
