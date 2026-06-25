@@ -36,6 +36,7 @@
         }
     </style>
     <style id="amud-custom-css">{{custom_css}}</style>
+    <link rel="stylesheet" href="/static/theme-guards.css?v={{app_version}}">
 </head>
 <body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' } }" class="{{video_bg_class}} {{body_page_class}}">
     {{video_bg_element}}

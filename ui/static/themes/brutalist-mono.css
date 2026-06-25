@@ -41,6 +41,11 @@ body {
     box-shadow: 8px 8px 0 #0a0a0a !important;
 }
 
+/* App cards use AMUD metrics layout — no brutalist skew on dashboard tiles */
+.app-card.glass-panel:hover {
+    transform: translateY(-2px);
+}
+
 .header-title {
     text-transform: uppercase;
     font-weight: 900;

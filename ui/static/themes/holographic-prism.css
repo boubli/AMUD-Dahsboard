@@ -52,6 +52,11 @@ body {
     z-index: -1;
 }
 
+/* Prism border on app tiles breaks metrics stacking — telemetry/widgets only */
+.app-card.glass-panel::before {
+    display: none;
+}
+
 @keyframes amud-prism-shift {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
