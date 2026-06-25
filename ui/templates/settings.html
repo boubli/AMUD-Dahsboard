@@ -2176,11 +2176,12 @@
                 resultEl.textContent = '';
 
                 try {
-                    const formData = new FormData();
+                    const formData = new URLSearchParams();
                     formData.append('csrf_token', csrfToken);
                     const res = await fetch('/api/telemetry/discover', {
                         method: 'POST',
                         body: formData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         credentials: 'same-origin',
                     });
                     const data = await res.json().catch(() => ({}));
