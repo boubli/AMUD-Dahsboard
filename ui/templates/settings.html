@@ -711,7 +711,7 @@
 
                         <div class="settings-block">
                             <h3><i data-lucide="activity" style="color:var(--accent-color);"></i> Host telemetry mapping</h3>
-                            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">Optional overrides for the AMUD agent. Leave blank for automatic detection. Changes apply on the next agent config sync (save settings, then wait a few seconds).</p>
+                            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">Optional overrides for the AMUD agent. Leave blank for automatic detection. Changes apply on the next agent config sync (save settings, then wait a few seconds). If mounts or interfaces are not visible inside the agent container, the agent falls back to auto-detect and admins see an <em>(auto-detect)</em> hint on the dashboard.</p>
                             <p style="font-size:0.78rem; margin-bottom:1rem;">
                                 <a href="https://boubli.github.io/AMUD-Dashboard/docs/configuration#host-telemetry-mapping" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">How to find your interface names and disk mounts →</a>
                                 <span style="color:var(--text-muted);"> (Proxmox, Unraid, Docker)</span>

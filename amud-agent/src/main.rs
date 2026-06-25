@@ -4,7 +4,8 @@ use amud_protocol::{
 };
 use serde::Serialize;
 use std::io::Write;
-use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, OnceLock, RwLock};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 use sysinfo::System;
@@ -99,10 +100,28 @@ struct TelemetryConfig {
     disk_mounts: Vec<String>,
 }
 
-fn telemetry_config() -> &'static std::sync::RwLock<TelemetryConfig> {
-    static CONFIG: std::sync::OnceLock<std::sync::RwLock<TelemetryConfig>> =
-        std::sync::OnceLock::new();
-    CONFIG.get_or_init(|| std::sync::RwLock::new(TelemetryConfig::default()))
+fn telemetry_config() -> &'static RwLock<TelemetryConfig> {
+    static CONFIG: OnceLock<RwLock<TelemetryConfig>> = OnceLock::new();
+    CONFIG.get_or_init(|| RwLock::new(TelemetryConfig::default()))
+}
+
+static CONFIG_READY: AtomicBool = AtomicBool::new(false);
+
+#[derive(Default)]
+struct NetworkBaseline {
+    snapshot: NetworkSnapshot,
+    sample_at: Option<Instant>,
+}
+
+fn network_baseline() -> &'static Mutex<NetworkBaseline> {
+    static BASELINE: OnceLock<Mutex<NetworkBaseline>> = OnceLock::new();
+    BASELINE.get_or_init(|| Mutex::new(NetworkBaseline::default()))
+}
+
+fn reset_network_baseline() {
+    let mut baseline = network_baseline().lock().unwrap();
+    baseline.snapshot = NetworkSnapshot::default();
+    baseline.sample_at = None;
 }
 
 fn parse_iface_list(raw: &str) -> Vec<String> {
@@ -128,51 +147,35 @@ fn parse_mount_list(raw: &str) -> Vec<String> {
         .collect()
 }
 
-// #region agent log
-fn debug_session_log(hypothesis_id: &str, location: &str, message: &str, data: serde_json::Value) {
-    let Ok(path) = std::env::var("AMUD_DEBUG_LOG") else {
-        return;
-    };
-    let ts = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis())
-        .unwrap_or(0);
-    let line = serde_json::json!({
-        "sessionId": "ab4039",
-        "hypothesisId": hypothesis_id,
-        "location": location,
-        "message": message,
-        "data": data,
-        "timestamp": ts,
-    });
-    if let Ok(mut file) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)
-    {
-        use std::io::Write;
-        let _ = writeln!(file, "{line}");
-    }
-}
-// #endregion
-
 fn apply_telemetry_config(config: &serde_json::Value) {
-    let mut tc = telemetry_config().write().unwrap();
-    tc.external_ifaces = config
-        .get("telemetry_external_ifaces")
-        .and_then(|v| v.as_str())
-        .map(parse_iface_list)
-        .unwrap_or_default();
-    tc.internal_ifaces = config
-        .get("telemetry_internal_ifaces")
-        .and_then(|v| v.as_str())
-        .map(parse_iface_list)
-        .unwrap_or_default();
-    tc.disk_mounts = config
-        .get("telemetry_disk_mounts")
-        .and_then(|v| v.as_str())
-        .map(parse_mount_list)
-        .unwrap_or_default();
+    {
+        let mut tc = telemetry_config().write().unwrap();
+        tc.external_ifaces = config
+            .get("telemetry_external_ifaces")
+            .and_then(|v| v.as_str())
+            .map(parse_iface_list)
+            .unwrap_or_default();
+        tc.internal_ifaces = config
+            .get("telemetry_internal_ifaces")
+            .and_then(|v| v.as_str())
+            .map(parse_iface_list)
+            .unwrap_or_default();
+        tc.disk_mounts = config
+            .get("telemetry_disk_mounts")
+            .and_then(|v| v.as_str())
+            .map(parse_mount_list)
+            .unwrap_or_default();
+    }
+    CONFIG_READY.store(true, Ordering::Release);
+    reset_network_baseline();
+}
+
+fn iface_classify_auto(iface: &str) -> &'static str {
+    if iface.starts_with("vmbr") || iface.starts_with("br") || iface.starts_with("docker") {
+        "internal"
+    } else {
+        "external"
+    }
 }
 
 fn iface_classify(iface: &str, cfg: &TelemetryConfig) -> Option<&'static str> {
@@ -186,11 +189,7 @@ fn iface_classify(iface: &str, cfg: &TelemetryConfig) -> Option<&'static str> {
     if !cfg.external_ifaces.is_empty() || !cfg.internal_ifaces.is_empty() {
         return None;
     }
-    if iface.starts_with("vmbr") || iface.starts_with("br-") || iface.starts_with("docker") {
-        Some("internal")
-    } else {
-        Some("external")
-    }
+    Some(iface_classify_auto(iface))
 }
 
 fn mount_matches(path: &str, cfg: &TelemetryConfig) -> bool {
@@ -253,6 +252,30 @@ fn aggregate_disk_bytes(disks: &sysinfo::Disks, cfg: &TelemetryConfig) -> (u64, 
         avail_disk += disk.available_space();
     }
     (total_disk, avail_disk, matched_mounts)
+}
+
+fn configured_mounts_satisfied_paths(visible_mounts: &[&str], cfg: &TelemetryConfig) -> bool {
+    if cfg.disk_mounts.is_empty() {
+        return true;
+    }
+    cfg.disk_mounts.iter().all(|mount| {
+        let single = TelemetryConfig {
+            disk_mounts: vec![mount.clone()],
+            ..Default::default()
+        };
+        visible_mounts
+            .iter()
+            .any(|path| mount_matches(path, &single))
+    })
+}
+
+fn configured_mounts_satisfied(disks: &sysinfo::Disks, cfg: &TelemetryConfig) -> bool {
+    let visible: Vec<String> = disks
+        .iter()
+        .map(|d| d.mount_point().to_string_lossy().to_string())
+        .collect();
+    let visible_refs: Vec<&str> = visible.iter().map(String::as_str).collect();
+    configured_mounts_satisfied_paths(&visible_refs, cfg)
 }
 
 fn main() {
@@ -352,8 +375,6 @@ impl rustls::client::danger::ServerCertVerifier for NoVerifier {
             .supported_schemes()
     }
 }
-
-use std::sync::{OnceLock, RwLock};
 
 static AGENT_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
 
@@ -564,11 +585,48 @@ fn fetch_lxc_containers_with_token(token: &str) -> Result<Vec<LxcContainer>, Str
 
 fn format_rate(bytes_per_sec: u64) -> String {
     let bits = bytes_per_sec as f64 * 8.0;
-    if bits >= 1_000_000.0 {
+    if bits >= 1_000_000_000.0 {
+        format!("{:.2} Gbit/s", bits / 1_000_000_000.0)
+    } else if bits >= 1_000_000.0 {
         format!("{:.1} Mbit/s", bits / 1_000_000.0)
     } else {
         format!("{:.0} kbit/s", bits / 1_000.0)
     }
+}
+
+fn list_proc_net_ifaces(content: &str) -> std::collections::HashSet<String> {
+    let mut present = std::collections::HashSet::new();
+    for line in content.lines().skip(2) {
+        let Some((iface, _)) = line.split_once(':') else {
+            continue;
+        };
+        let iface = iface.trim();
+        if iface != "lo" && !iface.is_empty() {
+            present.insert(iface.to_ascii_lowercase());
+        }
+    }
+    present
+}
+
+fn configured_network_ifaces_satisfied(content: &str, cfg: &TelemetryConfig) -> bool {
+    let present = list_proc_net_ifaces(content);
+    if !cfg.external_ifaces.is_empty()
+        && !cfg
+            .external_ifaces
+            .iter()
+            .any(|iface| present.contains(iface))
+    {
+        return false;
+    }
+    if !cfg.internal_ifaces.is_empty()
+        && !cfg
+            .internal_ifaces
+            .iter()
+            .any(|iface| present.contains(iface))
+    {
+        return false;
+    }
+    true
 }
 
 fn collect_network_snapshot(content: &str, cfg: &TelemetryConfig) -> (NetworkSnapshot, u32) {
@@ -611,28 +669,26 @@ fn collect_network_snapshot(content: &str, cfg: &TelemetryConfig) -> (NetworkSna
     (snapshot, matched)
 }
 
-fn read_network_snapshot() -> NetworkSnapshot {
+fn read_network_snapshot() -> (NetworkSnapshot, bool) {
     let Ok(content) = std::fs::read_to_string("/proc/net/dev") else {
-        return NetworkSnapshot::default();
+        return (NetworkSnapshot::default(), false);
     };
     let cfg = telemetry_config().read().unwrap().clone();
     let custom = !cfg.external_ifaces.is_empty() || !cfg.internal_ifaces.is_empty();
-    let (mut snapshot, matched) = collect_network_snapshot(&content, &cfg);
-    if custom && matched == 0 {
-        // #region agent log
-        debug_session_log(
-            "H2",
-            "read_network_snapshot",
-            "no iface matched; auto fallback",
-            serde_json::json!({
-                "external": cfg.external_ifaces,
-                "internal": cfg.internal_ifaces,
-            }),
+    if custom && !configured_network_ifaces_satisfied(&content, &cfg) {
+        return (
+            collect_network_snapshot(&content, &TelemetryConfig::default()).0,
+            true,
         );
-        // #endregion
-        snapshot = collect_network_snapshot(&content, &TelemetryConfig::default()).0;
     }
-    snapshot
+    let (snapshot, matched) = collect_network_snapshot(&content, &cfg);
+    if custom && matched == 0 {
+        return (
+            collect_network_snapshot(&content, &TelemetryConfig::default()).0,
+            true,
+        );
+    }
+    (snapshot, false)
 }
 
 fn network_rates(
@@ -642,9 +698,7 @@ fn network_rates(
 ) -> NetworkTelemetry {
     let seconds = elapsed.max(1.0);
     let rate = |now: u64, before: u64| -> u64 {
-        now.saturating_sub(before)
-            .checked_div(seconds as u64)
-            .unwrap_or(0)
+        ((now.saturating_sub(before)) as f64 / seconds).round() as u64
     };
 
     NetworkTelemetry {
@@ -902,8 +956,19 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
     let mut last_lxc_fetch = Instant::now()
         .checked_sub(Duration::from_secs(10))
         .unwrap_or_else(Instant::now);
-    let mut last_network_snapshot = read_network_snapshot();
-    let mut last_network_sample = Instant::now();
+    CONFIG_READY.store(false, Ordering::Release);
+    reset_network_baseline();
+
+    let config_wait_started = Instant::now();
+
+    loop {
+        if CONFIG_READY.load(Ordering::Acquire)
+            || config_wait_started.elapsed() >= Duration::from_secs(5)
+        {
+            break;
+        }
+        sleep(Duration::from_millis(100));
+    }
 
     loop {
         sys.refresh_all();
@@ -948,23 +1013,10 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
         let disks = sysinfo::Disks::new_with_refreshed_list();
         let disk_cfg = telemetry_config().read().unwrap().clone();
-        let (mut total_disk, mut avail_disk, matched_mounts) =
-            aggregate_disk_bytes(&disks, &disk_cfg);
-        if !disk_cfg.disk_mounts.is_empty() && matched_mounts == 0 {
-            // #region agent log
-            debug_session_log(
-                "H1",
-                "telemetry_loop",
-                "no disk mount matched; auto fallback",
-                serde_json::json!({
-                    "configured": disk_cfg.disk_mounts,
-                    "visible_mounts": disks
-                        .iter()
-                        .map(|d| d.mount_point().to_string_lossy().to_string())
-                        .collect::<Vec<_>>(),
-                }),
-            );
-            // #endregion
+        let mut disk_mapping_fallback = false;
+        let (mut total_disk, mut avail_disk, _) = aggregate_disk_bytes(&disks, &disk_cfg);
+        if !disk_cfg.disk_mounts.is_empty() && !configured_mounts_satisfied(&disks, &disk_cfg) {
+            disk_mapping_fallback = true;
             let auto_cfg = TelemetryConfig {
                 disk_mounts: vec![],
                 ..disk_cfg
@@ -988,14 +1040,22 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
         lxc_containers.extend(fetch_docker_containers());
 
-        let now_network_snapshot = read_network_snapshot();
-        let network = network_rates(
-            &last_network_snapshot,
-            &now_network_snapshot,
-            last_network_sample.elapsed().as_secs_f64(),
-        );
-        last_network_snapshot = now_network_snapshot;
-        last_network_sample = Instant::now();
+        let (now_network_snapshot, network_mapping_fallback) = read_network_snapshot();
+        let network = {
+            let mut baseline = network_baseline().lock().unwrap();
+            let network = if let Some(sample_at) = baseline.sample_at {
+                network_rates(
+                    &baseline.snapshot,
+                    &now_network_snapshot,
+                    sample_at.elapsed().as_secs_f64(),
+                )
+            } else {
+                NetworkTelemetry::default()
+            };
+            baseline.snapshot = now_network_snapshot;
+            baseline.sample_at = Some(Instant::now());
+            network
+        };
 
         let telemetry = AgentTelemetry {
             cpu_usage,
@@ -1015,6 +1075,8 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             gpu_mem_total_mb: gpu.mem_total_mb,
             lxc_containers,
             network: Some(network),
+            disk_mapping_fallback,
+            network_mapping_fallback,
         };
 
         let mut serialized = serde_json::to_vec(&telemetry).unwrap_or_default();
@@ -1376,6 +1438,92 @@ fn execute_docker_action(_container_name: &str, _action: &str) -> (bool, Option<
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn iface_classify_auto_unraid_br0() {
+        let cfg = TelemetryConfig::default();
+        assert_eq!(iface_classify("br0", &cfg), Some("internal"));
+        assert_eq!(iface_classify("br0.40", &cfg), Some("internal"));
+        assert_eq!(iface_classify("br-abc", &cfg), Some("internal"));
+        assert_eq!(iface_classify("bond0", &cfg), Some("external"));
+        assert_eq!(iface_classify("eth0", &cfg), Some("external"));
+        assert_eq!(iface_classify("vmbr0", &cfg), Some("internal"));
+        assert_eq!(iface_classify("docker0", &cfg), Some("internal"));
+    }
+
+    #[test]
+    fn configured_mounts_satisfied_paths_partial() {
+        let cfg = TelemetryConfig {
+            disk_mounts: vec!["/mnt/cache".into(), "/mnt/user".into()],
+            ..Default::default()
+        };
+        assert!(!configured_mounts_satisfied_paths(&["/mnt/cache"], &cfg));
+        assert!(configured_mounts_satisfied_paths(
+            &["/mnt/cache", "/mnt/user"],
+            &cfg
+        ));
+        assert!(configured_mounts_satisfied_paths(
+            &["/mnt/cache", "/mnt/user/data"],
+            &cfg
+        ));
+    }
+
+    #[test]
+    fn configured_network_ifaces_missing_external() {
+        let sample = "Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+  bond0: 1000 10 0 0 0 0 0 0 2000 20 0 0 0 0 0 0
+  br0: 3000 30 0 0 0 0 0 0 4000 40 0 0 0 0 0 0
+";
+        let cfg = TelemetryConfig {
+            external_ifaces: vec!["eth0".into()],
+            internal_ifaces: vec!["br0".into()],
+            ..Default::default()
+        };
+        assert!(!configured_network_ifaces_satisfied(sample, &cfg));
+        let (snap, fallback) = {
+            let custom = true;
+            if custom && !configured_network_ifaces_satisfied(sample, &cfg) {
+                (
+                    collect_network_snapshot(sample, &TelemetryConfig::default()).0,
+                    true,
+                )
+            } else {
+                (NetworkSnapshot::default(), false)
+            }
+        };
+        assert!(fallback);
+        assert!(snap.external_rx > 0);
+    }
+
+    #[test]
+    fn configured_network_ifaces_present_no_fallback() {
+        let sample = "Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+  eth0: 1000 10 0 0 0 0 0 0 2000 20 0 0 0 0 0 0
+  br0: 3000 30 0 0 0 0 0 0 4000 40 0 0 0 0 0 0
+";
+        let cfg = TelemetryConfig {
+            external_ifaces: vec!["eth0".into()],
+            internal_ifaces: vec!["br0".into()],
+            ..Default::default()
+        };
+        assert!(configured_network_ifaces_satisfied(sample, &cfg));
+    }
+
+    #[test]
+    fn network_rates_uses_fractional_seconds() {
+        let previous = NetworkSnapshot {
+            external_rx: 0,
+            ..Default::default()
+        };
+        let current = NetworkSnapshot {
+            external_rx: 1000,
+            ..Default::default()
+        };
+        let rates = network_rates(&previous, &current, 2.9);
+        assert_eq!(rates.external_rx, "3 kbit/s");
+    }
 
     #[test]
     fn mount_matches_unraid_paths() {

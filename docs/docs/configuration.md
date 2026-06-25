@@ -144,7 +144,7 @@ Under **Settings → Privacy & Access → Host telemetry mapping**, you can over
 | **Internal network interfaces** | `vmbr0,br-0` | Count only these toward internal bandwidth |
 | **Disk mount points** | `/,/mnt/user` | Sum storage usage only from these mounts |
 
-Leave fields **blank** for automatic detection (bridges/Docker → internal; other interfaces → external; all eligible disks → storage bar).
+Leave fields **blank** for automatic detection (bridges/`br*`/`docker*` → internal; physical NICs and bonds → external; all eligible disks → storage bar). If configured mounts or interfaces are **not all visible** inside the agent (common on Unraid Docker without bind-mounts), the agent **falls back to auto-detect**. Admins see an **(auto-detect)** hint on the Disk and Bandwidth cards when this happens.
 
 Names and paths are **case-insensitive**; duplicates and extra spaces are cleaned up when you save (v1.5.5.6+).
 
@@ -176,9 +176,9 @@ The first column is the interface name (ignore `lo`). Common patterns:
 
 | Interface | Typical role | Auto mode |
 |-----------|--------------|-----------|
-| `eno1`, `enp3s0`, `eth0` | Physical NIC (WAN/LAN) | **External** |
+| `eno1`, `enp3s0`, `eth0`, `bond0` | Physical NIC / bond (WAN/LAN) | **External** |
 | `vmbr0` | Proxmox bridge | **Internal** |
-| `br-*`, `docker0` | Docker / virtual bridges | **Internal** |
+| `br0`, `br0.40`, `br-*`, `docker0` | Unraid / Docker bridges | **Internal** |
 
 **Proxmox:** run on the **hypervisor host**. Physical NIC → **External**; `vmbr0` → **Internal**.
 
@@ -251,7 +251,16 @@ Disk mount points:            /
 #### Rules and tips
 
 - **Blank = auto** — start here; only override if the dashboard disk or network numbers look wrong.
-- **If you set either network list**, only interfaces you list are counted. Unlisted interfaces are ignored — fill **both** external and internal lists when overriding.
+- **If you set either network list**, only interfaces you list are counted. Unlisted interfaces are ignored — fill **both** external and internal lists when overriding. If a listed interface name does not exist on the host (e.g. `eth0` vs `bond0`), the agent falls back to auto-detect.
+- **Disk mounts** must all be visible inside the agent process. On Unraid Docker, bind-mount host paths (e.g. `- /mnt/user:/mnt/user:ro`) or leave disk mapping blank for auto-detect.
+- **Troubleshooting inside the agent container:**
+
+```bash
+df -h
+cat /proc/net/dev
+```
+
+Compare output to your Settings values. Restart the agent after changing mapping.
 - **Verify saved values** (optional, admin shell on the AMUD server):
 
 ```bash

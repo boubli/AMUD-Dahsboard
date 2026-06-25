@@ -48,23 +48,28 @@
 
     function parseRateToBps(rateText) {
         const s = String(rateText || '').trim();
-        const bitMatch = s.match(/^([\d.]+)\s*([kM]?)bit\/s$/i);
+        const bitMatch = s.match(/^([\d.]+)\s*([kMG]?)bit\/s$/i);
         if (bitMatch) {
             const v = parseFloat(bitMatch[1]);
+            if (!Number.isFinite(v)) return 0;
             const unit = (bitMatch[2] || '').toUpperCase();
-            const bitsPerSec = unit === 'M' ? v * 1_000_000 : v * 1_000;
+            const bitsPerSec = unit === 'G' ? v * 1_000_000_000 : unit === 'M' ? v * 1_000_000 : v * 1_000;
             return bitsPerSec / 8;
         }
         const m = s.match(/^([\d.]+)\s*([KMG]?B)\/s$/i);
         if (!m) return 0;
         const v = parseFloat(m[1]);
+        if (!Number.isFinite(v)) return 0;
         const unit = (m[2] || 'B').toUpperCase();
         const mult = unit === 'GB' ? 1024 * 1024 * 1024 : unit === 'MB' ? 1024 * 1024 : unit === 'KB' ? 1024 : 1;
         return v * mult;
     }
 
-    function formatRateFromBps(bytes) {
-        if (!bytes || bytes <= 0) return '—';
+    // Input is bytes per second (agent sends bit/s strings; we convert to B/s first).
+    function formatRateFromBps(bytes, allowZero) {
+        if (!bytes || bytes <= 0) {
+            return allowZero ? '0 B/s' : '—';
+        }
         const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
         let value = bytes;
         let idx = 0;
@@ -144,6 +149,16 @@
         setDashboardBar('bar-nas-usage', sys.disk_usage ?? 0);
         setDashboardText('val-nas-used', `${(sys.disk_used_gb ?? 0).toFixed(1)} GB Used`);
         setDashboardText('val-disk-total', `${(sys.disk_total_gb ?? 0).toFixed(1)} GB Total`);
+        const diskHint = document.getElementById('val-disk-hint');
+        if (diskHint) {
+            if (isAdmin && sys.disk_mapping_fallback) {
+                diskHint.textContent = '(auto-detect)';
+                diskHint.title = 'Configured disk mounts were not all visible inside the agent; showing auto-detected storage.';
+            } else {
+                diskHint.textContent = '';
+                diskHint.removeAttribute('title');
+            }
+        }
 
         const gpuName = (sys.gpu_name || '').trim();
         const hasGpu = gpuName.length > 0 && (sys.gpu_usage ?? -1) >= 0;
@@ -313,10 +328,20 @@
                 const tx = parseRateToBps(net.internal_tx) + parseRateToBps(net.external_tx);
                 const rx = parseRateToBps(net.internal_rx) + parseRateToBps(net.external_rx);
                 const total = tx + rx;
-                setDashboardText('val-net-up', `↑ ${formatRateFromBps(tx)}`);
-                setDashboardText('val-net-down', `↓ ${formatRateFromBps(rx)}`);
-                setDashboardText('val-net-total', formatRateFromBps(total));
+                setDashboardText('val-net-up', `↑ ${formatRateFromBps(tx, true)}`);
+                setDashboardText('val-net-down', `↓ ${formatRateFromBps(rx, true)}`);
+                setDashboardText('val-net-total', formatRateFromBps(total, true));
                 setDashboardBar('bar-net-total', Math.min(100, total / (125 * 1024 * 1024) * 100));
+                const netHint = document.getElementById('val-net-hint');
+                if (netHint) {
+                    if (isAdmin && data.system && data.system.network_mapping_fallback) {
+                        netHint.textContent = '(auto-detect)';
+                        netHint.title = 'Configured network interfaces were not all visible inside the agent; showing auto-detected bandwidth.';
+                    } else {
+                        netHint.textContent = '';
+                        netHint.removeAttribute('title');
+                    }
+                }
             }
 
             if (typeof data.agent_connected === 'boolean') {

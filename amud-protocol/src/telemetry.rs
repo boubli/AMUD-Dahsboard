@@ -28,6 +28,10 @@ pub struct AgentTelemetry {
     pub lxc_containers: Vec<LxcContainer>,
     #[serde(default)]
     pub network: Option<NetworkTelemetry>,
+    #[serde(default)]
+    pub disk_mapping_fallback: bool,
+    #[serde(default)]
+    pub network_mapping_fallback: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
