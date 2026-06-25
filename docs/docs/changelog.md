@@ -40,6 +40,7 @@ If a removed version is still cached in Docker Hub or local environments, upgrad
 **2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.0) · [Compare v1.5.5.9…v1.5.6.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.9...v1.5.6.0)
 
 **Fixed**
+- **Dual metrics row** — integration stats and CPU/RAM no longer stack as two rows; they share one slot (integration default, hover for container metrics)
 - App card bodies empty while **ONLINE** still showed — common on Unraid/Docker after the v1.5.5.9 bento grid change ([#15](https://github.com/boubli/AMUD-Dashboard/issues/15))
 - Integration cards show a loading placeholder before Alpine fetch completes
 - Drag reorder targets the app grid only (not dashboard widgets)

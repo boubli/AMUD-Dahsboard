@@ -12,7 +12,8 @@
 
 ### What's new in v1.5.6.0
 
-- **Blank card bodies fixed ([#15](https://github.com/boubli/AMUD-Dashboard/issues/15))** — CPU/RAM and integration stats render again on Docker/Unraid setups that only showed the header after v1.5.5.9
+- **Dual metrics fix** — integration stats and CPU/RAM share one row again (no stacked second row on *arr cards)
+- **Blank card bodies fixed ([#15](https://github.com/boubli/AMUD-Dashboard/issues/15))** — CPU/RAM render again on Docker/Unraid setups that only showed the header after v1.5.5.9
 - **Integration loading row** — stats area shows a placeholder immediately instead of an empty gap while Alpine fetches
 - **Drag reorder** — reliable again with the bento layout; widgets row is left alone
 

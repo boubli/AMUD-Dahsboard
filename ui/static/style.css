@@ -706,7 +706,7 @@ body::-webkit-scrollbar-button {
     text-transform: uppercase;
 }
 
-/* Fixed metrics slot — same card footprint; integration swaps in on hover */
+/* Fixed metrics slot — integration and CPU/RAM share one footprint */
 .app-card:has(.app-card-metrics-slot) {
     overflow: visible;
 }
@@ -731,11 +731,27 @@ body::-webkit-scrollbar-button {
     transition: opacity 0.16s ease;
 }
 
-/* Integration metrics layer — visible by default so stats are always shown */
+/* Dual cards: integration visible by default; hover swaps to CPU/RAM */
+.app-card-metrics-slot--dual .app-card-metrics-layer--infra {
+    position: absolute;
+    inset: 0.75rem 0 0 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .app-card-metrics-layer--integration {
-    position: static;
+    position: absolute;
+    inset: 0.75rem 0 0 0;
     display: flex;
     align-items: stretch;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.app-card-metrics-slot--dual .app-card-metrics-layer--integration,
+.app-card-metrics-slot--solo .app-card-metrics-layer--integration {
     opacity: 1;
     pointer-events: auto;
     transform: none;
@@ -746,16 +762,38 @@ body::-webkit-scrollbar-button {
     align-self: stretch;
 }
 
-/* Solo integration mode no longer relies on hover hint */
 .app-card-metrics-slot--solo::before {
     content: '';
     display: none;
 }
 
-/* Keep card hover lift without tying it to metrics hover */
 @media (hover: hover) {
+    .app-card-metrics-slot--dual:hover .app-card-metrics-layer--infra {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .app-card-metrics-slot--dual:hover .app-card-metrics-layer--integration {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(4px);
+    }
+
     .app-card:has(.app-card-metrics-slot).glass-panel:hover {
         transform: translateY(-2px);
+    }
+}
+
+@media (hover: none) {
+    .app-card-metrics-slot--dual .app-card-metrics-layer--infra {
+        display: none;
+    }
+
+    .app-card-metrics-layer--integration {
+        position: static;
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
     }
 }
 
