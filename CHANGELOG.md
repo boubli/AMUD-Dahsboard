@@ -8,6 +8,18 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.5.6](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.6) — 2026-06-25
+
+Dashboard UX and telemetry mapping polish release.
+
+### Fixed
+- **App card navigation** — clicking anywhere on a card now opens it, while preserving embedded controls and buttons
+- **Integration metrics visibility** — integration stats are now visible by default (no hover dependency)
+- **Telemetry mapping normalization** — network interface and disk mount lists are canonicalized and deduplicated
+- **Settings guidance** — telemetry field help text clarifies normalization and duplicate-handling behavior
+
+---
+
 ## [v1.5.5.5](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.5) — 2026-06-24
 
 Hotfix: restore agent telemetry broken in v1.5.5.4.

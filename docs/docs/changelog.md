@@ -20,7 +20,8 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.3.6`
 - `v1.3.7`
 - `v1.4.1.0`
-- `v1.5.5.3` (latest)
+- `v1.5.5.3`
+- `v1.5.5.6` (latest)
 
 **Removed as broken during audit**
 - `v1.1.0.0`, `v1.2.0.0`, `v1.3.0.0`, `v1.3.1.5`
@@ -28,7 +29,19 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.4.0.0`, `v1.4.2.0`, `v1.4.2.1`, `v1.4.2.2`
 - `v1.5.0.0`, `v1.5.5.2`
 
-If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.5.3` or newer.
+If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.5.6` or newer.
+
+---
+
+## v1.5.5.6 — Dashboard click UX + telemetry normalization
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.6) · [Compare v1.5.5.5…v1.5.5.6](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.5...v1.5.5.6)
+
+**Fixed**
+- Full-card click opens apps while preserving in-card interactive controls
+- Integration metrics are visible by default without hover
+- Telemetry interface/disk mapping lists are normalized and deduplicated
+- Settings help text explains canonicalization behavior
 
 ---
 
