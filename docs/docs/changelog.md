@@ -11,7 +11,7 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
-## Release validation audit (2026-06-24)
+## Release validation audit (2026-06-25)
 
 Manual validation was run in a clean Proxmox test container.
 
@@ -21,7 +21,8 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.6` (latest)
+- `v1.5.5.6`
+- `v1.5.5.9` (latest)
 
 **Removed as broken during audit**
 - `v1.1.0.0`, `v1.2.0.0`, `v1.3.0.0`, `v1.3.1.5`
@@ -29,7 +30,44 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.4.0.0`, `v1.4.2.0`, `v1.4.2.1`, `v1.4.2.2`
 - `v1.5.0.0`, `v1.5.5.2`
 
-If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.5.6` or newer.
+If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.5.9` or newer.
+
+---
+
+## v1.5.5.9 — Uniform bento grid layout
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.9) · [Compare v1.5.5.8…v1.5.5.9](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.8...v1.5.5.9)
+
+**Fixed**
+- Mixed card sizes (1x1, 2x1, 1x2) pack cleanly without vertical holes under shorter cards
+- Settings Appearance preview reflects bento row layout
+
+---
+
+## v1.5.5.8 — Test host visibility HTTP 415
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.8) · [Compare v1.5.5.7…v1.5.5.8](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.7...v1.5.5.8)
+
+**Fixed**
+- **Test host visibility** in Settings sends correct form encoding (fixes HTTP 415)
+
+---
+
+## v1.5.5.7 — Unraid host telemetry + per-mount disk tiles
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.7) · [Compare v1.5.5.6…v1.5.5.7](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.6...v1.5.5.7)
+
+Thanks to [@Inch-high](https://github.com/Inch-high) for [#12](https://github.com/boubli/AMUD-Dashboard/issues/12).
+
+**Added**
+- Unraid agent template: **host network** + optional array/cache bind-mounts
+- Per-mount disk tiles when multiple paths are configured
+- **Test host visibility** in Settings (admin diagnostics)
+- `telemetry_scope` and auto-detect hints on dashboard
+
+**Fixed**
+- Bandwidth/disk mapping on Docker/Unraid when agent could not see host NICs or mounts
+- Bond/eth0 WAN heuristic and mapping fallbacks
 
 ---
 

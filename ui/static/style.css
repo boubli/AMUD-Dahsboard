@@ -23,6 +23,7 @@
     --accent-glow: rgba(207, 100, 39, 0.15);
     --glass-blur-intensity: 16px;
     --glass-opacity: 0.45;
+    --bento-row-height: 8.75rem;
     
     /* Semantic Dark Theme Palette */
     --bg-card: rgba(15, 20, 25, var(--glass-opacity));
@@ -488,8 +489,10 @@ body::-webkit-scrollbar-button {
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(var(--grid-cols, 3), 1fr);
+    grid-auto-rows: minmax(var(--bento-row-height), auto);
+    grid-auto-flow: row dense;
     gap: 1rem;
-    align-items: start;
+    align-items: stretch;
 }
 
 .bento-column {
@@ -503,11 +506,14 @@ body::-webkit-scrollbar-button {
     gap: 0.85rem;
     position: relative;
     overflow: visible;
-    min-height: 7.5rem;
+    height: 100%;
+    min-height: var(--bento-row-height);
+    box-sizing: border-box;
     animation: fadeSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .app-card--guest-compact {
+    height: auto;
     min-height: auto;
     padding: 0.78rem 0.9rem;
     gap: 0.45rem;
@@ -539,6 +545,7 @@ body::-webkit-scrollbar-button {
     grid-column: 1 / -1;
     text-align: center;
     padding: 2.5rem 1rem;
+    height: auto;
     min-height: auto;
 }
 
@@ -2777,12 +2784,16 @@ body.settings-page {
     display: grid;
     gap: 0.5rem;
     grid-template-columns: repeat(var(--preview-grid-cols, 3), 1fr);
+    grid-auto-rows: minmax(2.25rem, auto);
+    grid-auto-flow: row dense;
+    align-items: stretch;
     align-content: end;
     min-height: 8rem;
 }
 
 .preview-grid-cell {
-    height: 2.5rem;
+    height: 100%;
+    min-height: 2.25rem;
     border-radius: calc(var(--radius-xl, 16px) * 0.65);
     background: var(--preview-bg, rgba(15, 20, 25, 0.45));
     border: 1px solid var(--border-card);
@@ -2794,6 +2805,10 @@ body.settings-page {
 .preview-grid-cell.is-accent {
     background: color-mix(in srgb, var(--preview-accent, var(--accent-color)) 22%, var(--preview-bg, rgba(15, 20, 25, 0.45)));
     border-color: color-mix(in srgb, var(--preview-accent, var(--accent-color)) 45%, transparent);
+}
+
+.preview-grid-cell--tall {
+    grid-row: span 2;
 }
 
 /* Ambient floating orbs — pure CSS background effects */

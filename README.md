@@ -10,15 +10,15 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.5.6
+### What's new in v1.5.5.9
 
-- **Full-card click** — open an app by clicking anywhere on the card; buttons and controls inside the card still work normally
-- **Integration stats on the card** — AdGuard, *arr, qBittorrent, etc. show by default without hover
-- **Disk & network mapping** — telemetry interface and mount lists are normalized and deduplicated on save; Settings help text updated
+- **Uniform bento grid** — mixed card sizes (1x1, 2x1, 1x2) align cleanly without awkward vertical gaps between rows
+- **Settings preview** — Appearance live preview reflects the bento row layout
+- **Recent fixes (v1.5.5.7–8)** — Unraid host-network agent template, per-mount disk tiles, **Test host visibility**, and HTTP 415 fix on Settings
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (audit 2026-06-24)
+### Release status (audit 2026-06-25)
 
 After manual validation in a clean Proxmox test container, these releases are currently kept as known-good baselines:
 
@@ -27,7 +27,8 @@ After manual validation in a clean Proxmox test container, these releases are cu
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.6` (current latest recommended)
+- `v1.5.5.6`
+- `v1.5.5.9` (current latest recommended)
 
 Broken tags identified during audit were removed from GitHub releases/tags and should not be used. **Do not use `v1.5.5.4`.**
 

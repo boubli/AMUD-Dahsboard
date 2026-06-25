@@ -10,15 +10,15 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galeria de Temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentação](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novidades na v1.5.5.6
+### Novidades na v1.5.5.9
 
-- **Clique em toda a carta** — abre o app ao clicar em qualquer lugar; botões e controles internos continuam normais
-- **Estatísticas de integração visíveis** — AdGuard, *arr, qBittorrent, etc. aparecem no card sem hover
-- **Mapeamento disco/rede** — listas de interfaces e pontos de montagem normalizadas e sem duplicados; texto de ajuda atualizado em Configurações
+- **Grade bento uniforme** — tamanhos mistos (1x1, 2x1, 1x2) alinhados sem espaços verticais entre linhas
+- **Pré-visualização em Configurações** — a grelha de Aparência reflete o layout bento
+- **Correções recentes (v1.5.5.7–8)** — modelo Unraid com rede host, blocos de disco por montagem, **Testar visibilidade do host** e correção HTTP 415 em Configurações
 
 Histórico completo: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Status de releases (auditoria 2026-06-24)
+### Status de releases (auditoria 2026-06-25)
 
 Após validação manual em um contêiner Proxmox limpo, estas versões são mantidas como baselines conhecidas e estáveis:
 
@@ -27,7 +27,8 @@ Após validação manual em um contêiner Proxmox limpo, estas versões são man
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.6` (última recomendada no momento)
+- `v1.5.5.6`
+- `v1.5.5.9` (última recomendada no momento)
 
 Tags quebradas identificadas na auditoria foram removidas de releases/tags do GitHub e não devem ser usadas. **Não use `v1.5.5.4`.**
 

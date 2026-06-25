@@ -10,15 +10,15 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.6 新增功能
+### v1.5.5.9 新增功能
 
-- **整卡点击** — 点击卡片任意位置即可打开应用；卡片内按钮和控制项行为不变
-- **集成指标默认显示** — AdGuard、*arr、qBittorrent 等无需悬停即可在卡片上显示
-- **磁盘与网络映射** — 保存时规范化并去重接口与挂载点列表；设置页帮助文字已更新
+- **统一 bento 网格** — 混合尺寸（1x1、2x1、1x2）对齐，行与行之间无尴尬垂直空隙
+- **设置预览** — 外观实时预览反映 bento 行布局
+- **近期修复（v1.5.5.7–8）** — Unraid 主机网络代理模板、按挂载点分盘磁贴、**测试主机可见性**、设置页 HTTP 415 修复
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### 版本状态（2026-06-24 审计）
+### 版本状态（2026-06-25 审计）
 
 在干净的 Proxmox 测试容器中手动验证后，以下版本为当前已知稳定基线：
 
@@ -27,7 +27,8 @@
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.6`（当前推荐最新版）
+- `v1.5.5.6`
+- `v1.5.5.9`（当前推荐最新版）
 
 审计中发现的损坏标签已从 GitHub releases/tags 中移除，请勿使用。**请勿使用 `v1.5.5.4`。**
 

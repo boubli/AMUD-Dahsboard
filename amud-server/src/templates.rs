@@ -191,6 +191,7 @@ pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
             --glass-opacity: {};
             --radius-xl: {}px;
             --grid-cols: {};
+            --bento-row-height: 8.75rem;
             --bg-card: rgba(15, 20, 25, {});
             --brand-overlay-gradient: {};
         "#,

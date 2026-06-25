@@ -10,15 +10,15 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.6 の新機能
+### v1.5.5.9 の新機能
 
-- **カード全体クリック** — カードのどこをクリックしてもアプリを開けます。カード内のボタンや操作は従来どおり
-- **統合メトリクスを常時表示** — AdGuard、*arr、qBittorrent などをホバーなしでカードに表示
-- **ディスク・ネットワークの割り当て** — インターフェースとマウントポイントのリストを保存時に正規化・重複除去。設定のヘルプ文を更新
+- **均一な bento グリッド** — 混合サイズ（1x1、2x1、1x2）が行間の不自然な隙間なく揃う
+- **設定プレビュー** — 外観のライブプレビューが bento 行レイアウトを反映
+- **最近の修正（v1.5.5.7–8）** — Unraid ホストネットワークテンプレート、マウント別ディスクタイル、**ホスト可視性のテスト**、設定の HTTP 415 修正
 
 完全な履歴：**[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### リリース状況（2026-06-24 監査）
+### リリース状況（2026-06-25 監査）
 
 クリーンな Proxmox テストコンテナで手動検証後、以下のバージョンが既知の安定ベースラインとして維持されています：
 
@@ -27,7 +27,8 @@
 - `v1.3.7`
 - `v1.4.1.0`
 - `v1.5.5.3`
-- `v1.5.5.6`（現在推奨の最新版）
+- `v1.5.5.6`
+- `v1.5.5.9`（現在推奨の最新版）
 
 監査で特定された破損タグは GitHub のリリース/タグから削除されており、使用しないでください。**`v1.5.5.4` は使用しないでください。**
 
