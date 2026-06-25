@@ -2861,7 +2861,7 @@ body::after {
 /* Drag handle — visible on admin hover */
 .drag-handle {
     position: absolute;
-    top: 0.5rem;
+    top: 0.35rem;
     left: 50%;
     transform: translateX(-50%);
     width: 2rem;
@@ -2872,6 +2872,16 @@ body::after {
     opacity: 0;
     transition: opacity 0.2s ease, background 0.2s ease;
     z-index: 5;
+}
+
+.drag-handle::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 3rem;
+    height: 1.25rem;
 }
 
 .app-card:hover .drag-handle {
@@ -2907,6 +2917,10 @@ body::after {
 }
 
 /* Smooth reorder transition */
+.bento-grid.reordering {
+    grid-auto-flow: row;
+}
+
 .bento-grid.reordering .app-card {
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), 
                 opacity 0.3s ease;

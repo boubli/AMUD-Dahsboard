@@ -89,7 +89,7 @@
             if (match) visible += 1;
         });
 
-        const grid = document.querySelector('.bento-grid, .feeds-grid');
+        const grid = document.querySelector('main.bento-grid, .feeds-grid');
         if (!grid) return;
         if (q && visible === 0) {
             const emptyMsg = getOrCreateEmptyMessage(grid);

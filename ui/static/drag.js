@@ -7,7 +7,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof isAdmin === 'undefined' || !isAdmin) return;
 
-        const grid = document.querySelector('.bento-grid');
+        const grid = document.querySelector('main.bento-grid');
         if (!grid) return;
 
         let draggedCard = null;
