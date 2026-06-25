@@ -796,14 +796,6 @@ fn collect_network_snapshot(content: &str, cfg: &TelemetryConfig) -> (NetworkSna
     (snapshot, matched)
 }
 
-fn read_network_snapshot() -> (NetworkSnapshot, bool) {
-    let Some(content) = read_proc_net_dev_content() else {
-        return (NetworkSnapshot::default(), false);
-    };
-    let cfg = telemetry_config().read().unwrap().clone();
-    build_network_snapshot(&content, &cfg)
-}
-
 fn network_rates(
     previous: &NetworkSnapshot,
     current: &NetworkSnapshot,
@@ -1138,9 +1130,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
                 ..disk_cfg.clone()
             };
             (total_disk, avail_disk, _) = aggregate_disk_bytes(&disks, &auto_cfg);
-        } else if disk_cfg.disk_mounts.len() > 1 {
-            disk_volumes = aggregate_disk_per_mount(&disks, &disk_cfg);
-        } else if disk_cfg.disk_mounts.len() == 1 {
+        } else if !disk_cfg.disk_mounts.is_empty() {
             disk_volumes = aggregate_disk_per_mount(&disks, &disk_cfg);
         }
         let used_disk = total_disk - avail_disk;
