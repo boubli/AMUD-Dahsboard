@@ -719,17 +719,17 @@
                             <div class="form-group">
                                 <label for="setting-telemetry-external-ifaces">External network interfaces</label>
                                 <input type="text" id="setting-telemetry-external-ifaces" name="telemetry_external_ifaces" class="form-control" value="{{telemetry_external_ifaces}}" placeholder="eth0,enp3s0 (blank = auto)">
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Comma-separated interface names counted as <strong>external</strong> bandwidth on the dashboard.</p>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Comma-separated interface names counted as <strong>external</strong> bandwidth on the dashboard. Names are case-insensitive and duplicates are ignored.</p>
                             </div>
                             <div class="form-group" style="margin-top:1rem;">
                                 <label for="setting-telemetry-internal-ifaces">Internal network interfaces</label>
                                 <input type="text" id="setting-telemetry-internal-ifaces" name="telemetry_internal_ifaces" class="form-control" value="{{telemetry_internal_ifaces}}" placeholder="vmbr0,br-0 (blank = auto)">
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Comma-separated interface names counted as <strong>internal</strong> bandwidth (bridges, Docker, etc.).</p>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Comma-separated interface names counted as <strong>internal</strong> bandwidth (bridges, Docker, etc.). Names are case-insensitive and duplicates are ignored.</p>
                             </div>
                             <div class="form-group" style="margin-top:1rem;">
                                 <label for="setting-telemetry-disk-mounts">Disk mount points</label>
                                 <input type="text" id="setting-telemetry-disk-mounts" name="telemetry_disk_mounts" class="form-control" value="{{telemetry_disk_mounts}}" placeholder="/,/mnt/user (blank = auto)">
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Comma-separated mount paths for storage usage (e.g. Unraid array <code>/mnt/user</code> or cache pool only).</p>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Comma-separated mount paths for storage usage (e.g. Unraid array <code>/mnt/user</code> or cache pool only). Paths are matched by prefix and normalised (trailing slashes and duplicates are ignored).</p>
                             </div>
                         </div>
 

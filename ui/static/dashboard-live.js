@@ -405,6 +405,24 @@
         setInterval(updateClock, 1000);
         connectWebSocket();
 
+        // Make app cards clickable across their whole surface, while preserving
+        // drag handles, control buttons, and other interactive elements.
+        document.addEventListener('click', function (event) {
+            const card = event.target.closest('.app-card');
+            if (!card) return;
+
+            // Ignore clicks that originate from interactive controls or links.
+            const interactive = event.target.closest('button, form, input, select, textarea, label, a');
+            if (interactive) return;
+
+            const link = card.querySelector('.app-card-open');
+            if (!link) return;
+
+            // Delegate to the existing anchor so embed-tabs.js and normal
+            // navigation behavior continue to work as-is.
+            link.click();
+        });
+
         setTimeout(() => {
             let unknownCount = 0;
             document.querySelectorAll('.status-badge').forEach(badge => {

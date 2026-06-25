@@ -680,15 +680,14 @@ body::-webkit-scrollbar-button {
     transition: opacity 0.16s ease;
 }
 
+/* Integration metrics layer — visible by default so stats are always shown */
 .app-card-metrics-layer--integration {
-    position: absolute;
-    inset: 0.75rem 0 0 0;
+    position: static;
     display: flex;
     align-items: stretch;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(4px);
-    transition: opacity 0.18s ease, transform 0.18s ease;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
 }
 
 .app-card-metrics-layer--integration .nested-metrics-grid {
@@ -696,55 +695,16 @@ body::-webkit-scrollbar-button {
     align-self: stretch;
 }
 
+/* Solo integration mode no longer relies on hover hint */
 .app-card-metrics-slot--solo::before {
-    content: 'Hover for stats';
-    position: absolute;
-    inset: 0.75rem 0 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    opacity: 0.55;
-    pointer-events: none;
-    transition: opacity 0.16s ease;
+    content: '';
+    display: none;
 }
 
+/* Keep card hover lift without tying it to metrics hover */
 @media (hover: hover) {
-    .app-card-metrics-slot--dual:hover .app-card-metrics-layer--infra {
-        opacity: 0;
-    }
-
-    .app-card-metrics-slot--dual:hover .app-card-metrics-layer--integration,
-    .app-card-metrics-slot--solo:hover .app-card-metrics-layer--integration {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateY(0);
-    }
-
-    .app-card-metrics-slot--solo:hover::before {
-        opacity: 0;
-    }
-
     .app-card:has(.app-card-metrics-slot).glass-panel:hover {
         transform: translateY(-2px);
-    }
-}
-
-@media (hover: none) {
-    .app-card-metrics-slot--solo::before,
-    .app-card-metrics-slot--dual .app-card-metrics-layer--infra {
-        display: none;
-    }
-
-    .app-card-metrics-layer--integration {
-        position: static;
-        opacity: 1;
-        pointer-events: auto;
-        transform: none;
     }
 }
 

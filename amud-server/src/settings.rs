@@ -263,24 +263,41 @@ pub(crate) fn parse_guest_visible_categories(
 
 /// Comma-separated network interface names (e.g. `eth0,vmbr0`).
 pub(crate) fn sanitize_iface_list(value: &str) -> String {
+    let mut seen = std::collections::HashSet::new();
     value
         .split(',')
         .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_ascii_lowercase())
+        .map(|s| {
+            s.trim_matches(|c: char| c.is_whitespace() || c == ',')
+                .to_string()
+        })
         .filter(|s| !s.is_empty())
         .filter(|s| {
             s.chars()
                 .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
         })
+        .filter(|s| seen.insert(s.clone()))
         .collect::<Vec<_>>()
         .join(",")
 }
 
 /// Comma-separated absolute mount paths (e.g. `/,/mnt/user`).
 pub(crate) fn sanitize_disk_mount_list(value: &str) -> String {
+    let mut seen = std::collections::HashSet::new();
     value
         .split(',')
         .map(str::trim)
         .filter(|s| s.starts_with('/') && !s.contains(".."))
+        .map(|s| {
+            let mut v = s.to_string();
+            while v.ends_with('/') && v.len() > 1 {
+                v.pop();
+            }
+            v
+        })
+        .filter(|s| seen.insert(s.clone()))
         .collect::<Vec<_>>()
         .join(",")
 }
@@ -430,12 +447,17 @@ mod tests {
     #[test]
     fn test_sanitize_iface_list() {
         assert_eq!(sanitize_iface_list("eth0, vmbr0"), "eth0,vmbr0");
+        assert_eq!(sanitize_iface_list("ETH0, eth0 , vmbr0 "), "eth0,vmbr0");
         assert_eq!(sanitize_iface_list("eth0,bad!name"), "eth0");
     }
 
     #[test]
     fn test_sanitize_disk_mount_list() {
         assert_eq!(sanitize_disk_mount_list("/,/mnt/user"), "/,/mnt/user");
+        assert_eq!(
+            sanitize_disk_mount_list("/mnt/user/, /mnt/user, /mnt/user/cache/"),
+            "/mnt/user,/mnt/user/cache"
+        );
         assert_eq!(sanitize_disk_mount_list("relative,/../etc"), "");
     }
 }
