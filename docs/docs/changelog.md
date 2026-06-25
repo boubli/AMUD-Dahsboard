@@ -22,7 +22,8 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.4.1.0`
 - `v1.5.5.3`
 - `v1.5.5.6`
-- `v1.5.5.9` (latest)
+- `v1.5.5.9`
+- `v1.5.6.0` (latest)
 
 **Removed as broken during audit**
 - `v1.1.0.0`, `v1.2.0.0`, `v1.3.0.0`, `v1.3.1.5`
@@ -30,7 +31,21 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.4.0.0`, `v1.4.2.0`, `v1.4.2.1`, `v1.4.2.2`
 - `v1.5.0.0`, `v1.5.5.2`
 
-If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.5.9` or newer.
+If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.6.0` or newer.
+
+---
+
+## v1.5.6.0 — Fix blank app card bodies (#15)
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.0) · [Compare v1.5.5.9…v1.5.6.0](https://github.com/boubli/AMUD-Dashboard/compare/v1.5.5.9...v1.5.6.0)
+
+**Fixed**
+- App card bodies empty while **ONLINE** still showed — common on Unraid/Docker after the v1.5.5.9 bento grid change ([#15](https://github.com/boubli/AMUD-Dashboard/issues/15))
+- Integration cards show a loading placeholder before Alpine fetch completes
+- Drag reorder targets the app grid only (not dashboard widgets)
+
+**Docs**
+- Dashboard Widgets guide simplified; troubleshooting entry for empty card bodies
 
 ---
 
