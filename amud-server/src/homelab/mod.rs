@@ -89,15 +89,13 @@ pub(crate) fn basic_auth(user: &str, pass: &str) -> String {
 pub(crate) async fn get_json(client: &Client, url: &str, auth: Option<&str>) -> Option<Value> {
     let mut req = client.get(url);
     if let Some(a) = auth {
-        if a.starts_with("PVEAPIToken=") || a.starts_with("PBSAPIToken=") {
-            req = req.header("Authorization", a);
-        } else if a.starts_with("Basic ")
+        let prefixed = a.starts_with("PVEAPIToken=")
+            || a.starts_with("PBSAPIToken=")
+            || a.starts_with("Basic ")
             || a.starts_with("Bearer ")
             || a.starts_with("Token ")
-            || a.starts_with("api-key ")
-        {
-            req = req.header("Authorization", a);
-        } else if a.contains(':') {
+            || a.starts_with("api-key ");
+        if a.contains(':') && !prefixed {
             req = req.header("Authorization", format!("Basic {a}"));
         } else {
             req = req.header("Authorization", a);
