@@ -519,6 +519,8 @@
                                                         <div class="metric-block"><span class="metric-value">0</span><span class="metric-label">Missing</span></div>
                                                         <div class="metric-block"><span class="metric-value">21/21</span><span class="metric-label">Indexers</span></div>
                                                         <div class="metric-block"><span class="metric-value">0</span><span class="metric-label">Failed</span></div>
+                                                        <div class="metric-block"><span class="metric-value">OK</span><span class="metric-label">Health</span></div>
+                                                        <div class="metric-block"><span class="metric-value">5</span><span class="metric-label">Apps</span></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -619,6 +621,11 @@
                                             <option value="sections" {{eq_dashboard_layout_sections}}>Collapsible sections</option>
                                         </select>
                                         <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">How categories are shown on the main dashboard.</p>
+                                    </div>
+                                    <div class="form-group" style="margin-top:1.5rem;">
+                                        <label for="setting-wallpaper-overlay">Wallpaper overlay strength</label>
+                                        <input type="range" id="setting-wallpaper-overlay" name="wallpaper_overlay_strength" min="0" max="1" step="0.05" value="{{wallpaper_overlay_strength}}" class="form-control" style="accent-color:var(--accent-color);">
+                                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Tint over your wallpaper. Set to 0 for a clear background (default AMUD look). Procedural themes ignore custom wallpaper URLs.</p>
                                     </div>
                                     <div class="form-group" style="margin-top:1.5rem;">
                                         <label for="setting-glass-opacity">Glass Panel Opacity</label>
@@ -1566,6 +1573,21 @@
             <input type="hidden" id="rss-id" aria-label="RSS feed identifier">
             <input type="hidden" id="rss-icon" value="rss" aria-label="RSS feed icon key">
             <div class="form-group">
+                <label for="rss-site-url">Website URL</label>
+                <div style="display:flex; gap:0.5rem; align-items:stretch;">
+                    <input type="url" id="rss-site-url" class="form-control" placeholder="e.g. https://techcrunch.com" autocomplete="off" style="flex:1;">
+                    <button type="button" class="btn btn-secondary" id="rss-discover-btn" onclick="discoverRssFromSite()" style="white-space:nowrap;">Find RSS Feed</button>
+                </div>
+                <p id="rss-discover-status" class="form-help" style="margin-top:0.35rem; display:none;"></p>
+            </div>
+            <div class="rss-help-box" style="margin-bottom:1rem; padding:0.75rem; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); font-size:0.8rem; color:var(--text-muted); line-height:1.45;">
+                <strong style="color:var(--text-secondary);">No RSS link?</strong> Paste the website homepage above and click <strong>Find RSS Feed</strong>.
+                Or use a free generator: paste any site URL at
+                <a href="https://rss.app/rss-feed/create" target="_blank" rel="noopener noreferrer">RSS.app</a>,
+                <a href="https://createfeed.fivefilters.org/" target="_blank" rel="noopener noreferrer">Feed Creator</a>, or
+                <a href="https://fetchrss.com/" target="_blank" rel="noopener noreferrer">FetchRSS</a> — then copy the XML URL below.
+            </div>
+            <div class="form-group">
                 <label for="rss-name">Feed Name</label>
                 <input type="text" id="rss-name" class="form-control" placeholder="e.g. BBC News" required autocomplete="off" oninput="autoSuggestRssFields()">
             </div>
@@ -1608,7 +1630,7 @@
         </div>
         <div class="form-group" style="margin-top:1rem;">
             <label for="feed-cat-color">Color</label>
-            <input type="color" id="feed-cat-color" class="form-control" style="height:3rem; padding:0.2rem;" value="#64748b">
+            <input type="color" id="feed-cat-color" class="form-control feed-cat-color-input" value="#64748b">
         </div>
         <fieldset class="form-group form-fieldset" style="margin-top:1rem;">
             <legend class="form-label">Tab Icon</legend>
@@ -1904,17 +1926,26 @@
                 },
 
                 async openAddRssModal() {
-                    await loadFeedIconPresets();
-                    if (!feedCategoriesCache.length) await loadFeedCategories();
-                    this.rssEditing = false;
-                    document.getElementById('rss-id').value = '';
-                    document.getElementById('rss-name').value = '';
-                    document.getElementById('rss-feed-url').value = '';
-                    document.getElementById('rss-url').value = '';
-                    document.getElementById('rss-icon').value = '/static/feeds/icons/rss.svg';
-                    populateRssCategorySelect('General');
-                    renderRssIconPreview('/static/feeds/icons/rss.svg');
-                    this.rssModalOpen = true;
+                    try {
+                        await loadFeedIconPresets();
+                        if (!feedCategoriesCache.length) await loadFeedCategories();
+                        this.rssEditing = false;
+                        document.getElementById('rss-id').value = '';
+                        document.getElementById('rss-name').value = '';
+                        document.getElementById('rss-feed-url').value = '';
+                        document.getElementById('rss-url').value = '';
+                        const siteUrlEl = document.getElementById('rss-site-url');
+                        if (siteUrlEl) siteUrlEl.value = '';
+                        const statusEl = document.getElementById('rss-discover-status');
+                        if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
+                        document.getElementById('rss-icon').value = '/static/feeds/icons/rss.svg';
+                        populateRssCategorySelect('General');
+                        renderRssIconPreview('/static/feeds/icons/rss.svg');
+                        this.rssModalOpen = true;
+                    } catch (err) {
+                        console.error('openAddRssModal', err);
+                        showApiError('Could not open RSS feed dialog');
+                    }
                 },
 
                 async saveRssFeed() {
@@ -1950,15 +1981,21 @@
                     }
                 },
 
-                openAddFeedCategoryModal() {
-                    this.feedCatEditing = false;
-                    document.getElementById('feed-cat-id').value = '';
-                    document.getElementById('feed-cat-name').value = '';
-                    document.getElementById('feed-cat-color').value = '#64748b';
-                    document.getElementById('feed-cat-icon').value = 'rss';
-                    document.getElementById('feed-cat-order').value = '0';
-                    renderFeedCategoryIconPicker('rss');
-                    this.feedCatModalOpen = true;
+                async openAddFeedCategoryModal() {
+                    try {
+                        await loadFeedIconPresets();
+                        this.feedCatEditing = false;
+                        document.getElementById('feed-cat-id').value = '';
+                        document.getElementById('feed-cat-name').value = '';
+                        document.getElementById('feed-cat-color').value = '#64748b';
+                        document.getElementById('feed-cat-icon').value = 'rss';
+                        document.getElementById('feed-cat-order').value = '0';
+                        renderFeedCategoryIconPicker('rss');
+                        this.feedCatModalOpen = true;
+                    } catch (err) {
+                        console.error('openAddFeedCategoryModal', err);
+                        showApiError('Could not open feed category dialog');
+                    }
                 },
 
                 async saveFeedCategory() {
@@ -2066,6 +2103,7 @@
             const accentInput = document.getElementById('setting-accent-color');
             const blurInput = document.getElementById('setting-glass-blur');
             const opacityInput = document.getElementById('setting-glass-opacity');
+            const overlayInput = document.getElementById('setting-wallpaper-overlay');
             const radiusInput = document.getElementById('setting-bento-radius');
             const gridColumnsSelect = document.getElementById('setting-grid-columns');
             const themeModeSelect = document.getElementById('theme-mode-select');
@@ -2136,6 +2174,7 @@
                 const accent = readAccentColor();
                 const blur = blurInput ? blurInput.value : '16';
                 const opacity = opacityInput ? opacityInput.value : '0.45';
+                const overlayStrength = overlayInput ? overlayInput.value : '0.85';
                 const radius = radiusInput ? radiusInput.value : '16';
                 const gridColumns = gridColumnsSelect ? gridColumnsSelect.value : '3';
                 const wallpaper = bgInput ? bgInput.value : '';
@@ -2155,6 +2194,17 @@
                 scene.style.setProperty('--preview-blur', blur + 'px');
                 scene.style.setProperty('--preview-radius', radius + 'px');
                 scene.style.setProperty('--preview-grid-cols', String(cols));
+                scene.style.setProperty('--preview-overlay', overlayStrength);
+                document.documentElement.style.setProperty('--wallpaper-overlay-strength', overlayStrength);
+
+                if (previewSceneWallpaper) {
+                    previewSceneWallpaper.style.backgroundImage = wallpaperStyle;
+                    previewSceneWallpaper.style.opacity = themeMode === 'light' ? '0.45' : '1';
+                    const overlayEl = document.getElementById('preview-scene-overlay');
+                    if (overlayEl) {
+                        overlayEl.style.opacity = overlayStrength;
+                    }
+                }
 
                 preview.style.background = cardBg;
                 preview.style.borderRadius = radius + 'px';
@@ -2168,11 +2218,6 @@
                 if (previewTitle) previewTitle.style.color = textPrimary;
                 if (previewSubtitle) previewSubtitle.style.color = textSecondary;
                 if (previewBody) previewBody.style.color = textSecondary;
-
-                if (previewSceneWallpaper) {
-                    previewSceneWallpaper.style.backgroundImage = wallpaperStyle;
-                    previewSceneWallpaper.style.opacity = themeMode === 'light' ? '0.45' : '1';
-                }
 
                 if (previewGridDemo) {
                     const cells = previewGridDemo.querySelectorAll('.preview-grid-cell');
@@ -3006,7 +3051,7 @@
             if (!host) return '/static/feeds/icons/rss.svg';
             const preset = presetLogoForHost(host);
             if (preset) return preset;
-            return `https://icons.duckduckgo.com/ip3/${host}.ico`;
+            return `/api/rss/favicon?host=${encodeURIComponent(host)}`;
         }
 
         function autoSuggestRssFields() {
@@ -3054,8 +3099,58 @@
         function renderRssIconPreview(iconUrl) {
             const img = document.getElementById('rss-icon-preview-img');
             if (!img) return;
-            img.src = feedLogoUrl(iconUrl, siteEl?.value, feedUrlEl?.value);
+            const siteEl = document.getElementById('rss-url');
+            const feedUrlEl = document.getElementById('rss-feed-url');
+            const site = siteEl ? siteEl.value : '';
+            const feedUrl = feedUrlEl ? feedUrlEl.value : '';
+            const resolved = (iconUrl && (iconUrl.startsWith('http') || iconUrl.startsWith('/')))
+                ? iconUrl
+                : feedLogoUrl(iconUrl, site, feedUrl);
+            img.src = resolved;
             img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
+        }
+
+        async function discoverRssFromSite() {
+            const siteInput = document.getElementById('rss-site-url');
+            const statusEl = document.getElementById('rss-discover-status');
+            const btn = document.getElementById('rss-discover-btn');
+            if (!siteInput || !statusEl) return;
+            const siteUrl = siteInput.value.trim();
+            if (!siteUrl) {
+                statusEl.style.display = 'block';
+                statusEl.style.color = 'var(--danger)';
+                statusEl.textContent = 'Enter a website URL first (e.g. https://techcrunch.com).';
+                return;
+            }
+            if (btn) btn.disabled = true;
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--text-muted)';
+            statusEl.textContent = 'Searching for RSS feed…';
+            try {
+                const formData = new URLSearchParams();
+                formData.append('site_url', siteUrl);
+                formData.append('csrf_token', amudCsrfToken());
+                const res = await fetch('/api/rss/discover', { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) {
+                    statusEl.style.color = 'var(--danger)';
+                    statusEl.textContent = data.error || 'No feed found on that site.';
+                    return;
+                }
+                document.getElementById('rss-feed-url').value = data.feed_url || '';
+                if (data.title) document.getElementById('rss-name').value = data.title;
+                if (data.site_url) document.getElementById('rss-url').value = data.site_url;
+                const iconUrl = data.icon_url || feedFaviconUrl(data.site_url, data.feed_url);
+                document.getElementById('rss-icon').value = iconUrl;
+                renderRssIconPreview(iconUrl);
+                statusEl.style.color = 'var(--success)';
+                statusEl.textContent = 'Feed found — review the fields below and save.';
+            } catch (err) {
+                statusEl.style.color = 'var(--danger)';
+                statusEl.textContent = err.message || 'Discovery failed';
+            } finally {
+                if (btn) btn.disabled = false;
+            }
         }
 
         function renderFeedCategoryIconPicker(selectedIcon) {
@@ -3398,7 +3493,8 @@
             return Alpine.$data(document.querySelector('.settings-page'));
         }
 
-        function openEditFeedCategoryModal(cat) {
+        async function openEditFeedCategoryModal(cat) {
+            await loadFeedIconPresets();
             const state = settingsAlpine();
             state.feedCatEditing = true;
             document.getElementById('feed-cat-id').value = cat.id;
@@ -3429,19 +3525,28 @@
         }
 
         async function openEditRssModal(feed) {
-            await loadFeedIconPresets();
-            if (!feedCategoriesCache.length) await loadFeedCategories();
-            const state = settingsAlpine();
-            state.rssEditing = true;
-            document.getElementById('rss-id').value = feed.id;
-            document.getElementById('rss-name').value = feed.name;
-            document.getElementById('rss-feed-url').value = feed.feed_url;
-            document.getElementById('rss-url').value = feed.url || '';
-            const iconValue = feed.icon || feedFaviconUrl(feed.url, feed.feed_url);
-            document.getElementById('rss-icon').value = iconValue;
-            populateRssCategorySelect(feed.category || 'General');
-            renderRssIconPreview(iconValue);
-            state.rssModalOpen = true;
+            try {
+                await loadFeedIconPresets();
+                if (!feedCategoriesCache.length) await loadFeedCategories();
+                const state = settingsAlpine();
+                state.rssEditing = true;
+                document.getElementById('rss-id').value = feed.id;
+                document.getElementById('rss-name').value = feed.name;
+                document.getElementById('rss-feed-url').value = feed.feed_url;
+                document.getElementById('rss-url').value = feed.url || '';
+                const siteUrlEl = document.getElementById('rss-site-url');
+                if (siteUrlEl) siteUrlEl.value = feed.url || '';
+                const statusEl = document.getElementById('rss-discover-status');
+                if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
+                const iconValue = feed.icon || feedFaviconUrl(feed.url, feed.feed_url);
+                document.getElementById('rss-icon').value = iconValue;
+                populateRssCategorySelect(feed.category || 'General');
+                renderRssIconPreview(iconValue);
+                state.rssModalOpen = true;
+            } catch (err) {
+                console.error('openEditRssModal', err);
+                showApiError('Could not open RSS feed dialog');
+            }
         }
 
         async function deleteRssFeed(id) {

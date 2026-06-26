@@ -23,10 +23,23 @@
     --accent-glow: rgba(207, 100, 39, 0.15);
     --glass-blur-intensity: 16px;
     --glass-opacity: 0.45;
+    --wallpaper-overlay-strength: 0.85;
     --bento-row-height: 8.75rem;
+
+    /* Theme-tunable surfaces (overridden by bundled theme CSS) */
+    --theme-bg-fallback: #0a0b10;
+    --theme-overlay-r1: 8;
+    --theme-overlay-g1: 10;
+    --theme-overlay-b1: 18;
+    --theme-overlay-r2: 15;
+    --theme-overlay-g2: 10;
+    --theme-overlay-b2: 25;
+    --theme-card-r: 15;
+    --theme-card-g: 20;
+    --theme-card-b: 25;
     
     /* Semantic Dark Theme Palette */
-    --bg-card: rgba(15, 20, 25, var(--glass-opacity));
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
     --border-card: rgba(255, 255, 255, 0.08);
     --border-hover: rgba(255, 255, 255, 0.16);
     --text-primary: #f8fafc;
@@ -51,11 +64,14 @@
 }
 
 body {
-    background-color: #0a0b10; /* Base sleek dark color */
-    background-image: var(--brand-overlay-gradient, linear-gradient(135deg, rgba(8, 10, 18, 0.85) 0%, rgba(15, 10, 25, 0.8) 100%)),
-                      var(--brand-bg-image), 
-                      radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.12), transparent 50%), 
-                      radial-gradient(circle at 15% 80%, rgba(168, 85, 247, 0.08), transparent 50%);
+    background-color: var(--theme-bg-fallback);
+    background-image: var(--theme-body-stack,
+        linear-gradient(160deg,
+            rgba(var(--theme-overlay-r1), var(--theme-overlay-g1), var(--theme-overlay-b1), var(--wallpaper-overlay-strength)) 0%,
+            rgba(var(--theme-overlay-r2), var(--theme-overlay-g2), var(--theme-overlay-b2), calc(var(--wallpaper-overlay-strength) * 0.92)) 100%),
+        var(--brand-bg-image),
+        radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.12), transparent 50%),
+        radial-gradient(circle at 15% 80%, rgba(168, 85, 247, 0.08), transparent 50%));
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -103,25 +119,18 @@ body::-webkit-scrollbar-button {
 
 /* Glassmorphic Core Utility */
 .glass-panel {
-    background: var(--bg-card);
+    background: rgba(var(--theme-card-r, 15), var(--theme-card-g, 20), var(--theme-card-b, 25), var(--glass-opacity));
     border: 1px solid var(--border-card);
     backdrop-filter: blur(var(--glass-blur-intensity));
     -webkit-backdrop-filter: blur(var(--glass-blur-intensity));
     border-radius: var(--radius-xl);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
     box-shadow:
         0 4px 16px rgba(0, 0, 0, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.glass-panel:hover {
-    border-color: rgba(255, 255, 255, 0.18);
-    box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    transform: translateY(-3px);
-}
+/* Card hover lift removed — metrics stay visible without pointer interaction */
 
 /* Base Layout Container */
 .dashboard-container {
@@ -495,6 +504,11 @@ body::-webkit-scrollbar-button {
     align-items: stretch;
 }
 
+.bento-grid--guest-compact {
+    gap: 1.5rem;
+    row-gap: 1.75rem;
+}
+
 .bento-column {
     display: contents;
 }
@@ -800,21 +814,16 @@ body::-webkit-scrollbar-button {
     transform: none;
 }
 
-@media (hover: hover) {
-    .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--infra {
-        opacity: 1;
-        pointer-events: auto;
-    }
+/* Integration metric layers stay visible — no hover swap */
+.app-card-metrics-slot--dual .app-card-metrics-layer--infra {
+    display: none;
+}
 
-    .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--integration {
-        opacity: 0;
-        pointer-events: none;
-        transform: translateY(4px);
-    }
-
-    .app-card:has(.app-card-metrics-slot).glass-panel:hover {
-        transform: translateY(-2px);
-    }
+.app-card-metrics-slot--dual .app-card-metrics-layer--integration {
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
 }
 
 @media (hover: none) {
@@ -838,7 +847,7 @@ body::-webkit-scrollbar-button {
     margin-top: auto;
 }
 
-/* Filled tall cards — unified 6-cell metrics grid */
+/* Filled tall cards — unified 8-cell / 4-row metrics grid */
 .app-card.span-tall:has(.app-card-metrics-slot--filled) {
     min-height: calc(var(--bento-row-height) * 2);
 }
@@ -868,7 +877,7 @@ body::-webkit-scrollbar-button {
     grid-auto-rows: 1fr;
     gap: 0.45rem;
     flex: 1;
-    min-height: 8.5rem;
+    min-height: 11.5rem;
     width: 100%;
 }
 
@@ -1300,9 +1309,10 @@ body::-webkit-scrollbar-button {
 }
 
 .category-icon-picker {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
     gap: 0.4rem;
+    width: 100%;
     margin-top: 0.5rem;
 }
 
@@ -1463,8 +1473,16 @@ body::-webkit-scrollbar-button {
 
 .form-fieldset legend.form-label {
     padding: 0;
-    float: left;
-    width: 100%;
+    float: none;
+    width: auto;
+    margin-bottom: 0.45rem;
+}
+
+.feed-cat-color-input {
+    height: 3rem;
+    padding: 0.2rem;
+    max-width: 8rem;
+    cursor: pointer;
 }
 
 .upload-zone {
@@ -2747,28 +2765,9 @@ input[type="color"].form-control {
 .app-card:nth-child(9) { animation-delay: 0.49s; }
 .app-card:nth-child(n+10) { animation-delay: 0.52s; }
 
-/* Enhanced card hover micro-interactions */
+/* App card hover lift removed */
 .app-card.glass-panel {
-    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.app-card.glass-panel:hover {
-    transform: translateY(-4px) scale(1.015);
-    box-shadow:
-        0 16px 48px rgba(0, 0, 0, 0.35),
-        0 0 20px var(--accent-glow),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.app-card.glass-panel:hover::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    background: linear-gradient(135deg, var(--accent-color), transparent 40%, transparent 60%, var(--accent-color));
-    opacity: 0.12;
-    z-index: -1;
-    pointer-events: none;
+    transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 /* Settings page wallpaper layers (behind layout chrome) */
@@ -3221,18 +3220,11 @@ body::after {
 
 /* Light mode glass panels */
 :root[data-theme="light"] .glass-panel {
-    background: var(--bg-card);
+    background: rgba(var(--theme-card-r, 255), var(--theme-card-g, 255), var(--theme-card-b, 255), var(--glass-opacity));
     border-color: var(--border-card);
     box-shadow: 
         0 4px 16px rgba(0, 0, 0, 0.06),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-:root[data-theme="light"] .glass-panel:hover {
-    border-color: var(--border-hover);
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* Light mode brand title */
@@ -3496,10 +3488,6 @@ body.has-video-bg {
     
     .greeting-title {
         animation: none;
-    }
-    
-    .app-card.glass-panel:hover {
-        transform: translateY(-2px);
     }
 }
 

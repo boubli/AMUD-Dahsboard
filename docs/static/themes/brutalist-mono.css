@@ -1,9 +1,16 @@
 /* AMUD Theme: Brutalist Mono — raw concrete UI */
 
 :root {
+    --theme-bg-fallback: #e8e8e8;
+    --theme-card-r: 255;
+    --theme-card-g: 255;
+    --theme-card-b: 255;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-body-stack: linear-gradient(180deg, #e8e8e8 0%, #d4d4d4 100%);
+    --theme-procedural: 1;
     --accent-color: #dc2626;
     --accent-glow: rgba(220, 38, 38, 0.15);
-    --bg-card: #ffffff;
+    
     --border-card: #0a0a0a;
     --border-hover: #dc2626;
     --text-primary: #0a0a0a;
@@ -12,40 +19,17 @@
     --success: #16a34a;
     --success-bg: rgba(22, 163, 74, 0.12);
     --danger: #dc2626;
-    --danger-bg: rgba(220, 38, 38, 0.12);
-    --glass-blur-intensity: 0px;
-    --glass-opacity: 1;
-    --radius-xl: 0px;
-}
-
-body {
-    background-color: #e8e8e8;
-    background-image: none;
-}
-
-.wallpaper-bg,
-.wallpaper-overlay {
-    display: none !important;
-}
+    --danger-bg: rgba(220, 38, 38, 0.12);}
 
 .glass-panel {
-    border-radius: 0 !important;
-    border: 3px solid #0a0a0a !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    box-shadow: 6px 6px 0 #0a0a0a !important;
-}
-
-.glass-panel:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 #0a0a0a !important;
+    border-radius: var(--radius-xl);
+    border: 3px solid #0a0a0a;
+    backdrop-filter: blur(var(--glass-blur-intensity));
+    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));
+    box-shadow: 6px 6px 0 #0a0a0a;
 }
 
 /* App cards use AMUD metrics layout — no brutalist skew on dashboard tiles */
-.app-card.glass-panel:hover {
-    transform: translateY(-2px);
-}
-
 .header-title {
     text-transform: uppercase;
     font-weight: 900;
@@ -62,7 +46,7 @@ body {
 
 :root[data-theme="dark"] .glass-panel,
 :root[data-theme="light"] .glass-panel {
-    background: #ffffff !important;
+    background: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
 }
 
 .brand-title {

@@ -1,8 +1,19 @@
 /* AMUD Theme: Rose Pine — elegant muted rose & pine */
 :root {
+    --theme-bg-fallback: #191724;
+    --theme-card-r: 31;
+    --theme-card-g: 29;
+    --theme-card-b: 46;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 25;
+    --theme-overlay-g1: 23;
+    --theme-overlay-b1: 36;
+    --theme-overlay-r2: 31;
+    --theme-overlay-g2: 29;
+    --theme-overlay-b2: 46;
     --accent-color: #ebbcba;
     --accent-glow: rgba(235, 188, 186, 0.14);
-    --bg-card: rgba(31, 29, 46, 0.78);
+    
     --border-card: rgba(235, 188, 186, 0.10);
     --border-hover: rgba(235, 188, 186, 0.26);
     --text-primary: #e0def4;
@@ -14,19 +25,8 @@
     --danger-bg: rgba(235, 111, 146, 0.10);
 }
 
-body {
-    background-color: #191724;
-    background-image:
-        linear-gradient(150deg, rgba(25, 23, 36, 0.97) 0%, rgba(31, 29, 46, 0.92) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.32);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 28px rgba(235, 188, 186, 0.10);
 }
 
 .header-title {

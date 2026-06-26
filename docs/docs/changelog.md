@@ -25,7 +25,8 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.5.5.9`
 - `v1.5.6.0`
 - `v1.5.6.2`
-- `v1.5.6.3` (latest)
+- `v1.5.6.3`
+- `v1.5.6.4` (latest)
 
 **Removed as broken during audit**
 - `v1.1.0.0`, `v1.2.0.0`, `v1.3.0.0`, `v1.3.1.5`
@@ -34,7 +35,21 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.5.0.0`, `v1.5.5.2`
 - `v1.5.6.1` (withdrawn from Docker Hub)
 
-If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.6.3` or newer.
+If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.6.4` or newer.
+
+---
+
+## v1.5.6.4 — Theme fix & 13 integrations
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.4)
+
+### Added
+- Lidarr, Readarr, Whisparr, SABnzbd, NZBGet, Transmission, Jackett, Tautulli, Audiobookshelf, Immich, Tdarr, Maintainerr, Frigate integrations
+- Wallpaper overlay strength slider in Glass & Layout Parameters
+
+### Fixed
+- All bundled themes respect glass/blur/radius/overlay sliders
+- Integration cards always show 8 cells; card hover removed
 
 ---
 

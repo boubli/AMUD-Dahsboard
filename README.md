@@ -10,17 +10,15 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.6.3
+### What's new in v1.5.6.4
 
-- **37 bundled themes** — visual **Theme Gallery** in Settings → Appearance (preview CSS + wallpaper, then Save)
-- **18 new theme packs** — Nature, Terminal, Feminine, Variety; each with its own vendored Unsplash/Pexels wallpaper
-- **Guest dashboard** — compact cards (icon, name, online/offline only)
-- **RSS settings** — add-feed modal + category table layout fixes
-- **Integration cards** — filled 6-cell stats grid and 30s live refresh (v1.5.6.2)
+- **13 new integrations** — Lidarr, Readarr, Whisparr, SABnzbd, NZBGet, Transmission, Jackett, Tautulli, Audiobookshelf, Immich, Tdarr, Maintainerr, Frigate
+- **Theme system fix** — wallpaper overlay strength slider; glass blur/opacity/radius work on all 37 themes (set overlay to **0** for clear wallpaper)
+- **Integration cards** — 8 metric cells always filled (CPU/RAM show `—` when agent off); no card hover lift
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (audit 2026-06-26)
+### Release status (audit 2026-06-25)
 
 After manual validation in a clean Proxmox test container, these releases are currently kept as known-good baselines:
 
@@ -33,7 +31,8 @@ After manual validation in a clean Proxmox test container, these releases are cu
 - `v1.5.5.9`
 - `v1.5.6.0`
 - `v1.5.6.2`
-- `v1.5.6.3` (current latest recommended)
+- `v1.5.6.3`
+- `v1.5.6.4` (current latest recommended)
 
 Broken tags identified during audit were removed from GitHub releases/tags and should not be used. **Do not use `v1.5.5.4` or `v1.5.6.1`.**
 

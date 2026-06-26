@@ -1,9 +1,20 @@
 /* AMUD Theme: Rainforest Mist — moss green humid fog */
 
 :root {
+    --theme-bg-fallback: #0f1f18;
+    --theme-card-r: 20;
+    --theme-card-g: 40;
+    --theme-card-b: 30;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 15;
+    --theme-overlay-g1: 31;
+    --theme-overlay-b1: 24;
+    --theme-overlay-r2: 25;
+    --theme-overlay-g2: 50;
+    --theme-overlay-b2: 38;
     --accent-color: #6ee7b7;
     --accent-glow: rgba(110, 231, 183, 0.16);
-    --bg-card: rgba(20, 40, 30, 0.78);
+    
     --border-card: rgba(110, 231, 183, 0.12);
     --border-hover: rgba(110, 231, 183, 0.30);
     --text-primary: #ecfdf5;
@@ -15,19 +26,8 @@
     --danger-bg: rgba(248, 113, 113, 0.12);
 }
 
-body {
-    background-color: #0f1f18;
-    background-image:
-        linear-gradient(135deg, rgba(15, 31, 24, 0.93) 0%, rgba(25, 50, 38, 0.88) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 28px rgba(110, 231, 183, 0.12);
 }
 
 .header-title {

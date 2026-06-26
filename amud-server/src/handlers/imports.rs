@@ -28,8 +28,8 @@ pub(crate) use crate::settings::{
     sanitize_dashboard_layout, sanitize_disk_mount_list, sanitize_embed_mode,
     sanitize_guest_visible_categories, sanitize_iface_list, sanitize_integration_url,
     sanitize_setting_url, sanitize_theme_mode, sanitize_theme_scheduler, sanitize_time_hhmm,
-    sanitize_widget_type, setting_key_allowed, AGENT_CONFIG_SETTING_KEYS, DONATION_LINKS,
-    DONATION_MESSAGE, SECRET_SETTING_KEYS,
+    sanitize_wallpaper_overlay_strength, sanitize_widget_type, setting_key_allowed,
+    AGENT_CONFIG_SETTING_KEYS, DONATION_LINKS, DONATION_MESSAGE, SECRET_SETTING_KEYS,
 };
 pub(crate) use crate::templates::{
     apply_shared_branding, branding_from_settings, build_root_css, build_theme_scheduler_json,

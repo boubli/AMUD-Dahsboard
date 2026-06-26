@@ -79,6 +79,65 @@ pub(crate) fn arr_version(json: &Value) -> String {
         .to_string()
 }
 
+pub(crate) fn arr_health_label(json: &Value) -> String {
+    if json.get("isHealthy").and_then(|v| v.as_bool()) == Some(true) {
+        return "Healthy".to_string();
+    }
+    if json.get("isHealthy").and_then(|v| v.as_bool()) == Some(false) {
+        return "Unhealthy".to_string();
+    }
+    json.get("health")
+        .and_then(|v| v.as_str())
+        .unwrap_or("—")
+        .to_string()
+}
+
+pub(crate) fn adguard_block_pct(json: &Value) -> String {
+    let blocked = adguard_blocked_today(json) as f64;
+    let queries = adguard_queries_today(json) as f64;
+    if queries <= 0.0 {
+        return "—".to_string();
+    }
+    format!("{:.1}%", (blocked / queries) * 100.0)
+}
+
+pub(crate) fn adguard_rewrites(json: &Value) -> u64 {
+    json.get("num_replaced_safebrowsing")
+        .or_else(|| json.get("num_replaced_parental"))
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .unwrap_or(0)
+}
+
+pub(crate) fn pihole_extra_fields(json: &Value) -> (u64, String) {
+    let clients = json
+        .get("unique_clients")
+        .or_else(|| json.get("clients_ever_seen"))
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .unwrap_or(0);
+    let gravity = json
+        .get("gravity_last_updated")
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .map(|ts| {
+            let dt = chrono::DateTime::from_timestamp(ts as i64, 0);
+            dt.map(|d| d.format("%b %d").to_string())
+                .unwrap_or_else(|| ts.to_string())
+        })
+        .unwrap_or_else(|| "—".to_string());
+    (clients, gravity)
+}
+
+pub(crate) fn count_qbittorrent_paused(torrents: &Value) -> u64 {
+    let Some(arr) = torrents.as_array() else {
+        return 0;
+    };
+    arr.iter()
+        .filter(|t| {
+            t.get("state").and_then(|s| s.as_str()) == Some("pausedDL")
+                || t.get("state").and_then(|s| s.as_str()) == Some("pausedUP")
+        })
+        .count() as u64
+}
+
 pub(crate) fn sonarr_episode_count(series_json: &Value) -> u64 {
     let Some(arr) = series_json.as_array() else {
         return 0;
@@ -159,6 +218,167 @@ async fn arr_api_get(
         None
     }
 }
+
+struct ArrFetchConfig {
+    api_prefix: &'static str,
+    library_path: &'static str,
+    extra_library_path: Option<&'static str>,
+}
+
+struct ArrFetchResult {
+    queue_size: u64,
+    missing: u64,
+    library_count: u64,
+    extra_count: u64,
+    disk_free: String,
+    version: String,
+    health: String,
+    library_json: Option<Value>,
+}
+
+fn arr_queue_size(queue: &Option<Value>) -> u64 {
+    queue
+        .as_ref()
+        .and_then(|j| j.get("records"))
+        .and_then(|r| r.as_array())
+        .map(|a| a.len())
+        .unwrap_or(0) as u64
+}
+
+async fn fetch_arr_stats(
+    client: &reqwest::Client,
+    base_url: &str,
+    key: &str,
+    config: ArrFetchConfig,
+) -> ArrFetchResult {
+    let prefix = config.api_prefix;
+    let queue_path = format!("{prefix}/queue");
+    let missing_path = format!("{prefix}/wanted/missing");
+    let library_path = format!("{prefix}{}", config.library_path);
+    let disk_path = format!("{prefix}/diskspace");
+    let status_path = format!("{prefix}/system/status");
+    let extra_path = config.extra_library_path.map(|p| format!("{prefix}{p}"));
+
+    let (queue, missing, library, disk, status, extra) = if let Some(ref extra_p) = extra_path {
+        tokio::join!(
+            arr_api_get(client, base_url, key, &queue_path),
+            arr_api_get(client, base_url, key, &missing_path),
+            arr_api_get(client, base_url, key, &library_path),
+            arr_api_get(client, base_url, key, &disk_path),
+            arr_api_get(client, base_url, key, &status_path),
+            arr_api_get(client, base_url, key, extra_p),
+        )
+    } else {
+        let (queue, missing, library, disk, status) = tokio::join!(
+            arr_api_get(client, base_url, key, &queue_path),
+            arr_api_get(client, base_url, key, &missing_path),
+            arr_api_get(client, base_url, key, &library_path),
+            arr_api_get(client, base_url, key, &disk_path),
+            arr_api_get(client, base_url, key, &status_path),
+        );
+        (queue, missing, library, disk, status, None)
+    };
+
+    let extra_count = extra.as_ref().map(arr_array_len).unwrap_or(0);
+
+    ArrFetchResult {
+        queue_size: arr_queue_size(&queue),
+        missing: missing.as_ref().map(arr_missing_count).unwrap_or(0),
+        library_count: library.as_ref().map(arr_array_len).unwrap_or(0),
+        extra_count,
+        disk_free: disk
+            .as_ref()
+            .map(arr_disk_free)
+            .unwrap_or_else(|| "—".to_string()),
+        version: status
+            .as_ref()
+            .map(arr_version)
+            .unwrap_or_else(|| "—".to_string()),
+        health: status
+            .as_ref()
+            .map(arr_health_label)
+            .unwrap_or_else(|| "—".to_string()),
+        library_json: library,
+    }
+}
+
+async fn fetch_lidarr_arr(client: &reqwest::Client, base_url: &str, key: &str) -> Option<Value> {
+    let stats = fetch_arr_stats(
+        client,
+        base_url,
+        key,
+        ArrFetchConfig {
+            api_prefix: "/api/v1",
+            library_path: "/artist",
+            extra_library_path: Some("/album"),
+        },
+    )
+    .await;
+    Some(json!({
+        "type": "lidarr",
+        "queue_size": stats.queue_size,
+        "missing": stats.missing,
+        "library_count": stats.library_count,
+        "album_count": stats.extra_count,
+        "disk_free": stats.disk_free,
+        "version": stats.version,
+        "health": stats.health,
+    }))
+}
+
+async fn fetch_readarr_arr(client: &reqwest::Client, base_url: &str, key: &str) -> Option<Value> {
+    let stats = fetch_arr_stats(
+        client,
+        base_url,
+        key,
+        ArrFetchConfig {
+            api_prefix: "/api/v1",
+            library_path: "/book",
+            extra_library_path: Some("/author"),
+        },
+    )
+    .await;
+    Some(json!({
+        "type": "readarr",
+        "queue_size": stats.queue_size,
+        "missing": stats.missing,
+        "library_count": stats.library_count,
+        "author_count": stats.extra_count,
+        "disk_free": stats.disk_free,
+        "version": stats.version,
+        "health": stats.health,
+    }))
+}
+
+async fn fetch_whisparr_arr(client: &reqwest::Client, base_url: &str, key: &str) -> Option<Value> {
+    let stats = fetch_arr_stats(
+        client,
+        base_url,
+        key,
+        ArrFetchConfig {
+            api_prefix: "/api/v3",
+            library_path: "/series",
+            extra_library_path: None,
+        },
+    )
+    .await;
+    let episode_count = stats
+        .library_json
+        .as_ref()
+        .map(sonarr_episode_count)
+        .unwrap_or(0);
+    Some(json!({
+        "type": "whisparr",
+        "queue_size": stats.queue_size,
+        "missing": stats.missing,
+        "series_count": stats.library_count,
+        "episode_count": episode_count,
+        "disk_free": stats.disk_free,
+        "version": stats.version,
+        "health": stats.health,
+    }))
+}
+
 use std::time::Duration;
 
 const RSS_MAX_RESPONSE_BYTES: usize = 2 * 1024 * 1024;
@@ -186,6 +406,21 @@ fn entry_sort_key(entry: &Entry) -> Option<DateTime<Utc>> {
 
 fn collect_feed_entries(feed: &Feed) -> Vec<Entry> {
     feed.entries.clone()
+}
+
+pub(crate) fn extract_feed_icon(feed: &Feed) -> Option<String> {
+    feed.logo
+        .as_ref()
+        .map(|img| img.uri.trim())
+        .filter(|u| !u.is_empty())
+        .map(|u| u.to_string())
+        .or_else(|| {
+            feed.icon
+                .as_ref()
+                .map(|img| img.uri.trim())
+                .filter(|u| !u.is_empty())
+                .map(|u| u.to_string())
+        })
 }
 
 fn entry_to_json(entry: &Entry) -> Value {
@@ -244,13 +479,16 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
             if resp.status().is_success() {
                 let json: Value = resp.json().await.ok()?;
                 let (blocked, queries, pct, domains) = pihole_summary_fields(&json);
+                let (unique_clients, gravity_updated) = pihole_extra_fields(&json);
                 return Some(json!({
                     "type": "pihole",
                     "ads_blocked_today": blocked,
                     "dns_queries_today": queries,
                     "ads_percentage_today": pct,
                     "domains_being_blocked": domains,
-                    "status": json.get("status").unwrap_or(&json!("unknown"))
+                    "status": json.get("status").unwrap_or(&json!("unknown")),
+                    "unique_clients": unique_clients,
+                    "gravity_updated": gravity_updated,
                 }));
             }
         }
@@ -290,7 +528,9 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                     "ads_blocked_today": adguard_blocked_today(&json),
                     "dns_queries_today": adguard_queries_today(&json),
                     "avg_processing_time": adguard_avg_time(&json),
-                    "status": if is_running { "enabled" } else { "disabled" }
+                    "status": if is_running { "enabled" } else { "disabled" },
+                    "block_pct": adguard_block_pct(&json),
+                    "dns_rewrites": adguard_rewrites(&json),
                 }));
             }
         }
@@ -316,6 +556,7 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 "library_count": movies.as_ref().map(arr_array_len).unwrap_or(0),
                 "disk_free": disk.as_ref().map(arr_disk_free).unwrap_or_else(|| "—".to_string()),
                 "version": status.as_ref().map(arr_version).unwrap_or_else(|| "—".to_string()),
+                "health": status.as_ref().map(arr_health_label).unwrap_or_else(|| "—".to_string()),
             }));
         }
         "sonarr" => {
@@ -343,6 +584,9 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 "version": status.as_ref().map(arr_version).unwrap_or_else(|| "—".to_string()),
             }));
         }
+        "lidarr" => return fetch_lidarr_arr(&client, base_url, &app.api_key).await,
+        "readarr" => return fetch_readarr_arr(&client, base_url, &app.api_key).await,
+        "whisparr" => return fetch_whisparr_arr(&client, base_url, &app.api_key).await,
         "overseerr" | "jellyseerr" => {
             let url = format!("{}/api/v1/request/count", base_url);
             let resp = client
@@ -359,19 +603,32 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                     "approved_requests": json.get("approved").and_then(|v| v.as_u64()).unwrap_or(0),
                     "processing_requests": json.get("processing").and_then(|v| v.as_u64()).unwrap_or(0),
                     "total_requests": json.get("total").and_then(|v| v.as_u64()).unwrap_or(0),
+                    "declined_requests": json.get("declined").and_then(|v| v.as_u64()).unwrap_or(0),
+                    "available_requests": json.get("available").and_then(|v| v.as_u64()).unwrap_or(0),
                 }));
             }
         }
         "prowlarr" => {
             let key = app.api_key.clone();
-            let (indexers, status) = tokio::join!(
+            let (indexers, status, health, apps) = tokio::join!(
                 arr_api_get(&client, base_url, &key, "/api/v1/indexer"),
                 arr_api_get(&client, base_url, &key, "/api/v1/system/status"),
+                arr_api_get(&client, base_url, &key, "/api/v1/health"),
+                arr_api_get(&client, base_url, &key, "/api/v1/applications"),
             );
             let indexers = indexers?;
             let (enabled, total) = count_prowlarr_indexers(&indexers);
             let failed = count_prowlarr_failed_indexers(&indexers);
             let queue_size = fetch_prowlarr_queue_size(&client, base_url, &key).await;
+            let health_label = health
+                .as_ref()
+                .map(arr_health_label)
+                .unwrap_or_else(|| "—".to_string());
+            let app_count = apps
+                .as_ref()
+                .and_then(|v| v.as_array())
+                .map(|a| a.len() as u64)
+                .unwrap_or(0);
             return Some(json!({
                 "type": "prowlarr",
                 "indexers_enabled": enabled,
@@ -379,6 +636,8 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 "failed_indexers": failed,
                 "queue_size": queue_size,
                 "version": status.as_ref().map(arr_version).unwrap_or_else(|| "—".to_string()),
+                "health": health_label,
+                "app_count": app_count,
             }));
         }
         "uptime_kuma" => {
@@ -396,6 +655,18 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
         "bazarr" => {
             return fetch_bazarr(&client, base_url, &app.api_key).await;
         }
+        "sabnzbd" => return fetch_sabnzbd(&client, base_url, &app.api_key).await,
+        "nzbget" => return fetch_nzbget(&client, base_url, &app.api_key).await,
+        "transmission" => {
+            return fetch_transmission(accept_invalid_certs, base_url, &app.api_key).await;
+        }
+        "jackett" => return fetch_jackett(&client, base_url, &app.api_key).await,
+        "tautulli" => return fetch_tautulli(&client, base_url, &app.api_key).await,
+        "audiobookshelf" => return fetch_audiobookshelf(&client, base_url, &app.api_key).await,
+        "immich" => return fetch_immich(&client, base_url, &app.api_key).await,
+        "tdarr" => return fetch_tdarr(&client, base_url, &app.api_key).await,
+        "maintainerr" => return fetch_maintainerr(&client, base_url, &app.api_key).await,
+        "frigate" => return fetch_frigate(&client, base_url, &app.api_key).await,
         "rss" => {
             let feed_url = sanitize_rss_feed_url(&app.api_key)?;
             let resp = client.get(&feed_url).send().await.ok()?;
@@ -406,9 +677,11 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 }
                 let feed = feed_rs::parser::parse(&bytes[..]).ok()?;
                 let entries = build_rss_entries(&feed);
+                let feed_icon = extract_feed_icon(&feed);
                 return Some(json!({
                     "type": "rss",
                     "entries": entries,
+                    "feed_icon": feed_icon,
                 }));
             }
         }
@@ -498,6 +771,30 @@ pub(crate) fn parse_uptime_kuma_heartbeats(json: &Value) -> (u64, u64) {
     (up, down)
 }
 
+pub(crate) fn parse_uptime_kuma_ping(json: &Value) -> String {
+    let Some(hb_list) = json.get("heartbeatList").and_then(|v| v.as_object()) else {
+        return "—".to_string();
+    };
+    let mut total = 0u64;
+    let mut count = 0u64;
+    for beats in hb_list.values() {
+        let Some(arr) = beats.as_array() else {
+            continue;
+        };
+        let Some(latest) = arr.last() else {
+            continue;
+        };
+        if let Some(ping) = latest.get("ping").and_then(|v| v.as_u64()) {
+            total += ping;
+            count += 1;
+        }
+    }
+    if count == 0 {
+        return "—".to_string();
+    }
+    format!("{} ms", total / count)
+}
+
 fn format_runtime_secs(secs: i64) -> String {
     if secs >= 3600 {
         format!("{}h", secs / 3600)
@@ -580,6 +877,8 @@ async fn fetch_uptime_kuma(
                         "monitors_down": down,
                         "monitors_total": total,
                         "maintenance": json.get("maintenanceList").and_then(|v| v.as_array()).map(|a| a.len() as u64).unwrap_or(0),
+                        "avg_ping": parse_uptime_kuma_ping(&json),
+                        "cert_expiring": json.get("incident").and_then(|v| v.as_array()).map(|a| a.len() as u64).unwrap_or(0),
                     }));
                 }
             }
@@ -601,6 +900,8 @@ async fn fetch_uptime_kuma(
             "monitors_down": 0,
             "monitors_total": total,
             "maintenance": 0,
+            "avg_ping": "—",
+            "cert_expiring": 0,
         }));
     }
     None
@@ -649,35 +950,38 @@ async fn fetch_cloudflare_tunnel(client: &reqwest::Client, creds_raw: &str) -> O
         .get("name")
         .and_then(|v| v.as_str())
         .unwrap_or("Tunnel");
+    let connector_version = result
+        .get("connections")
+        .and_then(|v| v.as_array())
+        .and_then(|arr| arr.first())
+        .and_then(|c| c.get("version").and_then(|v| v.as_str()))
+        .unwrap_or("—");
+    let origin_count = result
+        .get("connections")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            let mut origins = std::collections::HashSet::new();
+            for c in arr {
+                if let Some(ip) = c.get("origin_ip").and_then(|v| v.as_str()) {
+                    origins.insert(ip);
+                }
+            }
+            origins.len() as u64
+        })
+        .unwrap_or(0);
     Some(json!({
         "type": "cloudflare_tunnel",
         "tunnel_name": name,
         "tunnel_status": status,
         "connections": connections,
         "colo_count": colo_count,
+        "connector_version": connector_version,
+        "origin_count": origin_count,
     }))
 }
 
 pub(crate) fn parse_qbittorrent_creds(raw: &str) -> Option<(String, String)> {
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        return None;
-    }
-    if let Some((user, pass)) = trimmed.split_once('|') {
-        let user = user.trim();
-        let pass = pass.trim();
-        if !user.is_empty() && !pass.is_empty() {
-            return Some((user.to_string(), pass.to_string()));
-        }
-    }
-    if let Some(idx) = trimmed.find(':') {
-        let user = trimmed[..idx].trim();
-        let pass = trimmed[idx + 1..].trim();
-        if !user.is_empty() && !pass.is_empty() {
-            return Some((user.to_string(), pass.to_string()));
-        }
-    }
-    None
+    parse_user_pass_creds(raw)
 }
 
 pub(crate) fn format_qbit_speed(bytes_per_sec: u64) -> String {
@@ -776,6 +1080,7 @@ async fn fetch_qbittorrent(
     let torrents: Value = torrents_resp.json().await.ok()?;
     let (downloading, seeding) = count_qbittorrent_states(&torrents);
     let total_torrents = torrents.as_array().map(|a| a.len() as u64).unwrap_or(0);
+    let paused = count_qbittorrent_paused(&torrents);
     Some(json!({
         "type": "qbittorrent",
         "download_speed": format_qbit_speed(dl_speed),
@@ -784,6 +1089,7 @@ async fn fetch_qbittorrent(
         "seeding": seeding,
         "free_disk": free_disk,
         "total_torrents": total_torrents,
+        "paused_torrents": paused,
     }))
 }
 
@@ -793,7 +1099,7 @@ async fn fetch_bazarr(client: &reqwest::Client, base_url: &str, api_key: &str) -
     }
     let base = base_url.trim_end_matches('/');
     let key = api_key.to_string();
-    let (movies_resp, episodes_resp, status_resp) = tokio::join!(
+    let (movies_resp, episodes_resp, status_resp, langs_resp, providers_resp) = tokio::join!(
         client
             .get(format!("{}/api/movies/wanted", base))
             .header("X-Api-Key", &key)
@@ -804,6 +1110,14 @@ async fn fetch_bazarr(client: &reqwest::Client, base_url: &str, api_key: &str) -
             .send(),
         client
             .get(format!("{}/api/system/status", base))
+            .header("X-Api-Key", &key)
+            .send(),
+        client
+            .get(format!("{}/api/languages", base))
+            .header("X-Api-Key", &key)
+            .send(),
+        client
+            .get(format!("{}/api/providers", base))
             .header("X-Api-Key", &key)
             .send(),
     );
@@ -832,12 +1146,698 @@ async fn fetch_bazarr(client: &reqwest::Client, base_url: &str, api_key: &str) -
         .as_ref()
         .and_then(|j| j.get("health").and_then(|v| v.as_str()).map(String::from))
         .unwrap_or_else(|| "—".to_string());
+    let language_count = if let Ok(resp) = langs_resp {
+        if resp.status().is_success() {
+            resp.json::<Value>()
+                .await
+                .ok()
+                .and_then(|v| v.as_array().map(|a| a.len() as u64))
+                .unwrap_or(0)
+        } else {
+            0
+        }
+    } else {
+        0
+    };
+    let provider_count = if let Ok(resp) = providers_resp {
+        if resp.status().is_success() {
+            resp.json::<Value>()
+                .await
+                .ok()
+                .and_then(|v| v.as_array().map(|a| a.len() as u64))
+                .unwrap_or(0)
+        } else {
+            0
+        }
+    } else {
+        0
+    };
     Some(json!({
         "type": "bazarr",
         "missing_movies": bazarr_wanted_count(&movies),
         "missing_episodes": bazarr_wanted_count(&episodes),
         "version": version,
         "health": health,
+        "language_count": language_count,
+        "provider_count": provider_count,
+    }))
+}
+
+fn parse_user_pass_creds(raw: &str) -> Option<(String, String)> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    if let Some((user, pass)) = trimmed.split_once('|') {
+        let user = user.trim();
+        let pass = pass.trim();
+        if !user.is_empty() && !pass.is_empty() {
+            return Some((user.to_string(), pass.to_string()));
+        }
+    }
+    if let Some(idx) = trimmed.find(':') {
+        let user = trimmed[..idx].trim();
+        let pass = trimmed[idx + 1..].trim();
+        if !user.is_empty() && !pass.is_empty() {
+            return Some((user.to_string(), pass.to_string()));
+        }
+    }
+    None
+}
+
+fn basic_auth_header(user: &str, pass: &str) -> String {
+    use base64::Engine;
+    format!(
+        "Basic {}",
+        base64::engine::general_purpose::STANDARD.encode(format!("{user}:{pass}"))
+    )
+}
+
+pub(crate) fn parse_sabnzbd_speed(raw: &str) -> u64 {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return 0;
+    }
+    if let Ok(n) = trimmed.parse::<u64>() {
+        return n;
+    }
+    let lower = trimmed.to_lowercase();
+    let mut num: f64 = lower
+        .chars()
+        .take_while(|c| c.is_ascii_digit() || *c == '.')
+        .collect::<String>()
+        .parse()
+        .unwrap_or(0.0);
+    if lower.contains("mb") {
+        num *= 1_000_000.0;
+    } else if lower.contains("kb") {
+        num *= 1_000.0;
+    }
+    num as u64
+}
+
+pub(crate) fn count_jackett_failed(indexers: &Value) -> u64 {
+    let Some(arr) = indexers.as_array() else {
+        return 0;
+    };
+    arr.iter()
+        .filter(|i| {
+            i.get("configured")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+                && i.get("status")
+                    .and_then(|v| v.as_u64())
+                    .map(|s| s >= 2)
+                    .unwrap_or(false)
+        })
+        .count() as u64
+}
+
+pub(crate) fn audiobookshelf_library_stats(libraries: &Value) -> (u64, u64) {
+    let Some(arr) = libraries.as_array() else {
+        return (0, 0);
+    };
+    let mut items = 0u64;
+    for lib in arr {
+        if let Some(stats) = lib.get("stats") {
+            items += stats
+                .get("totalItems")
+                .or_else(|| stats.get("totalitems"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
+        }
+    }
+    (arr.len() as u64, items)
+}
+
+pub(crate) fn frigate_camera_counts(config: &Value, stats: &Value) -> (u64, u64) {
+    let total = config
+        .get("cameras")
+        .and_then(|c| c.as_object())
+        .map(|o| o.len() as u64)
+        .unwrap_or(0);
+    let online = stats
+        .get("cameras")
+        .and_then(|c| c.as_object())
+        .map(|o| {
+            o.values()
+                .filter(|cam| {
+                    cam.get("camera_fps")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0)
+                        > 0.0
+                })
+                .count() as u64
+        })
+        .unwrap_or(total);
+    (online, total)
+}
+
+async fn fetch_sabnzbd(client: &reqwest::Client, base_url: &str, api_key: &str) -> Option<Value> {
+    let key = api_key.trim();
+    if key.is_empty() {
+        return None;
+    }
+    let base = base_url.trim_end_matches('/');
+    let queue_url = format!("{base}/api?mode=queue&output=json&apikey={key}");
+    let status_url = format!("{base}/api?mode=status&output=json&apikey={key}");
+    let (queue_resp, status_resp) = tokio::join!(
+        client.get(&queue_url).send(),
+        client.get(&status_url).send()
+    );
+    let queue: Value = queue_resp.ok()?.json().await.ok()?;
+    let status: Value = status_resp.ok()?.json().await.ok()?;
+    let queue_size = queue
+        .pointer("/queue/noofslots")
+        .or_else(|| queue.pointer("/queue/slots"))
+        .and_then(|v| v.as_u64().or_else(|| v.as_array().map(|a| a.len() as u64)))
+        .unwrap_or(0);
+    let speed = status
+        .get("speed")
+        .and_then(|v| v.as_str())
+        .map(parse_sabnzbd_speed)
+        .or_else(|| status.get("speed").and_then(|v| v.as_u64()))
+        .unwrap_or(0);
+    let free_disk = status
+        .get("freediskspace")
+        .and_then(|v| v.as_str())
+        .map(parse_sabnzbd_speed)
+        .or_else(|| status.get("freediskspace").and_then(|v| v.as_u64()))
+        .map(format_bytes_short)
+        .unwrap_or_else(|| "—".to_string());
+    let paused = status
+        .get("paused")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let version = status
+        .get("version")
+        .and_then(|v| v.as_str())
+        .unwrap_or("—")
+        .to_string();
+    Some(json!({
+        "type": "sabnzbd",
+        "queue_size": queue_size,
+        "download_speed": format_qbit_speed(speed),
+        "free_disk": free_disk,
+        "paused": if paused { "Yes" } else { "No" },
+        "version": version,
+        "status": if paused { "Paused" } else { "Active" },
+    }))
+}
+
+async fn nzbget_rpc(
+    client: &reqwest::Client,
+    base_url: &str,
+    user: &str,
+    pass: &str,
+    method: &str,
+) -> Option<Value> {
+    let url = format!("{}/jsonrpc", base_url.trim_end_matches('/'));
+    let body = json!({ "method": method, "params": [], "id": 1 });
+    let resp = client
+        .post(&url)
+        .header("Authorization", basic_auth_header(user, pass))
+        .json(&body)
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let json: Value = resp.json().await.ok()?;
+    json.get("result").cloned()
+}
+
+async fn fetch_nzbget(client: &reqwest::Client, base_url: &str, creds_raw: &str) -> Option<Value> {
+    let (user, pass) = parse_user_pass_creds(creds_raw)?;
+    let (status, groups) = tokio::join!(
+        nzbget_rpc(client, base_url, &user, &pass, "status"),
+        nzbget_rpc(client, base_url, &user, &pass, "listgroups"),
+    );
+    let status = status?;
+    let queue_size = groups
+        .as_ref()
+        .and_then(|v| v.as_array())
+        .map(|a| a.len() as u64)
+        .unwrap_or(0);
+    let speed = status
+        .get("DownloadRate")
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .unwrap_or(0);
+    let free_disk = status
+        .get("FreeDiskSpace")
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .map(format_bytes_short)
+        .unwrap_or_else(|| "—".to_string());
+    let paused = status
+        .get("DownloadPaused")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let version = status
+        .get("Version")
+        .and_then(|v| v.as_str())
+        .unwrap_or("—")
+        .to_string();
+    Some(json!({
+        "type": "nzbget",
+        "queue_size": queue_size,
+        "download_speed": format_qbit_speed(speed),
+        "free_disk": free_disk,
+        "paused": if paused { "Yes" } else { "No" },
+        "version": version,
+        "status": if paused { "Paused" } else { "Active" },
+    }))
+}
+
+async fn transmission_rpc(
+    client: &reqwest::Client,
+    base_url: &str,
+    session_id: Option<&str>,
+    body: Value,
+    auth: Option<(&str, &str)>,
+) -> Option<(Value, Option<String>)> {
+    let url = format!("{}/transmission/rpc", base_url.trim_end_matches('/'));
+    let mut req = client.post(&url).json(&body);
+    if let Some(sid) = session_id {
+        req = req.header("X-Transmission-Session-Id", sid);
+    }
+    if let Some((user, pass)) = auth {
+        req = req.header("Authorization", basic_auth_header(user, pass));
+    }
+    let resp = req.send().await.ok()?;
+    if resp.status() == reqwest::StatusCode::CONFLICT {
+        let sid = resp
+            .headers()
+            .get("x-transmission-session-id")
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.to_string());
+        if let Some(ref sid) = sid {
+            return Box::pin(transmission_rpc(
+                client,
+                base_url,
+                Some(sid.as_str()),
+                body,
+                auth,
+            ))
+            .await;
+        }
+        return None;
+    }
+    if !resp.status().is_success() {
+        return None;
+    }
+    let json: Value = resp.json().await.ok()?;
+    Some((json, session_id.map(|s| s.to_string())))
+}
+
+pub(crate) fn count_transmission_torrents(args: &Value) -> (u64, u64, u64, u64) {
+    let Some(torrents) = args.get("torrents").and_then(|v| v.as_array()) else {
+        return (0, 0, 0, 0);
+    };
+    let total = torrents.len() as u64;
+    let mut downloading = 0u64;
+    let mut seeding = 0u64;
+    let mut paused = 0u64;
+    for t in torrents {
+        let status = t.get("status").and_then(|v| v.as_u64()).unwrap_or(0);
+        match status {
+            0 => paused += 1,
+            4 => downloading += 1,
+            6 => seeding += 1,
+            _ => {}
+        }
+    }
+    (total, downloading, seeding, paused)
+}
+
+async fn fetch_transmission(
+    accept_invalid_certs: bool,
+    base_url: &str,
+    creds_raw: &str,
+) -> Option<Value> {
+    let auth = parse_user_pass_creds(creds_raw);
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(5))
+        .danger_accept_invalid_certs(accept_invalid_certs)
+        .build()
+        .ok()?;
+    let auth_pair = auth.as_ref().map(|(u, p)| (u.as_str(), p.as_str()));
+    let session_body = json!({ "method": "session-get", "arguments": {} });
+    let (session_json, sid) =
+        transmission_rpc(&client, base_url, None, session_body, auth_pair).await?;
+    let sid = sid.as_deref();
+    let free_disk = session_json
+        .pointer("/arguments/download-dir-free-space")
+        .and_then(|v| v.as_u64())
+        .map(format_bytes_short)
+        .unwrap_or_else(|| "—".to_string());
+    let torrent_body = json!({
+        "method": "torrent-get",
+        "arguments": { "fields": ["status", "rateDownload", "rateUpload"] }
+    });
+    let (torrent_json, _) =
+        transmission_rpc(&client, base_url, sid, torrent_body, auth_pair).await?;
+    let args = torrent_json.get("arguments")?;
+    let (total, downloading, seeding, paused) = count_transmission_torrents(args);
+    let dl_speed = args
+        .get("torrents")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|t| t.get("rateDownload").and_then(|v| v.as_u64()))
+                .sum()
+        })
+        .unwrap_or(0);
+    let ul_speed = args
+        .get("torrents")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|t| t.get("rateUpload").and_then(|v| v.as_u64()))
+                .sum()
+        })
+        .unwrap_or(0);
+    Some(json!({
+        "type": "transmission",
+        "download_speed": format_qbit_speed(dl_speed),
+        "upload_speed": format_qbit_speed(ul_speed),
+        "active_downloads": downloading,
+        "seeding": seeding,
+        "free_disk": free_disk,
+        "total_torrents": total,
+        "paused_torrents": paused,
+    }))
+}
+
+async fn fetch_jackett(client: &reqwest::Client, base_url: &str, api_key: &str) -> Option<Value> {
+    let key = api_key.trim();
+    if key.is_empty() {
+        return None;
+    }
+    let base = base_url.trim_end_matches('/');
+    let indexers_url = format!("{base}/api/v2.0/indexers?configured=true");
+    let version_url = format!("{base}/api/v2.0/server/version");
+    let (indexers_resp, version_resp) = tokio::join!(
+        client.get(&indexers_url).header("X-Api-Key", key).send(),
+        client.get(&version_url).header("X-Api-Key", key).send(),
+    );
+    let indexers: Value = indexers_resp.ok()?.json().await.ok()?;
+    let version = if let Ok(resp) = version_resp {
+        if resp.status().is_success() {
+            resp.json::<Value>()
+                .await
+                .ok()
+                .and_then(|v| v.as_str().map(|s| s.to_string()))
+                .unwrap_or_else(|| "—".to_string())
+        } else {
+            "—".to_string()
+        }
+    } else {
+        "—".to_string()
+    };
+    let total = indexers.as_array().map(|a| a.len() as u64).unwrap_or(0);
+    let failed = count_jackett_failed(&indexers);
+    Some(json!({
+        "type": "jackett",
+        "indexers_total": total,
+        "failed_indexers": failed,
+        "indexers_enabled": total.saturating_sub(failed),
+        "version": version,
+        "health": if failed == 0 { "Healthy" } else { "Issues" },
+    }))
+}
+
+async fn tautulli_api(
+    client: &reqwest::Client,
+    base_url: &str,
+    api_key: &str,
+    cmd: &str,
+) -> Option<Value> {
+    let url = format!(
+        "{}/api/v2?apikey={}&cmd={}",
+        base_url.trim_end_matches('/'),
+        api_key.trim(),
+        cmd
+    );
+    let resp = client.get(&url).send().await.ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let json: Value = resp.json().await.ok()?;
+    json.pointer("/response/data").cloned()
+}
+
+async fn fetch_tautulli(client: &reqwest::Client, base_url: &str, api_key: &str) -> Option<Value> {
+    let key = api_key.trim();
+    if key.is_empty() {
+        return None;
+    }
+    let (activity, libraries) = tokio::join!(
+        tautulli_api(client, base_url, key, "get_activity"),
+        tautulli_api(client, base_url, key, "get_libraries"),
+    );
+    let activity = activity?;
+    let stream_count = activity
+        .get("stream_count")
+        .and_then(|v| {
+            v.as_u64()
+                .or_else(|| v.as_str().and_then(|s| s.parse().ok()))
+        })
+        .unwrap_or(0);
+    let bandwidth = activity
+        .get("total_bandwidth")
+        .and_then(|v| {
+            v.as_u64()
+                .or_else(|| v.as_str().and_then(|s| s.parse().ok()))
+        })
+        .map(format_qbit_speed)
+        .unwrap_or_else(|| "—".to_string());
+    let library_count = libraries
+        .as_ref()
+        .and_then(|v| v.as_array())
+        .map(|a| a.len() as u64)
+        .unwrap_or(0);
+    Some(json!({
+        "type": "tautulli",
+        "stream_count": stream_count,
+        "bandwidth": bandwidth,
+        "library_count": library_count,
+        "sessions": stream_count,
+        "status": if stream_count > 0 { "Streaming" } else { "Idle" },
+    }))
+}
+
+async fn fetch_audiobookshelf(
+    client: &reqwest::Client,
+    base_url: &str,
+    api_key: &str,
+) -> Option<Value> {
+    let token = api_key.trim();
+    if token.is_empty() {
+        return None;
+    }
+    let url = format!("{}/api/libraries", base_url.trim_end_matches('/'));
+    let resp = client
+        .get(&url)
+        .header("Authorization", format!("Bearer {token}"))
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let libraries: Value = resp.json().await.ok()?;
+    let (library_count, item_count) = audiobookshelf_library_stats(&libraries);
+    Some(json!({
+        "type": "audiobookshelf",
+        "library_count": library_count,
+        "item_count": item_count,
+        "libraries": library_count,
+        "items": item_count,
+        "status": if library_count > 0 { "Online" } else { "Empty" },
+    }))
+}
+
+async fn fetch_immich(client: &reqwest::Client, base_url: &str, api_key: &str) -> Option<Value> {
+    let key = api_key.trim();
+    if key.is_empty() {
+        return None;
+    }
+    let base = base_url.trim_end_matches('/');
+    let stats_url = format!("{base}/api/server/statistics");
+    let about_url = format!("{base}/api/server/about");
+    let (stats_resp, about_resp) = tokio::join!(
+        client.get(&stats_url).header("x-api-key", key).send(),
+        client.get(&about_url).header("x-api-key", key).send(),
+    );
+    let stats: Value = stats_resp.ok()?.json().await.ok()?;
+    let version = if let Ok(resp) = about_resp {
+        if resp.status().is_success() {
+            resp.json::<Value>()
+                .await
+                .ok()
+                .and_then(|v| {
+                    v.get("version")
+                        .and_then(|x| x.as_str())
+                        .map(str::to_string)
+                })
+                .unwrap_or_else(|| "—".to_string())
+        } else {
+            "—".to_string()
+        }
+    } else {
+        "—".to_string()
+    };
+    let photos = stats.get("photos").and_then(|v| v.as_u64()).unwrap_or(0);
+    let videos = stats.get("videos").and_then(|v| v.as_u64()).unwrap_or(0);
+    let usage = stats
+        .get("usage")
+        .and_then(|v| v.as_u64())
+        .map(format_bytes_short)
+        .unwrap_or_else(|| "—".to_string());
+    Some(json!({
+        "type": "immich",
+        "photos": photos,
+        "videos": videos,
+        "storage_used": usage,
+        "version": version,
+        "assets": photos + videos,
+        "status": "Online",
+    }))
+}
+
+async fn fetch_tdarr(client: &reqwest::Client, base_url: &str, _api_key: &str) -> Option<Value> {
+    let base = base_url.trim_end_matches('/');
+    let status_url = format!("{base}/api/v2/status");
+    let staged_body = json!({
+        "data": { "collection": "StagedJSONDB", "mode": "getAll" }
+    });
+    let (status_resp, staged_resp) = tokio::join!(
+        client.get(&status_url).send(),
+        client
+            .post(format!("{base}/api/v2/cruddb"))
+            .json(&staged_body)
+            .send(),
+    );
+    let status: Value = status_resp.ok()?.json().await.ok()?;
+    let queue_size = if let Ok(resp) = staged_resp {
+        if resp.status().is_success() {
+            resp.json::<Value>()
+                .await
+                .ok()
+                .and_then(|v| v.as_array().map(|a| a.len() as u64))
+                .unwrap_or(0)
+        } else {
+            0
+        }
+    } else {
+        0
+    };
+    let workers = status
+        .get("workerLimits")
+        .and_then(|v| v.as_object())
+        .map(|o| o.len() as u64)
+        .or_else(|| {
+            status
+                .get("processes")
+                .and_then(|v| v.as_object())
+                .map(|o| o.len() as u64)
+        })
+        .unwrap_or(0);
+    let health = if status.get("ok").and_then(|v| v.as_bool()) == Some(false) {
+        "Unhealthy"
+    } else {
+        "Healthy"
+    };
+    Some(json!({
+        "type": "tdarr",
+        "queue_size": queue_size,
+        "workers": workers,
+        "health": health,
+        "staged": queue_size,
+        "status": health,
+    }))
+}
+
+async fn fetch_maintainerr(
+    client: &reqwest::Client,
+    base_url: &str,
+    api_key: &str,
+) -> Option<Value> {
+    let key = api_key.trim();
+    if key.is_empty() {
+        return None;
+    }
+    let base = base_url.trim_end_matches('/');
+    let stats_url = format!("{base}/api/stats");
+    let resp = client
+        .get(&stats_url)
+        .header("X-Api-Key", key)
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let stats: Value = resp.json().await.ok()?;
+    let issue_count = stats
+        .get("totalIssueCount")
+        .or_else(|| stats.get("issueCount"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let user_count = stats
+        .get("totalUserCount")
+        .or_else(|| stats.get("userCount"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let rule_count = stats
+        .get("totalRuleCount")
+        .or_else(|| stats.get("ruleCount"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    Some(json!({
+        "type": "maintainerr",
+        "issue_count": issue_count,
+        "user_count": user_count,
+        "rule_count": rule_count,
+        "issues": issue_count,
+        "rules": rule_count,
+        "status": if issue_count > 0 { "Issues" } else { "Clear" },
+    }))
+}
+
+async fn fetch_frigate(client: &reqwest::Client, base_url: &str, api_key: &str) -> Option<Value> {
+    let base = base_url.trim_end_matches('/');
+    let config_url = format!("{base}/api/config");
+    let stats_url = format!("{base}/api/stats");
+    let mut config_req = client.get(&config_url);
+    let mut stats_req = client.get(&stats_url);
+    let key = api_key.trim();
+    if !key.is_empty() {
+        config_req = config_req.header("Authorization", format!("Bearer {key}"));
+        stats_req = stats_req.header("Authorization", format!("Bearer {key}"));
+    }
+    let (config_resp, stats_resp) = tokio::join!(config_req.send(), stats_req.send());
+    let config: Value = config_resp.ok()?.json().await.ok()?;
+    let stats: Value = stats_resp.ok()?.json().await.ok()?;
+    let (cameras_up, cameras_total) = frigate_camera_counts(&config, &stats);
+    let detection_fps = stats
+        .get("detectors")
+        .and_then(|d| d.as_object())
+        .map(|o| {
+            o.values()
+                .filter_map(|det| det.get("detection_fps").and_then(|v| v.as_f64()))
+                .sum::<f64>()
+        })
+        .unwrap_or(0.0);
+    Some(json!({
+        "type": "frigate",
+        "cameras_up": cameras_up,
+        "cameras_total": cameras_total,
+        "detection_fps": format!("{:.1}", detection_fps),
+        "cameras": cameras_total,
+        "online": cameras_up,
+        "status": if cameras_up == cameras_total { "Online" } else { "Degraded" },
     }))
 }
 
@@ -852,12 +1852,32 @@ async fn fetch_peanut(client: &reqwest::Client, base_url: &str, api_key: &str) -
         if resp.status().is_success() {
             let json: Value = resp.json().await.ok()?;
             let (battery, load, runtime, status) = parse_peanut_stats(&json);
+            let input_voltage = json
+                .pointer("/ups/input.voltage")
+                .or_else(|| json.get("input.voltage"))
+                .and_then(|v| {
+                    v.as_str()
+                        .map(String::from)
+                        .or_else(|| v.as_f64().map(|n| format!("{:.0}V", n)))
+                })
+                .unwrap_or_else(|| "—".to_string());
+            let output_power = json
+                .pointer("/ups/ups.power")
+                .or_else(|| json.get("ups.power"))
+                .and_then(|v| {
+                    v.as_str()
+                        .map(String::from)
+                        .or_else(|| v.as_i64().map(|n| format!("{}W", n)))
+                })
+                .unwrap_or_else(|| "—".to_string());
             return Some(json!({
                 "type": "peanut",
                 "battery_percent": battery,
                 "ups_load": load,
                 "battery_runtime": runtime,
-                "ups_status": status
+                "ups_status": status,
+                "input_voltage": input_voltage,
+                "output_power": output_power,
             }));
         }
     }
@@ -1007,6 +2027,13 @@ mod tests {
     }
 
     #[test]
+    fn arr_queue_size_reads_records_array() {
+        let queue: Value = serde_json::json!({ "records": [{}, {}] });
+        assert_eq!(super::arr_queue_size(&Some(queue)), 2);
+        assert_eq!(super::arr_queue_size(&None), 0);
+    }
+
+    #[test]
     fn arr_missing_count_reads_total_records() {
         let json: Value = serde_json::json!({ "totalRecords": 5 });
         assert_eq!(arr_missing_count(&json), 5);
@@ -1101,5 +2128,57 @@ mod tests {
     fn bazarr_wanted_count_reads_data_array() {
         let json: Value = serde_json::json!({ "data": [{}, {}] });
         assert_eq!(bazarr_wanted_count(&json), 2);
+    }
+
+    #[test]
+    fn parse_sabnzbd_speed_parses_human_and_numeric() {
+        assert_eq!(parse_sabnzbd_speed("1.5 MB/s"), 1_500_000);
+        assert_eq!(parse_sabnzbd_speed("500"), 500);
+        assert_eq!(parse_sabnzbd_speed(""), 0);
+    }
+
+    #[test]
+    fn count_jackett_failed_indexers_detects_status() {
+        let json: Value = serde_json::json!([
+            { "configured": true, "status": 2 },
+            { "configured": true, "status": 1 },
+            { "configured": false, "status": 2 }
+        ]);
+        assert_eq!(count_jackett_failed(&json), 1);
+    }
+
+    #[test]
+    fn audiobookshelf_library_stats_sums_items() {
+        let json: Value = serde_json::json!([
+            { "stats": { "totalItems": 10 } },
+            { "stats": { "totalItems": 5 } }
+        ]);
+        assert_eq!(audiobookshelf_library_stats(&json), (2, 15));
+    }
+
+    #[test]
+    fn count_transmission_torrents_groups_by_status() {
+        let json: Value = serde_json::json!({
+            "torrents": [
+                { "status": 4 },
+                { "status": 6 },
+                { "status": 0 }
+            ]
+        });
+        assert_eq!(count_transmission_torrents(&json), (3, 1, 1, 1));
+    }
+
+    #[test]
+    fn frigate_camera_counts_reads_config_and_stats() {
+        let config: Value = serde_json::json!({
+            "cameras": { "front": {}, "back": {} }
+        });
+        let stats: Value = serde_json::json!({
+            "cameras": {
+                "front": { "camera_fps": 5.0 },
+                "back": { "camera_fps": 0.0 }
+            }
+        });
+        assert_eq!(frigate_camera_counts(&config, &stats), (1, 2));
     }
 }

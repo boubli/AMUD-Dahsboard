@@ -9,6 +9,7 @@ pub mod integrations;
 pub mod logos;
 pub mod media;
 pub mod models;
+pub mod rss_discover;
 pub mod secrets;
 pub mod security;
 pub mod settings;
@@ -533,6 +534,8 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/rss-feeds/edit", post(edit_rss_feed_handler))
         .route("/api/rss-feeds/delete", post(delete_rss_feed_handler))
         .route("/api/rss-feeds/reorder", post(reorder_rss_feeds_handler))
+        .route("/api/rss/discover", post(rss_discover_handler))
+        .route("/api/rss/favicon", get(rss_favicon_handler))
         .route("/api/audit", get(list_audit_handler))
         .route("/api/status", get(api_status_handler))
         .route("/api/widgets", get(list_widgets_handler))

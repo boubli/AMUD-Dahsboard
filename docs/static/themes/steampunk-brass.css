@@ -1,9 +1,20 @@
 /* AMUD Theme: Steampunk Brass — bronze copper vintage industrial */
 
 :root {
+    --theme-bg-fallback: #1a1410;
+    --theme-card-r: 35;
+    --theme-card-g: 28;
+    --theme-card-b: 22;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 26;
+    --theme-overlay-g1: 20;
+    --theme-overlay-b1: 16;
+    --theme-overlay-r2: 45;
+    --theme-overlay-g2: 35;
+    --theme-overlay-b2: 25;
     --accent-color: #d4a574;
     --accent-glow: rgba(212, 165, 116, 0.20);
-    --bg-card: rgba(35, 28, 22, 0.82);
+    
     --border-card: rgba(212, 165, 116, 0.16);
     --border-hover: rgba(180, 130, 70, 0.40);
     --text-primary: #f5ebe0;
@@ -15,19 +26,8 @@
     --danger-bg: rgba(191, 97, 106, 0.12);
 }
 
-body {
-    background-color: #1a1410;
-    background-image:
-        linear-gradient(145deg, rgba(26, 20, 16, 0.94) 0%, rgba(45, 35, 25, 0.90) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 22px rgba(0, 0, 0, 0.4);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 30px rgba(212, 165, 116, 0.14);
 }
 
 .header-title {

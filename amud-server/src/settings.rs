@@ -9,6 +9,7 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("app_logo", "");
     s.insert("glass_blur_intensity", "16");
     s.insert("glass_opacity", "0.45");
+    s.insert("wallpaper_overlay_strength", "0.85");
     s.insert("bento_radius", "16");
     s.insert("grid_columns", "3");
     s.insert("jellyfin_url", "");
@@ -97,6 +98,11 @@ pub(crate) fn allowed_setting_keys() -> std::collections::HashSet<String> {
 
 pub(crate) fn setting_key_allowed(key: &str) -> bool {
     allowed_setting_keys().contains(key)
+}
+
+pub(crate) fn sanitize_wallpaper_overlay_strength(value: &str) -> String {
+    let v: f64 = value.trim().parse().unwrap_or(0.85);
+    format!("{:.2}", v.clamp(0.0, 1.0))
 }
 
 pub(crate) fn sanitize_custom_css(value: &str) -> String {
@@ -393,6 +399,13 @@ pub(crate) const DONATION_LINKS: [(&str, &str, &str); 3] = [
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_sanitize_wallpaper_overlay_strength() {
+        assert_eq!(sanitize_wallpaper_overlay_strength("0.85"), "0.85");
+        assert_eq!(sanitize_wallpaper_overlay_strength("1.5"), "1.00");
+        assert_eq!(sanitize_wallpaper_overlay_strength("-0.2"), "0.00");
+    }
 
     #[test]
     fn test_sanitize_custom_css() {

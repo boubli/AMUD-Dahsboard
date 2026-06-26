@@ -1,9 +1,16 @@
 /* AMUD Theme: Vaporwave Grid — 80s synth sunset */
 
 :root {
+    --theme-bg-fallback: #1a0a2e;
+    --theme-card-r: 26;
+    --theme-card-g: 10;
+    --theme-card-b: 46;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-body-stack: linear-gradient(180deg, #1a0a2e 0%, #3d1a5c 35%, #ff6b9d 65%, #ffb347 100%);
+    --theme-procedural: 1;
     --accent-color: #ff71ce;
     --accent-glow: rgba(255, 113, 206, 0.25);
-    --bg-card: rgba(26, 10, 46, 0.78);
+    
     --border-card: rgba(255, 113, 206, 0.2);
     --border-hover: rgba(1, 205, 254, 0.45);
     --text-primary: #e0f7ff;
@@ -12,14 +19,7 @@
     --success: #01cdfe;
     --success-bg: rgba(1, 205, 254, 0.12);
     --danger: #ff006e;
-    --danger-bg: rgba(255, 0, 110, 0.12);
-    --radius-xl: 4px;
-}
-
-body {
-    background: linear-gradient(180deg, #1a0a2e 0%, #3d1a5c 35%, #ff6b9d 65%, #ffb347 100%);
-    background-attachment: fixed;
-}
+    --danger-bg: rgba(255, 0, 110, 0.12);}
 
 body::before {
     content: "";
@@ -38,7 +38,7 @@ body::before {
         );
     transform: perspective(400px) rotateX(55deg) scale(2);
     transform-origin: center bottom;
-    opacity: 0.45;
+    opacity: calc(var(--wallpaper-overlay-strength) * 0.6);
 }
 
 .dashboard-container,
@@ -62,6 +62,3 @@ body::before {
     box-shadow: 0 0 20px rgba(1, 205, 254, 0.12);
 }
 
-.glass-panel:hover {
-    box-shadow: 0 0 28px rgba(255, 113, 206, 0.25);
-}

@@ -103,6 +103,10 @@ pub async fn settings_page_handler(
         .replace("{{accent_color}}", accent_color)
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
+        .replace(
+            "{{wallpaper_overlay_strength}}",
+            branding.wallpaper_overlay_strength.as_str(),
+        )
         .replace("{{bento_radius}}", bento_radius)
         .replace(
             "{{eq_grid_2}}",

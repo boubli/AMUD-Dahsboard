@@ -8,6 +8,25 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.6.4](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.4) — 2026-06-25
+
+Theme system fix, 13 new integrations, filled integration cards, no card hover.
+
+### Added
+- **Servarr expansion** — Lidarr, Readarr, Whisparr app card integrations
+- **Top 10 roadmap integrations** — SABnzbd, NZBGet, Transmission, Jackett, Tautulli, Audiobookshelf, Immich, Tdarr, Maintainerr, Frigate
+- **Wallpaper overlay strength** — new slider in Glass & Layout Parameters (0 = clear wallpaper)
+
+### Fixed
+- **All 36 bundled themes** — glass opacity, blur, radius, and wallpaper tint respect user sliders (no hardcoded overlays)
+- **Integration cards** — 8 metric cells always filled (CPU/RAM show `—` when agent off)
+- **App card hover** — removed lift/glow and metric layer swap
+
+### Improved
+- `theme-guards.css` cascade enforcement; theme audit matrix for v1.5.6.4
+
+---
+
 ## [v1.5.6.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.3) — 2026-06-26
 
 Theme gallery overhaul, 37 offline themes, guest compact cards, and docs/CI polish.

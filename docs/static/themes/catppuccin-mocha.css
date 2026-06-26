@@ -1,8 +1,19 @@
 /* AMUD Theme: Catppuccin Mocha — soft pastel dark */
 :root {
+    --theme-bg-fallback: #1e1e2e;
+    --theme-card-r: 49;
+    --theme-card-g: 50;
+    --theme-card-b: 68;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 30;
+    --theme-overlay-g1: 30;
+    --theme-overlay-b1: 46;
+    --theme-overlay-r2: 24;
+    --theme-overlay-g2: 24;
+    --theme-overlay-b2: 37;
     --accent-color: #cba6f7;
     --accent-glow: rgba(203, 166, 247, 0.15);
-    --bg-card: rgba(49, 50, 68, 0.75);
+    
     --border-card: rgba(203, 166, 247, 0.12);
     --border-hover: rgba(203, 166, 247, 0.28);
     --text-primary: #cdd6f4;
@@ -14,19 +25,8 @@
     --danger-bg: rgba(243, 139, 168, 0.10);
 }
 
-body {
-    background-color: #1e1e2e;
-    background-image:
-        linear-gradient(145deg, rgba(30, 30, 46, 0.96) 0%, rgba(24, 24, 37, 0.92) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 28px rgba(203, 166, 247, 0.10);
 }
 
 .header-title {

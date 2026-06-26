@@ -95,6 +95,7 @@ pub(crate) struct BrandingVars {
     pub accent_color: String,
     pub glass_blur: String,
     pub glass_opacity: String,
+    pub wallpaper_overlay_strength: String,
     pub bento_radius: String,
     pub grid_columns: Option<String>,
     pub theme_mode: String,
@@ -149,6 +150,10 @@ pub(crate) fn branding_from_settings(settings: &HashMap<String, String>) -> Bran
             .get("glass_opacity")
             .cloned()
             .unwrap_or_else(|| "0.45".to_string()),
+        wallpaper_overlay_strength: settings
+            .get("wallpaper_overlay_strength")
+            .map(|s| crate::settings::sanitize_wallpaper_overlay_strength(s))
+            .unwrap_or_else(|| "0.85".to_string()),
         bento_radius: settings
             .get("bento_radius")
             .cloned()
@@ -175,6 +180,7 @@ pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
         format!("--brand-logo-url: url('{}');", logo_url)
     };
     let opacity_f: f64 = vars.glass_opacity.parse().unwrap_or(0.45);
+    let overlay_strength = vars.wallpaper_overlay_strength.as_str();
     let accent_glow = accent_glow_from_hex(&vars.accent_color);
     let tagline = vars.tagline.as_deref().unwrap_or("");
     let grid_columns = vars.grid_columns.as_deref().unwrap_or("3");
@@ -189,10 +195,11 @@ pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
             --accent-glow: {};
             --glass-blur-intensity: {}px;
             --glass-opacity: {};
+            --wallpaper-overlay-strength: {};
             --radius-xl: {}px;
             --grid-cols: {};
             --bento-row-height: 8.75rem;
-            --bg-card: rgba(15, 20, 25, {});
+            --bg-card: rgba(var(--theme-card-r, 15), var(--theme-card-g, 20), var(--theme-card-b, 25), {});
             --brand-overlay-gradient: {};
         "#,
         bg_url_style,
@@ -203,6 +210,7 @@ pub(crate) fn build_root_css(vars: &BrandingVars) -> String {
         accent_glow,
         vars.glass_blur,
         vars.glass_opacity,
+        overlay_strength,
         vars.bento_radius,
         grid_columns,
         opacity_f,

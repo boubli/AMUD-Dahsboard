@@ -1,9 +1,20 @@
 /* AMUD Theme: Cotton Candy — blue-pink gradient pastel */
 
 :root {
+    --theme-bg-fallback: #1a1530;
+    --theme-card-r: 40;
+    --theme-card-g: 30;
+    --theme-card-b: 60;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 26;
+    --theme-overlay-g1: 21;
+    --theme-overlay-b1: 48;
+    --theme-overlay-r2: 48;
+    --theme-overlay-g2: 30;
+    --theme-overlay-b2: 55;
     --accent-color: #a78bfa;
     --accent-glow: rgba(167, 139, 250, 0.20);
-    --bg-card: rgba(40, 30, 60, 0.74);
+    
     --border-card: rgba(167, 139, 250, 0.14);
     --border-hover: rgba(244, 114, 182, 0.35);
     --text-primary: #faf5ff;
@@ -15,19 +26,8 @@
     --danger-bg: rgba(244, 114, 182, 0.12);
 }
 
-body {
-    background-color: #1a1530;
-    background-image:
-        linear-gradient(135deg, rgba(26, 21, 48, 0.90) 0%, rgba(48, 30, 55, 0.85) 50%, rgba(30, 40, 65, 0.88) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 22px rgba(0, 0, 0, 0.3);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 30px rgba(167, 139, 250, 0.14);
 }
 
 .header-title {

@@ -302,6 +302,7 @@ async fn render_page(
     };
     let main_grid_class = match mode {
         PageMode::Feeds => "feeds-grid",
+        PageMode::Dashboard if !is_admin => "bento-grid bento-grid--guest-compact",
         PageMode::Dashboard => "bento-grid",
     };
     let body_page_class = match mode {
@@ -421,15 +422,11 @@ fn filled_cpu_ram_cells() -> &'static str {
 }
 
 fn filled_loading_grid() -> &'static str {
-    r#"<div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div>"#
+    r#"<div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div>"#
 }
 
-fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram: bool) -> String {
-    let cpu_ram = if show_cpu_ram {
-        filled_cpu_ram_cells()
-    } else {
-        ""
-    };
+fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, _show_cpu_ram: bool) -> String {
+    let cpu_ram = filled_cpu_ram_cells();
     format!(
         r#"
                 <div class="integration-widget integration-widget--filled">
@@ -442,6 +439,9 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.dns_queries_today ?? '—'"></span><span class="metric-label">Queries</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.ads_percentage_today ?? integrationData.avg_processing_time ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Block %' : 'Avg time'"></span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.domains_being_blocked ?? integrationData.status ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Domains' : 'Status'"></span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.unique_clients ?? integrationData.block_pct ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Clients' : 'Block %'"></span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.gravity_updated ?? integrationData.dns_rewrites ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Gravity' : 'Rewrites'"></span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'radarr'">
@@ -451,6 +451,8 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Movies</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'sonarr'">
@@ -460,6 +462,44 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.series_count ?? '—'"></span><span class="metric-label">Series</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.episode_count ?? '—'"></span><span class="metric-label">Episodes</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'lidarr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Artists</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.album_count ?? '—'"></span><span class="metric-label">Albums</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'readarr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Books</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.author_count ?? '—'"></span><span class="metric-label">Authors</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'whisparr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.series_count ?? '—'"></span><span class="metric-label">Series</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.episode_count ?? '—'"></span><span class="metric-label">Episodes</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'overseerr' || integrationData.type === 'jellyseerr'">
@@ -469,6 +509,8 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.approved_requests ?? '—'"></span><span class="metric-label">Approved</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.processing_requests ?? '—'"></span><span class="metric-label">Processing</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.total_requests ?? '—'"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.declined_requests ?? '—'"></span><span class="metric-label">Declined</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.available_requests ?? '—'"></span><span class="metric-label">Available</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'prowlarr'">
@@ -478,6 +520,8 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.failed_indexers ?? '—'"></span><span class="metric-label">Failed</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.app_count ?? '—'"></span><span class="metric-label">Apps</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'uptime_kuma'">
@@ -487,6 +531,8 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.monitors_down ?? '—'"></span><span class="metric-label">Down</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.monitors_total ?? '—'"></span><span class="metric-label">Total</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.maintenance ?? '—'"></span><span class="metric-label">Maint.</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.avg_ping ?? '—'"></span><span class="metric-label">Avg ping</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cert_expiring ?? '—'"></span><span class="metric-label">Incidents</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'cloudflare_tunnel'">
@@ -496,6 +542,8 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.connections ?? '—'"></span><span class="metric-label">Connections</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.colo_count ?? '—'"></span><span class="metric-label">Colos</span></div>
                             <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.tunnel_name ?? '—'"></span><span class="metric-label">Tunnel</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.connector_version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.origin_count ?? '—'"></span><span class="metric-label">Origins</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'peanut'">
@@ -505,6 +553,8 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.ups_load ?? '—'"></span><span class="metric-label">Load</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.battery_runtime ?? '—'"></span><span class="metric-label">Runtime</span></div>
                             <div class="metric-block"><span class="metric-value" style="font-size:0.75rem;" x-text="integrationData.ups_status ?? '—'"></span><span class="metric-label">UPS</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.input_voltage ?? '—'"></span><span class="metric-label">Input V</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.output_power ?? '—'"></span><span class="metric-label">Output</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'qbittorrent'">
@@ -514,6 +564,106 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Upload</span></div>
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.active_downloads ?? '—'"></span>↓ <span x-text="integrationData.seeding ?? '—'"></span>↑</span><span class="metric-label">Active</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.total_torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.paused_torrents ?? '—'"></span><span class="metric-label">Paused</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'sabnzbd' || integrationData.type === 'nzbget'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.paused ?? '—'"></span><span class="metric-label">Paused</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'transmission'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Upload</span></div>
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.active_downloads ?? '—'"></span>↓ <span x-text="integrationData.seeding ?? '—'"></span>↑</span><span class="metric-label">Active</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.total_torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.paused_torrents ?? '—'"></span><span class="metric-label">Paused</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'jackett'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.indexers_enabled ?? '—'"></span>/<span x-text="integrationData.indexers_total ?? '—'"></span></span><span class="metric-label">Indexers</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.failed_indexers ?? '—'"></span><span class="metric-label">Failed</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.indexers_total ?? '—'"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.indexers_enabled ?? '—'"></span><span class="metric-label">Enabled</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'tautulli'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stream_count ?? '—'"></span><span class="metric-label">Streams</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.bandwidth ?? '—'"></span><span class="metric-label">Bandwidth</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libraries</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.sessions ?? '—'"></span><span class="metric-label">Sessions</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stream_count ?? '—'"></span><span class="metric-label">Active</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'audiobookshelf'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libraries</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.item_count ?? '—'"></span><span class="metric-label">Items</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libs</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.item_count ?? '—'"></span><span class="metric-label">Media</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'immich'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.photos ?? '—'"></span><span class="metric-label">Photos</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.videos ?? '—'"></span><span class="metric-label">Videos</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.assets ?? '—'"></span><span class="metric-label">Assets</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage_used ?? '—'"></span><span class="metric-label">Storage</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'tdarr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Staged</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.workers ?? '—'"></span><span class="metric-label">Workers</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.staged ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.workers ?? '—'"></span><span class="metric-label">Nodes</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'maintainerr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.issue_count ?? '—'"></span><span class="metric-label">Issues</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.rule_count ?? '—'"></span><span class="metric-label">Rules</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.user_count ?? '—'"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.issues ?? '—'"></span><span class="metric-label">Open</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.rules ?? '—'"></span><span class="metric-label">Active</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'frigate'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.cameras_up ?? '—'"></span>/<span x-text="integrationData.cameras_total ?? '—'"></span></span><span class="metric-label">Cameras</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.detection_fps ?? '—'"></span><span class="metric-label">Det. FPS</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.online ?? '—'"></span><span class="metric-label">Online</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cameras ?? '—'"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cameras_up ?? '—'"></span><span class="metric-label">Up</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'bazarr'">
@@ -523,6 +673,8 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.missing_movies ?? '—'"></span><span class="metric-label">Mov. missing</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.language_count ?? '—'"></span><span class="metric-label">Languages</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.provider_count ?? '—'"></span><span class="metric-label">Providers</span></div>
                         </div>
                     </template>
                     </div>
@@ -726,7 +878,7 @@ fn render_apps_grid(
                             </div>
                         </div>
                     </template>
-                    <template x-if="integrationData.type === 'radarr' || integrationData.type === 'sonarr'">
+                    <template x-if="integrationData.type === 'radarr' || integrationData.type === 'sonarr' || integrationData.type === 'lidarr' || integrationData.type === 'readarr' || integrationData.type === 'whisparr'">
                         <div class="nested-metrics-grid cols-2">
                             <div class="metric-block">
                                 <span class="metric-value" x-text="integrationData.queue_size"></span>
@@ -820,6 +972,60 @@ fn render_apps_grid(
                                 <span class="metric-value" x-text="integrationData.missing_movies"></span>
                                 <span class="metric-label">Mov. missing</span>
                             </div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'sabnzbd' || integrationData.type === 'nzbget'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Download</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'transmission'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.active_downloads"></span>↓ <span x-text="integrationData.seeding"></span>↑</span><span class="metric-label">Active</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'jackett'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.indexers_enabled"></span>/<span x-text="integrationData.indexers_total"></span></span><span class="metric-label">Indexers</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.failed_indexers"></span><span class="metric-label">Failed</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'tautulli'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stream_count"></span><span class="metric-label">Streams</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.bandwidth"></span><span class="metric-label">Bandwidth</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'audiobookshelf'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count"></span><span class="metric-label">Libraries</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.item_count"></span><span class="metric-label">Items</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'immich'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.photos"></span><span class="metric-label">Photos</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.videos"></span><span class="metric-label">Videos</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'tdarr'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size"></span><span class="metric-label">Staged</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.workers"></span><span class="metric-label">Workers</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'maintainerr'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.issue_count"></span><span class="metric-label">Issues</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.rule_count"></span><span class="metric-label">Rules</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'frigate'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.cameras_up"></span>/<span x-text="integrationData.cameras_total"></span></span><span class="metric-label">Cameras</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.detection_fps"></span><span class="metric-label">Det. FPS</span></div>
                         </div>
                     </template>
                     </div>

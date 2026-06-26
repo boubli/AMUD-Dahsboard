@@ -1,9 +1,20 @@
 /* AMUD Theme: Luxury Gold — premium obsidian */
 
 :root {
+    --theme-bg-fallback: #0a0a0a;
+    --theme-card-r: 18;
+    --theme-card-g: 16;
+    --theme-card-b: 12;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 201;
+    --theme-overlay-g1: 162;
+    --theme-overlay-b1: 39;
+    --theme-overlay-r2: 0;
+    --theme-overlay-g2: 0;
+    --theme-overlay-b2: 0;
     --accent-color: #c9a227;
     --accent-glow: rgba(201, 162, 39, 0.2);
-    --bg-card: rgba(18, 16, 12, 0.88);
+    
     --border-card: rgba(201, 162, 39, 0.22);
     --border-hover: rgba(232, 201, 106, 0.45);
     --text-primary: #f5f0e6;
@@ -12,17 +23,7 @@
     --success: #6b9b6b;
     --success-bg: rgba(107, 155, 107, 0.12);
     --danger: #c45c5c;
-    --danger-bg: rgba(196, 92, 92, 0.12);
-    --radius-xl: 6px;
-}
-
-body {
-    background-color: #0a0a0a;
-    background-image:
-        radial-gradient(ellipse at top, rgba(201, 162, 39, 0.08) 0%, transparent 55%),
-        radial-gradient(ellipse at bottom, rgba(0, 0, 0, 0.8) 0%, transparent 50%),
-        var(--brand-bg-image);
-}
+    --danger-bg: rgba(196, 92, 92, 0.12);}
 
 .header-title {
     font-family: Georgia, "Times New Roman", serif;
@@ -35,11 +36,6 @@ body {
 
 .glass-panel {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(201, 162, 39, 0.08);
-}
-
-.glass-panel:hover {
-    border-color: rgba(232, 201, 106, 0.4);
-    box-shadow: 0 8px 32px rgba(201, 162, 39, 0.12);
 }
 
 .btn-primary {

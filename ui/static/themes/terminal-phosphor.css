@@ -1,9 +1,16 @@
 /* AMUD Theme: Terminal Phosphor — CRT mainframe */
 
 :root {
+    --theme-bg-fallback: #020c04;
+    --theme-card-r: 4;
+    --theme-card-g: 18;
+    --theme-card-b: 8;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-body-stack: linear-gradient(180deg, rgba(2, 12, 4, 0.98) 0%, rgba(4, 24, 10, 0.95) 100%), linear-gradient(rgba(57, 255, 136, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(57, 255, 136, 0.04) 1px, transparent 1px);
+    --theme-procedural: 1;
     --accent-color: #33ff66;
     --accent-glow: rgba(51, 255, 102, 0.22);
-    --bg-card: rgba(4, 18, 8, 0.92);
+    
     --border-card: rgba(51, 255, 102, 0.25);
     --border-hover: rgba(51, 255, 102, 0.55);
     --text-primary: #b8ffb8;
@@ -12,27 +19,13 @@
     --success: #33ff66;
     --success-bg: rgba(51, 255, 102, 0.12);
     --danger: #ff4444;
-    --danger-bg: rgba(255, 68, 68, 0.12);
-    --glass-blur-intensity: 0px;
-    --glass-opacity: 0.92;
-    --radius-xl: 0px;
-}
-
-body {
-    font-family: "Courier New", Courier, monospace;
-    background-color: #020a04;
-    background-image:
-        radial-gradient(ellipse at center, rgba(51, 255, 102, 0.04) 0%, transparent 70%),
-        linear-gradient(rgba(51, 255, 102, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(51, 255, 102, 0.03) 1px, transparent 1px);
-    background-size: auto, 24px 24px, 24px 24px;
-}
+    --danger-bg: rgba(255, 68, 68, 0.12);}
 
 .glass-panel {
-    border-radius: 0 !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    box-shadow: 0 0 12px rgba(51, 255, 102, 0.15), inset 0 0 30px rgba(51, 255, 102, 0.03);
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(var(--glass-blur-intensity));
+    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));
+    box-shadow: 0 0 16px rgba(0, 255, 65, 0.12), inset 0 0 20px rgba(0, 255, 65, 0.02);
 }
 
 .header-title {

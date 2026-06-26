@@ -4,9 +4,20 @@
    ═══════════════════════════════════════════ */
 
 :root {
+    --theme-bg-fallback: #282a36;
+    --theme-card-r: 68;
+    --theme-card-g: 71;
+    --theme-card-b: 90;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 40;
+    --theme-overlay-g1: 42;
+    --theme-overlay-b1: 54;
+    --theme-overlay-r2: 30;
+    --theme-overlay-g2: 31;
+    --theme-overlay-b2: 44;
     --accent-color: #bd93f9;
     --accent-glow: rgba(189, 147, 249, 0.15);
-    --bg-card: rgba(68, 71, 90, 0.75);
+    
     --border-card: rgba(189, 147, 249, 0.12);
     --border-hover: rgba(189, 147, 249, 0.30);
     --text-primary: #f8f8f2;
@@ -18,19 +29,8 @@
     --danger-bg: rgba(255, 85, 85, 0.10);
 }
 
-body {
-    background-color: #282a36;
-    background-image:
-        linear-gradient(135deg, rgba(40, 42, 54, 0.95) 0%, rgba(30, 31, 44, 0.90) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 32px rgba(189, 147, 249, 0.12);
 }
 
 .header-title {

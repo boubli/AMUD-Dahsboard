@@ -5,7 +5,7 @@ title: Features
 
 # Features
 
-Complete inventory of what AMUD Dashboard ships today (v1.5.2.1). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
+Complete inventory of what AMUD Dashboard ships today (v1.5.6.4). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
 
 ---
 
@@ -19,7 +19,7 @@ Complete inventory of what AMUD Dashboard ships today (v1.5.2.1). Everything bel
 | **Light & dark mode** | System-wide theme toggle with **37 bundled CSS themes** and visual Theme Gallery |
 | **Video wallpapers** | `.mp4`, `.webm`, `.ogg` background support |
 | **Weather widget** | Open-Meteo via latitude/longitude in Settings |
-| **Live settings preview** | Accent, glass blur/opacity, grid columns, wallpaper |
+| **Live settings preview** | Accent, glass blur/opacity, wallpaper overlay strength, grid columns, wallpaper |
 | **Dedicated `/feeds` page** | RSS-only view for guest-friendly news cards |
 | **Featured hero headline** | Top story banner on `/feeds` |
 | **Feed categories** | World News, Tech, etc. with icons and tab colors |
@@ -53,11 +53,26 @@ Configure per app under **Add/Edit App → Integration**. Data loads when the ca
 |-------------|-----------|---------------|---------------|
 | **Pi-hole** | Ads blocked today, status | Disable 5 min | No |
 | **AdGuard Home** | Blocked today, protection state | Disable 5 min | No |
-| **Radarr** | Queue size | — | No |
-| **Sonarr** | Queue size | — | No |
+| **Radarr** | Queue, missing, movies, disk, version, health | — | No |
+| **Sonarr** | Queue, missing, series, episodes, disk, version | — | No |
+| **Lidarr** | Queue, missing, artists, albums, disk, version, health | — | No |
+| **Readarr** | Queue, missing, books, authors, disk, version, health | — | No |
+| **Whisparr** | Queue, missing, series, episodes, disk, version, health | — | No |
 | **Overseerr** | Pending media requests | — | No |
 | **Jellyseerr** | Pending media requests | — | No |
 | **Prowlarr** | Enabled/total indexers, queue size | — | No |
+| **qBittorrent** | Download speed, active downloads, seeding | — | No |
+| **SABnzbd** | Queue, download speed, free disk, version | — | No |
+| **NZBGet** | Queue, download speed, free disk, version | — | No |
+| **Transmission** | Download/upload speed, active torrents, free disk | — | No |
+| **Jackett** | Indexers enabled/total, failed count | — | No |
+| **Tautulli** | Active streams, bandwidth, libraries | — | No |
+| **Audiobookshelf** | Library and item counts | — | No |
+| **Immich** | Photos, videos, assets, storage | — | No |
+| **Tdarr** | Staged queue, workers | — | No |
+| **Maintainerr** | Issues, rules | — | No |
+| **Frigate** | Cameras up/total, detection FPS | — | No |
+| **Bazarr** | Missing subtitles (episodes/movies) | — | No |
 | **Uptime Kuma** | Monitors up/down | — | No |
 | **Cloudflare Tunnel** | Tunnel status, connections | — | No |
 | **Peanut (UPS)** | Battery %, UPS status | — | No |

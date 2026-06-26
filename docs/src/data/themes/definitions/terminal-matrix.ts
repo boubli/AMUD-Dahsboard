@@ -12,7 +12,6 @@ const def: ThemeDefinition = {
     accent: '#00ff41',
     text: '#00ff41',
   },
-  wallpaper: '',
 };
 
 export default def;

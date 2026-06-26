@@ -322,10 +322,23 @@
                         <option value="adguard">AdGuard Home</option>
                         <option value="radarr">Radarr</option>
                         <option value="sonarr">Sonarr</option>
+                        <option value="lidarr">Lidarr</option>
+                        <option value="readarr">Readarr</option>
+                        <option value="whisparr">Whisparr</option>
                         <option value="overseerr">Overseerr</option>
                         <option value="jellyseerr">Jellyseerr</option>
                         <option value="prowlarr">Prowlarr</option>
                         <option value="qbittorrent">qBittorrent</option>
+                        <option value="sabnzbd">SABnzbd</option>
+                        <option value="nzbget">NZBGet</option>
+                        <option value="transmission">Transmission</option>
+                        <option value="jackett">Jackett</option>
+                        <option value="tautulli">Tautulli</option>
+                        <option value="audiobookshelf">Audiobookshelf</option>
+                        <option value="immich">Immich</option>
+                        <option value="tdarr">Tdarr</option>
+                        <option value="maintainerr">Maintainerr</option>
+                        <option value="frigate">Frigate</option>
                         <option value="bazarr">Bazarr</option>
                         <option value="uptime_kuma">Uptime Kuma</option>
                         <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
@@ -340,11 +353,13 @@
                         <span x-show="newApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
                         <span x-show="newApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
                         <span x-show="newApp.integration_type === 'peanut'">API token (optional)</span>
-                        <span x-show="newApp.integration_type === 'qbittorrent'">Web UI credentials</span>
-                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent'].includes(newApp.integration_type)">API key / token</span>
+                        <span x-show="newApp.integration_type === 'qbittorrent' || newApp.integration_type === 'nzbget'">Web UI credentials</span>
+                        <span x-show="newApp.integration_type === 'transmission'">RPC credentials (optional)</span>
+                        <span x-show="newApp.integration_type === 'audiobookshelf'">API token</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent','nzbget','transmission','audiobookshelf'].includes(newApp.integration_type)">API key / token</span>
                     </label>
                     <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key"
-                        :placeholder="newApp.integration_type === 'adguard' ? 'Base64 username:password' : (newApp.integration_type === 'pihole' ? 'Pi-hole API token (Settings → API)' : (newApp.integration_type === 'uptime_kuma' ? 'my-status-page-slug' : (newApp.integration_type === 'cloudflare_tunnel' ? 'account_id|tunnel_id|api_token' : (newApp.integration_type === 'peanut' ? 'Leave empty if no auth' : (newApp.integration_type === 'qbittorrent' ? 'admin|yourpassword' : 'From the service settings')))))">
+                        :placeholder="newApp.integration_type === 'adguard' ? 'Base64 username:password' : (newApp.integration_type === 'pihole' ? 'Pi-hole API token (Settings → API)' : (newApp.integration_type === 'uptime_kuma' ? 'my-status-page-slug' : (newApp.integration_type === 'cloudflare_tunnel' ? 'account_id|tunnel_id|api_token' : (newApp.integration_type === 'peanut' ? 'Leave empty if no auth' : (newApp.integration_type === 'qbittorrent' || newApp.integration_type === 'nzbget' ? 'admin|yourpassword' : (newApp.integration_type === 'transmission' ? 'Leave empty if no RPC auth' : 'From the service settings'))))))">
                     <p class="form-help" x-show="newApp.integration_type === 'adguard'">
                         AdGuard Home does <strong>not</strong> use an API key. Encode your AdGuard UI login as Base64 <code>username:password</code>
                         (Linux/macOS: <code>echo -n 'admin:yourpass' | base64</code>).
@@ -353,14 +368,44 @@
                     <p class="form-help" x-show="newApp.integration_type === 'pihole'">
                         Use the API token from Pi-hole <strong>Settings → API</strong> (or web password on older installs).
                     </p>
-                    <p class="form-help" x-show="newApp.integration_type === 'radarr' || newApp.integration_type === 'sonarr'">
-                        Copy the API key from <strong>Settings → General</strong> in Radarr/Sonarr.
+                    <p class="form-help" x-show="newApp.integration_type === 'radarr' || newApp.integration_type === 'sonarr' || newApp.integration_type === 'lidarr' || newApp.integration_type === 'readarr' || newApp.integration_type === 'whisparr'">
+                        Copy the API key from <strong>Settings → General</strong> in the *arr app.
                     </p>
                     <p class="form-help" x-show="newApp.integration_type === 'overseerr' || newApp.integration_type === 'jellyseerr'">
                         Copy the API key from the service settings (Overseerr/Jellyseerr → General).
                     </p>
                     <p class="form-help" x-show="newApp.integration_type === 'prowlarr'">
                         API key from Prowlarr <strong>Settings → General</strong>. Hover the card to see indexers and queue.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'nzbget'">
+                        Format: <code>username|password</code> for the NZBGet Web UI. Hover the card for queue and download speed.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'transmission'">
+                        Optional <code>username|password</code> if RPC auth is enabled. Leave empty on trusted LAN. Hover for torrent stats.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'sabnzbd'">
+                        API key from SABnzbd <strong>Config → General</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'jackett'">
+                        API key from Jackett <strong>UI → API Key</strong> (or copy from dashboard).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'tautulli'">
+                        API key from Tautulli <strong>Settings → Web Interface</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'audiobookshelf'">
+                        Long-lived API token from Audiobookshelf user settings.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'immich'">
+                        API key from Immich <strong>Account → API Keys</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'tdarr'">
+                        Tdarr URL only — no API key needed on most LAN installs. Use Tdarr server port (default 8265).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'maintainerr'">
+                        API key from Maintainerr <strong>Settings → API</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'frigate'">
+                        Optional JWT/API key if auth is enabled. Leave empty on trusted LAN.
                     </p>
                     <p class="form-help" x-show="newApp.integration_type === 'qbittorrent'">
                         Format: <code>username|password</code> for the qBittorrent Web UI. Enable Web UI in qBittorrent settings. Hover the card for download speed and active torrents.
@@ -491,10 +536,23 @@
                         <option value="adguard">AdGuard Home</option>
                         <option value="radarr">Radarr</option>
                         <option value="sonarr">Sonarr</option>
+                        <option value="lidarr">Lidarr</option>
+                        <option value="readarr">Readarr</option>
+                        <option value="whisparr">Whisparr</option>
                         <option value="overseerr">Overseerr</option>
                         <option value="jellyseerr">Jellyseerr</option>
                         <option value="prowlarr">Prowlarr</option>
                         <option value="qbittorrent">qBittorrent</option>
+                        <option value="sabnzbd">SABnzbd</option>
+                        <option value="nzbget">NZBGet</option>
+                        <option value="transmission">Transmission</option>
+                        <option value="jackett">Jackett</option>
+                        <option value="tautulli">Tautulli</option>
+                        <option value="audiobookshelf">Audiobookshelf</option>
+                        <option value="immich">Immich</option>
+                        <option value="tdarr">Tdarr</option>
+                        <option value="maintainerr">Maintainerr</option>
+                        <option value="frigate">Frigate</option>
                         <option value="bazarr">Bazarr</option>
                         <option value="uptime_kuma">Uptime Kuma</option>
                         <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
@@ -509,8 +567,10 @@
                         <span x-show="editApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
                         <span x-show="editApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
                         <span x-show="editApp.integration_type === 'peanut'">API token (optional)</span>
-                        <span x-show="editApp.integration_type === 'qbittorrent'">Web UI credentials</span>
-                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent'].includes(editApp.integration_type)">API key / token</span>
+                        <span x-show="editApp.integration_type === 'qbittorrent' || editApp.integration_type === 'nzbget'">Web UI credentials</span>
+                        <span x-show="editApp.integration_type === 'transmission'">RPC credentials (optional)</span>
+                        <span x-show="editApp.integration_type === 'audiobookshelf'">API token</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent','nzbget','transmission','audiobookshelf'].includes(editApp.integration_type)">API key / token</span>
                     </label>
                     <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key"
                         :placeholder="editApp.integration_type === 'adguard' ? 'Base64 username:password' : (editApp.integration_type === 'pihole' ? 'Leave blank to keep unchanged' : 'Leave blank to keep unchanged')">
@@ -522,8 +582,8 @@
                     <p class="form-help" x-show="editApp.integration_type === 'pihole'">
                         Use the API token from Pi-hole <strong>Settings → API</strong>. Leave blank to keep the saved token.
                     </p>
-                    <p class="form-help" x-show="editApp.integration_type === 'radarr' || editApp.integration_type === 'sonarr'">
-                        API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.
+                    <p class="form-help" x-show="editApp.integration_type === 'radarr' || editApp.integration_type === 'sonarr' || editApp.integration_type === 'lidarr' || editApp.integration_type === 'readarr' || editApp.integration_type === 'whisparr'">
+                        API key from <strong>Settings → General</strong> in the *arr app. Leave blank to keep unchanged.
                     </p>
                     <p class="form-help" x-show="editApp.integration_type === 'overseerr' || editApp.integration_type === 'jellyseerr'">
                         API key from service settings. Leave blank to keep unchanged.
@@ -531,8 +591,20 @@
                     <p class="form-help" x-show="editApp.integration_type === 'prowlarr'">
                         Prowlarr API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.
                     </p>
-                    <p class="form-help" x-show="editApp.integration_type === 'qbittorrent'">
+                    <p class="form-help" x-show="editApp.integration_type === 'qbittorrent' || editApp.integration_type === 'nzbget'">
                         <code>username|password</code> for Web UI. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'transmission'">
+                        Optional <code>username|password</code> for RPC auth. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'sabnzbd' || editApp.integration_type === 'jackett' || editApp.integration_type === 'tautulli' || editApp.integration_type === 'immich' || editApp.integration_type === 'maintainerr'">
+                        API key from service settings. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'audiobookshelf'">
+                        Bearer API token. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'tdarr' || editApp.integration_type === 'frigate'">
+                        Optional — leave blank if no auth on your LAN. Leave blank to keep unchanged.
                     </p>
                     <p class="form-help" x-show="editApp.integration_type === 'bazarr'">
                         Bazarr API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.

@@ -1,9 +1,20 @@
 /* AMUD Theme: Zen Garden — muted stone and bamboo green */
 
 :root {
+    --theme-bg-fallback: #1a1c18;
+    --theme-card-r: 35;
+    --theme-card-g: 38;
+    --theme-card-b: 32;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 26;
+    --theme-overlay-g1: 28;
+    --theme-overlay-b1: 24;
+    --theme-overlay-r2: 40;
+    --theme-overlay-g2: 45;
+    --theme-overlay-b2: 35;
     --accent-color: #a8b5a0;
     --accent-glow: rgba(168, 181, 160, 0.16);
-    --bg-card: rgba(35, 38, 32, 0.78);
+    
     --border-card: rgba(168, 181, 160, 0.12);
     --border-hover: rgba(168, 181, 160, 0.30);
     --text-primary: #f0f2ec;
@@ -15,19 +26,8 @@
     --danger-bg: rgba(192, 128, 128, 0.12);
 }
 
-body {
-    background-color: #1a1c18;
-    background-image:
-        linear-gradient(160deg, rgba(26, 28, 24, 0.93) 0%, rgba(40, 45, 35, 0.88) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 26px rgba(168, 181, 160, 0.10);
 }
 
 .header-title {

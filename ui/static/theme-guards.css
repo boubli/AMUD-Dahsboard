@@ -1,129 +1,102 @@
-/* Loaded after custom/bundled theme CSS — keeps app card metrics layout stable */
-
-.app-card.glass-panel {
-    overflow: visible;
-    height: auto;
-    min-height: var(--bento-row-height);
-}
-
-.app-card.glass-panel.app-card--guest-compact {
-    min-height: auto;
-    align-self: start;
-    grid-row: span 1;
-    grid-column: span 1;
-}
-
-/* Theme border effects must not sit over metric rows */
-.app-card.glass-panel::before {
-    display: none !important;
-}
-
-.app-card .app-card-metrics-slot {
-    position: relative;
-    flex-shrink: 0;
-    min-height: 3.65rem;
-    margin-top: auto;
-    overflow: hidden;
-}
-
-.app-card .app-card-metrics-slot .nested-metrics-grid {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: none;
-}
-
-.app-card .app-card-metrics-slot--dual .app-card-metrics-layer--infra {
-    position: absolute;
-    inset: 0.75rem 0 0 0;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.app-card .app-card-metrics-layer--integration {
-    position: absolute;
-    inset: 0.75rem 0 0 0;
-    display: flex;
-    align-items: stretch;
-}
-
-.app-card .app-card-metrics-slot--dual .app-card-metrics-layer--integration,
-.app-card .app-card-metrics-slot--solo .app-card-metrics-layer--integration {
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-}
-
-.app-card .app-card-metrics-layer--integration .nested-metrics-grid {
-    width: 100%;
-    align-self: stretch;
-}
-
-.app-card .app-card-metrics-slot--stacked {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    min-height: auto;
-    overflow: visible;
-}
-
-.app-card .app-card-metrics-slot--stacked .app-card-metrics-layer--infra,
-.app-card .app-card-metrics-slot--stacked .app-card-metrics-layer--integration {
-    position: static;
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-}
-
-.app-card .app-card-metrics-slot--filled {
-    flex: 1;
-    margin-top: 0;
-    min-height: 0;
-    overflow: visible;
-}
-
-.app-card .integration-widget--filled {
-    flex: 1;
-    margin-top: 0;
-}
-
-.app-card .integration-metrics-grid {
-    flex: 1;
-    min-height: 8.5rem;
-}
-
-@media (hover: hover) {
-    .app-card .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--infra {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .app-card .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--integration {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .app-card.glass-panel:has(.app-card-metrics-slot):hover {
-        transform: translateY(-2px);
-    }
-}
-
-@media (hover: none) {
-    .app-card .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked) .app-card-metrics-layer--infra {
-        display: none;
-    }
-
-    .app-card .app-card-metrics-layer--integration {
-        position: static;
-        opacity: 1;
-        pointer-events: auto;
-        transform: none;
-    }
-}
-
-.app-card .metric-value {
-    color: var(--text-primary);
-}
-
-.app-card .metric-label {
-    color: var(--text-muted);
-}
+/* Loaded after custom/bundled theme CSS — keeps app card metrics layout stable */
+
+/* User glass/layout sliders always win over pasted theme CSS */
+.glass-panel {
+    background: rgba(var(--theme-card-r, 15), var(--theme-card-g, 20), var(--theme-card-b, 25), var(--glass-opacity)) !important;
+    backdrop-filter: blur(var(--glass-blur-intensity)) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur-intensity)) !important;
+    border-radius: var(--radius-xl) !important;
+}
+
+.app-card.glass-panel {
+    overflow: visible;
+    height: auto;
+    min-height: var(--bento-row-height);
+    transform: none !important;
+}
+
+.app-card.glass-panel.app-card--guest-compact {
+    min-height: auto;
+    align-self: start;
+    grid-row: span 1;
+    grid-column: span 1;
+}
+
+/* Theme border effects must not sit over metric rows */
+.app-card.glass-panel::before {
+    display: none !important;
+}
+
+.app-card .app-card-metrics-slot {
+    position: relative;
+    flex-shrink: 0;
+    min-height: 3.65rem;
+    margin-top: auto;
+    overflow: hidden;
+}
+
+.app-card .app-card-metrics-slot .nested-metrics-grid {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.app-card .app-card-metrics-slot--dual .app-card-metrics-layer--infra {
+    display: none;
+}
+
+.app-card .app-card-metrics-layer--integration {
+    position: static;
+    display: flex;
+    align-items: stretch;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+}
+
+.app-card .app-card-metrics-layer--integration .nested-metrics-grid {
+    width: 100%;
+    align-self: stretch;
+}
+
+.app-card .app-card-metrics-slot--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: auto;
+    overflow: visible;
+}
+
+.app-card .app-card-metrics-slot--stacked .app-card-metrics-layer--infra,
+.app-card .app-card-metrics-slot--stacked .app-card-metrics-layer--integration {
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+}
+
+.app-card .app-card-metrics-slot--filled {
+    flex: 1;
+    margin-top: 0;
+    min-height: 0;
+    overflow: visible;
+}
+
+.app-card .integration-widget--filled {
+    flex: 1;
+    margin-top: 0;
+}
+
+.app-card .integration-metrics-grid {
+    flex: 1;
+    min-height: 8.5rem;
+}
+
+.app-card .metric-value {
+    color: var(--text-primary);
+}
+
+.app-card .metric-label {
+    color: var(--text-muted);
+}
+

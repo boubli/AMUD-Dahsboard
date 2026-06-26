@@ -1,35 +1,32 @@
-# AMUD Custom Themes
+# Bundled AMUD themes (offline)
 
-Dashboard theme CSS for the [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes) and offline use on the dashboard at `/static/themes/`.
+These CSS files ship inside `ui.tar.gz` at `/static/themes/` on your AMUD server.
 
-## Structure
+## Manifest v3
+
+`manifest.json` lists all themes with preview thumbnails and matching wallpapers:
 
 ```
-docs/static/themes/          # Gallery + GitHub Pages
-ui/static/themes/            # Shipped with ui.tar.gz (offline)
-├── manifest.json              # Bundled theme list (ui only)
-├── assets/                    # Preview screenshots (PNG)
-├── wallpapers/                # 2K wallpapers (JPG, all wallpaper themes)
-├── previews/                  # Grid thumbnails (JPG)
-├── dracula.css
-├── terminal-phosphor.css      # Advanced layout themes
-└── …
+/static/themes/manifest.json
+/static/themes/dracula.css
+/static/themes/wallpapers/nord.jpg
+/static/themes/previews/nord.jpg
 ```
 
-## How users apply themes
+## Settings UI
 
-**Offline (no internet):** Settings → Appearance → **Theme Gallery** → click a theme → **Save Changes**.
+Open **Settings → Appearance → Theme Gallery** to preview themes visually. Click a card to load CSS and matching wallpaper into the live preview, then **Save Changes**.
 
-**Online gallery:** [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes) — Copy CSS, Download CSS, or Copy wallpaper.
+Keep in sync with `docs/static/themes/` when adding new themes:
 
-**37 themes** · manifest v3 · wallpapers in `wallpapers/` · previews in `previews/`
+```powershell
+./scripts/sync-themes.ps1
+```
 
-## Add a new theme
+Re-fetch real photos (vendored locally, offline-safe):
 
-1. Add `your-theme.css` to **both** `docs/static/themes/` and `ui/static/themes/`
-2. Add preview PNG to `assets/AMUD-Theme-Your-Theme.png`
-3. Optional wallpaper JPG in `wallpapers/`
-4. Add `docs/src/data/themes/definitions/your-theme.ts` and register in `definitions/index.ts`
-5. Add entry to `ui/static/themes/manifest.json`
+```bash
+python scripts/fetch-theme-wallpapers.py
+```
 
-Push to `main` — gallery deploys via GitHub Actions; themes ship with the next release `ui.tar.gz`.
+Legacy gradient generator (deprecated): `scripts/generate-theme-wallpapers.py`

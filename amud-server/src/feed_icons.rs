@@ -53,7 +53,7 @@ pub(crate) fn favicon_url_for_host(host: &str) -> String {
     if host.is_empty() {
         return "/static/feeds/icons/rss.svg".to_string();
     }
-    format!("https://icons.duckduckgo.com/ip3/{host}.ico")
+    format!("/api/rss/favicon?host={host}")
 }
 
 /// Legacy helper — prefer [`auto_feed_icon_url`] for new RSS feeds.
@@ -180,13 +180,13 @@ mod tests {
     fn resolve_prefers_stored_favicon_url() {
         let manifest = HashMap::new();
         let logo = resolve_feed_logo(
-            "https://icons.duckduckgo.com/ip3/example.com.ico",
+            "/api/rss/favicon?host=example.com",
             "Example",
             "",
             "",
             &manifest,
         );
-        assert_eq!(logo, "https://icons.duckduckgo.com/ip3/example.com.ico");
+        assert_eq!(logo, "/api/rss/favicon?host=example.com");
     }
 
     #[test]

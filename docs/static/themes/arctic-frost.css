@@ -1,9 +1,20 @@
 /* AMUD Theme: Arctic Frost — ice blue crisp minimal */
 
 :root {
+    --theme-bg-fallback: #0c1820;
+    --theme-card-r: 20;
+    --theme-card-g: 35;
+    --theme-card-b: 50;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 12;
+    --theme-overlay-g1: 24;
+    --theme-overlay-b1: 32;
+    --theme-overlay-r2: 20;
+    --theme-overlay-g2: 40;
+    --theme-overlay-b2: 55;
     --accent-color: #7dd3fc;
     --accent-glow: rgba(125, 211, 252, 0.18);
-    --bg-card: rgba(20, 35, 50, 0.78);
+    
     --border-card: rgba(125, 211, 252, 0.14);
     --border-hover: rgba(186, 230, 253, 0.35);
     --text-primary: #f0f9ff;
@@ -15,19 +26,8 @@
     --danger-bg: rgba(248, 113, 113, 0.12);
 }
 
-body {
-    background-color: #0c1820;
-    background-image:
-        linear-gradient(180deg, rgba(12, 24, 32, 0.94) 0%, rgba(20, 40, 55, 0.90) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 20px rgba(0, 20, 40, 0.35);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 28px rgba(125, 211, 252, 0.12);
 }
 
 .header-title {

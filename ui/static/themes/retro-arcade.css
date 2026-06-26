@@ -1,9 +1,20 @@
 /* AMUD Theme: Retro Arcade — 80s neon on dark */
 
 :root {
+    --theme-bg-fallback: #0a0018;
+    --theme-card-r: 20;
+    --theme-card-g: 8;
+    --theme-card-b: 35;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 10;
+    --theme-overlay-g1: 0;
+    --theme-overlay-b1: 24;
+    --theme-overlay-r2: 20;
+    --theme-overlay-g2: 5;
+    --theme-overlay-b2: 40;
     --accent-color: #ff00ff;
     --accent-glow: rgba(255, 0, 255, 0.22);
-    --bg-card: rgba(20, 8, 35, 0.82);
+    
     --border-card: rgba(255, 0, 255, 0.14);
     --border-hover: rgba(0, 255, 255, 0.35);
     --text-primary: #fff0ff;
@@ -15,19 +26,8 @@
     --danger-bg: rgba(255, 51, 102, 0.12);
 }
 
-body {
-    background-color: #0a0018;
-    background-image:
-        linear-gradient(135deg, rgba(10, 0, 24, 0.95) 0%, rgba(20, 5, 40, 0.90) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 24px rgba(255, 0, 255, 0.08);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 32px rgba(255, 0, 255, 0.18), 0 0 20px rgba(0, 255, 255, 0.08);
 }
 
 .header-title {

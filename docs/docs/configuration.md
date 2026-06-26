@@ -100,12 +100,25 @@ Per-app integrations are set when you **Add** or **Edit** an app (Integration dr
 |-------------|---------------|------------------|-------|
 | **Pi-hole** | Pi-hole web UI base URL | Web password / API token | Shows ads blocked today; admin can disable 5 min |
 | **AdGuard Home** | AdGuard UI base URL | Basic auth credential | **Not an API key.** Base64-encoded `username:password` for the AdGuard UI login (see below) |
-| **Radarr** | Radarr base URL | API key (`X-Api-Key`) | Queue size |
-| **Sonarr** | Sonarr base URL | API key | Queue size |
+| **Radarr** | Radarr base URL | API key (`X-Api-Key`) | Queue, missing, movies, disk, version, health |
+| **Sonarr** | Sonarr base URL | API key | Queue, missing, series, episodes, disk, version |
+| **Lidarr** | Lidarr base URL | API key | Queue, missing, artists, albums, disk, version, health |
+| **Readarr** | Readarr base URL | API key | Queue, missing, books, authors, disk, version, health |
+| **Whisparr** | Whisparr base URL | API key | Queue, missing, series, episodes, disk, version, health |
 | **Overseerr** | Overseerr base URL | API key | Pending media requests |
 | **Jellyseerr** | Jellyseerr base URL | API key | Pending media requests |
 | **Prowlarr** | Prowlarr base URL | API key (`X-Api-Key`) | Enabled/total indexers + queue size |
 | **qBittorrent** | Web UI base URL | `username\|password` | Download speed, active downloads, seeding (hover card) |
+| **SABnzbd** | SABnzbd base URL | API key | Queue, download speed, free disk, paused, version |
+| **NZBGet** | NZBGet base URL | `username\|password` | Queue, download speed, free disk, paused, version |
+| **Transmission** | RPC/Web base URL | `username\|password` (optional) | Download/upload speed, active torrents, free disk |
+| **Jackett** | Jackett base URL | API key (`X-Api-Key`) | Indexers enabled/total, failed count, version |
+| **Tautulli** | Tautulli base URL | API key | Active streams, bandwidth, libraries (hover card) |
+| **Audiobookshelf** | Audiobookshelf base URL | Bearer API token | Library and item counts |
+| **Immich** | Immich base URL | API key (`x-api-key`) | Photos, videos, assets, storage used |
+| **Tdarr** | Tdarr server URL | — (optional) | Staged queue, workers, health |
+| **Maintainerr** | Maintainerr base URL | API key | Issue and rule counts |
+| **Frigate** | Frigate base URL | API key (optional) | Cameras up/total, detection FPS |
 | **Bazarr** | Bazarr base URL | API key | Missing subtitle counts for episodes and movies (hover card) |
 | **Uptime Kuma** | Uptime Kuma base URL | Status page slug **or** API key | Monitors up/down (status page JSON or `/api/monitors`) |
 | **Cloudflare Tunnel** | Tunnel hostname or dashboard URL | `account_id\|tunnel_id\|api_token` | Tunnel status + active connections |

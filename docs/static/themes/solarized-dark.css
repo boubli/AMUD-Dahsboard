@@ -1,8 +1,19 @@
 /* AMUD Theme: Solarized Dark — scientific low-contrast dark */
 :root {
+    --theme-bg-fallback: #002b36;
+    --theme-card-r: 7;
+    --theme-card-g: 54;
+    --theme-card-b: 66;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 0;
+    --theme-overlay-g1: 43;
+    --theme-overlay-b1: 54;
+    --theme-overlay-r2: 7;
+    --theme-overlay-g2: 54;
+    --theme-overlay-b2: 66;
     --accent-color: #268bd2;
     --accent-glow: rgba(38, 139, 210, 0.14);
-    --bg-card: rgba(7, 54, 66, 0.75);
+    
     --border-card: rgba(38, 139, 210, 0.10);
     --border-hover: rgba(38, 139, 210, 0.26);
     --text-primary: #93a1a1;
@@ -14,17 +25,7 @@
     --danger-bg: rgba(220, 50, 47, 0.10);
 }
 
-body {
-    background-color: #002b36;
-    background-image:
-        linear-gradient(160deg, rgba(0, 43, 54, 0.96) 0%, rgba(7, 54, 66, 0.92) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.30);
 }
 
-.glass-panel:hover {
-    box-shadow: 0 8px 26px rgba(38, 139, 210, 0.09);
-}

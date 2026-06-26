@@ -1,9 +1,20 @@
 /* AMUD Theme: Midnight City — urban night skyline mood */
 
 :root {
+    --theme-bg-fallback: #080c18;
+    --theme-card-r: 15;
+    --theme-card-g: 20;
+    --theme-card-b: 35;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-overlay-r1: 8;
+    --theme-overlay-g1: 12;
+    --theme-overlay-b1: 24;
+    --theme-overlay-r2: 15;
+    --theme-overlay-g2: 25;
+    --theme-overlay-b2: 45;
     --accent-color: #60a5fa;
     --accent-glow: rgba(96, 165, 250, 0.18);
-    --bg-card: rgba(15, 20, 35, 0.80);
+    
     --border-card: rgba(96, 165, 250, 0.12);
     --border-hover: rgba(96, 165, 250, 0.32);
     --text-primary: #e8f0ff;
@@ -15,19 +26,8 @@
     --danger-bg: rgba(248, 113, 113, 0.12);
 }
 
-body {
-    background-color: #080c18;
-    background-image:
-        linear-gradient(180deg, rgba(8, 12, 24, 0.94) 0%, rgba(15, 25, 45, 0.90) 100%),
-        var(--brand-bg-image);
-}
-
 .glass-panel {
     box-shadow: 0 4px 22px rgba(0, 0, 0, 0.45);
-}
-
-.glass-panel:hover {
-    box-shadow: 0 8px 30px rgba(96, 165, 250, 0.14);
 }
 
 .header-title {

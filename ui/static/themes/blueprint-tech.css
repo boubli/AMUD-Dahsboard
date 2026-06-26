@@ -1,9 +1,16 @@
 /* AMUD Theme: Blueprint Tech — engineering schematic */
 
 :root {
+    --theme-bg-fallback: #0a1628;
+    --theme-card-r: 10;
+    --theme-card-g: 22;
+    --theme-card-b: 40;
+    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
+    --theme-body-stack: linear-gradient(rgba(30, 144, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 144, 255, 0.08) 1px, transparent 1px), linear-gradient(180deg, #0a1628 0%, #0d2040 100%);
+    --theme-procedural: 1;
     --accent-color: #38bdf8;
     --accent-glow: rgba(56, 189, 248, 0.18);
-    --bg-card: rgba(10, 22, 40, 0.88);
+    
     --border-card: rgba(56, 189, 248, 0.35);
     --border-hover: rgba(125, 211, 252, 0.6);
     --text-primary: #e0f2fe;
@@ -12,23 +19,12 @@
     --success: #4ade80;
     --success-bg: rgba(74, 222, 128, 0.1);
     --danger: #f87171;
-    --danger-bg: rgba(248, 113, 113, 0.1);
-    --radius-xl: 2px;
-}
-
-body {
-    background-color: #0a1628;
-    background-image:
-        linear-gradient(rgba(56, 189, 248, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56, 189, 248, 0.07) 1px, transparent 1px);
-    background-size: 20px 20px;
-}
+    --danger-bg: rgba(248, 113, 113, 0.1);}
 
 .glass-panel {
-    border-style: dashed !important;
-    border-width: 1px !important;
-    backdrop-filter: blur(4px) !important;
-    box-shadow: none;
+    backdrop-filter: blur(var(--glass-blur-intensity));
+    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));
+    border: 1px solid rgba(30, 144, 255, 0.25);
 }
 
 .header-title {
