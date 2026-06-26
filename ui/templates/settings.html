@@ -2758,7 +2758,13 @@
                     return;
                 }
                 resultEl.style.borderColor = 'rgba(34,197,94,0.35)';
-                resultEl.innerHTML = `<strong>Valid backup.</strong> Contains ${data.apps} apps, ${data.users} users, ${data.webhooks} webhooks, ${data.categories} categories, ${data.rss_feeds} RSS feeds.`;
+                resultEl.replaceChildren();
+                const strong = document.createElement('strong');
+                strong.textContent = 'Valid backup.';
+                resultEl.appendChild(strong);
+                resultEl.appendChild(document.createTextNode(
+                    ` Contains ${data.apps} apps, ${data.users} users, ${data.webhooks} webhooks, ${data.categories} categories, ${data.rss_feeds} RSS feeds.`
+                ));
             } catch (e) {
                 resultEl.style.display = 'block';
                 resultEl.style.borderColor = 'rgba(239,68,68,0.4)';
@@ -2810,7 +2816,13 @@
             } catch (e) {
                 showApiError(e.message || 'Import failed');
             } finally {
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="alert-triangle"></i> Overwrite & Restore'; if (window.lucide) window.lucide.createIcons(); }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.replaceChildren();
+                    appendLucideIcon(btn, 'alert-triangle');
+                    btn.appendChild(document.createTextNode(' Overwrite & Restore'));
+                    if (window.lucide) window.lucide.createIcons();
+                }
             }
         }
 
