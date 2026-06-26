@@ -778,7 +778,6 @@ body::-webkit-scrollbar-button {
     transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
-.app-card-metrics-slot--dual .app-card-metrics-layer--integration,
 .app-card-metrics-slot--solo .app-card-metrics-layer--integration {
     opacity: 1;
     pointer-events: auto;
@@ -787,6 +786,9 @@ body::-webkit-scrollbar-button {
 
 .app-card-metrics-slot--dual .app-card-metrics-layer--integration {
     position: static;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
 }
 
 .app-card-metrics-layer--integration .nested-metrics-grid {

@@ -11,8 +11,9 @@ GitHub Actions → **SonarCloud Code Analysis** run → **See analysis details o
 | # | File | Topic | Recommended action |
 |---|------|-------|-------------------|
 | 1 | `Dockerfile` | `FROM scratch` runs as root | **Safe** — static musl binary, minimal homelab image, data on volume; comment in Dockerfile |
-| 2 | `security.rs` → `get_rss_url_allowed` | Outbound HTTP (SSRF) | **Safe** — admin-only RSS discovery/favicon; `url_allowed_for_rss_feed` blocks loopback/metadata; redirects disabled |
-| 3 | `settings.html` RSS tab | DOM / `innerHTML` | **Fixed** — RSS tables use `appendLucideIcon` / `createLucideIconButton` from `admin.js` |
+| 2 | `security.rs` → `get_rss_url_allowed` | Outbound HTTP (SSRF) | **Safe** — admin-only RSS; `url_allowed_for_rss_feed` blocks loopback/metadata; redirects disabled |
+| 3 | `scripts/refactor-themes.py` | ReDoS in regex | **Fixed** — flat `[^{}]*` block matchers; helpers split cognitive complexity |
+| 4 | `settings.html` RSS tab | DOM / `innerHTML` | **Fixed** — RSS tables use `appendLucideIcon` / `createLucideIconButton` |
 
 If Sonar still lists separate hotspots in `rss_discover.rs` or `rss.rs`, they route through `get_rss_url_allowed` — mark **Safe** with the same SSRF justification.
 
