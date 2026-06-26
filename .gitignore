@@ -40,10 +40,6 @@ scripts/test-dashboard-rates.mjs
 scripts/test-disk-volumes.mjs
 scripts/test-*.mjs
 
-# Local Sonar / review notes
-.github/SONAR_HOTSPOT_REVIEW.md
-sonar-project.properties
-
 # Local dev canvases / experiments
 canvases/
 

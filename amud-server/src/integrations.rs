@@ -1,5 +1,5 @@
 use crate::models::App;
-use crate::security::{sanitize_feed_link, sanitize_rss_feed_url};
+use crate::security::{get_rss_url_allowed, sanitize_feed_link, sanitize_rss_feed_url};
 use chrono::{DateTime, Utc};
 use feed_rs::model::{Entry, Feed};
 use serde_json::{json, Value};
@@ -669,7 +669,7 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
         "frigate" => return fetch_frigate(&client, base_url, &app.api_key).await,
         "rss" => {
             let feed_url = sanitize_rss_feed_url(&app.api_key)?;
-            let resp = client.get(&feed_url).send().await.ok()?;
+            let resp = get_rss_url_allowed(&client, &feed_url).await?;
             if resp.status().is_success() {
                 let bytes = resp.bytes().await.ok()?;
                 if bytes.len() > RSS_MAX_RESPONSE_BYTES {

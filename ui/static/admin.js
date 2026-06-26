@@ -34,6 +34,22 @@
         return td;
     }
 
+    function appendLucideIcon(parent, iconName) {
+        const icon = document.createElement('i');
+        icon.dataset.lucide = iconName;
+        parent.appendChild(icon);
+        return icon;
+    }
+
+    function createLucideIconButton(className, title, iconName) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = className;
+        if (title) btn.title = title;
+        appendLucideIcon(btn, iconName);
+        return btn;
+    }
+
     function setTableMessage(tbody, colspan, message, options) {
         const opts = options || {};
         tbody.replaceChildren();
@@ -210,6 +226,8 @@
     global.amudCsrfHeaders = amudCsrfHeaders;
     global.escapeHtml = escapeHtml;
     global.appendTableCell = appendTableCell;
+    global.appendLucideIcon = appendLucideIcon;
+    global.createLucideIconButton = createLucideIconButton;
     global.setTableMessage = setTableMessage;
     global.setButtonLoading = setButtonLoading;
     global.createMetricBlock = createMetricBlock;

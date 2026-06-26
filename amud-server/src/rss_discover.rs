@@ -1,10 +1,11 @@
 use crate::feed_icons::{auto_feed_icon_url, host_from_url};
 use crate::integrations::extract_feed_icon;
-use crate::security::{sanitize_rss_feed_url, url_allowed_for_rss_feed};
+use crate::security::{
+    build_rss_outbound_client, get_rss_url_allowed, sanitize_rss_feed_url, url_allowed_for_rss_feed,
+};
 use feed_rs::parser;
 use reqwest::Client;
 use serde_json::{json, Value};
-use std::time::Duration;
 
 const MAX_HTML_BYTES: usize = 512 * 1024;
 const COMMON_FEED_PATHS: &[&str] = &[
@@ -72,7 +73,7 @@ fn extract_href_from_chunk(chunk: &str) -> Option<String> {
 }
 
 async fn fetch_text(client: &Client, url: &str) -> Option<String> {
-    let resp = client.get(url).send().await.ok()?;
+    let resp = get_rss_url_allowed(client, url).await?;
     if !resp.status().is_success() {
         return None;
     }
@@ -84,7 +85,7 @@ async fn fetch_text(client: &Client, url: &str) -> Option<String> {
 }
 
 async fn validate_feed(client: &Client, feed_url: &str) -> Option<(String, Option<String>)> {
-    let resp = client.get(feed_url).send().await.ok()?;
+    let resp = get_rss_url_allowed(client, feed_url).await?;
     if !resp.status().is_success() {
         return None;
     }
@@ -104,11 +105,7 @@ async fn validate_feed(client: &Client, feed_url: &str) -> Option<(String, Optio
 
 pub async fn discover_rss_feed(site_url: &str) -> Option<Value> {
     let site_url = normalize_site_url(site_url)?;
-    let client = Client::builder()
-        .timeout(Duration::from_secs(8))
-        .user_agent("AMUD-Dashboard/1.5 RSS-Discover")
-        .build()
-        .ok()?;
+    let client = build_rss_outbound_client("AMUD-Dashboard/1.5 RSS-Discover", 8)?;
 
     let mut candidates: Vec<String> = Vec::new();
 

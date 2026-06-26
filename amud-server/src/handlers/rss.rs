@@ -1,27 +1,14 @@
 use super::imports::*;
 use crate::rss_discover::discover_rss_feed;
-use crate::security::url_allowed_for_rss_feed;
+use crate::security::{
+    build_rss_outbound_client, favicon_fetch_url_for_host, get_rss_url_allowed,
+    sanitize_favicon_host,
+};
 use axum::extract::Query;
-use reqwest::Client;
-use std::time::Duration;
 
 #[derive(Deserialize)]
 pub struct FaviconQuery {
     host: String,
-}
-
-fn sanitize_favicon_host(raw: &str) -> Option<String> {
-    let host = raw.trim().trim_start_matches("www.").to_lowercase();
-    if host.is_empty() || host.len() > 253 {
-        return None;
-    }
-    if !host
-        .chars()
-        .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-')
-    {
-        return None;
-    }
-    Some(host)
 }
 
 /// POST /api/rss/discover — find RSS feed URL from a website homepage (admin only).
@@ -62,21 +49,15 @@ pub async fn rss_favicon_handler(Query(query): Query<FaviconQuery>) -> Response 
         return Redirect::to("/static/feeds/icons/rss.svg").into_response();
     };
 
-    let target = format!("https://{host}/favicon.ico");
-    if !url_allowed_for_rss_feed(&target) {
+    let Some(target) = favicon_fetch_url_for_host(&host) else {
         return Redirect::to("/static/feeds/icons/rss.svg").into_response();
-    }
-
-    let client = match Client::builder()
-        .timeout(Duration::from_secs(6))
-        .user_agent("AMUD-Dashboard/1.5 Favicon-Proxy")
-        .build()
-    {
-        Ok(c) => c,
-        Err(_) => return Redirect::to("/static/feeds/icons/rss.svg").into_response(),
     };
 
-    let Ok(resp) = client.get(&target).send().await else {
+    let Some(client) = build_rss_outbound_client("AMUD-Dashboard/1.5 Favicon-Proxy", 6) else {
+        return Redirect::to("/static/feeds/icons/rss.svg").into_response();
+    };
+
+    let Some(resp) = get_rss_url_allowed(&client, &target).await else {
         return Redirect::to("/static/feeds/icons/rss.svg").into_response();
     };
     if !resp.status().is_success() {

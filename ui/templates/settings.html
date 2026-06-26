@@ -3162,7 +3162,7 @@
                 btn.type = 'button';
                 btn.className = 'category-icon-option' + (iconName === selectedIcon ? ' selected' : '');
                 btn.title = iconName;
-                btn.innerHTML = `<i data-lucide="${iconName}"></i>`;
+                appendLucideIcon(btn, iconName);
                 btn.addEventListener('click', () => {
                     document.getElementById('feed-cat-icon').value = iconName;
                     renderFeedCategoryIconPicker(iconName);
@@ -3206,7 +3206,12 @@
                 iconWrap.style.display = 'inline-flex';
                 iconWrap.style.alignItems = 'center';
                 iconWrap.style.gap = '0.35rem';
-                iconWrap.innerHTML = `<i data-lucide="${cat.icon || 'rss'}" style="width:1rem;height:1rem;"></i> <code style="font-size:0.72rem;">${cat.icon || 'rss'}</code>`;
+                const iconKey = (cat.icon || 'rss').replace(/[^a-z0-9-]/gi, '') || 'rss';
+                appendLucideIcon(iconWrap, iconKey);
+                const code = document.createElement('code');
+                code.style.fontSize = '0.72rem';
+                code.textContent = cat.icon || 'rss';
+                iconWrap.appendChild(code);
                 iconTd.appendChild(iconWrap);
                 tr.appendChild(iconTd);
                 const colorTd = document.createElement('td');
@@ -3224,17 +3229,9 @@
                 actionsTd.className = 'actions-cell';
                 const actionsWrap = document.createElement('div');
                 actionsWrap.className = 'mgmt-actions';
-                const btnEdit = document.createElement('button');
-                btnEdit.type = 'button';
-                btnEdit.className = 'btn btn-secondary btn-icon-only';
-                btnEdit.title = 'Edit';
-                btnEdit.innerHTML = '<i data-lucide="edit-2"></i>';
+                const btnEdit = createLucideIconButton('btn btn-secondary btn-icon-only', 'Edit', 'edit-2');
                 btnEdit.addEventListener('click', () => openEditFeedCategoryModal(cat));
-                const btnDel = document.createElement('button');
-                btnDel.type = 'button';
-                btnDel.className = 'btn btn-danger btn-icon-only';
-                btnDel.title = 'Delete';
-                btnDel.innerHTML = '<i data-lucide="trash-2"></i>';
+                const btnDel = createLucideIconButton('btn btn-danger btn-icon-only', 'Delete', 'trash-2');
                 btnDel.addEventListener('click', () => deleteFeedCategory(Number(cat.id)));
                 actionsWrap.appendChild(btnEdit);
                 actionsWrap.appendChild(btnDel);
@@ -3387,7 +3384,7 @@
                     const handle = document.createElement('span');
                     handle.className = 'rss-drag-handle drag-handle';
                     handle.setAttribute('aria-hidden', 'true');
-                    handle.innerHTML = '<i data-lucide="grip-vertical"></i>';
+                    appendLucideIcon(handle, 'grip-vertical');
                     dragTd.appendChild(handle);
                     tr.appendChild(dragTd);
 
@@ -3409,18 +3406,10 @@
                     const actionsWrap = document.createElement('div');
                     actionsWrap.className = 'mgmt-actions';
 
-                    const btnEdit = document.createElement('button');
-                    btnEdit.type = 'button';
-                    btnEdit.className = 'btn btn-secondary btn-icon-only';
-                    btnEdit.title = 'Edit';
-                    btnEdit.innerHTML = '<i data-lucide="edit-2"></i>';
+                    const btnEdit = createLucideIconButton('btn btn-secondary btn-icon-only', 'Edit', 'edit-2');
                     btnEdit.addEventListener('click', () => openEditRssModal(feed));
 
-                    const btnDel = document.createElement('button');
-                    btnDel.type = 'button';
-                    btnDel.className = 'btn btn-danger btn-icon-only';
-                    btnDel.title = 'Delete';
-                    btnDel.innerHTML = '<i data-lucide="trash-2"></i>';
+                    const btnDel = createLucideIconButton('btn btn-danger btn-icon-only', 'Delete', 'trash-2');
                     btnDel.addEventListener('click', () => deleteRssFeed(Number(feed.id)));
 
                     actionsWrap.appendChild(btnEdit);

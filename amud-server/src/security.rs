@@ -1,3 +1,4 @@
+use reqwest::Client;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -121,6 +122,50 @@ pub(crate) fn sanitize_rss_feed_url(raw: &str) -> Option<String> {
         return None;
     }
     Some(trimmed.to_string())
+}
+
+/// Hostname for favicon proxy query params (blocks path injection / odd characters).
+pub(crate) fn sanitize_favicon_host(raw: &str) -> Option<String> {
+    let host = raw.trim().trim_start_matches("www.").to_lowercase();
+    if host.is_empty() || host.len() > 253 {
+        return None;
+    }
+    if !host
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-')
+    {
+        return None;
+    }
+    Some(host)
+}
+
+/// `https://{host}/favicon.ico` when host and URL pass RSS SSRF policy.
+pub(crate) fn favicon_fetch_url_for_host(host: &str) -> Option<String> {
+    let host = sanitize_favicon_host(host)?;
+    let target = format!("https://{host}/favicon.ico");
+    if url_allowed_for_rss_feed(&target) {
+        Some(target)
+    } else {
+        None
+    }
+}
+
+/// Outbound client for admin RSS features: short timeout, no redirects (SSRF mitigation).
+pub(crate) fn build_rss_outbound_client(user_agent: &str, timeout_secs: u64) -> Option<Client> {
+    Client::builder()
+        .timeout(Duration::from_secs(timeout_secs))
+        .redirect(reqwest::redirect::Policy::none())
+        .user_agent(user_agent)
+        .build()
+        .ok()
+}
+
+/// Outbound GET only when `url` passes [`url_allowed_for_rss_feed`].
+pub(crate) async fn get_rss_url_allowed(client: &Client, url: &str) -> Option<reqwest::Response> {
+    if !url_allowed_for_rss_feed(url) {
+        return None;
+    }
+    client.get(url).send().await.ok()
 }
 
 /// Only absolute http(s) links are safe for dashboard href binding.
@@ -270,6 +315,25 @@ mod tests {
         assert_eq!(
             sanitize_rss_feed_url("  https://example.com/feed.xml  ").as_deref(),
             Some("https://example.com/feed.xml")
+        );
+    }
+
+    #[test]
+    fn sanitize_favicon_host_rejects_invalid() {
+        assert!(sanitize_favicon_host("").is_none());
+        assert!(sanitize_favicon_host("evil/host").is_none());
+        assert_eq!(
+            sanitize_favicon_host("www.Example.COM").as_deref(),
+            Some("example.com")
+        );
+    }
+
+    #[test]
+    fn favicon_fetch_url_blocks_loopback() {
+        assert!(favicon_fetch_url_for_host("127.0.0.1").is_none());
+        assert_eq!(
+            favicon_fetch_url_for_host("example.com").as_deref(),
+            Some("https://example.com/favicon.ico")
         );
     }
 
