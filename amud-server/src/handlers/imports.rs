@@ -23,12 +23,12 @@ pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};
 pub(crate) use crate::models::{AppState, Session};
 pub(crate) use crate::security::{sanitize_rss_feed_url, url_allowed_for_webhook};
 pub(crate) use crate::settings::{
-    parse_guest_visible_categories, parse_show_container_metrics, sanitize_bool_setting,
-    sanitize_card_span, sanitize_custom_css, sanitize_dashboard_layout, sanitize_disk_mount_list,
-    sanitize_embed_mode, sanitize_guest_visible_categories, sanitize_iface_list,
-    sanitize_integration_url, sanitize_setting_url, sanitize_theme_mode, sanitize_theme_scheduler,
-    sanitize_time_hhmm, sanitize_widget_type, setting_key_allowed, AGENT_CONFIG_SETTING_KEYS,
-    DONATION_LINKS, DONATION_MESSAGE, SECRET_SETTING_KEYS,
+    parse_guest_visible_categories, parse_show_container_metrics, resolve_card_span,
+    sanitize_bool_setting, sanitize_card_span, sanitize_custom_css, sanitize_dashboard_layout,
+    sanitize_disk_mount_list, sanitize_embed_mode, sanitize_guest_visible_categories,
+    sanitize_iface_list, sanitize_integration_url, sanitize_setting_url, sanitize_theme_mode,
+    sanitize_theme_scheduler, sanitize_time_hhmm, sanitize_widget_type, setting_key_allowed,
+    AGENT_CONFIG_SETTING_KEYS, DONATION_LINKS, DONATION_MESSAGE, SECRET_SETTING_KEYS,
 };
 pub(crate) use crate::templates::{
     apply_shared_branding, branding_from_settings, build_root_css, build_theme_scheduler_json,
@@ -50,5 +50,5 @@ pub(crate) use serde::Deserialize;
 pub(crate) use std::collections::HashMap;
 pub(crate) use std::fs;
 pub(crate) use std::path::Path as FilePath;
-pub(crate) use std::sync::Arc;
+pub(crate) use std::sync::{Arc, Mutex};
 pub(crate) use std::time::{Duration, Instant};

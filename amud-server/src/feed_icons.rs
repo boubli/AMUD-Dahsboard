@@ -35,6 +35,12 @@ pub(crate) fn resolve_feed_logo(
 pub(crate) fn auto_feed_icon_url(site_url: &str, feed_url: &str) -> String {
     for url in [site_url, feed_url] {
         let host = host_from_url(url);
+        if let Some(logo) = preset_logo_for_host(&host) {
+            return logo;
+        }
+    }
+    for url in [site_url, feed_url] {
+        let host = host_from_url(url);
         if !host.is_empty() {
             return favicon_url_for_host(&host);
         }
@@ -76,6 +82,23 @@ fn lookup_preset_logo(key: &str) -> Option<String> {
         .map(|(_, path)| path.to_string())
 }
 
+fn host_matches_domain(host: &str, domain: &str) -> bool {
+    host == domain || host.ends_with(&format!(".{domain}"))
+}
+
+fn preset_logo_for_host(host: &str) -> Option<String> {
+    let host = host.trim().trim_start_matches("www.").to_lowercase();
+    if host.is_empty() {
+        return None;
+    }
+    for (preset_id, domains) in PRESET_DOMAINS {
+        if domains.iter().any(|d| host_matches_domain(&host, d)) {
+            return lookup_preset_logo(preset_id);
+        }
+    }
+    None
+}
+
 const PRESET_LOGOS: &[(&str, &str)] = &[
     ("rss", "/static/feeds/icons/rss.svg"),
     ("bbc", "/static/feeds/icons/bbc.svg"),
@@ -111,6 +134,32 @@ const PRESET_LOGOS: &[(&str, &str)] = &[
     ("netflix", "/static/logos/netflix.svg"),
 ];
 
+const PRESET_DOMAINS: &[(&str, &[&str])] = &[
+    ("bbc", &["bbc.co.uk", "bbci.co.uk", "bbc.com"]),
+    ("cnn", &["cnn.com"]),
+    ("reuters", &["reuters.com"]),
+    ("nytimes", &["nytimes.com"]),
+    ("guardian", &["theguardian.com", "guardian.co.uk"]),
+    ("techcrunch", &["techcrunch.com"]),
+    ("the-verge", &["theverge.com"]),
+    ("hackernews", &["news.ycombinator.com", "hnrss.org"]),
+    ("ars-technica", &["arstechnica.com"]),
+    ("espn", &["espn.com"]),
+    ("bloomberg", &["bloomberg.com"]),
+    ("nasa", &["nasa.gov"]),
+    ("reddit", &["reddit.com"]),
+    ("youtube", &["youtube.com"]),
+    ("github", &["github.com", "github.blog"]),
+    ("x", &["x.com", "twitter.com"]),
+    ("medium", &["medium.com"]),
+    ("substack", &["substack.com"]),
+    ("fox-news", &["foxnews.com"]),
+    ("ap-news", &["apnews.com", "ap.org"]),
+    ("wired", &["wired.com"]),
+    ("engadget", &["engadget.com"]),
+    ("politico", &["politico.com"]),
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -118,7 +167,13 @@ mod tests {
     #[test]
     fn auto_icon_uses_feed_host() {
         let url = auto_feed_icon_url("", "https://feeds.bbci.co.uk/news/rss.xml");
-        assert!(url.contains("bbci.co.uk") || url.contains("bbc"));
+        assert!(url.contains("bbc"));
+    }
+
+    #[test]
+    fn auto_icon_uses_preset_domain() {
+        let url = auto_feed_icon_url("https://www.bbc.com/", "");
+        assert!(url.contains("bbc"));
     }
 
     #[test]
@@ -144,7 +199,7 @@ mod tests {
             "https://news.ycombinator.com/rss",
             &manifest,
         );
-        assert!(logo.starts_with("https://"));
+        assert!(logo.contains("hackernews"));
     }
 
     #[test]

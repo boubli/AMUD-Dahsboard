@@ -51,13 +51,29 @@
     align-self: stretch;
 }
 
+.app-card .app-card-metrics-slot--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: auto;
+    overflow: visible;
+}
+
+.app-card .app-card-metrics-slot--stacked .app-card-metrics-layer--infra,
+.app-card .app-card-metrics-slot--stacked .app-card-metrics-layer--integration {
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+}
+
 @media (hover: hover) {
-    .app-card .app-card-metrics-slot--dual:hover .app-card-metrics-layer--infra {
+    .app-card .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--infra {
         opacity: 1;
         pointer-events: auto;
     }
 
-    .app-card .app-card-metrics-slot--dual:hover .app-card-metrics-layer--integration {
+    .app-card .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--integration {
         opacity: 0;
         pointer-events: none;
     }
@@ -68,7 +84,7 @@
 }
 
 @media (hover: none) {
-    .app-card .app-card-metrics-slot--dual .app-card-metrics-layer--infra {
+    .app-card .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked) .app-card-metrics-layer--infra {
         display: none;
     }
 

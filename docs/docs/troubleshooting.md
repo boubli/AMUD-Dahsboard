@@ -769,12 +769,15 @@ pct exec <CT_ID> -- systemctl restart amud
 
 ## Database Restore Failure
 
-**Symptom:** You attempted to upload an `amud.db` backup file via the UI, but the UI crashed, or the server failed to restart correctly with the new database.
+**Symptom:** Restore shows "Import failed" even though the server restarted, or the dashboard won't come back after upload.
 
-**Fix:** When uploading a database, AMUD automatically saves your original database as `amud.db.bak` before applying the new one. You can easily revert from the CLI:
+**Fix (v1.5.6.1+):** Restore now checkpoints WAL, removes stale `-wal`/`-shm` files, and returns success before restart. If the page says failed but AMUD restarted, hard-refresh — the restore likely worked.
+
+**Revert a bad restore:** AMUD saves `amud.db.bak` before overwrite. Also back up `.amud-secrets-key` with your database — encrypted integration tokens need the matching key.
 
 ```bash
 pct exec <CT_ID> -- mv /opt/amud/data/amud.db.bak /opt/amud/data/amud.db
+pct exec <CT_ID> -- rm -f /opt/amud/data/amud.db-wal /opt/amud/data/amud.db-shm
 pct exec <CT_ID> -- systemctl restart amud
 ```
 

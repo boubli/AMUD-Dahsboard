@@ -10,12 +10,11 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.6.0
+### What's new in v1.5.6.1
 
-- **Dual metrics fix** — integration stats and CPU/RAM share one row again (no stacked second row on *arr cards)
-- **Blank card bodies fixed ([#15](https://github.com/boubli/AMUD-Dashboard/issues/15))** — CPU/RAM render again on Docker/Unraid setups that only showed the header after v1.5.5.9
-- **Integration loading row** — stats area shows a placeholder immediately instead of an empty gap while Alpine fetches
-- **Drag reorder** — reliable again with the bento layout; widgets row is left alone
+- **Tall integration cards** — apps with integration + CPU/RAM auto-use 1x2; both stat rows visible without hover
+- **RSS feeds UI** — table scroll/wrap fix, compact actions, better favicon detection (BBC presets, etc.)
+- **Database restore** — WAL-safe import; no more false "Import failed" on success
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -30,7 +29,7 @@ After manual validation in a clean Proxmox test container, these releases are cu
 - `v1.5.5.3`
 - `v1.5.5.6`
 - `v1.5.5.9`
-- `v1.5.6.0` (current latest recommended)
+- `v1.5.6.1` (current latest recommended)
 
 Broken tags identified during audit were removed from GitHub releases/tags and should not be used. **Do not use `v1.5.5.4`.**
 

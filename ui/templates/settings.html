@@ -219,6 +219,38 @@
             display: flex;
             gap: 0.5rem;
         }
+        .mgmt-table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .mgmt-table--feeds {
+            table-layout: fixed;
+            min-width: 720px;
+        }
+        .mgmt-table--feeds th:nth-child(2) { width: 11%; }
+        .mgmt-table--feeds th:nth-child(3) { width: 10%; }
+        .mgmt-table--feeds th:nth-child(4) { width: 28%; }
+        .mgmt-table--feeds th:nth-child(5) { width: 20%; }
+        .mgmt-table--feeds th:nth-child(6) { width: 6%; }
+        .mgmt-table--feeds th:nth-child(7) { width: 12%; }
+        .mgmt-table--feeds code {
+            word-break: break-all;
+            display: block;
+            max-width: 100%;
+            font-size: 0.72rem;
+        }
+        .actions-cell {
+            white-space: nowrap;
+            width: 1%;
+            text-align: right;
+            display: inline-flex;
+            gap: 0.35rem;
+            justify-content: flex-end;
+        }
+        .actions-cell .btn-icon-only {
+            padding: 0.35rem;
+            min-width: 2rem;
+        }
 
         /* Generic modal for editing mgmt rows */
         .mgmt-modal {
@@ -462,10 +494,22 @@
                                                 </div>
                                                 <span class="status-badge status-online" style="font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(33, 191, 75, 0.1); color: #21bf4b; border: 1px solid rgba(33, 191, 75, 0.2);">Online</span>
                                             </div>
-                                            <div class="app-card-body preview-body" style="font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.4;">
+                                            <div class="app-card-body preview-body" style="font-size: 0.85rem; margin-bottom: 0.5rem; line-height: 1.4;">
                                                 Glass panels, accent color, wallpaper, and grid density mirror your dashboard.
                                             </div>
-                                            <div class="app-card-footer" style="display: flex; gap: 0.5rem;">
+                                            <div class="app-card-metrics-slot app-card-metrics-slot--dual app-card-metrics-slot--stacked" style="margin-top: auto;">
+                                                <div class="nested-metrics-grid cols-2 app-card-metrics-layer app-card-metrics-layer--infra">
+                                                    <div class="metric-block"><span class="metric-value">12%</span><span class="metric-label">CPU</span></div>
+                                                    <div class="metric-block"><span class="metric-value">24%</span><span class="metric-label">RAM</span></div>
+                                                </div>
+                                                <div class="integration-widget integration-widget--always app-card-metrics-layer app-card-metrics-layer--integration">
+                                                    <div class="nested-metrics-grid cols-2">
+                                                        <div class="metric-block"><span class="metric-value">3</span><span class="metric-label">Queue</span></div>
+                                                        <div class="metric-block"><span class="metric-value">21/21</span><span class="metric-label">Indexers</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="app-card-footer" style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
                                                 <button type="button" class="btn btn-primary preview-action-btn" style="flex: 1; padding: 0.5rem; font-size: 0.8rem; border: none; color: white; border-radius: 6px; cursor: pointer;">Open App</button>
                                             </div>
                                         </div>
@@ -909,7 +953,8 @@
                     <div style="padding:1rem 1rem 0.5rem;">
                         <h2 style="margin:0; font-size:0.95rem; font-weight:700;">Feeds</h2>
                     </div>
-                    <table class="mgmt-table">
+                    <div class="mgmt-table-scroll">
+                    <table class="mgmt-table mgmt-table--feeds">
                         <thead>
                             <tr>
                                 <th style="width:2rem;" aria-label="Reorder"></th>
@@ -925,6 +970,7 @@
                             <!-- Populated via JS -->
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -2434,15 +2480,18 @@
 
         async function submitBackupImport() {
             const input = document.getElementById('backup-db-file');
+            const btn = document.querySelector('button[onclick="submitBackupImport()"]');
             if (!input?.files?.[0]) {
                 showApiError('Select a database file first.');
                 return;
             }
-            const formData = new FormData();
-            formData.append('db_file', input.files[0]);
-            formData.append('csrf_token', document.querySelector('input[name="csrf_token"]')?.value || '');
+            const file = input.files[0];
+            const csrf = document.querySelector('input[name="csrf_token"]')?.value || '';
             try {
-                const validateRes = await fetch('/admin/backup/validate', { method: 'POST', body: formData });
+                const validateData = new FormData();
+                validateData.append('db_file', file);
+                validateData.append('csrf_token', csrf);
+                const validateRes = await fetch('/admin/backup/validate', { method: 'POST', body: validateData });
                 const { ok, data } = await parseApiResponse(validateRes);
                 if (!ok || !data.valid) {
                     showApiError(data.error || 'Invalid database file');
@@ -2450,15 +2499,30 @@
                 }
                 const summary = `${data.apps} apps, ${data.users} users, ${data.webhooks} webhooks`;
                 if (!confirm(`Restore this backup (${summary})? AMUD will restart immediately.`)) return;
-                const importRes = await fetch('/admin/backup/import', { method: 'POST', body: formData });
-                if (!importRes.ok) {
-                    const err = await parseApiResponse(importRes);
-                    showApiError(err.data?.error || 'Import failed');
+                if (btn) { btn.disabled = true; btn.textContent = 'Restoring…'; }
+                const importData = new FormData();
+                importData.append('db_file', file);
+                importData.append('csrf_token', csrf);
+                let importOk = false;
+                try {
+                    const importRes = await fetch('/admin/backup/import', { method: 'POST', body: importData });
+                    if (importRes.ok) {
+                        const { ok: bodyOk, data: importBody } = await parseApiResponse(importRes);
+                        importOk = bodyOk && (importBody.ok || importBody.message);
+                    }
+                } catch (networkErr) {
+                    importOk = true;
+                }
+                if (importOk) {
+                    alert('Database restored. AMUD is restarting — this page will reload in a few seconds.');
+                    setTimeout(() => { window.location.reload(); }, 4000);
                     return;
                 }
-                alert('Database restored. AMUD is restarting…');
+                showApiError('Import failed');
             } catch (e) {
                 showApiError(e.message || 'Import failed');
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="alert-triangle"></i> Overwrite & Restore'; if (window.lucide) window.lucide.createIcons(); }
             }
         }
 
@@ -2682,9 +2746,23 @@
             }
         }
 
+        function presetLogoForHost(host) {
+            const h = (host || '').toLowerCase().replace(/^www\./, '');
+            if (!h || !feedIconPresets.length) return null;
+            for (const preset of feedIconPresets) {
+                for (const domain of (preset.domains || [])) {
+                    const d = domain.toLowerCase();
+                    if (h === d || h.endsWith('.' + d)) return preset.logo;
+                }
+            }
+            return null;
+        }
+
         function feedFaviconUrl(siteUrl, feedUrl) {
             const host = feedHostFromUrl(siteUrl) || feedHostFromUrl(feedUrl);
             if (!host) return '/static/feeds/icons/rss.svg';
+            const preset = presetLogoForHost(host);
+            if (preset) return preset;
             return `https://icons.duckduckgo.com/ip3/${host}.ico`;
         }
 
@@ -2708,10 +2786,13 @@
             renderRssIconPreview(iconUrl);
         }
 
-        function feedLogoUrl(iconId) {
+        function feedLogoUrl(iconId, siteUrl, feedUrl) {
             if (iconId && (iconId.startsWith('http') || iconId.startsWith('/'))) return iconId;
             const preset = feedIconPresets.find(p => p.id === iconId);
             if (preset) return preset.logo;
+            const host = feedHostFromUrl(siteUrl) || feedHostFromUrl(feedUrl);
+            const fromDomain = presetLogoForHost(host);
+            if (fromDomain) return fromDomain;
             return `/static/feeds/icons/${iconId || 'rss'}.svg`;
         }
 
@@ -2730,7 +2811,7 @@
         function renderRssIconPreview(iconUrl) {
             const img = document.getElementById('rss-icon-preview-img');
             if (!img) return;
-            img.src = feedLogoUrl(iconUrl);
+            img.src = feedLogoUrl(iconUrl, siteEl?.value, feedUrlEl?.value);
             img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
         }
 
@@ -2977,7 +3058,7 @@
                     const iconTd = document.createElement('td');
                     const img = document.createElement('img');
                     img.className = 'feed-icon-thumb';
-                    img.src = feedLogoUrl(feed.icon || 'rss');
+                    img.src = feedLogoUrl(feed.icon || 'rss', feed.url, feed.feed_url);
                     img.alt = feed.name;
                     img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
                     iconTd.appendChild(img);
@@ -2989,19 +3070,16 @@
 
                     const btnEdit = document.createElement('button');
                     btnEdit.type = 'button';
-                    btnEdit.className = 'btn btn-secondary';
-                    btnEdit.style.padding = '0.3rem 0.6rem';
-                    btnEdit.style.fontSize = '0.75rem';
-                    btnEdit.style.marginRight = '0.35rem';
-                    btnEdit.textContent = 'Edit';
+                    btnEdit.className = 'btn btn-secondary btn-icon-only';
+                    btnEdit.title = 'Edit';
+                    btnEdit.innerHTML = '<i data-lucide="edit-2"></i>';
                     btnEdit.addEventListener('click', () => openEditRssModal(feed));
 
                     const btnDel = document.createElement('button');
                     btnDel.type = 'button';
-                    btnDel.className = 'btn btn-danger';
-                    btnDel.style.padding = '0.3rem 0.6rem';
-                    btnDel.style.fontSize = '0.75rem';
-                    btnDel.textContent = 'Delete';
+                    btnDel.className = 'btn btn-danger btn-icon-only';
+                    btnDel.title = 'Delete';
+                    btnDel.innerHTML = '<i data-lucide="trash-2"></i>';
                     btnDel.addEventListener('click', () => deleteRssFeed(Number(feed.id)));
 
                     actionsTd.appendChild(btnEdit);

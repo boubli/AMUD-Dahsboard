@@ -767,13 +767,30 @@ body::-webkit-scrollbar-button {
     display: none;
 }
 
+/* Tall cards: CPU/RAM + integration stacked — always visible */
+.app-card-metrics-slot--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: auto;
+    overflow: visible;
+}
+
+.app-card-metrics-slot--stacked .app-card-metrics-layer--infra,
+.app-card-metrics-slot--stacked .app-card-metrics-layer--integration {
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+}
+
 @media (hover: hover) {
-    .app-card-metrics-slot--dual:hover .app-card-metrics-layer--infra {
+    .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--infra {
         opacity: 1;
         pointer-events: auto;
     }
 
-    .app-card-metrics-slot--dual:hover .app-card-metrics-layer--integration {
+    .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--integration {
         opacity: 0;
         pointer-events: none;
         transform: translateY(4px);
@@ -785,7 +802,7 @@ body::-webkit-scrollbar-button {
 }
 
 @media (hover: none) {
-    .app-card-metrics-slot--dual .app-card-metrics-layer--infra {
+    .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked) .app-card-metrics-layer--infra {
         display: none;
     }
 

@@ -278,6 +278,7 @@
                         <option value="2x1">2x1 Wide</option>
                         <option value="1x2">1x2 Tall</option>
                     </select>
+                    <p class="form-help" x-show="newApp.integration_type && newApp.integration_type !== 'rss' && newApp.show_container_metrics">Tall card (1x2) is used so CPU/RAM and integration stats both show without hover.</p>
                 </div>
 
                 <div class="form-group">
@@ -288,7 +289,7 @@
                 <div class="form-group">
                     <input type="hidden" name="show_container_metrics" aria-label="Show container metrics value" :value="newApp.show_container_metrics ? '1' : '0'">
                     <label class="checkbox-row" for="add-app-show-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
-                        <input type="checkbox" id="add-app-show-metrics" x-model="newApp.show_container_metrics" style="margin-top:0.15rem;">
+                        <input type="checkbox" id="add-app-show-metrics" x-model="newApp.show_container_metrics" @change="if (newApp.integration_type && newApp.integration_type !== 'rss' && newApp.show_container_metrics) newApp.card_span = '1x2'" style="margin-top:0.15rem;">
                         <span>
                             Show CPU / RAM from host agent
                             <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Turn off for remote services (not on this Proxmox/Docker host) so the card stays clean.</span>
@@ -315,7 +316,7 @@
 
                 <div class="form-group">
                     <label for="add-app-integration-type">Integration</label>
-                    <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type">
+                    <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type" @change="if (newApp.integration_type && newApp.integration_type !== 'rss' && newApp.show_container_metrics) newApp.card_span = '1x2'">
                         <option value="">None</option>
                         <option value="pihole">Pi-hole</option>
                         <option value="adguard">AdGuard Home</option>
@@ -446,6 +447,7 @@
                         <option value="2x1">2x1 Wide</option>
                         <option value="1x2">1x2 Tall</option>
                     </select>
+                    <p class="form-help" x-show="editApp.integration_type && editApp.integration_type !== 'rss' && editApp.show_container_metrics">Tall card (1x2) is used so CPU/RAM and integration stats both show without hover.</p>
                 </div>
 
                 <div class="form-group">
@@ -456,7 +458,7 @@
                 <div class="form-group">
                     <input type="hidden" name="show_container_metrics" aria-label="Show container metrics value" :value="editApp.show_container_metrics ? '1' : '0'">
                     <label class="checkbox-row" for="edit-app-show-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
-                        <input type="checkbox" id="edit-app-show-metrics" x-model="editApp.show_container_metrics" style="margin-top:0.15rem;">
+                        <input type="checkbox" id="edit-app-show-metrics" x-model="editApp.show_container_metrics" @change="if (editApp.integration_type && editApp.integration_type !== 'rss' && editApp.show_container_metrics) editApp.card_span = '1x2'" style="margin-top:0.15rem;">
                         <span>
                             Show CPU / RAM from host agent
                             <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Disable when this app runs elsewhere — status badge still works.</span>
@@ -483,7 +485,7 @@
 
                 <div class="form-group">
                     <label for="edit-app-integration-type">Integration</label>
-                    <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type">
+                    <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type" @change="if (editApp.integration_type && editApp.integration_type !== 'rss' && editApp.show_container_metrics) editApp.card_span = '1x2'">
                         <option value="">None</option>
                         <option value="pihole">Pi-hole</option>
                         <option value="adguard">AdGuard Home</option>

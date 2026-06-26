@@ -310,6 +310,18 @@ pub(crate) fn sanitize_card_span(value: &str) -> String {
     }
 }
 
+/// Integration + container metrics need a tall card to show both rows.
+pub(crate) fn resolve_card_span(
+    integration_type: &str,
+    show_container_metrics: bool,
+    requested: &str,
+) -> String {
+    if !integration_type.is_empty() && integration_type != "rss" && show_container_metrics {
+        return "1x2".to_string();
+    }
+    sanitize_card_span(requested)
+}
+
 /// Per-app embed mode: link, iframe, or tab.
 pub(crate) fn sanitize_embed_mode(value: &str) -> String {
     match value.trim().to_ascii_lowercase().as_str() {
@@ -434,6 +446,14 @@ mod tests {
         assert_eq!(sanitize_card_span("1x2"), "1x2");
         assert_eq!(sanitize_card_span("2x2"), "1x1");
         assert_eq!(sanitize_card_span(""), "1x1");
+    }
+
+    #[test]
+    fn test_resolve_card_span_integration_metrics() {
+        assert_eq!(resolve_card_span("radarr", true, "1x1"), "1x2");
+        assert_eq!(resolve_card_span("radarr", false, "2x1"), "2x1");
+        assert_eq!(resolve_card_span("rss", true, "1x1"), "1x1");
+        assert_eq!(resolve_card_span("", true, "2x1"), "2x1");
     }
 
     #[test]

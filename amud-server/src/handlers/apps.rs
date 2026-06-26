@@ -71,12 +71,13 @@ pub async fn add_app_handler(
             .map(|s| s.username.clone())
             .unwrap_or_default();
         let headers = headers.clone();
-        let card_span = form
-            .get("card_span")
-            .map(|s| sanitize_card_span(s))
-            .unwrap_or_else(|| "1x1".to_string());
         let show_container_metrics =
             parse_show_container_metrics(form.get("show_container_metrics").map(|s| s.as_str()));
+        let card_span = resolve_card_span(
+            &integration_type,
+            show_container_metrics != 0,
+            form.get("card_span").map(|s| s.as_str()).unwrap_or("1x1"),
+        );
         let guest_visible =
             parse_show_container_metrics(form.get("guest_visible").map(|s| s.as_str()));
         let embed_mode =
@@ -183,12 +184,13 @@ pub async fn edit_app_handler(
                     .map(|s| s.username.clone())
                     .unwrap_or_default();
                 let headers = headers.clone();
-                let card_span = form
-                    .get("card_span")
-                    .map(|s| sanitize_card_span(s))
-                    .unwrap_or_else(|| "1x1".to_string());
                 let show_container_metrics = parse_show_container_metrics(
                     form.get("show_container_metrics").map(|s| s.as_str()),
+                );
+                let card_span = resolve_card_span(
+                    &integration_type,
+                    show_container_metrics != 0,
+                    form.get("card_span").map(|s| s.as_str()).unwrap_or("1x1"),
                 );
                 let guest_visible =
                     parse_show_container_metrics(form.get("guest_visible").map(|s| s.as_str()));

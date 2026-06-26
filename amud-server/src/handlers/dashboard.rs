@@ -553,10 +553,18 @@ fn render_apps_grid(
             "".to_string()
         };
 
+        let stacked_metrics = app.card_span == "1x2"
+            && is_admin
+            && app.show_container_metrics
+            && !app.integration_type.is_empty()
+            && app.integration_type != "rss";
+
         let mut integration_widget = String::new();
         if is_admin && !app.integration_type.is_empty() {
             let integration_class = if app.integration_type == "rss" {
                 "integration-widget integration-widget--always"
+            } else if stacked_metrics {
+                "integration-widget integration-widget--always app-card-metrics-layer app-card-metrics-layer--integration"
             } else {
                 "integration-widget integration-widget--hover app-card-metrics-layer app-card-metrics-layer--integration"
             };
@@ -750,9 +758,14 @@ fn render_apps_grid(
                 integration_widget
             )
         } else {
+            let stacked = if app.card_span == "1x2" {
+                " app-card-metrics-slot--stacked"
+            } else {
+                ""
+            };
             format!(
-                r#"<div class="app-card-metrics-slot app-card-metrics-slot--dual">{}{}</div>"#,
-                sub_metrics, integration_widget
+                r#"<div class="app-card-metrics-slot app-card-metrics-slot--dual{}">{}{}</div>"#,
+                stacked, sub_metrics, integration_widget
             )
         };
 
@@ -861,7 +874,9 @@ fn render_feeds_grid(
 
     let mut cards_html = String::new();
     for app in apps.iter() {
-        let feed_logo = resolve_feed_logo(&app.icon, &app.name, &app.url, "", logo_manifest);
+        let feed_url =
+            crate::secrets::decrypt_value(&app.api_key).unwrap_or_else(|_| app.api_key.clone());
+        let feed_logo = resolve_feed_logo(&app.icon, &app.name, &app.url, &feed_url, logo_manifest);
         let cat_slug = category_slug(&app.category);
         let (cat_color, _cat_icon) = feed_category_meta(&app.category, feed_categories);
         let host = host_from_url(if app.url.is_empty() {
