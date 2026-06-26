@@ -316,10 +316,15 @@
 
                 <div class="form-group">
                     <label for="add-app-integration-type">Integration</label>
-                    <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type" @change="if (newApp.integration_type && newApp.integration_type !== 'rss') newApp.card_span = '1x2'">
+                    <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type" @change="amudApplyIntegrationSpan(newApp)">
                         <option value="">None</option>
+                        <optgroup label="DNS &amp; adblock">
                         <option value="pihole">Pi-hole</option>
                         <option value="adguard">AdGuard Home</option>
+                        <option value="technitium">Technitium DNS</option>
+                        <option value="blocky">Blocky DNS</option>
+                        </optgroup>
+                        <optgroup label="Servarr &amp; requests">
                         <option value="radarr">Radarr</option>
                         <option value="sonarr">Sonarr</option>
                         <option value="lidarr">Lidarr</option>
@@ -328,21 +333,98 @@
                         <option value="overseerr">Overseerr</option>
                         <option value="jellyseerr">Jellyseerr</option>
                         <option value="prowlarr">Prowlarr</option>
+                        <option value="bazarr">Bazarr</option>
+                        <option value="mylar">Mylar</option>
+                        <option value="kapowarr">Kapowarr</option>
+                        <option value="huntarr">Huntarr</option>
+                        </optgroup>
+                        <optgroup label="Download">
                         <option value="qbittorrent">qBittorrent</option>
                         <option value="sabnzbd">SABnzbd</option>
                         <option value="nzbget">NZBGet</option>
                         <option value="transmission">Transmission</option>
+                        <option value="deluge">Deluge</option>
                         <option value="jackett">Jackett</option>
+                        </optgroup>
+                        <optgroup label="Media &amp; photos">
                         <option value="tautulli">Tautulli</option>
                         <option value="audiobookshelf">Audiobookshelf</option>
                         <option value="immich">Immich</option>
+                        <option value="photoprism">PhotoPrism</option>
+                        <option value="navidrome">Navidrome</option>
+                        <option value="komga">Komga</option>
+                        <option value="emby">Emby</option>
                         <option value="tdarr">Tdarr</option>
                         <option value="maintainerr">Maintainerr</option>
                         <option value="frigate">Frigate</option>
-                        <option value="bazarr">Bazarr</option>
-                        <option value="uptime_kuma">Uptime Kuma</option>
+                        <option value="scrypted">Scrypted</option>
+                        </optgroup>
+                        <optgroup label="Network &amp; infra">
+                        <option value="fritz">FRITZ!Box</option>
+                        <option value="unifi">UniFi Network</option>
+                        <option value="opnsense">OPNsense</option>
+                        <option value="pfsense">pfSense</option>
+                        <option value="openwrt">OpenWrt</option>
+                        <option value="tailscale">Tailscale</option>
+                        <option value="netbird">Netbird</option>
+                        <option value="portainer">Portainer</option>
+                        <option value="dockge">Dockge</option>
+                        <option value="truenas">TrueNAS</option>
+                        <option value="synology">Synology DSM</option>
+                        <option value="unraid">Unraid</option>
+                        <option value="proxmox">Proxmox VE</option>
+                        <option value="proxmox_backup">Proxmox Backup Server</option>
+                        <option value="nginx_proxy_manager">Nginx Proxy Manager</option>
+                        <option value="traefik">Traefik</option>
                         <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
+                        </optgroup>
+                        <optgroup label="Monitoring">
+                        <option value="uptime_kuma">Uptime Kuma</option>
+                        <option value="grafana">Grafana</option>
+                        <option value="netdata">Netdata</option>
+                        <option value="glances">Glances</option>
+                        <option value="beszel">Beszel</option>
                         <option value="peanut">Peanut (UPS)</option>
+                        </optgroup>
+                        <optgroup label="Self-hosted apps">
+                        <option value="paperless">Paperless-ngx</option>
+                        <option value="mealie">Mealie</option>
+                        <option value="nextcloud">Nextcloud</option>
+                        <option value="vaultwarden">Vaultwarden</option>
+                        <option value="homeassistant">Home Assistant</option>
+                        <option value="authentik">Authentik</option>
+                        <option value="authelia">Authelia</option>
+                        <option value="crowdsec">CrowdSec</option>
+                        <option value="node_red">Node-RED</option>
+                        <option value="zigbee2mqtt">Zigbee2MQTT</option>
+                        </optgroup>
+                        <optgroup label="Health check only">
+                        <option value="gitea">Gitea</option>
+                        <option value="forgejo">Forgejo</option>
+                        <option value="gitlab">GitLab</option>
+                        <option value="jenkins">Jenkins</option>
+                        <option value="drone">Drone CI</option>
+                        <option value="minio">MinIO</option>
+                        <option value="garage">Garage</option>
+                        <option value="seaweedfs">SeaweedFS</option>
+                        <option value="kopia">Kopia</option>
+                        <option value="restic">Restic</option>
+                        <option value="duplicati">Duplicati</option>
+                        <option value="urbackup">UrBackup</option>
+                        <option value="kodi">Kodi</option>
+                        <option value="stash">Stash</option>
+                        <option value="channels_dvr">Channels DVR</option>
+                        <option value="calibre_web">Calibre-web</option>
+                        <option value="headscale">Headscale</option>
+                        <option value="wireguard_ui">WireGuard UI</option>
+                        <option value="openvpn">OpenVPN</option>
+                        <option value="hubitat">Hubitat</option>
+                        <option value="smartthings">SmartThings</option>
+                        <option value="iobroker">ioBroker</option>
+                        <option value="blue_iris">Blue Iris</option>
+                        <option value="shinobi">Shinobi</option>
+                        <option value="agent_dvr">Agent DVR</option>
+                        </optgroup>
                     </select>
                 </div>
 
@@ -353,13 +435,17 @@
                         <span x-show="newApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
                         <span x-show="newApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
                         <span x-show="newApp.integration_type === 'peanut'">API token (optional)</span>
-                        <span x-show="newApp.integration_type === 'qbittorrent' || newApp.integration_type === 'nzbget'">Web UI credentials</span>
+                        <span x-show="newApp.integration_type === 'qbittorrent' || newApp.integration_type === 'nzbget' || newApp.integration_type === 'fritz' || newApp.integration_type === 'unifi' || newApp.integration_type === 'nextcloud' || newApp.integration_type === 'navidrome' || newApp.integration_type === 'photoprism'">Web UI credentials</span>
+                        <span x-show="newApp.integration_type === 'opnsense'">API key and secret</span>
+                        <span x-show="newApp.integration_type === 'deluge'">Deluge Web UI password</span>
+                        <span x-show="newApp.integration_type === 'netdata' || newApp.integration_type === 'glances'">API token (optional)</span>
+                        <span x-show="newApp.integration_type === 'vaultwarden'">Admin token</span>
                         <span x-show="newApp.integration_type === 'transmission'">RPC credentials (optional)</span>
                         <span x-show="newApp.integration_type === 'audiobookshelf'">API token</span>
-                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent','nzbget','transmission','audiobookshelf'].includes(newApp.integration_type)">API key / token</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent','nzbget','transmission','audiobookshelf','fritz','unifi','nextcloud','navidrome','photoprism','opnsense','deluge','netdata','glances','vaultwarden'].includes(newApp.integration_type)">API key / token</span>
                     </label>
                     <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key"
-                        :placeholder="newApp.integration_type === 'adguard' ? 'Base64 username:password' : (newApp.integration_type === 'pihole' ? 'Pi-hole API token (Settings → API)' : (newApp.integration_type === 'uptime_kuma' ? 'my-status-page-slug' : (newApp.integration_type === 'cloudflare_tunnel' ? 'account_id|tunnel_id|api_token' : (newApp.integration_type === 'peanut' ? 'Leave empty if no auth' : (newApp.integration_type === 'qbittorrent' || newApp.integration_type === 'nzbget' ? 'admin|yourpassword' : (newApp.integration_type === 'transmission' ? 'Leave empty if no RPC auth' : 'From the service settings'))))))">
+                        :placeholder="newApp.integration_type === 'adguard' ? 'Base64 username:password' : (newApp.integration_type === 'pihole' ? 'Pi-hole API token (Settings → API)' : (newApp.integration_type === 'uptime_kuma' ? 'my-status-page-slug' : (newApp.integration_type === 'cloudflare_tunnel' ? 'account_id|tunnel_id|api_token' : (newApp.integration_type === 'peanut' ? 'Leave empty if no auth' : (newApp.integration_type === 'qbittorrent' || newApp.integration_type === 'nzbget' || newApp.integration_type === 'fritz' ? 'admin|yourpassword' : (newApp.integration_type === 'transmission' ? 'Leave empty if no RPC auth' : 'From the service settings'))))))">
                     <p class="form-help" x-show="newApp.integration_type === 'adguard'">
                         AdGuard Home does <strong>not</strong> use an API key. Encode your AdGuard UI login as Base64 <code>username:password</code>
                         (Linux/macOS: <code>echo -n 'admin:yourpass' | base64</code>).
@@ -422,6 +508,72 @@
                     </p>
                     <p class="form-help" x-show="newApp.integration_type === 'peanut'">
                         Peanut/NUT base URL in the URL field. Leave credential empty if your instance has no API auth.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'fritz'">
+                        URL: <code>https://fritz.box</code> (or your box LAN IP). Credential: <code>username|password</code> for a FRITZ!Box user — use a dedicated limited account if possible. Enable <strong>Accept invalid certs</strong> in Settings if needed.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'portainer'">
+                        API access token from Portainer <strong>My account → Access tokens</strong>. URL is your Portainer instance (e.g. <code>https://portainer:9443</code>).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'opnsense'">
+                        Format: <code>api_key|api_secret</code> from OPNsense <strong>System → Access → API Keys</strong>. Enable API on the firewall.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'pfsense'">
+                        REST API key from pfSense (requires REST API package). URL is your pfSense host.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'truenas'">
+                        API key from TrueNAS <strong>Credentials → API Keys</strong>. Use the TrueNAS web URL (SCALE or CORE).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'unifi'">
+                        UniFi OS / Controller URL. Credential: <code>username|password</code> for a local admin account.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'grafana'">
+                        Service account or API key from Grafana <strong>Administration → Service accounts</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'netdata' || newApp.integration_type === 'glances'">
+                        Leave as <code>none</code> if your instance has no auth on the LAN. Otherwise use a bearer token or password.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'beszel'">
+                        API token from Beszel hub <strong>Settings → API tokens</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'paperless'">
+                        API token from Paperless-ngx <strong>Settings → API</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'mealie'">
+                        Bearer token from Mealie user profile <strong>API tokens</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'nextcloud'">
+                        Format: <code>username|app_password</code> — create an app password in Nextcloud security settings.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'vaultwarden'">
+                        <code>ADMIN_TOKEN</code> from your Vaultwarden environment. Used for admin user/org counts.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'deluge'">
+                        Deluge Web UI password (from <strong>Preferences → WebUI</strong>). Enable Web UI and JSON-RPC.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'navidrome'">
+                        Subsonic API: <code>username|password</code> (or token password from Navidrome user settings).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'komga'">
+                        API key from Komga <strong>User → API keys</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'photoprism'">
+                        App password: <code>username|password</code> or a PhotoPrism app password token.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'proxmox'">
+                        Format: <code>user@pam!tokenid|secret</code> — API token from Proxmox Datacenter → Permissions → API Tokens.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'tailscale'">
+                        Tailscale OAuth/API key with <code>devices:read</code>. URL field is ignored (uses Tailscale API).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'netbird'">
+                        NetBird personal access token. URL is your NetBird dashboard/API host.
+                    </p>
+                    <p class="form-help" x-show="['synology','nginx_proxy_manager','homeassistant','emby','unraid','dockge','traefik','authentik','crowdsec','node_red','zigbee2mqtt','scrypted','mylar','kapowarr','huntarr','proxmox_backup','technitium','openwrt'].includes(newApp.integration_type)">
+                        API key or credentials from the service settings. See docs for format hints per app.
+                    </p>
+                    <p class="form-help" x-show="window.HEALTH_ONLY_INTEGRATIONS && window.HEALTH_ONLY_INTEGRATIONS.has(newApp.integration_type)">
+                        Health-check integration: use <code>none</code> if no API auth. Keeps a 1×1 link card with online status.
                     </p>
                 </div>
 
@@ -530,10 +682,15 @@
 
                 <div class="form-group">
                     <label for="edit-app-integration-type">Integration</label>
-                    <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type" @change="if (editApp.integration_type && editApp.integration_type !== 'rss') editApp.card_span = '1x2'">
+                    <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type" @change="amudApplyIntegrationSpan(editApp)">
                         <option value="">None</option>
+                        <optgroup label="DNS &amp; adblock">
                         <option value="pihole">Pi-hole</option>
                         <option value="adguard">AdGuard Home</option>
+                        <option value="technitium">Technitium DNS</option>
+                        <option value="blocky">Blocky DNS</option>
+                        </optgroup>
+                        <optgroup label="Servarr &amp; requests">
                         <option value="radarr">Radarr</option>
                         <option value="sonarr">Sonarr</option>
                         <option value="lidarr">Lidarr</option>
@@ -542,21 +699,98 @@
                         <option value="overseerr">Overseerr</option>
                         <option value="jellyseerr">Jellyseerr</option>
                         <option value="prowlarr">Prowlarr</option>
+                        <option value="bazarr">Bazarr</option>
+                        <option value="mylar">Mylar</option>
+                        <option value="kapowarr">Kapowarr</option>
+                        <option value="huntarr">Huntarr</option>
+                        </optgroup>
+                        <optgroup label="Download">
                         <option value="qbittorrent">qBittorrent</option>
                         <option value="sabnzbd">SABnzbd</option>
                         <option value="nzbget">NZBGet</option>
                         <option value="transmission">Transmission</option>
+                        <option value="deluge">Deluge</option>
                         <option value="jackett">Jackett</option>
+                        </optgroup>
+                        <optgroup label="Media &amp; photos">
                         <option value="tautulli">Tautulli</option>
                         <option value="audiobookshelf">Audiobookshelf</option>
                         <option value="immich">Immich</option>
+                        <option value="photoprism">PhotoPrism</option>
+                        <option value="navidrome">Navidrome</option>
+                        <option value="komga">Komga</option>
+                        <option value="emby">Emby</option>
                         <option value="tdarr">Tdarr</option>
                         <option value="maintainerr">Maintainerr</option>
                         <option value="frigate">Frigate</option>
-                        <option value="bazarr">Bazarr</option>
-                        <option value="uptime_kuma">Uptime Kuma</option>
+                        <option value="scrypted">Scrypted</option>
+                        </optgroup>
+                        <optgroup label="Network &amp; infra">
+                        <option value="fritz">FRITZ!Box</option>
+                        <option value="unifi">UniFi Network</option>
+                        <option value="opnsense">OPNsense</option>
+                        <option value="pfsense">pfSense</option>
+                        <option value="openwrt">OpenWrt</option>
+                        <option value="tailscale">Tailscale</option>
+                        <option value="netbird">Netbird</option>
+                        <option value="portainer">Portainer</option>
+                        <option value="dockge">Dockge</option>
+                        <option value="truenas">TrueNAS</option>
+                        <option value="synology">Synology DSM</option>
+                        <option value="unraid">Unraid</option>
+                        <option value="proxmox">Proxmox VE</option>
+                        <option value="proxmox_backup">Proxmox Backup Server</option>
+                        <option value="nginx_proxy_manager">Nginx Proxy Manager</option>
+                        <option value="traefik">Traefik</option>
                         <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
+                        </optgroup>
+                        <optgroup label="Monitoring">
+                        <option value="uptime_kuma">Uptime Kuma</option>
+                        <option value="grafana">Grafana</option>
+                        <option value="netdata">Netdata</option>
+                        <option value="glances">Glances</option>
+                        <option value="beszel">Beszel</option>
                         <option value="peanut">Peanut (UPS)</option>
+                        </optgroup>
+                        <optgroup label="Self-hosted apps">
+                        <option value="paperless">Paperless-ngx</option>
+                        <option value="mealie">Mealie</option>
+                        <option value="nextcloud">Nextcloud</option>
+                        <option value="vaultwarden">Vaultwarden</option>
+                        <option value="homeassistant">Home Assistant</option>
+                        <option value="authentik">Authentik</option>
+                        <option value="authelia">Authelia</option>
+                        <option value="crowdsec">CrowdSec</option>
+                        <option value="node_red">Node-RED</option>
+                        <option value="zigbee2mqtt">Zigbee2MQTT</option>
+                        </optgroup>
+                        <optgroup label="Health check only">
+                        <option value="gitea">Gitea</option>
+                        <option value="forgejo">Forgejo</option>
+                        <option value="gitlab">GitLab</option>
+                        <option value="jenkins">Jenkins</option>
+                        <option value="drone">Drone CI</option>
+                        <option value="minio">MinIO</option>
+                        <option value="garage">Garage</option>
+                        <option value="seaweedfs">SeaweedFS</option>
+                        <option value="kopia">Kopia</option>
+                        <option value="restic">Restic</option>
+                        <option value="duplicati">Duplicati</option>
+                        <option value="urbackup">UrBackup</option>
+                        <option value="kodi">Kodi</option>
+                        <option value="stash">Stash</option>
+                        <option value="channels_dvr">Channels DVR</option>
+                        <option value="calibre_web">Calibre-web</option>
+                        <option value="headscale">Headscale</option>
+                        <option value="wireguard_ui">WireGuard UI</option>
+                        <option value="openvpn">OpenVPN</option>
+                        <option value="hubitat">Hubitat</option>
+                        <option value="smartthings">SmartThings</option>
+                        <option value="iobroker">ioBroker</option>
+                        <option value="blue_iris">Blue Iris</option>
+                        <option value="shinobi">Shinobi</option>
+                        <option value="agent_dvr">Agent DVR</option>
+                        </optgroup>
                     </select>
                 </div>
 
@@ -567,10 +801,14 @@
                         <span x-show="editApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
                         <span x-show="editApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
                         <span x-show="editApp.integration_type === 'peanut'">API token (optional)</span>
-                        <span x-show="editApp.integration_type === 'qbittorrent' || editApp.integration_type === 'nzbget'">Web UI credentials</span>
+                        <span x-show="editApp.integration_type === 'qbittorrent' || editApp.integration_type === 'nzbget' || editApp.integration_type === 'fritz' || editApp.integration_type === 'unifi' || editApp.integration_type === 'nextcloud' || editApp.integration_type === 'navidrome' || editApp.integration_type === 'photoprism'">Web UI credentials</span>
+                        <span x-show="editApp.integration_type === 'opnsense'">API key and secret</span>
+                        <span x-show="editApp.integration_type === 'deluge'">Deluge Web UI password</span>
+                        <span x-show="editApp.integration_type === 'netdata' || editApp.integration_type === 'glances'">API token (optional)</span>
+                        <span x-show="editApp.integration_type === 'vaultwarden'">Admin token</span>
                         <span x-show="editApp.integration_type === 'transmission'">RPC credentials (optional)</span>
                         <span x-show="editApp.integration_type === 'audiobookshelf'">API token</span>
-                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent','nzbget','transmission','audiobookshelf'].includes(editApp.integration_type)">API key / token</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent','nzbget','transmission','audiobookshelf','fritz','unifi','nextcloud','navidrome','photoprism','opnsense','deluge','netdata','glances','vaultwarden'].includes(editApp.integration_type)">API key / token</span>
                     </label>
                     <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key"
                         :placeholder="editApp.integration_type === 'adguard' ? 'Base64 username:password' : (editApp.integration_type === 'pihole' ? 'Leave blank to keep unchanged' : 'Leave blank to keep unchanged')">
@@ -618,6 +856,27 @@
                     <p class="form-help" x-show="editApp.integration_type === 'peanut'">
                         Optional API token. Leave blank to keep unchanged.
                     </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'fritz'">
+                        <code>username|password</code> for FRITZ!Box login. URL should be <code>https://fritz.box</code>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'portainer' || editApp.integration_type === 'pfsense' || editApp.integration_type === 'truenas' || editApp.integration_type === 'grafana' || editApp.integration_type === 'beszel' || editApp.integration_type === 'paperless' || editApp.integration_type === 'mealie' || editApp.integration_type === 'komga'">
+                        API key or token from service settings. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'opnsense'">
+                        <code>api_key|api_secret</code>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'unifi' || editApp.integration_type === 'nextcloud' || editApp.integration_type === 'navidrome' || editApp.integration_type === 'photoprism'">
+                        <code>username|password</code> (or app password). Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'netdata' || editApp.integration_type === 'glances'">
+                        Use <code>none</code> if no auth. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'vaultwarden'">
+                        Vaultwarden <code>ADMIN_TOKEN</code>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'deluge'">
+                        Deluge Web UI password. Leave blank to keep unchanged.
+                    </p>
                 </div>
 
                 <div class="form-group">
@@ -664,6 +923,19 @@
         const isAdmin = "{{is_admin}}" === "true";
         globalThis.activeCategoryFilter = 'all';
         const knownAppNames = new Set({{app_names_json}});
+
+        const HEALTH_ONLY_INTEGRATIONS = new Set([
+            'kodi','channels_dvr','stash','calibre_web','kopia','restic','duplicati','urbackup',
+            'gitea','forgejo','gitlab','jenkins','drone','hubitat','smartthings','iobroker',
+            'blue_iris','shinobi','agent_dvr','headscale','wireguard_ui','openvpn','minio','seaweedfs','garage'
+        ]);
+        window.HEALTH_ONLY_INTEGRATIONS = HEALTH_ONLY_INTEGRATIONS;
+
+        function amudApplyIntegrationSpan(app) {
+            if (!app || !app.integration_type || app.integration_type === 'rss') return;
+            if (HEALTH_ONLY_INTEGRATIONS.has(app.integration_type)) return;
+            app.card_span = '1x2';
+        }
 
         function amudSafeLower(value) {
             return (value || '').trim().toLowerCase();

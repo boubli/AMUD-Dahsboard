@@ -76,7 +76,52 @@ Configure per app under **Add/Edit App → Integration**. Data loads when the ca
 | **Uptime Kuma** | Monitors up/down | — | No |
 | **Cloudflare Tunnel** | Tunnel status, connections | — | No |
 | **Peanut (UPS)** | Battery %, UPS status | — | No |
+| **FRITZ!Box** | WAN status, speeds, external IP, uptime, devices, model, link rates | — | No |
+| **Portainer** | Containers running/stopped, stacks, endpoints, version | — | No |
+| **OPNsense** | CPU, memory, states, gateways, uptime, version | — | No |
+| **pfSense** | CPU, memory, states, uptime, version | — | No |
+| **TrueNAS** | Pool health, storage used/free, version | — | No |
+| **UniFi Network** | WAN status, clients, APs online, devices, latency | — | No |
+| **Grafana** | Dashboards, datasources, org, version | — | No |
+| **Netdata** | Host CPU, alarms, charts, version | — | No |
+| **Glances** | Host CPU, RAM, load | — | No |
+| **Beszel** | Systems up/down, average CPU | — | No |
+| **Paperless-ngx** | Documents, inbox, correspondents, tags, storage | — | No |
+| **Mealie** | Recipes, users, version | — | No |
+| **Nextcloud** | Active users, free space, version | — | No |
+| **Vaultwarden** | Users, organizations, version | — | No |
+| **Deluge** | Downloading, seeding, torrents, free disk | — | No |
+| **Navidrome** | Artists, version | — | No |
+| **Komga** | Series, books, libraries | — | No |
+| **PhotoPrism** | Photos, videos, albums, index status | — | No |
+| **Proxmox VE** | Nodes, VMs, LXCs, cluster CPU/RAM, version | — | No |
+| **Tailscale** | Devices online, exit nodes | — | No |
+| **Netbird** | Peers, connected, setup keys | — | No |
+| **Synology DSM** | Version, model, volumes, uptime | — | No |
+| **Unraid** | Array state, parity, used slots | — | No |
+| **Dockge** | Compose stacks | — | No |
+| **Nginx Proxy Manager** | Proxy hosts, certificates | — | No |
+| **Traefik** | Routers, services, middlewares | — | No |
+| **Authentik** | Users, flows | — | No |
+| **Authelia** | Health, version | — | No |
+| **CrowdSec** | Alerts, decisions | — | No |
+| **Node-RED** | Flows, version | — | No |
+| **Zigbee2MQTT** | Devices | — | No |
+| **Home Assistant** | Entities, lights on, version | — | No |
+| **Emby** | Sessions, version, server name | — | No |
+| **Scrypted** | Plugins | — | No |
+| **Mylar / Kapowarr / Huntarr** | Comics *arr stats | — | No |
+| **Proxmox Backup Server** | Datastores | — | No |
+| **Technitium DNS** | Zones | — | No |
+| **Blocky DNS** | Blocking status | — | No |
+| **OpenWrt** | LuCI reachability (limited) | — | No |
 | **RSS / Atom** | Top 3 headlines | — | **Yes** |
+
+### Health-check integrations (1×1 link card)
+
+Status and version/latency only — use integration type with API token or `none` for URL health probe:
+
+Gitea, Forgejo, GitLab, Jenkins, Drone, MinIO, Garage, SeaweedFS, Kopia, Restic, Duplicati, UrBackup, Kodi, Stash, Channels DVR, Calibre-web, Headscale, WireGuard UI, OpenVPN, Hubitat, SmartThings, ioBroker, Blue Iris, Shinobi, Agent DVR.
 
 RSS feeds are managed under **Settings → RSS Feeds** (not the Add App modal).
 

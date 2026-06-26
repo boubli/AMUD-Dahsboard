@@ -42,6 +42,7 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ## Next
 
+- **Core integration expansion** — phased rollout: Tier 1 gaps (Proxmox, Tailscale, Netbird), Tier 2 full cards (Synology, Unraid, Home Assistant, …), Tier 3 health-check catalog (Gitea, MinIO, Jenkins, …). See integration dropdown optgroups in Add App.
 - **Backup/restore UX** — export scheduling reminders (basic validate/counts shipped in v1.5.3.0).
 
 ---
@@ -50,7 +51,6 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 - **Multi-node agent** — one dashboard, several Proxmox hosts reporting in.
 - **API tokens** — scoped read-only tokens for external dashboards/scripts.
-- **Plugin-style integrations** — community-contributed status providers without recompiling core.
 - **Mobile PWA polish** — offline shell, install prompts, tighter touch targets.
 - **Per-integration setup wizards** — guided Pi-hole, *arr, and DNS blocker configuration in Settings.
 

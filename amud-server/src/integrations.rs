@@ -667,6 +667,108 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
         "tdarr" => return fetch_tdarr(&client, base_url, &app.api_key).await,
         "maintainerr" => return fetch_maintainerr(&client, base_url, &app.api_key).await,
         "frigate" => return fetch_frigate(&client, base_url, &app.api_key).await,
+        "fritz" => {
+            let fritz_client = crate::fritz::build_fritz_client(accept_invalid_certs);
+            return crate::fritz::fetch_fritz(&fritz_client, base_url, &app.api_key).await;
+        }
+        "portainer" => {
+            return crate::homelab::fetch_portainer(&client, base_url, &app.api_key).await;
+        }
+        "opnsense" => {
+            return crate::homelab::fetch_opnsense(&client, base_url, &app.api_key).await;
+        }
+        "pfsense" => {
+            return crate::homelab::fetch_pfsense(&client, base_url, &app.api_key).await;
+        }
+        "truenas" => {
+            return crate::homelab::fetch_truenas(&client, base_url, &app.api_key).await;
+        }
+        "unifi" => {
+            let unifi_client = crate::homelab::build_homelab_client(accept_invalid_certs);
+            return crate::homelab::fetch_unifi(&unifi_client, base_url, &app.api_key).await;
+        }
+        "grafana" => {
+            return crate::homelab::fetch_grafana(&client, base_url, &app.api_key).await;
+        }
+        "netdata" => {
+            return crate::homelab::fetch_netdata(&client, base_url, &app.api_key).await;
+        }
+        "glances" => {
+            return crate::homelab::fetch_glances(&client, base_url, &app.api_key).await;
+        }
+        "beszel" => {
+            return crate::homelab::fetch_beszel(&client, base_url, &app.api_key).await;
+        }
+        "paperless" => {
+            return crate::homelab::fetch_paperless(&client, base_url, &app.api_key).await;
+        }
+        "mealie" => {
+            return crate::homelab::fetch_mealie(&client, base_url, &app.api_key).await;
+        }
+        "nextcloud" => {
+            return crate::homelab::fetch_nextcloud(&client, base_url, &app.api_key).await;
+        }
+        "vaultwarden" => {
+            return crate::homelab::fetch_vaultwarden(&client, base_url, &app.api_key).await;
+        }
+        "deluge" => {
+            return crate::homelab::fetch_deluge(&client, base_url, &app.api_key).await;
+        }
+        "navidrome" => {
+            return crate::homelab::fetch_navidrome(&client, base_url, &app.api_key).await;
+        }
+        "komga" => {
+            return crate::homelab::fetch_komga(&client, base_url, &app.api_key).await;
+        }
+        "photoprism" => {
+            return crate::homelab::fetch_photoprism(&client, base_url, &app.api_key).await;
+        }
+        "proxmox" => {
+            return crate::homelab::fetch_proxmox(&client, base_url, &app.api_key).await;
+        }
+        "tailscale" => {
+            return crate::homelab::fetch_tailscale(&client, base_url, &app.api_key).await;
+        }
+        "netbird" => {
+            return crate::homelab::fetch_netbird(&client, base_url, &app.api_key).await;
+        }
+        "synology" => return crate::homelab::fetch_synology(&client, base_url, &app.api_key).await,
+        "unraid" => return crate::homelab::fetch_unraid(&client, base_url, &app.api_key).await,
+        "dockge" => return crate::homelab::fetch_dockge(&client, base_url, &app.api_key).await,
+        "nginx_proxy_manager" => {
+            return crate::homelab::fetch_nginx_proxy_manager(&client, base_url, &app.api_key)
+                .await;
+        }
+        "traefik" => return crate::homelab::fetch_traefik(&client, base_url, &app.api_key).await,
+        "authentik" => {
+            return crate::homelab::fetch_authentik(&client, base_url, &app.api_key).await
+        }
+        "authelia" => return crate::homelab::fetch_authelia(&client, base_url, &app.api_key).await,
+        "crowdsec" => return crate::homelab::fetch_crowdsec(&client, base_url, &app.api_key).await,
+        "node_red" => return crate::homelab::fetch_node_red(&client, base_url, &app.api_key).await,
+        "zigbee2mqtt" => {
+            return crate::homelab::fetch_zigbee2mqtt(&client, base_url, &app.api_key).await
+        }
+        "homeassistant" => {
+            return crate::homelab::fetch_homeassistant(&client, base_url, &app.api_key).await;
+        }
+        "emby" => return crate::homelab::fetch_emby(&client, base_url, &app.api_key).await,
+        "scrypted" => return crate::homelab::fetch_scrypted(&client, base_url, &app.api_key).await,
+        "mylar" => return crate::homelab::fetch_mylar(&client, base_url, &app.api_key).await,
+        "kapowarr" => return crate::homelab::fetch_kapowarr(&client, base_url, &app.api_key).await,
+        "huntarr" => return crate::homelab::fetch_huntarr(&client, base_url, &app.api_key).await,
+        "proxmox_backup" => {
+            return crate::homelab::fetch_proxmox_backup(&client, base_url, &app.api_key).await;
+        }
+        "technitium" => {
+            return crate::homelab::fetch_technitium(&client, base_url, &app.api_key).await
+        }
+        "blocky" => return crate::homelab::fetch_blocky(&client, base_url, &app.api_key).await,
+        "openwrt" => return crate::homelab::fetch_openwrt(&client, base_url, &app.api_key).await,
+        t if crate::homelab::is_health_only(t) => {
+            return crate::homelab::fetch_health_integration(&client, t, base_url, &app.api_key)
+                .await;
+        }
         "rss" => {
             let feed_url = sanitize_rss_feed_url(&app.api_key)?;
             let resp = get_rss_url_allowed(&client, &feed_url).await?;

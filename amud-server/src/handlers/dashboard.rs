@@ -677,6 +677,225 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, _show_cpu_ra
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.provider_count ?? '—'"></span><span class="metric-label">Providers</span></div>
                         </div>
                     </template>
+                    <template x-if="integrationData.type === 'fritz'">
+                        <div class="integration-metrics-grid">
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.75rem;text-transform:capitalize;" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Down</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.external_ip ?? '—'"></span><span class="metric-label">Ext IP</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.uptime ?? '—'"></span><span class="metric-label">Uptime</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.model ?? '—'"></span><span class="metric-label">Model</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.down_link ?? '—'"></span><span class="metric-label">Down link</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.up_link ?? '—'"></span><span class="metric-label">Up link</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'portainer'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.containers_running ?? '—'"></span><span class="metric-label">Running</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.containers_stopped ?? '—'"></span><span class="metric-label">Stopped</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stacks ?? '—'"></span><span class="metric-label">Stacks</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.endpoints ?? '—'"></span><span class="metric-label">Endpoints</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'opnsense' || integrationData.type === 'pfsense'">
+                        <div class="integration-metrics-grid">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">CPU</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.memory ?? '—'"></span><span class="metric-label">Memory</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.states ?? '—'"></span><span class="metric-label">States</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.uptime ?? '—'"></span><span class="metric-label">Uptime</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.gateways_up ?? integrationData.status ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'opnsense' ? 'GW up' : 'Status'"></span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'truenas'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.pools_healthy ?? '—'"></span><span class="metric-label">Pools OK</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.pools_degraded ?? '—'"></span><span class="metric-label">Degraded</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage_used ?? '—'"></span><span class="metric-label">Used</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage_free ?? '—'"></span><span class="metric-label">Free</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'unifi'">
+                        <div class="integration-metrics-grid">
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.wan_status ?? '—'"></span><span class="metric-label">WAN</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.clients ?? '—'"></span><span class="metric-label">Clients</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.aps_online ?? '—'"></span><span class="metric-label">APs up</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.latency ?? '—'"></span><span class="metric-label">Latency</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'grafana'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.dashboards ?? '—'"></span><span class="metric-label">Dashboards</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.datasources ?? '—'"></span><span class="metric-label">Sources</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.database ?? '—'"></span><span class="metric-label">Database</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.organization ?? '—'"></span><span class="metric-label">Org</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'netdata'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">Host CPU</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.alarms ?? '—'"></span><span class="metric-label">Alarms</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.charts ?? '—'"></span><span class="metric-label">Charts</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.hostname ?? '—'"></span><span class="metric-label">Host</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'glances'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">Host CPU</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.memory ?? '—'"></span><span class="metric-label">Host RAM</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.load ?? '—'"></span><span class="metric-label">Load</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'beszel'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems_up ?? '—'"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems_down ?? '—'"></span><span class="metric-label">Down</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems ?? '—'"></span><span class="metric-label">Systems</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.avg_cpu ?? '—'"></span><span class="metric-label">Avg CPU</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'paperless'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.documents ?? '—'"></span><span class="metric-label">Documents</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.inbox ?? '—'"></span><span class="metric-label">Inbox</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.correspondents ?? '—'"></span><span class="metric-label">Contacts</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.tags ?? '—'"></span><span class="metric-label">Tags</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage ?? '—'"></span><span class="metric-label">Storage</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'mealie'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.recipes ?? '—'"></span><span class="metric-label">Recipes</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users ?? '—'"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'nextcloud'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users_active ?? '—'"></span><span class="metric-label">Active 24h</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users_online ?? '—'"></span><span class="metric-label">Online</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_space ?? '—'"></span><span class="metric-label">Free</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'vaultwarden'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users ?? '—'"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.organizations ?? '—'"></span><span class="metric-label">Orgs</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.server ?? '—'"></span><span class="metric-label">Server</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'deluge'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.downloading ?? '—'"></span><span class="metric-label">Downloading</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.seeding ?? '—'"></span><span class="metric-label">Seeding</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_space ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'navidrome'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.artists ?? '—'"></span><span class="metric-label">Artists</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'komga'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.series ?? '—'"></span><span class="metric-label">Series</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.books ?? '—'"></span><span class="metric-label">Books</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.libraries ?? '—'"></span><span class="metric-label">Libraries</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'photoprism'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.photos ?? '—'"></span><span class="metric-label">Photos</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.videos ?? '—'"></span><span class="metric-label">Videos</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.albums ?? '—'"></span><span class="metric-label">Albums</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.index_status ?? '—'"></span><span class="metric-label">Index</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'proxmox'">
+                        <div class="integration-metrics-grid">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.nodes ?? '—'"></span><span class="metric-label">Nodes</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.vms ?? '—'"></span><span class="metric-label">VMs</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.lxcs ?? '—'"></span><span class="metric-label">LXCs</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cluster_cpu ?? '—'"></span><span class="metric-label">CPU</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cluster_mem ?? '—'"></span><span class="metric-label">Memory</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'tailscale'">
+                        <div class="integration-metrics-grid">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices_online ?? '—'"></span><span class="metric-label">Online</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.exit_nodes ?? '—'"></span><span class="metric-label">Exit nodes</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'netbird'">
+                        <div class="integration-metrics-grid">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.peers_connected ?? '—'"></span><span class="metric-label">Connected</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.peers ?? '—'"></span><span class="metric-label">Peers</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.setup_keys ?? '—'"></span><span class="metric-label">Setup keys</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.tier2">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <template x-for="key in ['version','users','flows','devices','stacks','zones','plugins','entities','sessions','missing','queue','library','datastores','proxy_hosts','routers','array_state','blocking','volumes','model','certificates','middlewares','services','lights_on','server_name','wanted','total','parity_status','luci']" :key="key">
+                                <div class="metric-block" x-show="integrationData[key] !== undefined && integrationData[key] !== null && integrationData[key] !== '—'">
+                                    <span class="metric-value" x-text="integrationData[key]"></span>
+                                    <span class="metric-label" x-text="key.replace(/_/g, ' ')"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.health_only">
+                        <div class="integration-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? integrationData.latency_ms ?? '—'"></span><span class="metric-label" x-text="integrationData.version ? 'Version' : 'Latency'"></span></div>
+                        </div>
+                    </template>
                     </div>
                 </div>"#,
         loading = filled_loading_grid(),
@@ -972,6 +1191,120 @@ fn render_apps_grid(
                                 <span class="metric-value" x-text="integrationData.missing_movies"></span>
                                 <span class="metric-label">Mov. missing</span>
                             </div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'fritz'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Down</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'portainer'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.containers_running"></span><span class="metric-label">Running</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stacks"></span><span class="metric-label">Stacks</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'opnsense' || integrationData.type === 'pfsense'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu"></span><span class="metric-label">CPU</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.states"></span><span class="metric-label">States</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'truenas'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.pools_healthy"></span><span class="metric-label">Pools OK</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage_free"></span><span class="metric-label">Free</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'unifi'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.clients"></span><span class="metric-label">Clients</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.aps_online"></span><span class="metric-label">APs up</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'grafana'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.dashboards"></span><span class="metric-label">Dashboards</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.datasources"></span><span class="metric-label">Sources</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'netdata' || integrationData.type === 'glances'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu"></span><span class="metric-label">CPU</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.alarms ?? integrationData.memory"></span><span class="metric-label" x-text="integrationData.type === 'netdata' ? 'Alarms' : 'RAM'"></span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'beszel'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems_up"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems"></span><span class="metric-label">Systems</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'paperless'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.documents"></span><span class="metric-label">Documents</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.inbox"></span><span class="metric-label">Inbox</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'mealie'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.recipes"></span><span class="metric-label">Recipes</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users"></span><span class="metric-label">Users</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'nextcloud'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users_active"></span><span class="metric-label">Active</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_space"></span><span class="metric-label">Free</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'vaultwarden'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.organizations"></span><span class="metric-label">Orgs</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'deluge'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.downloading"></span><span class="metric-label">Downloading</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.seeding"></span><span class="metric-label">Seeding</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'navidrome'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.artists"></span><span class="metric-label">Artists</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'komga'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.series"></span><span class="metric-label">Series</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.books"></span><span class="metric-label">Books</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'photoprism'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.photos"></span><span class="metric-label">Photos</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.videos"></span><span class="metric-label">Videos</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'proxmox'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.vms"></span><span class="metric-label">VMs</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.lxcs"></span><span class="metric-label">LXCs</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'tailscale' || integrationData.type === 'netbird'">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices_online ?? integrationData.peers_connected"></span><span class="metric-label">Online</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices ?? integrationData.peers"></span><span class="metric-label">Total</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.tier2 || integrationData.health_only">
+                        <div class="nested-metrics-grid cols-2">
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? integrationData.latency_ms ?? '—'"></span><span class="metric-label">Info</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'sabnzbd' || integrationData.type === 'nzbget'">
