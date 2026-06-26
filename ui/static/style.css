@@ -505,8 +505,9 @@ body::-webkit-scrollbar-button {
 }
 
 .bento-grid--guest-compact {
-    gap: 1.5rem;
-    row-gap: 1.75rem;
+    grid-auto-rows: auto;
+    gap: 0.65rem;
+    align-items: start;
 }
 
 .bento-column {

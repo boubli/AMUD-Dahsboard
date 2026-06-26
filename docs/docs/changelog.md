@@ -50,6 +50,7 @@ If a removed version is still cached in Docker Hub or local environments, upgrad
 ### Fixed
 - All bundled themes respect glass/blur/radius/overlay sliders
 - Integration cards always show 8 cells; card hover removed
+- Guest dashboard compact grid row spacing (no large gaps between cards)
 
 ---
 

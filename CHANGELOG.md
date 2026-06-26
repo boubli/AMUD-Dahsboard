@@ -21,6 +21,7 @@ Theme system fix, 13 new integrations, filled integration cards, no card hover.
 - **All 36 bundled themes** — glass opacity, blur, radius, and wallpaper tint respect user sliders (no hardcoded overlays)
 - **Integration cards** — 8 metric cells always filled (CPU/RAM show `—` when agent off)
 - **App card hover** — removed lift/glow and metric layer swap
+- **Guest dashboard** — compact cards no longer leave large empty row gaps (grid rows use `auto` height)
 
 ### Improved
 - `theme-guards.css` cascade enforcement; theme audit matrix for v1.5.6.4
