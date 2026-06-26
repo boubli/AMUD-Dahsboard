@@ -762,12 +762,9 @@ body::-webkit-scrollbar-button {
     transition: opacity 0.16s ease;
 }
 
-/* Dual cards: integration visible by default; hover swaps to CPU/RAM */
+/* Dual cards: infra hidden; integration always visible (no hover swap) */
 .app-card-metrics-slot--dual .app-card-metrics-layer--infra {
-    position: absolute;
-    inset: 0.75rem 0 0 0;
-    opacity: 0;
-    pointer-events: none;
+    display: none;
 }
 
 .app-card-metrics-layer--integration {
@@ -786,6 +783,10 @@ body::-webkit-scrollbar-button {
     opacity: 1;
     pointer-events: auto;
     transform: none;
+}
+
+.app-card-metrics-slot--dual .app-card-metrics-layer--integration {
+    position: static;
 }
 
 .app-card-metrics-layer--integration .nested-metrics-grid {
@@ -809,18 +810,6 @@ body::-webkit-scrollbar-button {
 
 .app-card-metrics-slot--stacked .app-card-metrics-layer--infra,
 .app-card-metrics-slot--stacked .app-card-metrics-layer--integration {
-    position: static;
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-}
-
-/* Integration metric layers stay visible — no hover swap */
-.app-card-metrics-slot--dual .app-card-metrics-layer--infra {
-    display: none;
-}
-
-.app-card-metrics-slot--dual .app-card-metrics-layer--integration {
     position: static;
     opacity: 1;
     pointer-events: auto;

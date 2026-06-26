@@ -59,22 +59,23 @@ PROCEDURAL = {
     },
 }
 
+# Flat CSS blocks only (theme files have no nested braces) — avoids ReDoS backtracking.
+_CSS_BLOCK = r"\{[^{}]*\}"
+
 RGBA_CARD = re.compile(
     r"--bg-card:\s*rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)\s*;",
     re.I,
 )
-HEX_CARD = re.compile(r"--bg-card:\s*(#[0-9a-fA-F]{3,8})\s*;", re.I)
-BG_COLOR = re.compile(r"background-color:\s*(#[0-9a-fA-F]{3,8})\s*;", re.I)
+HEX_CARD = re.compile(r"--bg-card:\s*(#[0-9a-f]{3,8})\s*;", re.I)
+BG_COLOR = re.compile(r"background-color:\s*(#[0-9a-f]{3,8})\s*;", re.I)
 RGBA_IN_GRADIENT = re.compile(
     r"rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)", re.I
 )
-BODY_BLOCK = re.compile(r"\nbody\s*\{[^}]*\}\s*", re.S)
-GLASS_HOVER = re.compile(r"\n\.glass-panel:hover\s*\{[^}]*\}\s*", re.S)
-APP_CARD_HOVER = re.compile(
-    r"\n\.app-card\.glass-panel:hover\s*\{[^}]*\}\s*", re.S
-)
+BODY_BLOCK = re.compile(r"\nbody\s*" + _CSS_BLOCK + r"\s*", re.S)
+GLASS_HOVER = re.compile(r"\n\.glass-panel:hover\s*" + _CSS_BLOCK + r"\s*", re.S)
+APP_CARD_HOVER = re.compile(r"\n\.app-card\.glass-panel:hover\s*" + _CSS_BLOCK + r"\s*", re.S)
 GLASS_IMPORTANT = re.compile(
-    r"\n\.glass-panel\s*\{[^}]*!important[^}]*\}\s*", re.S
+    r"\n\.glass-panel\s*\{[^{}]*!important[^{}]*\}\s*", re.S
 )
 ROOT_GLASS_OVERRIDES = re.compile(
     r"\s*--glass-blur-intensity:[^;]+;\s*"
@@ -83,7 +84,34 @@ ROOT_GLASS_OVERRIDES = re.compile(
     re.I,
 )
 WALLPAPER_HIDE = re.compile(
-    r"\n\.wallpaper-bg,\s*\n\.wallpaper-overlay\s*\{[^}]*\}\s*", re.S
+    r"\n\.wallpaper-bg,\s*\n\.wallpaper-overlay\s*" + _CSS_BLOCK + r"\s*", re.S
+)
+_TERMINAL_GLASS = re.compile(
+    r"\.glass-panel\s*\{[^{}]*border-radius:\s*0\s*!important;[^{}]*\}", re.S
+)
+_BLUEPRINT_GLASS = re.compile(
+    r"\.glass-panel\s*\{[^{}]*backdrop-filter:\s*blur\(4px\)\s*!important;[^{}]*\}",
+    re.S,
+)
+
+TERMINAL_THEMES = frozenset({"terminal-matrix", "terminal-amber", "terminal-phosphor"})
+
+TERMINAL_GLASS_REPLACEMENT = (
+    ".glass-panel {\n"
+    "    border-radius: var(--radius-xl);\n"
+    "    backdrop-filter: blur(var(--glass-blur-intensity));\n"
+    "    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));\n"
+    "    box-shadow: 0 0 16px rgba(0, 255, 65, 0.12), "
+    "inset 0 0 20px rgba(0, 255, 65, 0.02);\n"
+    "}"
+)
+
+BLUEPRINT_GLASS_REPLACEMENT = (
+    ".glass-panel {\n"
+    "    backdrop-filter: blur(var(--glass-blur-intensity));\n"
+    "    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));\n"
+    "    border: 1px solid rgba(30, 144, 255, 0.25);\n"
+    "}"
 )
 
 
@@ -95,8 +123,6 @@ def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
 
 
 def theme_vars_block(
-    name: str,
-    content: str,
     card: tuple[int, int, int],
     bg_fallback: str,
     overlay1: tuple[int, int, int] | None,
@@ -127,97 +153,109 @@ def theme_vars_block(
     return "\n".join(lines)
 
 
-def refactor_file(path: Path) -> None:
-    name = path.stem
-    content = path.read_text(encoding="utf-8")
-    original = content
-
-    body_m = BODY_BLOCK.search(original)
+def _strip_legacy_blocks(content: str) -> tuple[str, str]:
+    body_m = BODY_BLOCK.search(content)
     body_text = body_m.group(0) if body_m else ""
-
     content = ROOT_GLASS_OVERRIDES.sub("", content)
     content = BODY_BLOCK.sub("\n", content)
     content = GLASS_HOVER.sub("\n", content)
     content = APP_CARD_HOVER.sub("\n", content)
+    content = GLASS_IMPORTANT.sub("\n", content)
     content = WALLPAPER_HIDE.sub("\n", content)
+    return content, body_text
 
-    rgba_matches = RGBA_IN_GRADIENT.findall(body_text)
-    content = RGBA_CARD.sub("", content)
-    content = HEX_CARD.sub("", content)
 
+def _card_from_original(original: str) -> tuple[int, int, int]:
+    card_m = RGBA_CARD.search(original)
+    if card_m:
+        return (int(card_m.group(1)), int(card_m.group(2)), int(card_m.group(3)))
+    hex_m = HEX_CARD.search(original)
+    return hex_to_rgb(hex_m.group(1)) if hex_m else (15, 20, 25)
+
+
+def _overlays_from_body(
+    rgba_matches: list[tuple[str, str, str]],
+    card: tuple[int, int, int],
+) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
+    if len(rgba_matches) >= 2:
+        return (
+            tuple(int(x) for x in rgba_matches[0]),
+            tuple(int(x) for x in rgba_matches[1]),
+        )
+    if len(rgba_matches) == 1:
+        return (tuple(int(x) for x in rgba_matches[0]), card)
+    return ((8, 10, 18), card)
+
+
+def _build_vars_extra(
+    name: str,
+    original: str,
+    body_text: str,
+) -> str:
     proc = PROCEDURAL.get(name)
     if proc:
-        card = proc["card"]
-        bg = proc["theme_bg"]
-        stack = proc["theme_body_stack"]
-        vars_extra = theme_vars_block(name, content, card, bg, None, None, stack)
-    else:
-        card_m = RGBA_CARD.search(original) or None
-        if card_m:
-            card = (int(card_m.group(1)), int(card_m.group(2)), int(card_m.group(3)))
-        else:
-            hex_m = HEX_CARD.search(original)
-            card = hex_to_rgb(hex_m.group(1)) if hex_m else (15, 20, 25)
+        return theme_vars_block(proc["card"], proc["theme_bg"], None, None, proc["theme_body_stack"])
 
-        bg_m = BG_COLOR.search(body_text) or BG_COLOR.search(original)
-        bg = bg_m.group(1) if bg_m else "#0a0b10"
+    card = _card_from_original(original)
+    bg_m = BG_COLOR.search(body_text) or BG_COLOR.search(original)
+    bg = bg_m.group(1) if bg_m else "#0a0b10"
+    rgba_matches = RGBA_IN_GRADIENT.findall(body_text)
+    overlay1, overlay2 = _overlays_from_body(rgba_matches, card)
+    return theme_vars_block(card, bg, overlay1, overlay2, None)
 
-        if len(rgba_matches) >= 2:
-            overlay1 = tuple(int(x) for x in rgba_matches[0])
-            overlay2 = tuple(int(x) for x in rgba_matches[1])
-        elif len(rgba_matches) == 1:
-            overlay1 = tuple(int(x) for x in rgba_matches[0])
-            overlay2 = card
-        else:
-            overlay1 = (8, 10, 18)
-            overlay2 = card
 
-        vars_extra = theme_vars_block(name, content, card, bg, overlay1, overlay2, None)
-
+def _inject_root_vars(content: str, vars_extra: str) -> str:
     if ":root {" in content:
-        content = content.replace(":root {", ":root {\n" + vars_extra, 1)
-    else:
-        content = ":root {\n" + vars_extra + "\n}\n\n" + content
+        return content.replace(":root {", ":root {\n" + vars_extra, 1)
+    return ":root {\n" + vars_extra + "\n}\n\n" + content
 
-  # Soften brutalist glass-panel !important block
+
+def _fix_brutalist_glass(content: str) -> str:
+    content = content.replace(
+        ".glass-panel {\n    border-radius: 0 !important;\n    border: 3px solid #0a0a0a !important;\n    backdrop-filter: none !important;\n    -webkit-backdrop-filter: none !important;\n    box-shadow: 6px 6px 0 #0a0a0a !important;\n}",
+        ".glass-panel {\n    border-radius: var(--radius-xl);\n    border: 3px solid #0a0a0a;\n    backdrop-filter: blur(var(--glass-blur-intensity));\n    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));\n    box-shadow: 6px 6px 0 #0a0a0a;\n}",
+    )
+    return content.replace(
+        ":root[data-theme=\"dark\"] .glass-panel,\n:root[data-theme=\"light\"] .glass-panel {\n    background: #ffffff !important;\n}",
+        ":root[data-theme=\"dark\"] .glass-panel,\n:root[data-theme=\"light\"] .glass-panel {\n    background: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));\n}",
+    )
+
+
+def _fix_theme_glass_panels(name: str, content: str) -> str:
     if name == "brutalist-mono":
-        content = content.replace(
-            ".glass-panel {\n    border-radius: 0 !important;\n    border: 3px solid #0a0a0a !important;\n    backdrop-filter: none !important;\n    -webkit-backdrop-filter: none !important;\n    box-shadow: 6px 6px 0 #0a0a0a !important;\n}",
-            ".glass-panel {\n    border-radius: var(--radius-xl);\n    border: 3px solid #0a0a0a;\n    backdrop-filter: blur(var(--glass-blur-intensity));\n    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));\n    box-shadow: 6px 6px 0 #0a0a0a;\n}",
-        )
-        content = content.replace(
-            ":root[data-theme=\"dark\"] .glass-panel,\n:root[data-theme=\"light\"] .glass-panel {\n    background: #ffffff !important;\n}",
-            ":root[data-theme=\"dark\"] .glass-panel,\n:root[data-theme=\"light\"] .glass-panel {\n    background: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));\n}",
-        )
-
-    for term in ("terminal-matrix", "terminal-amber", "terminal-phosphor"):
-        if name == term:
-            content = re.sub(
-                r"\.glass-panel\s*\{[^}]*border-radius:\s*0\s*!important;[^}]*\}",
-                ".glass-panel {\n    border-radius: var(--radius-xl);\n    backdrop-filter: blur(var(--glass-blur-intensity));\n    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));\n    box-shadow: 0 0 16px rgba(0, 255, 65, 0.12), inset 0 0 20px rgba(0, 255, 65, 0.02);\n}",
-                content,
-                count=1,
-            )
-
+        content = _fix_brutalist_glass(content)
+    if name in TERMINAL_THEMES:
+        content = _TERMINAL_GLASS.sub(TERMINAL_GLASS_REPLACEMENT, content, count=1)
     if name == "blueprint-tech":
-        content = re.sub(
-            r"\.glass-panel\s*\{[^}]*backdrop-filter:\s*blur\(4px\)\s*!important;[^}]*\}",
-            ".glass-panel {\n    backdrop-filter: blur(var(--glass-blur-intensity));\n    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));\n    border: 1px solid rgba(30, 144, 255, 0.25);\n}",
-            content,
-            count=1,
-        )
+        content = _BLUEPRINT_GLASS.sub(BLUEPRINT_GLASS_REPLACEMENT, content, count=1)
+    return content
 
-    # Tie decorative pseudo-element opacity to user overlay strength
+
+def _tie_pseudo_overlay_opacity(content: str) -> str:
     content = re.sub(
-        r"(body::before[^}]*opacity:\s*)([\d.]+)(\s*;)",
+        r"(body::before[^{}]*opacity:\s*)([\d.]+)(\s*;)",
         r"\1calc(var(--wallpaper-overlay-strength) * 0.6)\3",
         content,
     )
-    content = re.sub(
-        r"(body::after[^}]*opacity:\s*)([\d.]+)(\s*;)",
+    return re.sub(
+        r"(body::after[^{}]*opacity:\s*)([\d.]+)(\s*;)",
         r"\1calc(var(--wallpaper-overlay-strength) * 0.5)\3",
         content,
     )
+
+
+def refactor_file(path: Path) -> None:
+    name = path.stem
+    original = path.read_text(encoding="utf-8")
+
+    content, body_text = _strip_legacy_blocks(original)
+    content = RGBA_CARD.sub("", content)
+    content = HEX_CARD.sub("", content)
+
+    vars_extra = _build_vars_extra(name, original, body_text)
+    content = _inject_root_vars(content, vars_extra)
+    content = _fix_theme_glass_panels(name, content)
+    content = _tie_pseudo_overlay_opacity(content)
 
     path.write_text(content, encoding="utf-8")
     print("refactored", path.name)
