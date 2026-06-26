@@ -1,0 +1,58 @@
+/* AMUD Theme: Terminal Amber — amber CRT mainframe */
+
+:root {
+    --accent-color: #ffb000;
+    --accent-glow: rgba(255, 176, 0, 0.22);
+    --bg-card: rgba(20, 12, 4, 0.94);
+    --border-card: rgba(255, 176, 0, 0.28);
+    --border-hover: rgba(255, 176, 0, 0.55);
+    --text-primary: #ffd080;
+    --text-secondary: #c99040;
+    --text-muted: #806020;
+    --success: #ffb000;
+    --success-bg: rgba(255, 176, 0, 0.12);
+    --danger: #ff4444;
+    --danger-bg: rgba(255, 68, 68, 0.12);
+    --glass-blur-intensity: 0px;
+    --glass-opacity: 0.94;
+    --radius-xl: 0px;
+}
+
+body {
+    font-family: "Courier New", Courier, monospace;
+    background-color: #0a0600;
+    background-image:
+        radial-gradient(ellipse at center, rgba(255, 176, 0, 0.05) 0%, transparent 70%),
+        linear-gradient(rgba(255, 176, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 176, 0, 0.03) 1px, transparent 1px);
+    background-size: auto, 24px 24px, 24px 24px;
+}
+
+.glass-panel {
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 0 12px rgba(255, 176, 0, 0.15), inset 0 0 30px rgba(255, 176, 0, 0.03);
+}
+
+.header-title {
+    font-family: "Courier New", Courier, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    text-shadow: 0 0 8px rgba(255, 176, 0, 0.6);
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.08) 2px,
+        rgba(0, 0, 0, 0.08) 4px
+    );
+}

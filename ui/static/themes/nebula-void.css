@@ -1,0 +1,35 @@
+/* AMUD Theme: Nebula Void — deep space purple nebula */
+
+:root {
+    --accent-color: #a855f7;
+    --accent-glow: rgba(168, 85, 247, 0.22);
+    --bg-card: rgba(25, 12, 45, 0.82);
+    --border-card: rgba(168, 85, 247, 0.14);
+    --border-hover: rgba(192, 132, 252, 0.35);
+    --text-primary: #f3e8ff;
+    --text-secondary: #a890c8;
+    --text-muted: #5a4080;
+    --success: #34d399;
+    --success-bg: rgba(52, 211, 153, 0.12);
+    --danger: #f472b6;
+    --danger-bg: rgba(244, 114, 182, 0.12);
+}
+
+body {
+    background-color: #0a0518;
+    background-image:
+        linear-gradient(135deg, rgba(10, 5, 24, 0.95) 0%, rgba(30, 10, 50, 0.90) 100%),
+        var(--brand-bg-image);
+}
+
+.glass-panel {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.16);
+}
+
+.header-title {
+    text-shadow: 0 0 24px rgba(168, 85, 247, 0.35);
+}

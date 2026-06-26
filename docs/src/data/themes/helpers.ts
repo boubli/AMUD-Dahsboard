@@ -25,12 +25,22 @@ export function createTheme(definition: ThemeDefinition): AmudTheme {
       ? undefined
       : definition.wallpaper ?? `${WALLPAPER_PREFIX}${definition.id}.jpg`;
   const bundled = definition.bundled ?? definition.id !== 'default';
+  const category =
+    definition.category ??
+    (definition.id === 'default'
+      ? 'default'
+      : definition.tags.includes('advanced')
+        ? 'advanced'
+        : definition.id.startsWith('terminal-')
+          ? 'terminal'
+          : 'classic');
 
   return {
     id: definition.id,
     name: definition.name,
     description: definition.description,
     tags: definition.tags,
+    category,
     palette: definition.palette,
     cssFile,
     previewImage,

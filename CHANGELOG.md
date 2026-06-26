@@ -8,6 +8,38 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.5.6.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.3) — 2026-06-26
+
+Theme gallery overhaul, 37 offline themes, guest compact cards, and docs/CI polish.
+
+### Added
+- **37 bundled themes** — visual Theme Gallery in Settings → Appearance; manifest v3 with previews and wallpapers
+- **18 new theme packs** — Nature, Terminal, Feminine, Variety
+- **Vendored wallpapers** — unique Unsplash/Pexels photos per theme at `/static/themes/wallpapers/`
+- **`active_theme_id`** setting for theme picker persistence
+
+### Fixed
+- **Guest dashboard** — compact 1×1 cards (icon, name, status only)
+- **RSS settings** — add-feed modal; category table column layout
+- **CI** — clippy fixes; Docusaurus build in GitHub Actions
+
+### Improved
+- Filled integration cards (6-cell grid, richer stats, 30s refresh) — see v1.5.6.2
+- GitHub Pages Theme Gallery category filters; `fetch-theme-wallpapers.py`
+
+---
+
+## [v1.5.6.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.2) — 2026-06-26
+
+Filled integration cards and expanded per-service API stats.
+
+### Fixed
+- Integration cards fill tall 1×2 layout with unified 6-cell metrics grid
+- Expanded API stats (Radarr, Sonarr, Prowlarr, qBittorrent, Pi-hole, etc.)
+- Integration data refreshes every 30s on visible cards
+
+---
+
 ## [v1.5.5.6](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.5.6) — 2026-06-25
 
 Dashboard UX and telemetry mapping polish release.

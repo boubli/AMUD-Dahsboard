@@ -630,25 +630,33 @@
                                     </div>
                                 </div>
 
-                                <div class="settings-block" style="margin:0;">
+                                <div class="settings-block" style="margin:0; grid-column: 1 / -1;">
+                                    <h3><i data-lucide="layout-grid" style="color:var(--accent-color);"></i> Theme Gallery</h3>
+                                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+                                        Click a theme to preview CSS and matching wallpaper instantly.
+                                        <strong>Save Changes</strong> applies to the dashboard.
+                                        <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Online gallery</a>
+                                    </p>
+                                    <input type="hidden" name="active_theme_id" id="setting-active-theme-id" value="{{active_theme_id}}">
+                                    <div id="theme-light-mode-warning" class="theme-light-mode-warning" style="display:none;" role="status">
+                                        Light mode is on — bundled themes look best in dark mode. Consider switching Theme Mode to Dark or turning off the scheduler.
+                                    </div>
+                                    <div class="theme-picker-toolbar">
+                                        <input type="search" id="theme-picker-search" class="form-control" placeholder="Search themes…" autocomplete="off" style="max-width:280px;">
+                                        <div class="theme-picker-categories" id="theme-picker-categories" role="tablist" aria-label="Theme categories"></div>
+                                    </div>
+                                    <div id="theme-picker-grid" class="theme-picker-grid" aria-live="polite"></div>
+                                    <div class="theme-picker-actions">
+                                        <button type="button" id="btn-download-bundled-theme" class="btn btn-secondary">Download selected .css</button>
+                                        <p id="theme-picker-status" class="theme-picker-status"></p>
+                                    </div>
+                                </div>
+
+                                <div class="settings-block" style="margin:0; grid-column: 1 / -1;">
                                     <h3><i data-lucide="code" style="color:var(--accent-color);"></i> Custom CSS</h3>
                                     <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
-                                        <strong>Offline:</strong> load a bundled theme from this server (no internet).
-                                        <strong> Online:</strong> browse the
-                                        <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Theme Gallery</a>
-                                        for previews, copy, or download. Save to apply to the dashboard.
+                                        Advanced overrides — edit CSS directly or paste from the gallery. Theme picker above loads bundled CSS here.
                                     </p>
-                                    <div class="form-group" style="margin-bottom:1rem;">
-                                        <label for="bundled-theme-select">Bundled theme (offline)</label>
-                                        <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
-                                            <select id="bundled-theme-select" class="form-control" style="flex:1; min-width:200px;">
-                                                <option value="">— Select a theme —</option>
-                                            </select>
-                                            <button type="button" id="btn-load-bundled-theme" class="btn btn-secondary" style="white-space:nowrap;">Load into editor</button>
-                                            <button type="button" id="btn-download-bundled-theme" class="btn btn-secondary" style="white-space:nowrap;">Download .css</button>
-                                        </div>
-                                        <p id="bundled-theme-status" style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;"></p>
-                                    </div>
                                     <div class="form-group">
                                         <label for="setting-custom-css">CSS Overrides</label>
                                         <textarea id="setting-custom-css" name="custom_css" class="form-control" rows="6" placeholder="body { ... }" style="font-family:monospace; resize:vertical;">{{custom_css}}</textarea>
@@ -2304,7 +2312,7 @@
             initLivePreview();
             initThemeSchedulerUI();
             initGuestCategoryControls();
-            initBundledThemes();
+            initThemePicker();
             initTelemetryDiscover();
         });
 
@@ -2351,83 +2359,216 @@
             });
         }
 
-        function initBundledThemes() {
-            const select = document.getElementById('bundled-theme-select');
-            const loadBtn = document.getElementById('btn-load-bundled-theme');
+        function initThemePicker() {
+            const grid = document.getElementById('theme-picker-grid');
+            const categoriesEl = document.getElementById('theme-picker-categories');
+            const searchInput = document.getElementById('theme-picker-search');
+            const statusEl = document.getElementById('theme-picker-status');
             const downloadBtn = document.getElementById('btn-download-bundled-theme');
-            const statusEl = document.getElementById('bundled-theme-status');
             const cssTextarea = document.getElementById('setting-custom-css');
-            if (!select || !loadBtn || !downloadBtn || !cssTextarea) return;
+            const bgInput = document.getElementById('setting-custom-bg-url');
+            const activeThemeInput = document.getElementById('setting-active-theme-id');
+            const accentInput = document.getElementById('setting-accent-color');
+            const themeModeSelect = document.getElementById('theme-mode-select');
+            const lightWarning = document.getElementById('theme-light-mode-warning');
+            const defaultAccent = '{{accent_color}}';
+            const defaultWallpaper = '/static/wallpaper.png';
+            if (!grid || !cssTextarea) return;
 
-            let manifest = { themes: [] };
+            let manifest = { themes: [], categories: [] };
+            let activeCategory = 'all';
+            let selectedThemeId = (activeThemeInput && activeThemeInput.value) || 'default';
 
             function selectedTheme() {
-                const id = select.value;
-                return manifest.themes.find(function(t) { return t.id === id; });
+                return manifest.themes.find(function(t) { return t.id === selectedThemeId; });
             }
 
             function fetchThemeCss(file) {
+                if (!file) return Promise.resolve('');
                 return fetch('/static/themes/' + file, { cache: 'no-store' }).then(function(res) {
                     if (!res.ok) throw new Error('Theme file not found');
                     return res.text();
                 });
             }
 
-            loadBtn.addEventListener('click', function() {
-                const theme = selectedTheme();
-                if (!theme) {
-                    if (statusEl) statusEl.textContent = 'Pick a theme first.';
-                    return;
-                }
-                fetchThemeCss(theme.file).then(function(css) {
-                    cssTextarea.value = css;
-                    syncAccentPickerFromCss(css, document.getElementById('setting-accent-color'));
+            function updateLightModeWarning() {
+                if (!lightWarning || !themeModeSelect) return;
+                const hasCss = (cssTextarea.value || '').trim().length > 0;
+                const isLight = themeModeSelect.value === 'light';
+                lightWarning.style.display = (hasCss && isLight) ? 'block' : 'none';
+            }
+
+            function markActiveCard() {
+                grid.querySelectorAll('.theme-picker-card').forEach(function(card) {
+                    card.classList.toggle('is-active', card.getAttribute('data-theme-id') === selectedThemeId);
+                });
+            }
+
+            function applyThemePreview(theme) {
+                if (!theme) return;
+                selectedThemeId = theme.id;
+                if (activeThemeInput) activeThemeInput.value = theme.id;
+
+                function finishPreview() {
                     cssTextarea.dispatchEvent(new Event('input', { bubbles: true }));
                     if (typeof window.amudRefreshLivePreview === 'function') {
                         window.amudRefreshLivePreview();
                     }
-                    if (statusEl) statusEl.textContent = 'Loaded “' + theme.name + '”. Click Save Changes to apply dashboard-wide.';
+                    markActiveCard();
+                    updateLightModeWarning();
+                    if (statusEl) {
+                        statusEl.textContent = 'Previewing “' + theme.name + '”. Click Save Changes to apply dashboard-wide.';
+                    }
+                    if (window.settingsState && typeof window.settingsState === 'function') {
+                        try { window.settingsState().unsavedChanges = true; } catch (e) {}
+                    }
+                    const form = document.getElementById('mainSettingsForm');
+                    if (form && form._x_dataStack && form._x_dataStack[0]) {
+                        form._x_dataStack[0].unsavedChanges = true;
+                    }
+                }
+
+                if (theme.id === 'default' || !theme.file) {
+                    cssTextarea.value = '';
+                    if (accentInput) accentInput.value = defaultAccent;
+                    if (bgInput && theme.wallpaper) bgInput.value = theme.wallpaper || defaultWallpaper;
+                    finishPreview();
+                    return;
+                }
+
+                fetchThemeCss(theme.file).then(function(css) {
+                    cssTextarea.value = css;
+                    syncAccentPickerFromCss(css, accentInput);
+                    if (bgInput && theme.usesWallpaper && theme.wallpaper) {
+                        bgInput.value = theme.wallpaper;
+                    }
+                    finishPreview();
                 }).catch(function() {
                     if (statusEl) statusEl.textContent = 'Failed to load theme — update AMUD to the latest ui.tar.gz.';
                 });
-            });
+            }
 
-            downloadBtn.addEventListener('click', function() {
-                const theme = selectedTheme();
-                if (!theme) {
-                    if (statusEl) statusEl.textContent = 'Pick a theme first.';
-                    return;
-                }
-                fetchThemeCss(theme.file).then(function(css) {
-                    const blob = new Blob([css], { type: 'text/css' });
-                    const url = URL.createObjectURL(blob);
-                    const anchor = document.createElement('a');
-                    anchor.href = url;
-                    anchor.download = theme.file;
-                    anchor.click();
-                    URL.revokeObjectURL(url);
-                    if (statusEl) statusEl.textContent = 'Downloaded ' + theme.file + '.';
-                }).catch(function() {
-                    if (statusEl) statusEl.textContent = 'Download failed.';
+            function filteredThemes() {
+                const q = (searchInput && searchInput.value || '').trim().toLowerCase();
+                return manifest.themes.filter(function(theme) {
+                    if (activeCategory !== 'all' && theme.category !== activeCategory) return false;
+                    if (!q) return true;
+                    const hay = (theme.name + ' ' + (theme.tags || []).join(' ') + ' ' + theme.id).toLowerCase();
+                    return hay.indexOf(q) >= 0;
                 });
-            });
+            }
+
+            function renderGrid() {
+                const themes = filteredThemes();
+                grid.innerHTML = '';
+                themes.forEach(function(theme) {
+                    const card = document.createElement('button');
+                    card.type = 'button';
+                    card.className = 'theme-picker-card' + (theme.id === selectedThemeId ? ' is-active' : '');
+                    card.setAttribute('data-theme-id', theme.id);
+                    card.setAttribute('aria-pressed', theme.id === selectedThemeId ? 'true' : 'false');
+                    const preview = document.createElement('div');
+                    preview.className = 'theme-picker-preview';
+                    preview.style.backgroundImage = "url('" + (theme.preview || '') + "')";
+                    const body = document.createElement('div');
+                    body.className = 'theme-picker-card-body';
+                    const title = document.createElement('span');
+                    title.className = 'theme-picker-card-title';
+                    title.textContent = theme.name;
+                    const tags = document.createElement('span');
+                    tags.className = 'theme-picker-card-tags';
+                    tags.textContent = (theme.tags || []).slice(0, 2).join(' · ');
+                    body.appendChild(title);
+                    body.appendChild(tags);
+                    card.appendChild(preview);
+                    card.appendChild(body);
+                    card.addEventListener('click', function() {
+                        applyThemePreview(theme);
+                    });
+                    grid.appendChild(card);
+                });
+                if (statusEl && !themes.length) {
+                    statusEl.textContent = 'No themes match your search.';
+                }
+            }
+
+            function renderCategories() {
+                if (!categoriesEl) return;
+                const cats = ['all'].concat(manifest.categories || []);
+                const labels = {
+                    all: 'All',
+                    default: 'Default',
+                    classic: 'Classic',
+                    advanced: 'Advanced',
+                    nature: 'Nature',
+                    terminal: 'Terminal',
+                    feminine: 'Feminine',
+                    variety: 'Variety'
+                };
+                categoriesEl.innerHTML = '';
+                cats.forEach(function(cat) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'theme-picker-category' + (cat === activeCategory ? ' is-active' : '');
+                    btn.textContent = labels[cat] || cat;
+                    btn.addEventListener('click', function() {
+                        activeCategory = cat;
+                        categoriesEl.querySelectorAll('.theme-picker-category').forEach(function(b) {
+                            b.classList.toggle('is-active', b === btn);
+                        });
+                        renderGrid();
+                    });
+                    categoriesEl.appendChild(btn);
+                });
+            }
+
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', function() {
+                    const theme = selectedTheme();
+                    if (!theme || !theme.file) {
+                        if (statusEl) statusEl.textContent = 'Select a non-default theme to download CSS.';
+                        return;
+                    }
+                    fetchThemeCss(theme.file).then(function(css) {
+                        const blob = new Blob([css], { type: 'text/css' });
+                        const url = URL.createObjectURL(blob);
+                        const anchor = document.createElement('a');
+                        anchor.href = url;
+                        anchor.download = theme.file;
+                        anchor.click();
+                        URL.revokeObjectURL(url);
+                        if (statusEl) statusEl.textContent = 'Downloaded ' + theme.file + '.';
+                    }).catch(function() {
+                        if (statusEl) statusEl.textContent = 'Download failed.';
+                    });
+                });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', renderGrid);
+            }
+            if (themeModeSelect) {
+                themeModeSelect.addEventListener('change', updateLightModeWarning);
+            }
+            cssTextarea.addEventListener('input', updateLightModeWarning);
 
             fetch('/static/themes/manifest.json', { cache: 'no-store' })
-                .then(function(res) { return res.ok ? res.json() : { themes: [] }; })
+                .then(function(res) { return res.ok ? res.json() : { themes: [], categories: [] }; })
                 .then(function(data) {
-                    manifest = data && Array.isArray(data.themes) ? data : { themes: [] };
-                    manifest.themes.forEach(function(theme) {
-                        const opt = document.createElement('option');
-                        opt.value = theme.id;
-                        opt.textContent = theme.name + (theme.tags && theme.tags.indexOf('advanced') >= 0 ? ' ★' : '');
-                        select.appendChild(opt);
-                    });
+                    manifest = data && Array.isArray(data.themes) ? data : { themes: [], categories: [] };
+                    if (!manifest.categories || !manifest.categories.length) {
+                        manifest.categories = ['default', 'classic', 'advanced', 'nature', 'terminal', 'feminine', 'variety'];
+                    }
+                    renderCategories();
+                    renderGrid();
+                    markActiveCard();
+                    updateLightModeWarning();
                     if (statusEl && manifest.themes.length) {
-                        statusEl.textContent = manifest.themes.length + ' themes available offline on this server.';
+                        statusEl.textContent = manifest.themes.length + ' themes available offline. Click one to preview.';
                     }
                 })
                 .catch(function() {
-                    if (statusEl) statusEl.textContent = 'Bundled themes unavailable — reinstall ui.tar.gz from a recent release.';
+                    if (statusEl) statusEl.textContent = 'Theme gallery unavailable — reinstall ui.tar.gz from a recent release.';
                 });
         }
 

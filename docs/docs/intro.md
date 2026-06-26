@@ -34,7 +34,7 @@ AMUD uses a decoupled client-server architecture to aggregate metrics and report
 
 ## What AMUD includes
 
-See the full **[Features](./features.md)** page for every shipped capability — Proxmox/Docker telemetry, Jellyfin/Plex streams, Pi-hole and *arr integrations, RSS feeds, webhooks, Wake-on-LAN, 18 themes, audit log, and more.
+See the full **[Features](./features.md)** page for every shipped capability — Proxmox/Docker telemetry, Jellyfin/Plex streams, Pi-hole and *arr integrations, RSS feeds, webhooks, Wake-on-LAN, **37 themes**, audit log, and more.
 
 ## Next Steps
 

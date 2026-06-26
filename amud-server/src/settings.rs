@@ -21,6 +21,7 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("ha_url", "");
     s.insert("ha_token", "");
     s.insert("custom_css", "");
+    s.insert("active_theme_id", "default");
     s.insert("theme_mode", "dark");
     s.insert("theme_scheduler", "off");
     s.insert("theme_light_at", "07:00");
@@ -62,6 +63,7 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "theme_scheduler",
     "theme_light_at",
     "theme_dark_at",
+    "active_theme_id",
     "guest_category_restrict",
     "guest_visible_categories",
     "dashboard_layout",
@@ -200,6 +202,23 @@ pub(crate) fn sanitize_theme_scheduler(value: &str) -> String {
         "sunrise_sunset" => "sunrise_sunset".to_string(),
         "manual" => "manual".to_string(),
         _ => "off".to_string(),
+    }
+}
+
+/// Bundled theme id from manifest (alphanumeric + hyphens).
+pub(crate) fn sanitize_active_theme_id(value: &str) -> String {
+    let trimmed = value.trim().to_ascii_lowercase();
+    if trimmed.is_empty() || trimmed == "default" {
+        return "default".to_string();
+    }
+    let valid = trimmed
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '-')
+        && trimmed.len() <= 64;
+    if valid {
+        trimmed
+    } else {
+        "default".to_string()
     }
 }
 
@@ -415,6 +434,18 @@ mod tests {
         assert_eq!(sanitize_theme_scheduler("sunrise_sunset"), "sunrise_sunset");
         assert_eq!(sanitize_theme_scheduler("manual"), "manual");
         assert_eq!(sanitize_theme_scheduler("bogus"), "off");
+    }
+
+    #[test]
+    fn test_sanitize_active_theme_id() {
+        assert_eq!(sanitize_active_theme_id("default"), "default");
+        assert_eq!(sanitize_active_theme_id("nord"), "nord");
+        assert_eq!(
+            sanitize_active_theme_id("terminal-matrix"),
+            "terminal-matrix"
+        );
+        assert_eq!(sanitize_active_theme_id(""), "default");
+        assert_eq!(sanitize_active_theme_id("bad id!"), "default");
     }
 
     #[test]

@@ -6,6 +6,7 @@ const def: ThemeDefinition = {
   description:
     'The built-in orange glass cockpit look. No custom CSS required — reset the Custom CSS field or leave it empty.',
   tags: ['default', 'orange', 'glass', 'built-in'],
+  category: 'default',
   cssFile: '',
   previewImage: 'img/AMUD-Dashboard.png',
   bundled: false,

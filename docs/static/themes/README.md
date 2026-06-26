@@ -9,7 +9,8 @@ docs/static/themes/          # Gallery + GitHub Pages
 ui/static/themes/            # Shipped with ui.tar.gz (offline)
 ├── manifest.json              # Bundled theme list (ui only)
 ├── assets/                    # Preview screenshots (PNG)
-├── wallpapers/                # 2K wallpapers (JPG, classic themes)
+├── wallpapers/                # 2K wallpapers (JPG, all wallpaper themes)
+├── previews/                  # Grid thumbnails (JPG)
 ├── dracula.css
 ├── terminal-phosphor.css      # Advanced layout themes
 └── …
@@ -17,11 +18,11 @@ ui/static/themes/            # Shipped with ui.tar.gz (offline)
 
 ## How users apply themes
 
-**Offline (no internet):** Settings → Appearance → **Bundled theme** → Load → Save.
+**Offline (no internet):** Settings → Appearance → **Theme Gallery** → click a theme → **Save Changes**.
 
-**Online gallery:** Copy CSS or Download CSS → paste in Custom CSS → Save.
+**Online gallery:** [Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes) — Copy CSS, Download CSS, or Copy wallpaper.
 
-Optional: **Copy wallpaper** → paste in Wallpaper field.
+**37 themes** · manifest v3 · wallpapers in `wallpapers/` · previews in `previews/`
 
 ## Add a new theme
 

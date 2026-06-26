@@ -54,6 +54,33 @@
   pointer-events: none;
 }
 
+.categoryBar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 auto 2rem;
+  max-width: 720px;
+}
+
+.categoryChip {
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ifm-color-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.categoryChip:hover,
+.categoryChipActive {
+  border-color: rgba(255, 107, 43, 0.5);
+  color: var(--ifm-font-color-base);
+  background: rgba(255, 107, 43, 0.1);
+}
+
 .resultCount {
   text-align: center;
   color: var(--ifm-color-secondary);

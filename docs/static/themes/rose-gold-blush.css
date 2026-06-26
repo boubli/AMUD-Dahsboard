@@ -1,0 +1,35 @@
+/* AMUD Theme: Rose Gold Blush — rose and gold accents */
+
+:root {
+    --accent-color: #e8b4b8;
+    --accent-glow: rgba(232, 180, 184, 0.20);
+    --bg-card: rgba(45, 30, 32, 0.78);
+    --border-card: rgba(232, 180, 184, 0.14);
+    --border-hover: rgba(212, 175, 55, 0.35);
+    --text-primary: #fff5f5;
+    --text-secondary: #c9a8a0;
+    --text-muted: #8a6860;
+    --success: #d4af37;
+    --success-bg: rgba(212, 175, 55, 0.12);
+    --danger: #e87070;
+    --danger-bg: rgba(232, 112, 112, 0.12);
+}
+
+body {
+    background-color: #281818;
+    background-image:
+        linear-gradient(135deg, rgba(40, 24, 24, 0.93) 0%, rgba(55, 35, 30, 0.88) 100%),
+        var(--brand-bg-image);
+}
+
+.glass-panel {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 8px 28px rgba(212, 175, 55, 0.12);
+}
+
+.header-title {
+    text-shadow: 0 0 18px rgba(232, 180, 184, 0.25);
+}

@@ -29,6 +29,27 @@ Example URL (hosted on this site):
 | Monokai | `monokai.jpg` |
 | Rose Pine | `rose-pine.jpg` |
 | Solarized Dark | `solarized-dark.jpg` |
+| Aurora Borealis | `aurora-borealis.jpg` |
+| Desert Dusk | `desert-dusk.jpg` |
+| Ocean Depths | `ocean-depths.jpg` |
+| Rainforest Mist | `rainforest-mist.jpg` |
+| Volcanic Ember | `volcanic-ember.jpg` |
+| Sakura Dream | `sakura-dream.jpg` |
+| Lavender Mist | `lavender-mist.jpg` |
+| Rose Gold Blush | `rose-gold-blush.jpg` |
+| Cotton Candy | `cotton-candy.jpg` |
+| Peach Blossom | `peach-blossom.jpg` |
+| Nebula Void | `nebula-void.jpg` |
+| Arctic Frost | `arctic-frost.jpg` |
+| Steampunk Brass | `steampunk-brass.jpg` |
+| Zen Garden | `zen-garden.jpg` |
+| Retro Arcade | `retro-arcade.jpg` |
+| Midnight City | `midnight-city.jpg` |
+| Vaporwave Grid | `vaporwave-grid.jpg` |
+| Luxury Gold | `luxury-gold.jpg` |
+| Holographic Prism | `holographic-prism.jpg` |
+
+Terminal themes (phosphor, amber, matrix) and Blueprint Tech / Brutalist Mono use CSS-only backgrounds.
 
 ## Credits
 

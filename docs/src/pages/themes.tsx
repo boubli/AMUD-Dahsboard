@@ -156,14 +156,26 @@ function ThemeCard({theme, siteUrl, baseUrl, onCopy, copiedKey}: ThemeCardProps)
 export default function ThemesGallery(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('all');
   const [toast, setToast] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    AMUD_THEMES.forEach((t) => {
+      if (t.category) set.add(t.category);
+    });
+    return ['all', ...Array.from(set).sort()];
+  }, []);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return AMUD_THEMES;
-    return AMUD_THEMES.filter((t) => themeSearchText(t).includes(q));
-  }, [query]);
+    return AMUD_THEMES.filter((t) => {
+      if (category !== 'all' && t.category !== category) return false;
+      if (!q) return true;
+      return themeSearchText(t).includes(q);
+    });
+  }, [query, category]);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -220,9 +232,9 @@ export default function ThemesGallery(): ReactNode {
         <header className={styles.hero}>
           <h1 className={styles.heroTitle}>Custom Themes Gallery</h1>
           <p className={styles.heroSubtitle}>
-            Each card shows a <strong>dashboard preview screenshot</strong>. Copy or download theme CSS,
-            or load bundled themes <strong>offline</strong> from your dashboard at{' '}
-            <code>/static/themes/</code> (Settings → Appearance).
+            Each card shows a <strong>dashboard preview screenshot</strong>. Click a theme in{' '}
+            <strong>Settings → Appearance → Theme Gallery</strong> on your dashboard for instant preview,
+            or copy CSS from here for manual paste.
           </p>
           <div className={styles.searchBar}>
             <span className={styles.searchIcon} aria-hidden>
@@ -231,11 +243,24 @@ export default function ThemesGallery(): ReactNode {
             <input
               type="search"
               className={styles.searchInput}
-              placeholder="Search themes (e.g. nord, neon, purple, warm…)"
+              placeholder="Search themes (e.g. nord, neon, sakura, terminal…)"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               aria-label="Search themes"
             />
+          </div>
+          <div className={styles.categoryBar} role="tablist" aria-label="Theme categories">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                role="tab"
+                aria-selected={category === cat}
+                className={`${styles.categoryChip} ${category === cat ? styles.categoryChipActive : ''}`}
+                onClick={() => setCategory(cat)}>
+                {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </button>
+            ))}
           </div>
         </header>
 
@@ -243,11 +268,11 @@ export default function ThemesGallery(): ReactNode {
           <h2>How to apply a theme</h2>
           <ol>
             <li>
-              On your AMUD server (no internet needed): open <strong>Settings → Appearance</strong>,
-              pick a <strong>Bundled theme</strong>, click <strong>Load</strong>, then <strong>Save</strong>.
+              On your AMUD server (no internet needed): open <strong>Settings → Appearance → Theme Gallery</strong>,
+              click a theme card to preview CSS and wallpaper, then <strong>Save Changes</strong>.
             </li>
             <li>Online: click <strong>Copy CSS</strong> or <strong>Download CSS</strong> from this gallery.</li>
-            <li>Paste into <strong>Settings → Appearance → Custom CSS</strong> (if not using bundled loader).</li>
+            <li>Paste into <strong>Settings → Appearance → Custom CSS</strong> if not using the built-in gallery.</li>
             <li>
               Optional: click <strong>Copy wallpaper</strong> and paste into{' '}
               <strong>Settings → Appearance → Wallpaper</strong> for a matching 2K background.

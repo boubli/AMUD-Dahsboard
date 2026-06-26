@@ -1,0 +1,35 @@
+/* AMUD Theme: Lavender Mist — purple-lavender pastel glass */
+
+:root {
+    --accent-color: #c4b5fd;
+    --accent-glow: rgba(196, 181, 253, 0.20);
+    --bg-card: rgba(35, 28, 55, 0.76);
+    --border-card: rgba(196, 181, 253, 0.14);
+    --border-hover: rgba(196, 181, 253, 0.35);
+    --text-primary: #f5f3ff;
+    --text-secondary: #b8a8d4;
+    --text-muted: #6b5a8a;
+    --success: #a7f3d0;
+    --success-bg: rgba(167, 243, 208, 0.12);
+    --danger: #f9a8d4;
+    --danger-bg: rgba(249, 168, 212, 0.12);
+}
+
+body {
+    background-color: #1e1830;
+    background-image:
+        linear-gradient(160deg, rgba(30, 24, 48, 0.92) 0%, rgba(45, 35, 65, 0.88) 100%),
+        var(--brand-bg-image);
+}
+
+.glass-panel {
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.32);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 8px 30px rgba(196, 181, 253, 0.14);
+}
+
+.header-title {
+    text-shadow: 0 0 22px rgba(196, 181, 253, 0.28);
+}

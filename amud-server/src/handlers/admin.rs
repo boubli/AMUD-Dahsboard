@@ -48,6 +48,8 @@ pub async fn settings_handler(
                 sanitize_theme_mode(&val)
             } else if key == "theme_scheduler" {
                 sanitize_theme_scheduler(&val)
+            } else if key == "active_theme_id" {
+                sanitize_active_theme_id(&val)
             } else if key == "theme_light_at" {
                 sanitize_time_hhmm(&val, "07:00")
             } else if key == "theme_dark_at" {

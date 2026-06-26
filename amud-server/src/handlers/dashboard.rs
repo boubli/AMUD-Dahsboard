@@ -597,8 +597,7 @@ fn render_apps_grid(
                 </div>"#
                     .to_string()
             } else if app.show_container_metrics && !use_filled {
-                format!(
-                    r#"
+                r#"
                 <div class="nested-metrics-grid cols-2" data-lxc-metrics>
                     <div class="metric-block">
                         <span class="metric-value">—</span>
@@ -609,7 +608,7 @@ fn render_apps_grid(
                         <span class="metric-label">RAM</span>
                     </div>
                 </div>"#
-                )
+                    .to_string()
             } else {
                 String::new()
             }
@@ -673,8 +672,7 @@ fn render_apps_grid(
                 integration_widget =
                     build_filled_integration_widget(app.id, csrf_token, app.show_container_metrics);
             } else if app.integration_type == "rss" {
-                integration_widget = format!(
-                    r#"
+                integration_widget = r#"
                 <div class="integration-widget integration-widget--always">
                     <div class="nested-metrics-grid app-card-metrics-fallback" x-show="!integrationData || !integrationData.type">
                         <div class="metric-block">
@@ -702,7 +700,7 @@ fn render_apps_grid(
                     </template>
                     </div>
                 </div>"#
-                );
+                .to_string();
             } else {
                 let integration_class =
                     "integration-widget integration-widget--hover app-card-metrics-layer app-card-metrics-layer--integration";
@@ -863,10 +861,20 @@ fn render_apps_grid(
             ""
         };
 
-        let span_class = match app.card_span.as_str() {
-            "2x1" => " span-2",
-            "1x2" => " span-tall",
-            _ => "",
+        let span_class = if is_admin {
+            match app.card_span.as_str() {
+                "2x1" => " span-2",
+                "1x2" => " span-tall",
+                _ => "",
+            }
+        } else {
+            ""
+        };
+
+        let card_description = if is_admin {
+            escape_html(&app.description)
+        } else {
+            String::new()
         };
 
         let metrics_slot = if use_filled {
@@ -955,7 +963,7 @@ fn render_apps_grid(
             embed_mode_attr,
             escape_html(&brand_logo),
             escape_html(&app.name),
-            escape_html(&app.description),
+            card_description,
             status_badge,
             ctrl_container,
             delete_btn,

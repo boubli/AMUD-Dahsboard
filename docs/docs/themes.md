@@ -11,7 +11,7 @@ Browse, search, and **preview** all themes on the **[Theme Gallery](/themes)** p
 :::
 
 :::tip Offline bundled themes
-Every AMUD install ships theme CSS at **`/static/themes/`** on your server. Open **Settings → Appearance → Bundled theme**, pick a theme, click **Load into editor**, then **Save** — no internet required.
+Every AMUD install ships **37 themes** at **`/static/themes/`** with preview thumbnails and matching wallpapers. Open **Settings → Appearance → Theme Gallery**, click a theme card to preview CSS and wallpaper, then **Save Changes** — no internet required.
 :::
 
 :::tip Combining with Built-in Settings
@@ -47,6 +47,10 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 | **Luxury Gold** ★ | Obsidian + gold serif headers |
 | **Holographic Prism** ★ | Animated iridescent borders |
 | **Brutalist Mono** ★ | Raw concrete, no blur, bold mono |
+| **Nature pack (5)** | Aurora, desert, ocean, rainforest, volcanic |
+| **Terminal pack (3)** | Phosphor, amber CRT, matrix green |
+| **Feminine pack (5)** | Sakura, lavender, rose gold, cotton candy, peach |
+| **Variety pack (6)** | Nebula, arctic frost, steampunk, zen, arcade, midnight city |
 
 ★ = advanced layout effects (not just color swaps)
 

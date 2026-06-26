@@ -1,0 +1,36 @@
+/* AMUD Theme: Zen Garden — muted stone and bamboo green */
+
+:root {
+    --accent-color: #a8b5a0;
+    --accent-glow: rgba(168, 181, 160, 0.16);
+    --bg-card: rgba(35, 38, 32, 0.78);
+    --border-card: rgba(168, 181, 160, 0.12);
+    --border-hover: rgba(168, 181, 160, 0.30);
+    --text-primary: #f0f2ec;
+    --text-secondary: #a8a898;
+    --text-muted: #606858;
+    --success: #8fbc8f;
+    --success-bg: rgba(143, 188, 143, 0.12);
+    --danger: #c08080;
+    --danger-bg: rgba(192, 128, 128, 0.12);
+}
+
+body {
+    background-color: #1a1c18;
+    background-image:
+        linear-gradient(160deg, rgba(26, 28, 24, 0.93) 0%, rgba(40, 45, 35, 0.88) 100%),
+        var(--brand-bg-image);
+}
+
+.glass-panel {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 8px 26px rgba(168, 181, 160, 0.10);
+}
+
+.header-title {
+    text-shadow: none;
+    font-weight: 500;
+}

@@ -6,6 +6,13 @@
     min-height: var(--bento-row-height);
 }
 
+.app-card.glass-panel.app-card--guest-compact {
+    min-height: auto;
+    align-self: start;
+    grid-row: span 1;
+    grid-column: span 1;
+}
+
 /* Theme border effects must not sit over metric rows */
 .app-card.glass-panel::before {
     display: none !important;

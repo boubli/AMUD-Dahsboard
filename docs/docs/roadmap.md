@@ -22,7 +22,7 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 - **Per-app CPU/RAM toggle** + guest ONLINE/OFFLINE + login branding (v1.5.5.0)
 - **Host telemetry mapping** — network interfaces and disk mounts in Settings (v1.5.5.0)
 - **Unraid permissions docs** + AdGuard credential clarity (v1.5.5.0)
-- **18 bundled offline themes** + theme gallery (v1.5.1.0)
+- **37 bundled offline themes** + visual Theme Gallery in Settings (v1.5.6.3); 18 original offline pack (v1.5.1.0)
 - **Drag-and-drop layout**, bento spans, light mode, video wallpapers (v1.5.0.0)
 - **Audit log** with settings tab and startup schema checks (v1.4.0.0+)
 - **Guest compact cards** and optional public host telemetry toggle (v1.4.x)

@@ -10,27 +10,21 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.9 新增功能
+### v1.5.6.3 新特性
 
-- **统一 bento 网格** — 混合尺寸（1x1、2x1、1x2）对齐，行与行之间无尴尬垂直空隙
-- **设置预览** — 外观实时预览反映 bento 行布局
-- **近期修复（v1.5.5.7–8）** — Unraid 主机网络代理模板、按挂载点分盘磁贴、**测试主机可见性**、设置页 HTTP 415 修复
+- **37 款内置主题** — 设置 → 外观中的可视化**主题画廊**（预览 CSS + 壁纸后保存）
+- **18 个新主题包** — 自然、终端、柔美、多样；各含离线 Unsplash/Pexels 壁纸
+- **访客面板** — 紧凑卡片（图标、名称、在线/离线）
+- **RSS 设置** — 添加订阅弹窗与分类表布局修复
+- **集成卡片** — 6 格统计与 30 秒刷新（v1.5.6.2）
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### 版本状态（2026-06-25 审计）
+### 版本状态（审计 2026-06-26）
 
-在干净的 Proxmox 测试容器中手动验证后，以下版本为当前已知稳定基线：
+- `v1.5.6.3`（当前推荐）· 亦已验证：`v1.5.6.2`、`v1.5.6.0`、`v1.5.5.9` 等
 
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`（当前推荐最新版）
-
-审计中发现的损坏标签已从 GitHub releases/tags 中移除，请勿使用。**请勿使用 `v1.5.5.4`。**
+请勿使用 `v1.5.5.4` 或 `v1.5.6.1`（已撤回）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

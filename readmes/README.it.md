@@ -10,27 +10,21 @@
 
 **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galleria dei Temi](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Tabella di marcia](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentazione](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novità nella v1.5.5.9
+### Novità in v1.5.6.3
 
-- **Griglia bento uniforme** — dimensioni miste (1x1, 2x1, 1x2) allineate senza vuoti verticali tra le righe
-- **Anteprima in Impostazioni** — la griglia Aspetto riflette il layout bento a righe
-- **Correzioni recenti (v1.5.5.7–8)** — template Unraid con rete host, tile disco per mount, **Test visibilità host** e fix HTTP 415 in Impostazioni
+- **37 temi inclusi** — **Galleria temi** visuale in Impostazioni → Aspetto (anteprima CSS + sfondo, poi Salva)
+- **18 nuovi pacchetti** — Natura, Terminal, Femminile, Varietà; sfondo Unsplash/Pexels per ciascuno
+- **Dashboard ospite** — schede compatte (icona, nome, online/offline)
+- **RSS** — modale nuovo feed e tabella categorie corretta
+- **Schede integrazione** — griglia 6 celle, aggiornamento ogni 30 s (v1.5.6.2)
 
-Cronologia completa: **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+Cronologia completa: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Stato release (audit 2026-06-25)
+### Stato release (audit 2026-06-26)
 
-Dopo validazione manuale in un container Proxmox pulito, queste versioni sono mantenute come baseline stabili note:
+- `v1.5.6.3` (ultima consigliata) · validate anche: `v1.5.6.2`, `v1.5.6.0`, `v1.5.5.9`, `v1.5.5.6`, `v1.5.5.3`, `v1.4.1.0`, `v1.3.7`, `v1.3.6`, `v1.0.0`
 
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9` (ultima consigliata al momento)
-
-I tag difettosi individuati nell'audit sono stati rimossi da release/tag GitHub e non vanno usati. **Non usare `v1.5.5.4`.**
+Non usare `v1.5.5.4` né `v1.5.6.1` (ritirata).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

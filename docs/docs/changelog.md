@@ -24,15 +24,36 @@ Manual validation was run in a clean Proxmox test container.
 - `v1.5.5.6`
 - `v1.5.5.9`
 - `v1.5.6.0`
-- `v1.5.6.2` (latest)
+- `v1.5.6.2`
+- `v1.5.6.3` (latest)
 
 **Removed as broken during audit**
 - `v1.1.0.0`, `v1.2.0.0`, `v1.3.0.0`, `v1.3.1.5`
 - `v1.3.7.1`, `v1.3.7.2`, `v1.3.7.3`
 - `v1.4.0.0`, `v1.4.2.0`, `v1.4.2.1`, `v1.4.2.2`
 - `v1.5.0.0`, `v1.5.5.2`
+- `v1.5.6.1` (withdrawn from Docker Hub)
 
-If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.6.2` or newer.
+If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.5.6.3` or newer.
+
+---
+
+## v1.5.6.3 — Theme gallery & 37 themes
+
+**2026-06-26** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.3)
+
+**Added**
+- Visual Theme Gallery in Settings → Appearance (click to preview CSS + wallpaper)
+- 37 bundled themes including 18 new packs; offline wallpapers and preview thumbnails
+- `active_theme_id` setting
+
+**Fixed**
+- Guest compact app cards
+- RSS add-feed modal and category table layout
+- CI clippy + docs build job
+
+**Improved**
+- GitHub Pages theme gallery category filters; wallpaper fetch script
 
 ---
 

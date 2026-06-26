@@ -1,41 +1,39 @@
-# Website
+# AMUD Dashboard — Docs site
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+Built with [Docusaurus](https://docusaurus.io/). Published to **GitHub Pages** via `.github/workflows/deploy-docs.yml` when `docs/**` changes on `main`.
 
-## Installation
+**Live site:** https://boubli.github.io/AMUD-Dashboard/
 
-```bash
-yarn
-```
-
-## Local Development
+## Local development
 
 ```bash
-yarn start
+cd docs
+npm ci
+npm run start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
+## Production build
 
 ```bash
-yarn build
+cd docs
+npm ci
+npm run build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+Output: `docs/build/` (uploaded by GitHub Actions — not the legacy `gh-pages` branch).
 
-## Deployment
+## Theme gallery (GitHub Pages)
 
-Using SSH:
+- Route: `/themes` — 37 themes, category filters, copy CSS/wallpaper
+- Static assets: `docs/static/themes/` (CSS, wallpapers, previews)
+- Blog: `docs/blog/2026-06-25-eighteen-new-themes.md`
 
-```bash
-USE_SSH=true yarn deploy
-```
+## Release docs (v1.5.6.3)
 
-Not using SSH:
+When tagging a release, update:
 
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
+- `.github/release-notes/v1.5.6.3.md`
+- `CHANGELOG.md` and `docs/docs/changelog.md`
+- `README.md` and `readmes/README.*.md` (or run `python scripts/update-readme-release.py`)
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+See `.github/RELEASE_PREP_v1.5.6.3.md` for the full publish checklist.

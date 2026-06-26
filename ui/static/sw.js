@@ -1,9 +1,10 @@
-const CACHE_NAME = 'amud-dashboard-v19';
+const CACHE_NAME = 'amud-dashboard-v21';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
   '/static/AMUD-logo.png',
   '/static/manifest.json',
+  '/static/themes/manifest.json',
   '/static/vendor/alpine.min.js',
   '/static/vendor/lucide.min.js',
   '/static/admin.js',

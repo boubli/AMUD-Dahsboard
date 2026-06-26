@@ -10,27 +10,19 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.5.9 の新機能
+### v1.5.6.3 の新機能
 
-- **均一な bento グリッド** — 混合サイズ（1x1、2x1、1x2）が行間の不自然な隙間なく揃う
-- **設定プレビュー** — 外観のライブプレビューが bento 行レイアウトを反映
-- **最近の修正（v1.5.5.7–8）** — Unraid ホストネットワークテンプレート、マウント別ディスクタイル、**ホスト可視性のテスト**、設定の HTTP 415 修正
+- **37 のバンドルテーマ** — 設定 → 外観の**テーマギャラリー**（CSS + 壁紙をプレビューして保存）
+- **18 の新パック** — 自然・ターミナル・フェミニン・バラエティ；各テーマ専用の Unsplash/Pexels 壁紙
+- **ゲスト画面** — コンパクトカード（アイコン・名前・オンライン/オフライン）
+- **RSS 設定** — フィード追加モーダルとカテゴリ表の修正
+- **統合カード** — 6 セルグリッド・30 秒更新（v1.5.6.2）
 
-完全な履歴：**[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
+履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### リリース状況（2026-06-25 監査）
+### リリース状況（監査 2026-06-26）
 
-クリーンな Proxmox テストコンテナで手動検証後、以下のバージョンが既知の安定ベースラインとして維持されています：
-
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`（現在推奨の最新版）
-
-監査で特定された破損タグは GitHub のリリース/タグから削除されており、使用しないでください。**`v1.5.5.4` は使用しないでください。**
+- `v1.5.6.3`（推奨）· `v1.5.5.4` と `v1.5.6.1`（撤回）は使用しないこと
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

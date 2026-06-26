@@ -10,6 +10,7 @@ export type ThemeDefinition = {
   name: string;
   description: string;
   tags: string[];
+  category?: string;
   palette: ThemePalette;
   cssFile?: string;
   previewImage?: string;
@@ -25,6 +26,7 @@ export type AmudTheme = {
   name: string;
   description: string;
   tags: string[];
+  category?: string;
   cssFile: string;
   previewImage: string;
   wallpaper?: string;

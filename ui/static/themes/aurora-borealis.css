@@ -1,0 +1,35 @@
+/* AMUD Theme: Aurora Borealis — teal and violet northern lights */
+
+:root {
+    --accent-color: #5eead4;
+    --accent-glow: rgba(94, 234, 212, 0.18);
+    --bg-card: rgba(15, 35, 55, 0.78);
+    --border-card: rgba(94, 234, 212, 0.14);
+    --border-hover: rgba(167, 139, 250, 0.35);
+    --text-primary: #e8f4ff;
+    --text-secondary: #a5c4d4;
+    --text-muted: #5a7a8a;
+    --success: #34d399;
+    --success-bg: rgba(52, 211, 153, 0.12);
+    --danger: #f87171;
+    --danger-bg: rgba(248, 113, 113, 0.12);
+}
+
+body {
+    background-color: #0a1628;
+    background-image:
+        linear-gradient(135deg, rgba(10, 22, 40, 0.92) 0%, rgba(30, 20, 60, 0.88) 50%, rgba(10, 30, 50, 0.90) 100%),
+        var(--brand-bg-image);
+}
+
+.glass-panel {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 8px 32px rgba(94, 234, 212, 0.15);
+}
+
+.header-title {
+    text-shadow: 0 0 24px rgba(94, 234, 212, 0.3);
+}
