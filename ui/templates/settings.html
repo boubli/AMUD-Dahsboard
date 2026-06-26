@@ -243,10 +243,23 @@
             white-space: nowrap;
             width: 1%;
             text-align: right;
+            vertical-align: middle;
+        }
+        .mgmt-actions {
             display: inline-flex;
             gap: 0.35rem;
             justify-content: flex-end;
+            align-items: center;
         }
+        .mgmt-table--categories {
+            table-layout: fixed;
+        }
+        .mgmt-table--categories th:nth-child(1) { width: 22%; }
+        .mgmt-table--categories th:nth-child(2) { width: 18%; }
+        .mgmt-table--categories th:nth-child(3) { width: 10%; }
+        .mgmt-table--categories th:nth-child(4) { width: 10%; }
+        .mgmt-table--categories th:nth-child(5) { width: 10%; }
+        .mgmt-table--categories th:nth-child(6) { width: 30%; }
         .actions-cell .btn-icon-only {
             padding: 0.35rem;
             min-width: 2rem;
@@ -497,15 +510,15 @@
                                             <div class="app-card-body preview-body" style="font-size: 0.85rem; margin-bottom: 0.5rem; line-height: 1.4;">
                                                 Glass panels, accent color, wallpaper, and grid density mirror your dashboard.
                                             </div>
-                                            <div class="app-card-metrics-slot app-card-metrics-slot--dual app-card-metrics-slot--stacked" style="margin-top: auto;">
-                                                <div class="nested-metrics-grid cols-2 app-card-metrics-layer app-card-metrics-layer--infra">
-                                                    <div class="metric-block"><span class="metric-value">12%</span><span class="metric-label">CPU</span></div>
-                                                    <div class="metric-block"><span class="metric-value">24%</span><span class="metric-label">RAM</span></div>
-                                                </div>
-                                                <div class="integration-widget integration-widget--always app-card-metrics-layer app-card-metrics-layer--integration">
-                                                    <div class="nested-metrics-grid cols-2">
+                                            <div class="app-card-metrics-slot app-card-metrics-slot--filled">
+                                                <div class="integration-widget integration-widget--filled">
+                                                    <div class="integration-metrics-grid">
+                                                        <div class="metric-block"><span class="metric-value">12%</span><span class="metric-label">CPU</span></div>
+                                                        <div class="metric-block"><span class="metric-value">24%</span><span class="metric-label">RAM</span></div>
                                                         <div class="metric-block"><span class="metric-value">3</span><span class="metric-label">Queue</span></div>
+                                                        <div class="metric-block"><span class="metric-value">0</span><span class="metric-label">Missing</span></div>
                                                         <div class="metric-block"><span class="metric-value">21/21</span><span class="metric-label">Indexers</span></div>
+                                                        <div class="metric-block"><span class="metric-value">0</span><span class="metric-label">Failed</span></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -934,7 +947,8 @@
                         <h2 style="margin:0; font-size:0.95rem; font-weight:700;">Feed Categories</h2>
                         <button type="button" class="btn btn-secondary" style="font-size:0.78rem;" @click="openAddFeedCategoryModal()"><i data-lucide="plus"></i> Add Category</button>
                     </div>
-                    <table class="mgmt-table">
+                    <div class="mgmt-table-scroll">
+                    <table class="mgmt-table mgmt-table--categories">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -947,6 +961,7 @@
                         </thead>
                         <tbody id="feed-categories-table-body"></tbody>
                     </table>
+                    </div>
                 </div>
 
                 <div class="settings-block" style="padding: 0;">
@@ -1877,6 +1892,92 @@
                     document.getElementById('usr-role').value = 'Guest';
                     document.getElementById('usr-error-msg').style.display = 'none';
                     this.usrModalOpen = true;
+                },
+
+                async openAddRssModal() {
+                    await loadFeedIconPresets();
+                    if (!feedCategoriesCache.length) await loadFeedCategories();
+                    this.rssEditing = false;
+                    document.getElementById('rss-id').value = '';
+                    document.getElementById('rss-name').value = '';
+                    document.getElementById('rss-feed-url').value = '';
+                    document.getElementById('rss-url').value = '';
+                    document.getElementById('rss-icon').value = '/static/feeds/icons/rss.svg';
+                    populateRssCategorySelect('General');
+                    renderRssIconPreview('/static/feeds/icons/rss.svg');
+                    this.rssModalOpen = true;
+                },
+
+                async saveRssFeed() {
+                    const id = document.getElementById('rss-id').value;
+                    const name = document.getElementById('rss-name').value;
+                    const feed_url = document.getElementById('rss-feed-url').value;
+                    const url = document.getElementById('rss-url').value;
+                    const icon = document.getElementById('rss-icon').value;
+                    const category = document.getElementById('rss-category').value;
+
+                    const formData = new URLSearchParams();
+                    formData.append('name', name);
+                    formData.append('feed_url', feed_url);
+                    formData.append('url', url);
+                    formData.append('icon', icon);
+                    formData.append('category', category);
+                    formData.append('csrf_token', amudCsrfToken());
+
+                    const endpoint = this.rssEditing ? '/api/rss-feeds/edit' : '/api/rss-feeds/add';
+                    if (this.rssEditing) formData.append('id', id);
+
+                    try {
+                        const res = await fetch(endpoint, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+                        const { ok, data } = await parseApiResponse(res);
+                        if (!ok) {
+                            showApiError(data.error || 'Failed to save RSS feed');
+                            return;
+                        }
+                        this.rssModalOpen = false;
+                        await loadRssTab();
+                    } catch (err) {
+                        showApiError(err.message || 'Network error');
+                    }
+                },
+
+                openAddFeedCategoryModal() {
+                    this.feedCatEditing = false;
+                    document.getElementById('feed-cat-id').value = '';
+                    document.getElementById('feed-cat-name').value = '';
+                    document.getElementById('feed-cat-color').value = '#64748b';
+                    document.getElementById('feed-cat-icon').value = 'rss';
+                    document.getElementById('feed-cat-order').value = '0';
+                    renderFeedCategoryIconPicker('rss');
+                    this.feedCatModalOpen = true;
+                },
+
+                async saveFeedCategory() {
+                    const id = document.getElementById('feed-cat-id').value;
+                    const name = document.getElementById('feed-cat-name').value;
+                    const color = document.getElementById('feed-cat-color').value;
+                    const icon = document.getElementById('feed-cat-icon').value;
+                    const sort_order = document.getElementById('feed-cat-order').value;
+                    const formData = new URLSearchParams();
+                    formData.append('name', name);
+                    formData.append('color', color);
+                    formData.append('icon', icon);
+                    formData.append('sort_order', sort_order);
+                    formData.append('csrf_token', amudCsrfToken());
+                    const url = this.feedCatEditing ? '/api/feed-categories/edit' : '/api/feed-categories';
+                    if (this.feedCatEditing) formData.append('id', id);
+                    try {
+                        const res = await fetch(url, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+                        const { ok, data } = await parseApiResponse(res);
+                        if (!ok) {
+                            showApiError(data.error || 'Failed to save feed category');
+                            return;
+                        }
+                        this.feedCatModalOpen = false;
+                        await loadRssTab();
+                    } catch (err) {
+                        showApiError(err.message || 'Network error');
+                    }
                 }
             }
         }
@@ -2883,22 +2984,24 @@
                 appendTableCell(tr, String(feedCount), feedCount === 0 ? { style: 'color:var(--text-muted);' } : undefined);
                 appendTableCell(tr, String(Number(cat.sort_order)));
                 const actionsTd = document.createElement('td');
-                actionsTd.style.textAlign = 'right';
                 actionsTd.className = 'actions-cell';
+                const actionsWrap = document.createElement('div');
+                actionsWrap.className = 'mgmt-actions';
                 const btnEdit = document.createElement('button');
                 btnEdit.type = 'button';
-                btnEdit.className = 'btn btn-secondary';
-                btnEdit.style.cssText = 'padding:0.3rem 0.6rem;font-size:0.75rem;margin-right:0.35rem;';
-                btnEdit.textContent = 'Edit';
+                btnEdit.className = 'btn btn-secondary btn-icon-only';
+                btnEdit.title = 'Edit';
+                btnEdit.innerHTML = '<i data-lucide="edit-2"></i>';
                 btnEdit.addEventListener('click', () => openEditFeedCategoryModal(cat));
                 const btnDel = document.createElement('button');
                 btnDel.type = 'button';
-                btnDel.className = 'btn btn-danger';
-                btnDel.style.cssText = 'padding:0.3rem 0.6rem;font-size:0.75rem;';
-                btnDel.textContent = 'Delete';
+                btnDel.className = 'btn btn-danger btn-icon-only';
+                btnDel.title = 'Delete';
+                btnDel.innerHTML = '<i data-lucide="trash-2"></i>';
                 btnDel.addEventListener('click', () => deleteFeedCategory(Number(cat.id)));
-                actionsTd.appendChild(btnEdit);
-                actionsTd.appendChild(btnDel);
+                actionsWrap.appendChild(btnEdit);
+                actionsWrap.appendChild(btnDel);
+                actionsTd.appendChild(actionsWrap);
                 tr.appendChild(actionsTd);
                 tbody.appendChild(tr);
             });
@@ -3065,8 +3168,9 @@
                     tr.appendChild(iconTd);
 
                     const actionsTd = document.createElement('td');
-                    actionsTd.style.textAlign = 'right';
                     actionsTd.className = 'actions-cell';
+                    const actionsWrap = document.createElement('div');
+                    actionsWrap.className = 'mgmt-actions';
 
                     const btnEdit = document.createElement('button');
                     btnEdit.type = 'button';
@@ -3082,8 +3186,9 @@
                     btnDel.innerHTML = '<i data-lucide="trash-2"></i>';
                     btnDel.addEventListener('click', () => deleteRssFeed(Number(feed.id)));
 
-                    actionsTd.appendChild(btnEdit);
-                    actionsTd.appendChild(btnDel);
+                    actionsWrap.appendChild(btnEdit);
+                    actionsWrap.appendChild(btnDel);
+                    actionsTd.appendChild(actionsWrap);
                     tr.appendChild(actionsTd);
                     tbody.appendChild(tr);
                 });
@@ -3147,20 +3252,12 @@
             }
         }
 
-        function openAddFeedCategoryModal() {
-            const state = Alpine.$data(document.body);
-            state.feedCatEditing = false;
-            document.getElementById('feed-cat-id').value = '';
-            document.getElementById('feed-cat-name').value = '';
-            document.getElementById('feed-cat-color').value = '#64748b';
-            document.getElementById('feed-cat-icon').value = 'rss';
-            document.getElementById('feed-cat-order').value = '0';
-            renderFeedCategoryIconPicker('rss');
-            state.feedCatModalOpen = true;
+        function settingsAlpine() {
+            return Alpine.$data(document.querySelector('.settings-page'));
         }
 
         function openEditFeedCategoryModal(cat) {
-            const state = Alpine.$data(document.body);
+            const state = settingsAlpine();
             state.feedCatEditing = true;
             document.getElementById('feed-cat-id').value = cat.id;
             document.getElementById('feed-cat-name').value = cat.name;
@@ -3169,35 +3266,6 @@
             document.getElementById('feed-cat-order').value = cat.sort_order || 0;
             renderFeedCategoryIconPicker(cat.icon || 'rss');
             state.feedCatModalOpen = true;
-        }
-
-        async function saveFeedCategory() {
-            const state = Alpine.$data(document.body);
-            const id = document.getElementById('feed-cat-id').value;
-            const name = document.getElementById('feed-cat-name').value;
-            const color = document.getElementById('feed-cat-color').value;
-            const icon = document.getElementById('feed-cat-icon').value;
-            const sort_order = document.getElementById('feed-cat-order').value;
-            const formData = new URLSearchParams();
-            formData.append('name', name);
-            formData.append('color', color);
-            formData.append('icon', icon);
-            formData.append('sort_order', sort_order);
-            formData.append('csrf_token', amudCsrfToken());
-            const url = state.feedCatEditing ? '/api/feed-categories/edit' : '/api/feed-categories';
-            if (state.feedCatEditing) formData.append('id', id);
-            try {
-                const res = await fetch(url, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
-                const { ok, data } = await parseApiResponse(res);
-                if (!ok) {
-                    showApiError(data.error || 'Failed to save feed category');
-                    return;
-                }
-                state.feedCatModalOpen = false;
-                await loadRssTab();
-            } catch (err) {
-                showApiError(err.message || 'Network error');
-            }
         }
 
         async function deleteFeedCategory(id) {
@@ -3218,25 +3286,10 @@
             }
         }
 
-        async function openAddRssModal() {
-            await loadFeedIconPresets();
-            if (!feedCategoriesCache.length) await loadFeedCategories();
-            const state = Alpine.$data(document.body);
-            state.rssEditing = false;
-            document.getElementById('rss-id').value = '';
-            document.getElementById('rss-name').value = '';
-            document.getElementById('rss-feed-url').value = '';
-            document.getElementById('rss-url').value = '';
-            document.getElementById('rss-icon').value = '/static/feeds/icons/rss.svg';
-            populateRssCategorySelect('General');
-            renderRssIconPreview('/static/feeds/icons/rss.svg');
-            state.rssModalOpen = true;
-        }
-
         async function openEditRssModal(feed) {
             await loadFeedIconPresets();
             if (!feedCategoriesCache.length) await loadFeedCategories();
-            const state = Alpine.$data(document.body);
+            const state = settingsAlpine();
             state.rssEditing = true;
             document.getElementById('rss-id').value = feed.id;
             document.getElementById('rss-name').value = feed.name;
@@ -3247,40 +3300,6 @@
             populateRssCategorySelect(feed.category || 'General');
             renderRssIconPreview(iconValue);
             state.rssModalOpen = true;
-        }
-
-        async function saveRssFeed() {
-            const state = Alpine.$data(document.body);
-            const id = document.getElementById('rss-id').value;
-            const name = document.getElementById('rss-name').value;
-            const feed_url = document.getElementById('rss-feed-url').value;
-            const url = document.getElementById('rss-url').value;
-            const icon = document.getElementById('rss-icon').value;
-            const category = document.getElementById('rss-category').value;
-
-            const formData = new URLSearchParams();
-            formData.append('name', name);
-            formData.append('feed_url', feed_url);
-            formData.append('url', url);
-            formData.append('icon', icon);
-            formData.append('category', category);
-            formData.append('csrf_token', amudCsrfToken());
-
-            const endpoint = state.rssEditing ? '/api/rss-feeds/edit' : '/api/rss-feeds/add';
-            if (state.rssEditing) formData.append('id', id);
-
-            try {
-                const res = await fetch(endpoint, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
-                const { ok, data } = await parseApiResponse(res);
-                if (!ok) {
-                    showApiError(data.error || 'Failed to save RSS feed');
-                    return;
-                }
-                state.rssModalOpen = false;
-                loadRssFeeds();
-            } catch (err) {
-                showApiError(err.message || 'Network error');
-            }
         }
 
         async function deleteRssFeed(id) {

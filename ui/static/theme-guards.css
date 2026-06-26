@@ -67,6 +67,23 @@
     transform: none;
 }
 
+.app-card .app-card-metrics-slot--filled {
+    flex: 1;
+    margin-top: 0;
+    min-height: 0;
+    overflow: visible;
+}
+
+.app-card .integration-widget--filled {
+    flex: 1;
+    margin-top: 0;
+}
+
+.app-card .integration-metrics-grid {
+    flex: 1;
+    min-height: 8.5rem;
+}
+
 @media (hover: hover) {
     .app-card .app-card-metrics-slot--dual:not(.app-card-metrics-slot--stacked):hover .app-card-metrics-layer--infra {
         opacity: 1;

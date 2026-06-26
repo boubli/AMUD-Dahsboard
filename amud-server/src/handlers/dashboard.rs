@@ -416,6 +416,122 @@ fn is_guest_session(session: &Option<Session>) -> bool {
     }
 }
 
+fn filled_cpu_ram_cells() -> &'static str {
+    r#"<div class="metric-block" data-lxc-cpu><span class="metric-value">—</span><span class="metric-label">CPU</span></div><div class="metric-block" data-lxc-ram><span class="metric-value">—</span><span class="metric-label">RAM</span></div>"#
+}
+
+fn filled_loading_grid() -> &'static str {
+    r#"<div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div>"#
+}
+
+fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, show_cpu_ram: bool) -> String {
+    let cpu_ram = if show_cpu_ram {
+        filled_cpu_ram_cells()
+    } else {
+        ""
+    };
+    format!(
+        r#"
+                <div class="integration-widget integration-widget--filled">
+                    <div class="integration-metrics-grid app-card-metrics-fallback" x-show="!integrationData || !integrationData.type">{loading}</div>
+                    <div x-show="integrationData && integrationData.type">
+                    <template x-if="integrationData.type === 'pihole' || integrationData.type === 'adguard'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.ads_blocked_today ?? '—'"></span><span class="metric-label">Blocked</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.dns_queries_today ?? '—'"></span><span class="metric-label">Queries</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.ads_percentage_today ?? integrationData.avg_processing_time ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Block %' : 'Avg time'"></span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.domains_being_blocked ?? integrationData.status ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Domains' : 'Status'"></span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'radarr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Movies</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'sonarr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.series_count ?? '—'"></span><span class="metric-label">Series</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.episode_count ?? '—'"></span><span class="metric-label">Episodes</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'overseerr' || integrationData.type === 'jellyseerr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.pending_requests ?? '—'"></span><span class="metric-label">Pending</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.approved_requests ?? '—'"></span><span class="metric-label">Approved</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.processing_requests ?? '—'"></span><span class="metric-label">Processing</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.total_requests ?? '—'"></span><span class="metric-label">Total</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'prowlarr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.indexers_enabled ?? '—'"></span>/<span x-text="integrationData.indexers_total ?? '—'"></span></span><span class="metric-label">Indexers</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.failed_indexers ?? '—'"></span><span class="metric-label">Failed</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'uptime_kuma'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.monitors_up ?? '—'"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.monitors_down ?? '—'"></span><span class="metric-label">Down</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.monitors_total ?? '—'"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.maintenance ?? '—'"></span><span class="metric-label">Maint.</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'cloudflare_tunnel'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.75rem;text-transform:capitalize;" x-text="integrationData.tunnel_status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.connections ?? '—'"></span><span class="metric-label">Connections</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.colo_count ?? '—'"></span><span class="metric-label">Colos</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.tunnel_name ?? '—'"></span><span class="metric-label">Tunnel</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'peanut'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.battery_percent ?? '—'"></span>%</span><span class="metric-label">Battery</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.ups_load ?? '—'"></span><span class="metric-label">Load</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.battery_runtime ?? '—'"></span><span class="metric-label">Runtime</span></div>
+                            <div class="metric-block"><span class="metric-value" style="font-size:0.75rem;" x-text="integrationData.ups_status ?? '—'"></span><span class="metric-label">UPS</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'qbittorrent'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Upload</span></div>
+                            <div class="metric-block"><span class="metric-value"><span x-text="integrationData.active_downloads ?? '—'"></span>↓ <span x-text="integrationData.seeding ?? '—'"></span>↑</span><span class="metric-label">Active</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                        </div>
+                    </template>
+                    <template x-if="integrationData.type === 'bazarr'">
+                        <div class="integration-metrics-grid" data-lxc-metrics>
+                            {cpu_ram}
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing_episodes ?? '—'"></span><span class="metric-label">Ep. missing</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing_movies ?? '—'"></span><span class="metric-label">Mov. missing</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                        </div>
+                    </template>
+                    </div>
+                </div>"#,
+        loading = filled_loading_grid(),
+        cpu_ram = cpu_ram,
+    )
+}
+
 fn render_apps_grid(
     apps: &[App],
     is_admin: bool,
@@ -458,6 +574,10 @@ fn render_apps_grid(
         let cat_slug = category_slug(&app.category);
 
         let name_lower = app.name.to_lowercase();
+        let use_filled = app.card_span == "1x2"
+            && is_admin
+            && !app.integration_type.is_empty()
+            && app.integration_type != "rss";
         let sub_metrics = if is_admin {
             if name_lower.contains("home") && name_lower.contains("assistant") {
                 r#"
@@ -476,16 +596,10 @@ fn render_apps_grid(
                     </div>
                 </div>"#
                     .to_string()
-            } else if app.show_container_metrics {
-                let infra_layer =
-                    if !app.integration_type.is_empty() && app.integration_type != "rss" {
-                        " app-card-metrics-layer app-card-metrics-layer--infra"
-                    } else {
-                        ""
-                    };
+            } else if app.show_container_metrics && !use_filled {
                 format!(
                     r#"
-                <div class="nested-metrics-grid cols-2{infra_layer}" data-lxc-metrics>
+                <div class="nested-metrics-grid cols-2" data-lxc-metrics>
                     <div class="metric-block">
                         <span class="metric-value">—</span>
                         <span class="metric-label">CPU</span>
@@ -553,23 +667,47 @@ fn render_apps_grid(
             "".to_string()
         };
 
-        let stacked_metrics = app.card_span == "1x2"
-            && is_admin
-            && app.show_container_metrics
-            && !app.integration_type.is_empty()
-            && app.integration_type != "rss";
-
         let mut integration_widget = String::new();
         if is_admin && !app.integration_type.is_empty() {
-            let integration_class = if app.integration_type == "rss" {
-                "integration-widget integration-widget--always"
-            } else if stacked_metrics {
-                "integration-widget integration-widget--always app-card-metrics-layer app-card-metrics-layer--integration"
+            if use_filled {
+                integration_widget =
+                    build_filled_integration_widget(app.id, csrf_token, app.show_container_metrics);
+            } else if app.integration_type == "rss" {
+                integration_widget = format!(
+                    r#"
+                <div class="integration-widget integration-widget--always">
+                    <div class="nested-metrics-grid app-card-metrics-fallback" x-show="!integrationData || !integrationData.type">
+                        <div class="metric-block">
+                            <span class="metric-value">—</span>
+                            <span class="metric-label">Loading</span>
+                        </div>
+                    </div>
+                    <div x-show="integrationData && integrationData.type">
+                    <template x-if="integrationData.type === 'rss'">
+                        <div class="rss-feed-list">
+                            <template x-for="(entry, index) in integrationData.entries" :key="index">
+                                <a x-show="entry.link" :href="entry.link" target="_blank" rel="noopener" class="rss-feed-item">
+                                    <span class="rss-feed-title" x-text="entry.title"></span>
+                                    <span class="rss-feed-date" x-text="entry.date"></span>
+                                </a>
+                                <div x-show="!entry.link" class="rss-feed-item rss-feed-item--text-only">
+                                    <span class="rss-feed-title" x-text="entry.title"></span>
+                                    <span class="rss-feed-date" x-text="entry.date"></span>
+                                </div>
+                            </template>
+                            <div x-show="!integrationData.entries || integrationData.entries.length === 0" class="rss-feed-empty">
+                                <span>No entries found</span>
+                            </div>
+                        </div>
+                    </template>
+                    </div>
+                </div>"#
+                );
             } else {
-                "integration-widget integration-widget--hover app-card-metrics-layer app-card-metrics-layer--integration"
-            };
-            integration_widget = format!(
-                r#"
+                let integration_class =
+                    "integration-widget integration-widget--hover app-card-metrics-layer app-card-metrics-layer--integration";
+                integration_widget = format!(
+                    r#"
                 <div class="{}">
                     <div class="nested-metrics-grid app-card-metrics-fallback" x-show="!integrationData || !integrationData.type">
                         <div class="metric-block">
@@ -591,18 +729,26 @@ fn render_apps_grid(
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'radarr' || integrationData.type === 'sonarr'">
-                        <div class="nested-metrics-grid">
+                        <div class="nested-metrics-grid cols-2">
                             <div class="metric-block">
                                 <span class="metric-value" x-text="integrationData.queue_size"></span>
-                                <span class="metric-label">Items in Queue</span>
+                                <span class="metric-label">Queue</span>
+                            </div>
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.missing"></span>
+                                <span class="metric-label">Missing</span>
                             </div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'overseerr' || integrationData.type === 'jellyseerr'">
-                        <div class="nested-metrics-grid">
+                        <div class="nested-metrics-grid cols-2">
                             <div class="metric-block">
                                 <span class="metric-value" x-text="integrationData.pending_requests"></span>
-                                <span class="metric-label">Pending Requests</span>
+                                <span class="metric-label">Pending</span>
+                            </div>
+                            <div class="metric-block">
+                                <span class="metric-value" x-text="integrationData.total_requests"></span>
+                                <span class="metric-label">Total</span>
                             </div>
                         </div>
                     </template>
@@ -649,7 +795,7 @@ fn render_apps_grid(
                                 <span class="metric-label">Battery</span>
                             </div>
                             <div class="metric-block">
-                                <span class="metric-value" style="font-size:0.8rem;" x-text="integrationData.ups_status"></span>
+                                <span class="metric-value" style="font-size:0.75rem;" x-text="integrationData.ups_status"></span>
                                 <span class="metric-label">UPS</span>
                             </div>
                         </div>
@@ -662,7 +808,7 @@ fn render_apps_grid(
                             </div>
                             <div class="metric-block">
                                 <span class="metric-value"><span x-text="integrationData.active_downloads"></span>↓ <span x-text="integrationData.seeding"></span>↑</span>
-                                <span class="metric-label">Active / Seeding</span>
+                                <span class="metric-label">Active</span>
                             </div>
                         </div>
                     </template>
@@ -670,41 +816,25 @@ fn render_apps_grid(
                         <div class="nested-metrics-grid cols-2">
                             <div class="metric-block">
                                 <span class="metric-value" x-text="integrationData.missing_episodes"></span>
-                                <span class="metric-label">Episodes Missing</span>
+                                <span class="metric-label">Ep. missing</span>
                             </div>
                             <div class="metric-block">
                                 <span class="metric-value" x-text="integrationData.missing_movies"></span>
-                                <span class="metric-label">Movies Missing</span>
-                            </div>
-                        </div>
-                    </template>
-                    <template x-if="integrationData.type === 'rss'">
-                        <div class="rss-feed-list">
-                            <template x-for="(entry, index) in integrationData.entries" :key="index">
-                                <a x-show="entry.link" :href="entry.link" target="_blank" rel="noopener" class="rss-feed-item">
-                                    <span class="rss-feed-title" x-text="entry.title"></span>
-                                    <span class="rss-feed-date" x-text="entry.date"></span>
-                                </a>
-                                <div x-show="!entry.link" class="rss-feed-item rss-feed-item--text-only">
-                                    <span class="rss-feed-title" x-text="entry.title"></span>
-                                    <span class="rss-feed-date" x-text="entry.date"></span>
-                                </div>
-                            </template>
-                            <div x-show="!integrationData.entries || integrationData.entries.length === 0" class="rss-feed-empty">
-                                <span>No entries found</span>
+                                <span class="metric-label">Mov. missing</span>
                             </div>
                         </div>
                     </template>
                     </div>
                 </div>"#,
-                integration_class, app.id, csrf_token, app.id
-            );
+                    integration_class, app.id, csrf_token, app.id
+                );
+            }
         }
 
         let alpine_init = if is_admin && !app.integration_type.is_empty() {
             format!(
-                r#"x-data="{{ integrationData: null }}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }}).catch(() => {{}})""#,
-                app.id
+                r#"x-data="{{ integrationData: null }}" data-integration-refresh="{}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }}).catch(() => {{}})""#,
+                app.id, app.id
             )
         } else {
             "".to_string()
@@ -739,7 +869,12 @@ fn render_apps_grid(
             _ => "",
         };
 
-        let metrics_slot = if app.integration_type == "rss" {
+        let metrics_slot = if use_filled {
+            format!(
+                r#"<div class="app-card-metrics-slot app-card-metrics-slot--filled">{}</div>"#,
+                integration_widget
+            )
+        } else if app.integration_type == "rss" {
             if sub_metrics.is_empty() {
                 integration_widget.clone()
             } else {
@@ -758,14 +893,9 @@ fn render_apps_grid(
                 integration_widget
             )
         } else {
-            let stacked = if app.card_span == "1x2" {
-                " app-card-metrics-slot--stacked"
-            } else {
-                ""
-            };
             format!(
-                r#"<div class="app-card-metrics-slot app-card-metrics-slot--dual{}">{}{}</div>"#,
-                stacked, sub_metrics, integration_widget
+                r#"<div class="app-card-metrics-slot app-card-metrics-slot--dual">{}{}</div>"#,
+                sub_metrics, integration_widget
             )
         };
 

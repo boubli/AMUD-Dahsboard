@@ -347,21 +347,11 @@
                             }
                         }
 
-                        const metricsGrid = card.querySelector('[data-lxc-metrics]');
-                        if (typeof global.shouldUpdateLxcMetrics === 'function' && global.shouldUpdateLxcMetrics(metricsGrid)) {
-                            const cpuPct = match.cpu ? `${(match.cpu * 100).toFixed(1)}%` : '0%';
-                            const ramPct = match.mem && match.maxmem
-                                ? `${((match.mem / match.maxmem) * 100).toFixed(1)}%`
-                                : '0%';
-                            global.setMetricsGrid(metricsGrid, [
-                                {
-                                    value: cpuPct,
-                                    label: 'CPU',
-                                    valueStyle: match.cpu > 0.8 ? 'color: #ef4444' : '',
-                                },
-                                { value: ramPct, label: 'RAM' },
-                            ]);
-                        }
+                        const cpuPct = match.cpu ? `${(match.cpu * 100).toFixed(1)}%` : '0%';
+                        const ramPct = match.mem && match.maxmem
+                            ? `${((match.mem / match.maxmem) * 100).toFixed(1)}%`
+                            : '0%';
+                        updateCardContainerMetrics(card, cpuPct, ramPct, match.cpu > 0.8);
                     }
                     if (!match && isHostAgentApp) {
                         const badgeContainer = card.querySelector('.app-card-badges');
@@ -378,13 +368,12 @@
                                 styleStatusBadge(existingBadge, badgeStatus);
                             }
                         }
-                        const metricsGrid = card.querySelector('[data-lxc-metrics]');
-                        if (typeof global.shouldUpdateLxcMetrics === 'function' && global.shouldUpdateLxcMetrics(metricsGrid)) {
-                            global.setMetricsGrid(metricsGrid, [
-                                { value: `${sys.cpu_usage ?? 0}%`, label: 'CPU' },
-                                { value: `${sys.ram_usage ?? 0}%`, label: 'RAM' },
-                            ]);
-                        }
+                        updateCardContainerMetrics(
+                            card,
+                            `${sys.cpu_usage ?? 0}%`,
+                            `${sys.ram_usage ?? 0}%`,
+                            (sys.cpu_usage ?? 0) > 80
+                        );
                     }
                 });
             }
@@ -498,6 +487,65 @@
         };
     }
 
+    function updateCardContainerMetrics(card, cpuPct, ramPct, cpuHot) {
+        const cpuEl = card.querySelector('[data-lxc-cpu] .metric-value');
+        const ramEl = card.querySelector('[data-lxc-ram] .metric-value');
+        if (cpuEl && ramEl) {
+            cpuEl.textContent = cpuPct;
+            ramEl.textContent = ramPct;
+            if (cpuHot) cpuEl.style.color = '#ef4444';
+            else cpuEl.style.removeProperty('color');
+            return;
+        }
+        const metricsGrid = card.querySelector('[data-lxc-metrics]');
+        if (typeof global.shouldUpdateLxcMetrics === 'function' && global.shouldUpdateLxcMetrics(metricsGrid)) {
+            global.setMetricsGrid(metricsGrid, [
+                { value: cpuPct, label: 'CPU', valueStyle: cpuHot ? 'color: #ef4444' : '' },
+                { value: ramPct, label: 'RAM' },
+            ]);
+        }
+    }
+
+    function refreshIntegrationCard(card) {
+        const appId = card.getAttribute('data-integration-refresh');
+        if (!appId) return;
+        fetch(`/api/apps/${appId}/integration`)
+            .then(r => (r.ok ? r.json() : null))
+            .then(d => {
+                if (!d || !d.type) return;
+                if (typeof Alpine !== 'undefined' && typeof Alpine.$data === 'function') {
+                    const data = Alpine.$data(card);
+                    if (data) data.integrationData = d;
+                }
+            })
+            .catch(() => {});
+    }
+
+    function initIntegrationRefresh() {
+        const cards = Array.from(document.querySelectorAll('[data-integration-refresh]'));
+        if (!cards.length) return;
+
+        const visible = new Set();
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const id = entry.target.getAttribute('data-integration-refresh');
+                if (!id) return;
+                if (entry.isIntersecting) visible.add(id);
+                else visible.delete(id);
+            });
+        }, { root: null, threshold: 0.1 });
+
+        cards.forEach(card => observer.observe(card));
+
+        const tick = () => {
+            cards.forEach(card => {
+                const id = card.getAttribute('data-integration-refresh');
+                if (id && visible.has(id)) refreshIntegrationCard(card);
+            });
+        };
+        setInterval(tick, 30000);
+    }
+
     function init() {
         if (config.hideTelemetry) {
             const telemetrySection = document.getElementById('telemetry-section');
@@ -507,6 +555,7 @@
         updateClock();
         setInterval(updateClock, 1000);
         connectWebSocket();
+        initIntegrationRefresh();
 
         // Make app cards clickable across their whole surface, while preserving
         // drag handles, control buttons, and other interactive elements.

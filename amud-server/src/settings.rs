@@ -313,10 +313,10 @@ pub(crate) fn sanitize_card_span(value: &str) -> String {
 /// Integration + container metrics need a tall card to show both rows.
 pub(crate) fn resolve_card_span(
     integration_type: &str,
-    show_container_metrics: bool,
+    _show_container_metrics: bool,
     requested: &str,
 ) -> String {
-    if !integration_type.is_empty() && integration_type != "rss" && show_container_metrics {
+    if !integration_type.is_empty() && integration_type != "rss" {
         return "1x2".to_string();
     }
     sanitize_card_span(requested)
@@ -451,7 +451,7 @@ mod tests {
     #[test]
     fn test_resolve_card_span_integration_metrics() {
         assert_eq!(resolve_card_span("radarr", true, "1x1"), "1x2");
-        assert_eq!(resolve_card_span("radarr", false, "2x1"), "2x1");
+        assert_eq!(resolve_card_span("radarr", false, "2x1"), "1x2");
         assert_eq!(resolve_card_span("rss", true, "1x1"), "1x1");
         assert_eq!(resolve_card_span("", true, "2x1"), "2x1");
     }

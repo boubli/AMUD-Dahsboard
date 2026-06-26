@@ -27,6 +27,138 @@ fn adguard_blocked_today(json: &Value) -> u64 {
         .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
         .unwrap_or(0)
 }
+
+pub(crate) fn format_bytes_short(bytes: u64) -> String {
+    if bytes >= 1_000_000_000_000 {
+        format!("{:.1} TB", bytes as f64 / 1_000_000_000_000.0)
+    } else if bytes >= 1_000_000_000 {
+        format!("{:.1} GB", bytes as f64 / 1_000_000_000.0)
+    } else if bytes >= 1_000_000 {
+        format!("{:.0} MB", bytes as f64 / 1_000_000.0)
+    } else if bytes > 0 {
+        format!("{:.0} KB", bytes as f64 / 1_000.0)
+    } else {
+        "—".to_string()
+    }
+}
+
+pub(crate) fn arr_missing_count(json: &Value) -> u64 {
+    json.get("totalRecords")
+        .and_then(|v| v.as_u64())
+        .or_else(|| {
+            json.get("records")
+                .and_then(|r| r.as_array())
+                .map(|a| a.len() as u64)
+        })
+        .unwrap_or(0)
+}
+
+pub(crate) fn arr_array_len(json: &Value) -> u64 {
+    json.as_array().map(|a| a.len() as u64).unwrap_or(0)
+}
+
+pub(crate) fn arr_disk_free(json: &Value) -> String {
+    let Some(arr) = json.as_array() else {
+        return "—".to_string();
+    };
+    let free: u64 = arr
+        .iter()
+        .filter_map(|d| d.get("freeSpace").and_then(|v| v.as_u64()))
+        .sum();
+    if free == 0 {
+        "—".to_string()
+    } else {
+        format_bytes_short(free)
+    }
+}
+
+pub(crate) fn arr_version(json: &Value) -> String {
+    json.get("version")
+        .and_then(|v| v.as_str())
+        .unwrap_or("—")
+        .to_string()
+}
+
+pub(crate) fn sonarr_episode_count(series_json: &Value) -> u64 {
+    let Some(arr) = series_json.as_array() else {
+        return 0;
+    };
+    arr.iter()
+        .filter_map(|s| {
+            s.pointer("/statistics/episodeCount")
+                .and_then(|v| v.as_u64())
+        })
+        .sum()
+}
+
+pub(crate) fn pihole_summary_fields(json: &Value) -> (u64, u64, String, u64) {
+    let blocked = json
+        .get("ads_blocked_today")
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .unwrap_or(0);
+    let queries = json
+        .get("dns_queries_today")
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .unwrap_or(0);
+    let pct = json
+        .get("ads_percentage_today")
+        .map(|v| {
+            if let Some(f) = v.as_f64() {
+                format!("{:.1}%", f)
+            } else if let Some(s) = v.as_str() {
+                s.to_string()
+            } else {
+                "—".to_string()
+            }
+        })
+        .unwrap_or_else(|| "—".to_string());
+    let domains = json
+        .get("domains_being_blocked")
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .unwrap_or(0);
+    (blocked, queries, pct, domains)
+}
+
+pub(crate) fn adguard_queries_today(json: &Value) -> u64 {
+    json.get("num_dns_queries")
+        .or_else(|| json.get("dns_queries"))
+        .and_then(|v| v.as_u64().or_else(|| v.as_i64().map(|n| n.max(0) as u64)))
+        .unwrap_or(0)
+}
+
+pub(crate) fn adguard_avg_time(json: &Value) -> String {
+    json.get("avg_processing_time")
+        .map(|v| {
+            if let Some(f) = v.as_f64() {
+                format!("{:.0} ms", f * 1000.0)
+            } else if let Some(s) = v.as_str() {
+                s.to_string()
+            } else {
+                "—".to_string()
+            }
+        })
+        .unwrap_or_else(|| "—".to_string())
+}
+
+async fn arr_api_get(
+    client: &reqwest::Client,
+    base_url: &str,
+    api_key: &str,
+    path: &str,
+) -> Option<Value> {
+    let url = format!("{}{}", base_url.trim_end_matches('/'), path);
+    let resp = client
+        .get(&url)
+        .header("X-Api-Key", api_key)
+        .send()
+        .await
+        .ok()?;
+    if resp.status().is_success() {
+        resp.json().await.ok()
+    } else {
+        None
+    }
+}
 use std::time::Duration;
 
 const RSS_MAX_RESPONSE_BYTES: usize = 2 * 1024 * 1024;
@@ -107,14 +239,17 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
 
     match app.integration_type.as_str() {
         "pihole" => {
-            // GET /admin/api.php?summaryRaw&auth=API_KEY
             let url = format!("{}/admin/api.php?summaryRaw&auth={}", base_url, app.api_key);
             let resp = client.get(&url).send().await.ok()?;
             if resp.status().is_success() {
                 let json: Value = resp.json().await.ok()?;
+                let (blocked, queries, pct, domains) = pihole_summary_fields(&json);
                 return Some(json!({
                     "type": "pihole",
-                    "ads_blocked_today": json.get("ads_blocked_today").unwrap_or(&json!(0)),
+                    "ads_blocked_today": blocked,
+                    "dns_queries_today": queries,
+                    "ads_percentage_today": pct,
+                    "domains_being_blocked": domains,
                     "status": json.get("status").unwrap_or(&json!("unknown"))
                 }));
             }
@@ -153,52 +288,60 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 return Some(json!({
                     "type": "adguard",
                     "ads_blocked_today": adguard_blocked_today(&json),
+                    "dns_queries_today": adguard_queries_today(&json),
+                    "avg_processing_time": adguard_avg_time(&json),
                     "status": if is_running { "enabled" } else { "disabled" }
                 }));
             }
         }
         "radarr" => {
-            // Radarr queue
-            let url = format!("{}/api/v3/queue", base_url);
-            let resp = client
-                .get(&url)
-                .header("X-Api-Key", &app.api_key)
-                .send()
-                .await
-                .ok()?;
-            if resp.status().is_success() {
-                let json: Value = resp.json().await.ok()?;
-                let records = json
-                    .get("records")
-                    .and_then(|r| r.as_array())
-                    .map(|a| a.len())
-                    .unwrap_or(0);
-                return Some(json!({
-                    "type": "radarr",
-                    "queue_size": records
-                }));
-            }
+            let key = app.api_key.clone();
+            let (queue, missing, movies, disk, status) = tokio::join!(
+                arr_api_get(&client, base_url, &key, "/api/v3/queue"),
+                arr_api_get(&client, base_url, &key, "/api/v3/wanted/missing"),
+                arr_api_get(&client, base_url, &key, "/api/v3/movie"),
+                arr_api_get(&client, base_url, &key, "/api/v3/diskspace"),
+                arr_api_get(&client, base_url, &key, "/api/v3/system/status"),
+            );
+            let queue_size = queue
+                .as_ref()
+                .and_then(|j| j.get("records"))
+                .and_then(|r| r.as_array())
+                .map(|a| a.len())
+                .unwrap_or(0);
+            return Some(json!({
+                "type": "radarr",
+                "queue_size": queue_size,
+                "missing": missing.as_ref().map(arr_missing_count).unwrap_or(0),
+                "library_count": movies.as_ref().map(arr_array_len).unwrap_or(0),
+                "disk_free": disk.as_ref().map(arr_disk_free).unwrap_or_else(|| "—".to_string()),
+                "version": status.as_ref().map(arr_version).unwrap_or_else(|| "—".to_string()),
+            }));
         }
         "sonarr" => {
-            let url = format!("{}/api/v3/queue", base_url);
-            let resp = client
-                .get(&url)
-                .header("X-Api-Key", &app.api_key)
-                .send()
-                .await
-                .ok()?;
-            if resp.status().is_success() {
-                let json: Value = resp.json().await.ok()?;
-                let records = json
-                    .get("records")
-                    .and_then(|r| r.as_array())
-                    .map(|a| a.len())
-                    .unwrap_or(0);
-                return Some(json!({
-                    "type": "sonarr",
-                    "queue_size": records
-                }));
-            }
+            let key = app.api_key.clone();
+            let (queue, missing, series, disk, status) = tokio::join!(
+                arr_api_get(&client, base_url, &key, "/api/v3/queue"),
+                arr_api_get(&client, base_url, &key, "/api/v3/wanted/missing"),
+                arr_api_get(&client, base_url, &key, "/api/v3/series"),
+                arr_api_get(&client, base_url, &key, "/api/v3/diskspace"),
+                arr_api_get(&client, base_url, &key, "/api/v3/system/status"),
+            );
+            let queue_size = queue
+                .as_ref()
+                .and_then(|j| j.get("records"))
+                .and_then(|r| r.as_array())
+                .map(|a| a.len())
+                .unwrap_or(0);
+            return Some(json!({
+                "type": "sonarr",
+                "queue_size": queue_size,
+                "missing": missing.as_ref().map(arr_missing_count).unwrap_or(0),
+                "series_count": series.as_ref().map(arr_array_len).unwrap_or(0),
+                "episode_count": series.as_ref().map(sonarr_episode_count).unwrap_or(0),
+                "disk_free": disk.as_ref().map(arr_disk_free).unwrap_or_else(|| "—".to_string()),
+                "version": status.as_ref().map(arr_version).unwrap_or_else(|| "—".to_string()),
+            }));
         }
         "overseerr" | "jellyseerr" => {
             let url = format!("{}/api/v1/request/count", base_url);
@@ -210,32 +353,33 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
                 .ok()?;
             if resp.status().is_success() {
                 let json: Value = resp.json().await.ok()?;
-                let pending = json.get("pending").and_then(|v| v.as_u64()).unwrap_or(0);
                 return Some(json!({
                     "type": app.integration_type.as_str(),
-                    "pending_requests": pending
+                    "pending_requests": json.get("pending").and_then(|v| v.as_u64()).unwrap_or(0),
+                    "approved_requests": json.get("approved").and_then(|v| v.as_u64()).unwrap_or(0),
+                    "processing_requests": json.get("processing").and_then(|v| v.as_u64()).unwrap_or(0),
+                    "total_requests": json.get("total").and_then(|v| v.as_u64()).unwrap_or(0),
                 }));
             }
         }
         "prowlarr" => {
-            let url = format!("{}/api/v1/indexer", base_url);
-            let resp = client
-                .get(&url)
-                .header("X-Api-Key", &app.api_key)
-                .send()
-                .await
-                .ok()?;
-            if resp.status().is_success() {
-                let indexers: Value = resp.json().await.ok()?;
-                let (enabled, total) = count_prowlarr_indexers(&indexers);
-                let queue_size = fetch_prowlarr_queue_size(&client, base_url, &app.api_key).await;
-                return Some(json!({
-                    "type": "prowlarr",
-                    "indexers_enabled": enabled,
-                    "indexers_total": total,
-                    "queue_size": queue_size
-                }));
-            }
+            let key = app.api_key.clone();
+            let (indexers, status) = tokio::join!(
+                arr_api_get(&client, base_url, &key, "/api/v1/indexer"),
+                arr_api_get(&client, base_url, &key, "/api/v1/system/status"),
+            );
+            let indexers = indexers?;
+            let (enabled, total) = count_prowlarr_indexers(&indexers);
+            let failed = count_prowlarr_failed_indexers(&indexers);
+            let queue_size = fetch_prowlarr_queue_size(&client, base_url, &key).await;
+            return Some(json!({
+                "type": "prowlarr",
+                "indexers_enabled": enabled,
+                "indexers_total": total,
+                "failed_indexers": failed,
+                "queue_size": queue_size,
+                "version": status.as_ref().map(arr_version).unwrap_or_else(|| "—".to_string()),
+            }));
         }
         "uptime_kuma" => {
             return fetch_uptime_kuma(&client, base_url, &app.api_key).await;
@@ -284,6 +428,21 @@ fn count_prowlarr_indexers(indexers: &Value) -> (u64, u64) {
         .filter(|i| i.get("enable").and_then(|v| v.as_bool()).unwrap_or(false))
         .count() as u64;
     (enabled, total)
+}
+
+pub(crate) fn count_prowlarr_failed_indexers(indexers: &Value) -> u64 {
+    let Some(arr) = indexers.as_array() else {
+        return 0;
+    };
+    arr.iter()
+        .filter(|i| {
+            i.get("enable").and_then(|v| v.as_bool()).unwrap_or(false)
+                && i.get("status")
+                    .and_then(|v| v.as_u64())
+                    .map(|s| s >= 2)
+                    .unwrap_or(false)
+        })
+        .count() as u64
 }
 
 async fn fetch_prowlarr_queue_size(client: &reqwest::Client, base_url: &str, api_key: &str) -> u64 {
@@ -339,7 +498,17 @@ pub(crate) fn parse_uptime_kuma_heartbeats(json: &Value) -> (u64, u64) {
     (up, down)
 }
 
-pub(crate) fn parse_peanut_stats(json: &Value) -> (String, String) {
+fn format_runtime_secs(secs: i64) -> String {
+    if secs >= 3600 {
+        format!("{}h", secs / 3600)
+    } else if secs >= 60 {
+        format!("{}m", secs / 60)
+    } else {
+        format!("{}s", secs)
+    }
+}
+
+pub(crate) fn parse_peanut_stats(json: &Value) -> (String, String, String, String) {
     let charge = json
         .pointer("/ups/battery.charge")
         .or_else(|| json.get("battery.charge"))
@@ -347,6 +516,28 @@ pub(crate) fn parse_peanut_stats(json: &Value) -> (String, String) {
             v.as_str()
                 .map(String::from)
                 .or_else(|| v.as_i64().map(|n| n.to_string()))
+        })
+        .unwrap_or_else(|| "—".to_string());
+    let load = json
+        .pointer("/ups/ups.load")
+        .or_else(|| json.get("ups.load"))
+        .and_then(|v| {
+            v.as_str()
+                .map(String::from)
+                .or_else(|| v.as_i64().map(|n| format!("{}%", n)))
+        })
+        .unwrap_or_else(|| "—".to_string());
+    let runtime = json
+        .pointer("/ups/battery.runtime")
+        .or_else(|| json.get("battery.runtime"))
+        .and_then(|v| {
+            if let Some(s) = v.as_str() {
+                if let Ok(secs) = s.parse::<i64>() {
+                    return Some(format_runtime_secs(secs));
+                }
+                return Some(s.to_string());
+            }
+            v.as_i64().map(format_runtime_secs)
         })
         .unwrap_or_else(|| "—".to_string());
     let raw_status = json
@@ -364,7 +555,7 @@ pub(crate) fn parse_peanut_stats(json: &Value) -> (String, String) {
         "CHRG" => "Charging",
         _ => raw_status,
     };
-    (charge, status_label.to_string())
+    (charge, load, runtime, status_label.to_string())
 }
 
 async fn fetch_uptime_kuma(
@@ -382,10 +573,13 @@ async fn fetch_uptime_kuma(
             if let Ok(json) = resp.json::<Value>().await {
                 let (up, down) = parse_uptime_kuma_heartbeats(&json);
                 if up > 0 || down > 0 {
+                    let total = up + down;
                     return Some(json!({
                         "type": "uptime_kuma",
                         "monitors_up": up,
-                        "monitors_down": down
+                        "monitors_down": down,
+                        "monitors_total": total,
+                        "maintenance": json.get("maintenanceList").and_then(|v| v.as_array()).map(|a| a.len() as u64).unwrap_or(0),
                     }));
                 }
             }
@@ -404,7 +598,9 @@ async fn fetch_uptime_kuma(
         return Some(json!({
             "type": "uptime_kuma",
             "monitors_up": total,
-            "monitors_down": 0
+            "monitors_down": 0,
+            "monitors_total": total,
+            "maintenance": 0,
         }));
     }
     None
@@ -436,6 +632,19 @@ async fn fetch_cloudflare_tunnel(client: &reqwest::Client, creds_raw: &str) -> O
         .and_then(|v| v.as_array())
         .map(|a| a.len() as u64)
         .unwrap_or(0);
+    let colo_count = result
+        .get("connections")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            let mut colos = std::collections::HashSet::new();
+            for c in arr {
+                if let Some(colo) = c.get("colo_name").and_then(|v| v.as_str()) {
+                    colos.insert(colo);
+                }
+            }
+            colos.len() as u64
+        })
+        .unwrap_or(0);
     let name = result
         .get("name")
         .and_then(|v| v.as_str())
@@ -444,7 +653,8 @@ async fn fetch_cloudflare_tunnel(client: &reqwest::Client, creds_raw: &str) -> O
         "type": "cloudflare_tunnel",
         "tunnel_name": name,
         "tunnel_status": status,
-        "connections": connections
+        "connections": connections,
+        "colo_count": colo_count,
     }))
 }
 
@@ -546,6 +756,15 @@ async fn fetch_qbittorrent(
         .get("dl_info_speed")
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
+    let ul_speed = transfer
+        .get("up_info_speed")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let free_disk = transfer
+        .get("free_space_on_disk")
+        .and_then(|v| v.as_u64())
+        .map(format_bytes_short)
+        .unwrap_or_else(|| "—".to_string());
     let torrents_resp = client
         .get(format!("{}/api/v2/torrents/info", base))
         .send()
@@ -556,11 +775,15 @@ async fn fetch_qbittorrent(
     }
     let torrents: Value = torrents_resp.json().await.ok()?;
     let (downloading, seeding) = count_qbittorrent_states(&torrents);
+    let total_torrents = torrents.as_array().map(|a| a.len() as u64).unwrap_or(0);
     Some(json!({
         "type": "qbittorrent",
         "download_speed": format_qbit_speed(dl_speed),
+        "upload_speed": format_qbit_speed(ul_speed),
         "active_downloads": downloading,
-        "seeding": seeding
+        "seeding": seeding,
+        "free_disk": free_disk,
+        "total_torrents": total_torrents,
     }))
 }
 
@@ -569,29 +792,52 @@ async fn fetch_bazarr(client: &reqwest::Client, base_url: &str, api_key: &str) -
         return None;
     }
     let base = base_url.trim_end_matches('/');
-    let movies_url = format!("{}/api/movies/wanted", base);
-    let episodes_url = format!("{}/api/episodes/wanted", base);
-    let movies_resp = client
-        .get(&movies_url)
-        .header("X-Api-Key", api_key)
-        .send()
-        .await
-        .ok()?;
-    let episodes_resp = client
-        .get(&episodes_url)
-        .header("X-Api-Key", api_key)
-        .send()
-        .await
-        .ok()?;
+    let key = api_key.to_string();
+    let (movies_resp, episodes_resp, status_resp) = tokio::join!(
+        client
+            .get(format!("{}/api/movies/wanted", base))
+            .header("X-Api-Key", &key)
+            .send(),
+        client
+            .get(format!("{}/api/episodes/wanted", base))
+            .header("X-Api-Key", &key)
+            .send(),
+        client
+            .get(format!("{}/api/system/status", base))
+            .header("X-Api-Key", &key)
+            .send(),
+    );
+    let (Ok(movies_resp), Ok(episodes_resp)) = (movies_resp, episodes_resp) else {
+        return None;
+    };
     if !movies_resp.status().is_success() || !episodes_resp.status().is_success() {
         return None;
     }
     let movies: Value = movies_resp.json().await.ok()?;
     let episodes: Value = episodes_resp.json().await.ok()?;
+    let status_json = if let Ok(resp) = status_resp {
+        if resp.status().is_success() {
+            resp.json::<Value>().await.ok()
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    let version = status_json
+        .as_ref()
+        .map(arr_version)
+        .unwrap_or_else(|| "—".to_string());
+    let health = status_json
+        .as_ref()
+        .and_then(|j| j.get("health").and_then(|v| v.as_str()).map(String::from))
+        .unwrap_or_else(|| "—".to_string());
     Some(json!({
         "type": "bazarr",
         "missing_movies": bazarr_wanted_count(&movies),
-        "missing_episodes": bazarr_wanted_count(&episodes)
+        "missing_episodes": bazarr_wanted_count(&episodes),
+        "version": version,
+        "health": health,
     }))
 }
 
@@ -605,10 +851,12 @@ async fn fetch_peanut(client: &reqwest::Client, base_url: &str, api_key: &str) -
         let resp = req.send().await.ok()?;
         if resp.status().is_success() {
             let json: Value = resp.json().await.ok()?;
-            let (battery, status) = parse_peanut_stats(&json);
+            let (battery, load, runtime, status) = parse_peanut_stats(&json);
             return Some(json!({
                 "type": "peanut",
                 "battery_percent": battery,
+                "ups_load": load,
+                "battery_runtime": runtime,
                 "ups_status": status
             }));
         }
@@ -746,12 +994,56 @@ mod tests {
         let json: Value = serde_json::json!({
             "ups": {
                 "battery.charge": "87",
+                "ups.load": "42",
+                "battery.runtime": "3600",
                 "ups.status": "OL"
             }
         });
-        let (battery, status) = parse_peanut_stats(&json);
+        let (battery, load, runtime, status) = parse_peanut_stats(&json);
         assert_eq!(battery, "87");
+        assert_eq!(load, "42");
+        assert_eq!(runtime, "1h");
         assert_eq!(status, "Online");
+    }
+
+    #[test]
+    fn arr_missing_count_reads_total_records() {
+        let json: Value = serde_json::json!({ "totalRecords": 5 });
+        assert_eq!(arr_missing_count(&json), 5);
+    }
+
+    #[test]
+    fn arr_disk_free_sums_free_space() {
+        let json: Value = serde_json::json!([
+            { "freeSpace": 1_000_000_000 },
+            { "freeSpace": 2_000_000_000 }
+        ]);
+        assert_eq!(arr_disk_free(&json), "3.0 GB");
+    }
+
+    #[test]
+    fn pihole_summary_fields_parse() {
+        let json: Value = serde_json::json!({
+            "ads_blocked_today": 100,
+            "dns_queries_today": 5000,
+            "ads_percentage_today": 2.0,
+            "domains_being_blocked": 250000
+        });
+        let (blocked, queries, pct, domains) = pihole_summary_fields(&json);
+        assert_eq!(blocked, 100);
+        assert_eq!(queries, 5000);
+        assert_eq!(pct, "2.0%");
+        assert_eq!(domains, 250000);
+    }
+
+    #[test]
+    fn count_prowlarr_failed_indexers_detects_failures() {
+        let json: Value = serde_json::json!([
+            { "enable": true, "status": 2 },
+            { "enable": true, "status": 1 },
+            { "enable": false, "status": 2 }
+        ]);
+        assert_eq!(super::count_prowlarr_failed_indexers(&json), 1);
     }
 
     #[test]

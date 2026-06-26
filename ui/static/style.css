@@ -822,6 +822,58 @@ body::-webkit-scrollbar-button {
     margin-top: auto;
 }
 
+/* Filled tall cards — unified 6-cell metrics grid */
+.app-card.span-tall:has(.app-card-metrics-slot--filled) {
+    min-height: calc(var(--bento-row-height) * 2);
+}
+
+.app-card-metrics-slot--filled {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+    min-height: 0;
+    overflow: visible;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding-top: 0.5rem;
+}
+
+.integration-widget--filled {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+    min-height: 0;
+}
+
+.integration-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 1fr;
+    gap: 0.45rem;
+    flex: 1;
+    min-height: 8.5rem;
+    width: 100%;
+}
+
+.integration-metrics-grid .metric-block {
+    min-height: 2.75rem;
+    padding: 0.35rem 0.25rem;
+}
+
+.integration-metrics-grid .metric-value {
+    font-size: 0.78rem;
+    line-height: 1.2;
+}
+
+.integration-metrics-grid .metric-label {
+    font-size: 0.58rem;
+}
+
+.app-card-metrics-slot--filled .app-card-metrics-fallback {
+    min-height: 8.5rem;
+}
+
 /* ── RSS Feed Widget ───────────────────────────── */
 .rss-feed-list {
     display: flex;
