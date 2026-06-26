@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 THEMES_DIR = Path(__file__).resolve().parent.parent / "ui" / "static" / "themes"
@@ -59,9 +60,6 @@ PROCEDURAL = {
     },
 }
 
-# Flat CSS blocks only (theme files have no nested braces) — avoids ReDoS backtracking.
-_CSS_BLOCK = r"\{[^{}]*\}"
-
 RGBA_CARD = re.compile(
     r"--bg-card:\s*rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)\s*;",
     re.I,
@@ -71,27 +69,11 @@ BG_COLOR = re.compile(r"background-color:\s*(#[0-9a-f]{3,8})\s*;", re.I)
 RGBA_IN_GRADIENT = re.compile(
     r"rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)", re.I
 )
-BODY_BLOCK = re.compile(r"\nbody\s*" + _CSS_BLOCK + r"\s*", re.S)
-GLASS_HOVER = re.compile(r"\n\.glass-panel:hover\s*" + _CSS_BLOCK + r"\s*", re.S)
-APP_CARD_HOVER = re.compile(r"\n\.app-card\.glass-panel:hover\s*" + _CSS_BLOCK + r"\s*", re.S)
-GLASS_IMPORTANT = re.compile(
-    r"\n\.glass-panel\s*\{[^{}]*!important[^{}]*\}\s*", re.S
-)
 ROOT_GLASS_OVERRIDES = re.compile(
     r"\s*--glass-blur-intensity:[^;]+;\s*"
     r"|\s*--glass-opacity:[^;]+;\s*"
     r"|\s*--radius-xl:[^;]+;\s*",
     re.I,
-)
-WALLPAPER_HIDE = re.compile(
-    r"\n\.wallpaper-bg,\s*\n\.wallpaper-overlay\s*" + _CSS_BLOCK + r"\s*", re.S
-)
-_TERMINAL_GLASS = re.compile(
-    r"\.glass-panel\s*\{[^{}]*border-radius:\s*0\s*!important;[^{}]*\}", re.S
-)
-_BLUEPRINT_GLASS = re.compile(
-    r"\.glass-panel\s*\{[^{}]*backdrop-filter:\s*blur\(4px\)\s*!important;[^{}]*\}",
-    re.S,
 )
 
 TERMINAL_THEMES = frozenset({"terminal-matrix", "terminal-amber", "terminal-phosphor"})
@@ -113,6 +95,91 @@ BLUEPRINT_GLASS_REPLACEMENT = (
     "    border: 1px solid rgba(30, 144, 255, 0.25);\n"
     "}"
 )
+
+
+def _rule_block_end(content: str, open_brace: int) -> int | None:
+    depth = 0
+    for i in range(open_brace, len(content)):
+        ch = content[i]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return i + 1
+    return None
+
+
+def _rule_block_span(content: str, selector_pos: int) -> tuple[int, int] | None:
+    brace = content.find("{", selector_pos)
+    if brace == -1:
+        return None
+    end = _rule_block_end(content, brace)
+    if end is None:
+        return None
+    while end < len(content) and content[end] in " \t\r\n":
+        end += 1
+    return selector_pos, end
+
+
+def _remove_rules(
+    content: str,
+    selector: str,
+    *,
+    block_match: Callable[[str], bool] | None = None,
+) -> str:
+    start = 0
+    parts: list[str] = []
+    while start < len(content):
+        pos = content.find(selector, start)
+        if pos == -1:
+            parts.append(content[start:])
+            break
+        span = _rule_block_span(content, pos)
+        if span is None:
+            parts.append(content[start : pos + 1])
+            start = pos + 1
+            continue
+        block = content[span[0] : span[1]]
+        if block_match is None or block_match(block):
+            parts.append(content[start:span[0]])
+            parts.append("\n")
+            start = span[1]
+        else:
+            parts.append(content[start : span[1]])
+            start = span[1]
+    return "".join(parts)
+
+
+def _replace_first_glass_panel(
+    content: str,
+    needle: str,
+    replacement: str,
+) -> str:
+    pos = 0
+    while True:
+        pos = content.find(".glass-panel", pos)
+        if pos == -1:
+            return content
+        span = _rule_block_span(content, pos)
+        if span is None:
+            pos += 1
+            continue
+        block = content[span[0] : span[1]]
+        if needle in block:
+            return content[: span[0]] + replacement + content[span[1] :]
+        pos = span[1]
+    return content
+
+
+def _extract_rule(content: str, selector: str) -> str:
+    pos = content.find(selector)
+    if pos == -1:
+        return ""
+    span = _rule_block_span(content, pos)
+    if span is None:
+        return ""
+    return content[span[0] : span[1]]
 
 
 def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
@@ -154,14 +221,18 @@ def theme_vars_block(
 
 
 def _strip_legacy_blocks(content: str) -> tuple[str, str]:
-    body_m = BODY_BLOCK.search(content)
-    body_text = body_m.group(0) if body_m else ""
+    body_text = _extract_rule(content, "body") or _extract_rule(content, "\nbody")
     content = ROOT_GLASS_OVERRIDES.sub("", content)
-    content = BODY_BLOCK.sub("\n", content)
-    content = GLASS_HOVER.sub("\n", content)
-    content = APP_CARD_HOVER.sub("\n", content)
-    content = GLASS_IMPORTANT.sub("\n", content)
-    content = WALLPAPER_HIDE.sub("\n", content)
+    content = _remove_rules(content, "body")
+    content = _remove_rules(content, "\nbody")
+    content = _remove_rules(content, ".glass-panel:hover")
+    content = _remove_rules(content, ".app-card.glass-panel:hover")
+    content = _remove_rules(
+        content,
+        ".glass-panel",
+        block_match=lambda block: "!important" in block,
+    )
+    content = _remove_rules(content, ".wallpaper-bg")
     return content, body_text
 
 
@@ -225,23 +296,49 @@ def _fix_theme_glass_panels(name: str, content: str) -> str:
     if name == "brutalist-mono":
         content = _fix_brutalist_glass(content)
     if name in TERMINAL_THEMES:
-        content = _TERMINAL_GLASS.sub(TERMINAL_GLASS_REPLACEMENT, content, count=1)
+        content = _replace_first_glass_panel(
+            content,
+            "border-radius: 0 !important;",
+            TERMINAL_GLASS_REPLACEMENT,
+        )
     if name == "blueprint-tech":
-        content = _BLUEPRINT_GLASS.sub(BLUEPRINT_GLASS_REPLACEMENT, content, count=1)
+        content = _replace_first_glass_panel(
+            content,
+            "backdrop-filter: blur(4px) !important;",
+            BLUEPRINT_GLASS_REPLACEMENT,
+        )
     return content
 
 
+def _set_pseudo_opacity(content: str, pseudo: str, factor: str) -> str:
+    pos = content.find(pseudo)
+    if pos == -1:
+        return content
+    span = _rule_block_span(content, pos)
+    if span is None:
+        return content
+    block = content[span[0] : span[1]]
+    key = "opacity:"
+    key_pos = block.find(key)
+    if key_pos == -1:
+        return content
+    value_start = key_pos + len(key)
+    while value_start < len(block) and block[value_start] in " \t":
+        value_start += 1
+    value_end = value_start
+    while value_end < len(block) and block[value_end] not in ";":
+        value_end += 1
+    new_block = (
+        block[:value_start]
+        + f"calc(var(--wallpaper-overlay-strength) * {factor})"
+        + block[value_end:]
+    )
+    return content[: span[0]] + new_block + content[span[1] :]
+
+
 def _tie_pseudo_overlay_opacity(content: str) -> str:
-    content = re.sub(
-        r"(body::before[^{}]*opacity:\s*)([\d.]+)(\s*;)",
-        r"\1calc(var(--wallpaper-overlay-strength) * 0.6)\3",
-        content,
-    )
-    return re.sub(
-        r"(body::after[^{}]*opacity:\s*)([\d.]+)(\s*;)",
-        r"\1calc(var(--wallpaper-overlay-strength) * 0.5)\3",
-        content,
-    )
+    content = _set_pseudo_opacity(content, "body::before", "0.6")
+    return _set_pseudo_opacity(content, "body::after", "0.5")
 
 
 def refactor_file(path: Path) -> None:
