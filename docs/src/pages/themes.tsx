@@ -165,7 +165,7 @@ export default function ThemesGallery(): ReactNode {
     AMUD_THEMES.forEach((t) => {
       if (t.category) set.add(t.category);
     });
-    return ['all', ...Array.from(set).sort()];
+    return ['all', ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, []);
 
   const filtered = useMemo(() => {

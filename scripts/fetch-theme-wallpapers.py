@@ -3,9 +3,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
-import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -243,6 +243,47 @@ def save_preview(src: Path, dest: Path) -> None:
         )
 
 
+def license_label(source: str) -> str:
+    return "Unsplash License" if source == "unsplash" else "Pexels License"
+
+
+def install_wallpaper(theme_id: str, tmp: Path, source: str, credit: str) -> tuple[str, str, str]:
+    for wp_dir in (UI_WP, DOCS_WP):
+        out = wp_dir / f"{theme_id}.jpg"
+        if out.exists():
+            out.unlink()
+        out.write_bytes(tmp.read_bytes())
+    return (f"{theme_id}.jpg", credit, license_label(source))
+
+
+def install_previews(theme_id: str, tmp: Path) -> None:
+    for pr_dir in (UI_PR, DOCS_PR):
+        save_preview(tmp, pr_dir / f"{theme_id}.jpg")
+
+
+def fetch_theme(
+    theme_id: str, source: str, url: str, credit: str
+) -> tuple[str, str, str] | None:
+    tmp = UI_WP / f"{theme_id}.download"
+    download(url, tmp)
+    try:
+        credit_row = None
+        if theme_id not in PREVIEW_ONLY:
+            credit_row = install_wallpaper(theme_id, tmp, source, credit)
+        install_previews(theme_id, tmp)
+        return credit_row
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def verify_unique_wallpapers() -> list[list[str]]:
+    hashes: dict[str, list[str]] = {}
+    for jpg in UI_WP.glob("*.jpg"):
+        digest = hashlib.sha256(jpg.read_bytes()).hexdigest()
+        hashes.setdefault(digest, []).append(jpg.name)
+    return [names for names in hashes.values() if len(names) > 1]
+
+
 def main() -> int:
     UI_WP.mkdir(parents=True, exist_ok=True)
     UI_PR.mkdir(parents=True, exist_ok=True)
@@ -250,27 +291,15 @@ def main() -> int:
     DOCS_PR.mkdir(parents=True, exist_ok=True)
 
     failed: list[str] = []
-    credits: list[tuple[str, str, str]] = []
+    credit_rows: list[tuple[str, str, str]] = []
 
     for theme_id, (source, url, credit) in SOURCES.items():
         try:
-            tmp = UI_WP / f"{theme_id}.download"
-            download(url, tmp)
-
-            if theme_id not in PREVIEW_ONLY:
-                for wp_dir in (UI_WP, DOCS_WP):
-                    out = wp_dir / f"{theme_id}.jpg"
-                    if out.exists():
-                        out.unlink()
-                    out.write_bytes(tmp.read_bytes())
-                license_name = "Unsplash License" if source == "unsplash" else "Pexels License"
-                credits.append((f"{theme_id}.jpg", credit, license_name))
-
-            for pr_dir in (UI_PR, DOCS_PR):
-                save_preview(tmp, pr_dir / f"{theme_id}.jpg")
-            tmp.unlink(missing_ok=True)
+            credit_row = fetch_theme(theme_id, source, url, credit)
+            if credit_row:
+                credit_rows.append(credit_row)
             print(f"OK  {theme_id}")
-        except (urllib.error.URLError, OSError, RuntimeError) as exc:
+        except (OSError, RuntimeError) as exc:
             failed.append(f"{theme_id}: {exc}")
             print(f"FAIL {theme_id}: {exc}", file=sys.stderr)
 
@@ -278,20 +307,13 @@ def main() -> int:
         print(f"\n{len(failed)} download(s) failed", file=sys.stderr)
         return 1
 
-    # Verify uniqueness among wallpaper files
-    hashes: dict[str, list[str]] = {}
-    for jpg in UI_WP.glob("*.jpg"):
-        import hashlib
-
-        digest = hashlib.md5(jpg.read_bytes()).hexdigest()
-        hashes.setdefault(digest, []).append(jpg.name)
-    dups = [names for names in hashes.values() if len(names) > 1]
+    dups = verify_unique_wallpapers()
     if dups:
         print("WARNING duplicate wallpaper hashes:", dups, file=sys.stderr)
         return 1
 
-    write_credits(credits)
-    print(f"done — {len(credits)} wallpaper files, all unique hashes")
+    write_credits(credit_rows)
+    print(f"done — {len(credit_rows)} wallpaper files, all unique hashes")
     return 0
 
 

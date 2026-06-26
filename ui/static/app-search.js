@@ -27,6 +27,33 @@
         refreshModeUi();
     }
 
+    function updateEngineVisibility(mode, engineSelect, divider) {
+        const show = mode === 'web';
+        if (engineSelect) {
+            engineSelect.style.display = show ? '' : 'none';
+        }
+        if (divider) {
+            divider.style.display = show ? '' : 'none';
+        }
+    }
+
+    function updateSearchInputForMode(mode, input) {
+        if (!input) return;
+        input.placeholder = mode === 'web' ? 'Search the web...' : 'Search apps... (Ctrl+K)';
+        input.ariaLabel = mode === 'web' ? 'Search the web' : 'Search apps';
+    }
+
+    function updateModeButtons(mode, modeApps, modeWeb) {
+        if (modeApps) {
+            modeApps.classList.toggle('active', mode === 'apps');
+            modeApps.setAttribute('aria-pressed', mode === 'apps' ? 'true' : 'false');
+        }
+        if (modeWeb) {
+            modeWeb.classList.toggle('active', mode === 'web');
+            modeWeb.setAttribute('aria-pressed', mode === 'web' ? 'true' : 'false');
+        }
+    }
+
     function refreshModeUi() {
         const mode = getMode();
         const engineSelect = document.getElementById('search-engine');
@@ -34,20 +61,9 @@
         const input = document.getElementById('search-input');
         const modeApps = document.getElementById('search-mode-apps');
         const modeWeb = document.getElementById('search-mode-web');
-        if (engineSelect) {
-            engineSelect.style.display = mode === 'web' ? '' : 'none';
-        }
-        if (divider) {
-            divider.style.display = mode === 'web' ? '' : 'none';
-        }
-        if (input) {
-            input.placeholder = mode === 'web' ? 'Search the web...' : 'Search apps... (Ctrl+K)';
-            input.ariaLabel = mode === 'web' ? 'Search the web' : 'Search apps';
-        }
-        if (modeApps) modeApps.classList.toggle('active', mode === 'apps');
-        if (modeWeb) modeWeb.classList.toggle('active', mode === 'web');
-        if (modeApps) modeApps.setAttribute('aria-pressed', mode === 'apps' ? 'true' : 'false');
-        if (modeWeb) modeWeb.setAttribute('aria-pressed', mode === 'web' ? 'true' : 'false');
+        updateEngineVisibility(mode, engineSelect, divider);
+        updateSearchInputForMode(mode, input);
+        updateModeButtons(mode, modeApps, modeWeb);
     }
 
     function applyCategoryVisibility(card, category) {

@@ -2956,13 +2956,14 @@ body.settings-page {
 
 .theme-light-mode-warning {
     font-size: 0.8rem;
-    color: #fbbf24;
-    background: rgba(251, 191, 36, 0.1);
-    border: 1px solid rgba(251, 191, 36, 0.25);
+    color: #1c1917;
+    background: #fde68a;
+    border: 1px solid #d97706;
     border-radius: 8px;
     padding: 0.65rem 0.85rem;
     margin-bottom: 1rem;
     line-height: 1.4;
+    display: block;
 }
 
 @media (max-width: 960px) {

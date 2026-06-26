@@ -638,17 +638,18 @@
                                         <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Online gallery</a>
                                     </p>
                                     <input type="hidden" name="active_theme_id" id="setting-active-theme-id" value="{{active_theme_id}}">
-                                    <div id="theme-light-mode-warning" class="theme-light-mode-warning" style="display:none;" role="status">
+                                    <output id="theme-light-mode-warning" class="theme-light-mode-warning" style="display:none;">
                                         Light mode is on — bundled themes look best in dark mode. Consider switching Theme Mode to Dark or turning off the scheduler.
-                                    </div>
+                                    </output>
                                     <div class="theme-picker-toolbar">
+                                        <label for="theme-picker-search" class="visually-hidden">Search themes</label>
                                         <input type="search" id="theme-picker-search" class="form-control" placeholder="Search themes…" autocomplete="off" style="max-width:280px;">
                                         <div class="theme-picker-categories" id="theme-picker-categories" role="tablist" aria-label="Theme categories"></div>
                                     </div>
                                     <div id="theme-picker-grid" class="theme-picker-grid" aria-live="polite"></div>
                                     <div class="theme-picker-actions">
                                         <button type="button" id="btn-download-bundled-theme" class="btn btn-secondary">Download selected .css</button>
-                                        <p id="theme-picker-status" class="theme-picker-status"></p>
+                                          <output id="theme-picker-status" class="theme-picker-status" for="theme-picker-search"></output>
                                     </div>
                                 </div>
 

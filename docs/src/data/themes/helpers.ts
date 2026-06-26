@@ -16,6 +16,22 @@ function previewAssetFilename(themeId: string): string {
   return `AMUD-Theme-${label}.png`;
 }
 
+function resolveCategory(definition: ThemeDefinition): string {
+  if (definition.category) {
+    return definition.category;
+  }
+  if (definition.id === 'default') {
+    return 'default';
+  }
+  if (definition.tags.includes('advanced')) {
+    return 'advanced';
+  }
+  if (definition.id.startsWith('terminal-')) {
+    return 'terminal';
+  }
+  return 'classic';
+}
+
 export function createTheme(definition: ThemeDefinition): AmudTheme {
   const cssFile = definition.cssFile ?? `themes/${definition.id}.css`;
   const previewImage =
@@ -25,15 +41,7 @@ export function createTheme(definition: ThemeDefinition): AmudTheme {
       ? undefined
       : definition.wallpaper ?? `${WALLPAPER_PREFIX}${definition.id}.jpg`;
   const bundled = definition.bundled ?? definition.id !== 'default';
-  const category =
-    definition.category ??
-    (definition.id === 'default'
-      ? 'default'
-      : definition.tags.includes('advanced')
-        ? 'advanced'
-        : definition.id.startsWith('terminal-')
-          ? 'terminal'
-          : 'classic');
+  const category = resolveCategory(definition);
 
   return {
     id: definition.id,
