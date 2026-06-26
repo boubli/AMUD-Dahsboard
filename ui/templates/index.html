@@ -318,13 +318,12 @@
                     <label for="add-app-integration-type">Integration</label>
                     <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type" @change="amudApplyIntegrationSpan(newApp)">
                         <option value="">None</option>
-                        <optgroup label="DNS &amp; adblock">
+                        <option disabled>DNS &amp; adblock</option>
                         <option value="pihole">Pi-hole</option>
                         <option value="adguard">AdGuard Home</option>
                         <option value="technitium">Technitium DNS</option>
                         <option value="blocky">Blocky DNS</option>
-                        </optgroup>
-                        <optgroup label="Servarr &amp; requests">
+                        <option disabled>Servarr &amp; requests</option>
                         <option value="radarr">Radarr</option>
                         <option value="sonarr">Sonarr</option>
                         <option value="lidarr">Lidarr</option>
@@ -337,16 +336,14 @@
                         <option value="mylar">Mylar</option>
                         <option value="kapowarr">Kapowarr</option>
                         <option value="huntarr">Huntarr</option>
-                        </optgroup>
-                        <optgroup label="Download">
+                        <option disabled>Download</option>
                         <option value="qbittorrent">qBittorrent</option>
                         <option value="sabnzbd">SABnzbd</option>
                         <option value="nzbget">NZBGet</option>
                         <option value="transmission">Transmission</option>
                         <option value="deluge">Deluge</option>
                         <option value="jackett">Jackett</option>
-                        </optgroup>
-                        <optgroup label="Media &amp; photos">
+                        <option disabled>Media &amp; photos</option>
                         <option value="tautulli">Tautulli</option>
                         <option value="audiobookshelf">Audiobookshelf</option>
                         <option value="immich">Immich</option>
@@ -358,8 +355,7 @@
                         <option value="maintainerr">Maintainerr</option>
                         <option value="frigate">Frigate</option>
                         <option value="scrypted">Scrypted</option>
-                        </optgroup>
-                        <optgroup label="Network &amp; infra">
+                        <option disabled>Network &amp; infra</option>
                         <option value="fritz">FRITZ!Box</option>
                         <option value="unifi">UniFi Network</option>
                         <option value="opnsense">OPNsense</option>
@@ -377,16 +373,14 @@
                         <option value="nginx_proxy_manager">Nginx Proxy Manager</option>
                         <option value="traefik">Traefik</option>
                         <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
-                        </optgroup>
-                        <optgroup label="Monitoring">
+                        <option disabled>Monitoring</option>
                         <option value="uptime_kuma">Uptime Kuma</option>
                         <option value="grafana">Grafana</option>
                         <option value="netdata">Netdata</option>
                         <option value="glances">Glances</option>
                         <option value="beszel">Beszel</option>
                         <option value="peanut">Peanut (UPS)</option>
-                        </optgroup>
-                        <optgroup label="Self-hosted apps">
+                        <option disabled>Self-hosted apps</option>
                         <option value="paperless">Paperless-ngx</option>
                         <option value="mealie">Mealie</option>
                         <option value="nextcloud">Nextcloud</option>
@@ -397,8 +391,7 @@
                         <option value="crowdsec">CrowdSec</option>
                         <option value="node_red">Node-RED</option>
                         <option value="zigbee2mqtt">Zigbee2MQTT</option>
-                        </optgroup>
-                        <optgroup label="Health check only">
+                        <option disabled>Health check only</option>
                         <option value="gitea">Gitea</option>
                         <option value="forgejo">Forgejo</option>
                         <option value="gitlab">GitLab</option>
@@ -424,7 +417,6 @@
                         <option value="blue_iris">Blue Iris</option>
                         <option value="shinobi">Shinobi</option>
                         <option value="agent_dvr">Agent DVR</option>
-                        </optgroup>
                     </select>
                 </div>
 
@@ -684,13 +676,12 @@
                     <label for="edit-app-integration-type">Integration</label>
                     <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type" @change="amudApplyIntegrationSpan(editApp)">
                         <option value="">None</option>
-                        <optgroup label="DNS &amp; adblock">
+                        <option disabled>DNS &amp; adblock</option>
                         <option value="pihole">Pi-hole</option>
                         <option value="adguard">AdGuard Home</option>
                         <option value="technitium">Technitium DNS</option>
                         <option value="blocky">Blocky DNS</option>
-                        </optgroup>
-                        <optgroup label="Servarr &amp; requests">
+                        <option disabled>Servarr &amp; requests</option>
                         <option value="radarr">Radarr</option>
                         <option value="sonarr">Sonarr</option>
                         <option value="lidarr">Lidarr</option>
@@ -703,16 +694,14 @@
                         <option value="mylar">Mylar</option>
                         <option value="kapowarr">Kapowarr</option>
                         <option value="huntarr">Huntarr</option>
-                        </optgroup>
-                        <optgroup label="Download">
+                        <option disabled>Download</option>
                         <option value="qbittorrent">qBittorrent</option>
                         <option value="sabnzbd">SABnzbd</option>
                         <option value="nzbget">NZBGet</option>
                         <option value="transmission">Transmission</option>
                         <option value="deluge">Deluge</option>
                         <option value="jackett">Jackett</option>
-                        </optgroup>
-                        <optgroup label="Media &amp; photos">
+                        <option disabled>Media &amp; photos</option>
                         <option value="tautulli">Tautulli</option>
                         <option value="audiobookshelf">Audiobookshelf</option>
                         <option value="immich">Immich</option>
@@ -724,8 +713,7 @@
                         <option value="maintainerr">Maintainerr</option>
                         <option value="frigate">Frigate</option>
                         <option value="scrypted">Scrypted</option>
-                        </optgroup>
-                        <optgroup label="Network &amp; infra">
+                        <option disabled>Network &amp; infra</option>
                         <option value="fritz">FRITZ!Box</option>
                         <option value="unifi">UniFi Network</option>
                         <option value="opnsense">OPNsense</option>
@@ -743,16 +731,14 @@
                         <option value="nginx_proxy_manager">Nginx Proxy Manager</option>
                         <option value="traefik">Traefik</option>
                         <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
-                        </optgroup>
-                        <optgroup label="Monitoring">
+                        <option disabled>Monitoring</option>
                         <option value="uptime_kuma">Uptime Kuma</option>
                         <option value="grafana">Grafana</option>
                         <option value="netdata">Netdata</option>
                         <option value="glances">Glances</option>
                         <option value="beszel">Beszel</option>
                         <option value="peanut">Peanut (UPS)</option>
-                        </optgroup>
-                        <optgroup label="Self-hosted apps">
+                        <option disabled>Self-hosted apps</option>
                         <option value="paperless">Paperless-ngx</option>
                         <option value="mealie">Mealie</option>
                         <option value="nextcloud">Nextcloud</option>
@@ -763,8 +749,7 @@
                         <option value="crowdsec">CrowdSec</option>
                         <option value="node_red">Node-RED</option>
                         <option value="zigbee2mqtt">Zigbee2MQTT</option>
-                        </optgroup>
-                        <optgroup label="Health check only">
+                        <option disabled>Health check only</option>
                         <option value="gitea">Gitea</option>
                         <option value="forgejo">Forgejo</option>
                         <option value="gitlab">GitLab</option>
@@ -790,7 +775,6 @@
                         <option value="blue_iris">Blue Iris</option>
                         <option value="shinobi">Shinobi</option>
                         <option value="agent_dvr">Agent DVR</option>
-                        </optgroup>
                     </select>
                 </div>
 

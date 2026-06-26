@@ -1655,6 +1655,13 @@ select.form-control option {
     color: var(--text-primary);
 }
 
+select.form-control option:disabled {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.78rem;
+    opacity: 1;
+}
+
 /* Delete application button */
 .btn-delete-app {
     background: none;
@@ -3287,6 +3294,10 @@ body::after {
 :root[data-theme="light"] select.form-control option {
     background-color: #ffffff;
     color: var(--text-primary);
+}
+
+:root[data-theme="light"] select.form-control option:disabled {
+    color: var(--text-muted);
 }
 
 :root[data-theme="light"] .btn-secondary {
