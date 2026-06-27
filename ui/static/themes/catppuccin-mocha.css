@@ -1,34 +1,40 @@
-/* AMUD Theme: Catppuccin Mocha — soft pastel dark */
+/* AMUD Theme: catppuccin-mocha — distinct UI profile: cafe */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
 :root {
+    --theme-font: 'Nunito', sans-serif;
     --theme-bg-fallback: #1e1e2e;
     --theme-card-r: 49;
     --theme-card-g: 50;
     --theme-card-b: 68;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 30;
-    --theme-overlay-g1: 30;
-    --theme-overlay-b1: 46;
-    --theme-overlay-r2: 24;
-    --theme-overlay-g2: 24;
-    --theme-overlay-b2: 37;
+    --bg-card: rgba(49, 50, 68, var(--glass-opacity));
     --accent-color: #cba6f7;
-    --accent-glow: rgba(203, 166, 247, 0.15);
-    
-    --border-card: rgba(203, 166, 247, 0.12);
-    --border-hover: rgba(203, 166, 247, 0.28);
-    --text-primary: #cdd6f4;
-    --text-secondary: #bac2de;
-    --text-muted: #6c7086;
-    --success: #a6e3a1;
-    --success-bg: rgba(166, 227, 161, 0.10);
-    --danger: #f38ba8;
-    --danger-bg: rgba(243, 139, 168, 0.10);
+    --accent-glow: rgba(203, 166, 247, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(203, 166, 247, 0.18);
+    --border-hover: #cba6f7;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
-}
 
-.header-title {
-    text-shadow: 0 0 18px rgba(203, 166, 247, 0.22);
-}
+.app-card.glass-panel { border-radius: 28px; border: 2px solid rgba(203,166,247,0.2); }
+.topbar-action, .btn-primary { border-radius: 999px; }
+.brand-title { font-weight: 700; }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="catppuccin-mocha"] */
+[data-theme-id="catppuccin-mocha"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="catppuccin-mocha"] .glass-panel { filter: brightness(1.05); }

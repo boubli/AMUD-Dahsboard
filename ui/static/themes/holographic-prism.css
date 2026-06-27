@@ -1,70 +1,40 @@
-/* AMUD Theme: Holographic Prism — iridescent sci-fi */
+/* AMUD Theme: holographic-prism — distinct UI profile: holographic */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
 
 :root {
+    --theme-font: 'Quicksand', sans-serif;
     --theme-bg-fallback: #0f0a1a;
-    --theme-card-r: 20;
-    --theme-card-g: 12;
-    --theme-card-b: 35;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 167;
-    --theme-overlay-g1: 139;
-    --theme-overlay-b1: 250;
-    --theme-overlay-r2: 244;
-    --theme-overlay-g2: 114;
-    --theme-overlay-b2: 182;
+    --theme-card-r: 30;
+    --theme-card-g: 20;
+    --theme-card-b: 50;
+    --bg-card: rgba(30, 20, 50, var(--glass-opacity));
     --accent-color: #a78bfa;
-    --accent-glow: rgba(167, 139, 250, 0.25);
-    
-    --border-card: rgba(167, 139, 250, 0.2);
-    --border-hover: rgba(244, 114, 182, 0.45);
-    --text-primary: #f0e6ff;
-    --text-secondary: #c4b5fd;
-    --text-muted: #7c6a9e;
-    --success: #34d399;
-    --success-bg: rgba(52, 211, 153, 0.1);
-    --danger: #fb7185;
-    --danger-bg: rgba(251, 113, 133, 0.1);
+    --accent-glow: rgba(167, 139, 250, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(167, 139, 250, 0.18);
+    --border-hover: #a78bfa;
 }
 
-.glass-panel {
-    position: relative;
-    border: 1px solid transparent;
-    background-clip: padding-box;
-}
 
-.glass-panel::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-        135deg,
-        #a78bfa,
-        #f472b6,
-        #38bdf8,
-        #a78bfa
-    );
-    background-size: 300% 300%;
-    animation: amud-prism-shift 8s ease infinite;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: -1;
-}
+.app-card.glass-panel { border: 2px solid transparent; background-clip: padding-box; position: relative; }
+.app-card.glass-panel::before { content:""; position:absolute; inset:-2px; border-radius: inherit; background: linear-gradient(135deg, #a78bfa, #f472b6, #22d3ee, #a78bfa); z-index:-1; animation: amud-holo 6s linear infinite; }
+@keyframes amud-holo { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
 
-/* Prism border on app tiles breaks metrics stacking — telemetry/widgets only */
-.app-card.glass-panel::before {
-    display: none;
-}
 
-@keyframes amud-prism-shift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
 
-.header-title {
-    text-shadow: 0 0 20px rgba(167, 139, 250, 0.35);
-}
+/* Theme id hook: [data-theme-id="holographic-prism"] */
+[data-theme-id="holographic-prism"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="holographic-prism"] .glass-panel { filter: brightness(1.05); }

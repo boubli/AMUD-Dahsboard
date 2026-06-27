@@ -1,35 +1,41 @@
-/* AMUD Theme: Retro Arcade — 80s neon on dark */
+/* AMUD Theme: retro-arcade — distinct UI profile: arcade */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
-    --theme-bg-fallback: #0a0018;
-    --theme-card-r: 20;
-    --theme-card-g: 8;
-    --theme-card-b: 35;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 10;
-    --theme-overlay-g1: 0;
-    --theme-overlay-b1: 24;
-    --theme-overlay-r2: 20;
-    --theme-overlay-g2: 5;
-    --theme-overlay-b2: 40;
-    --accent-color: #ff00ff;
-    --accent-glow: rgba(255, 0, 255, 0.22);
-    
-    --border-card: rgba(255, 0, 255, 0.14);
-    --border-hover: rgba(0, 255, 255, 0.35);
-    --text-primary: #fff0ff;
-    --text-secondary: #c080c0;
-    --text-muted: #604070;
-    --success: #00ff88;
-    --success-bg: rgba(0, 255, 136, 0.12);
-    --danger: #ff3366;
-    --danger-bg: rgba(255, 51, 102, 0.12);
+    --theme-font: 'Press Start 2P', sans-serif;
+    --theme-bg-fallback: #0a0818;
+    --theme-card-r: 24;
+    --theme-card-g: 16;
+    --theme-card-b: 48;
+    --bg-card: rgba(24, 16, 48, var(--glass-opacity));
+    --accent-color: #ef4444;
+    --accent-glow: rgba(239, 68, 68, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(239, 68, 68, 0.18);
+    --border-hover: #ef4444;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 24px rgba(255, 0, 255, 0.08);
-}
 
-.header-title {
-    text-shadow: 0 0 20px rgba(255, 0, 255, 0.4), 0 0 40px rgba(0, 255, 255, 0.2);
-}
+:root { --radius-xl: 0; --theme-font: 'Press Start 2P', cursive; }
+.brand-title { font-size: 0.75rem; line-height: 1.6; }
+.app-card.glass-panel { border: 4px solid var(--accent-color); border-radius: 0; image-rendering: pixelated; }
+.btn-primary { border-radius: 0; font-family: var(--theme-font); font-size: 0.65rem; }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="retro-arcade"] */
+[data-theme-id="retro-arcade"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="retro-arcade"] .glass-panel { filter: brightness(1.05); }

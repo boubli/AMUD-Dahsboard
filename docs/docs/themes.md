@@ -10,8 +10,12 @@ AMUD supports full visual customization through **Custom CSS injection**. Copy C
 Browse, search, and **preview** all themes on the **[Theme Gallery](/themes)** page. Each card shows a screenshot so you can see how the theme looks before applying it. Click **Copy CSS** or **Download CSS**, then paste into your dashboard settings.
 :::
 
-:::tip Offline bundled themes
-Every AMUD install ships **37 themes** at **`/static/themes/`** with preview thumbnails and matching wallpapers. Open **Settings → Appearance → Theme Gallery**, click a theme card to preview CSS and wallpaper, then **Save Changes** — no internet required.
+:::tip CDN theme assets (manifest v4)
+Theme **CSS** ships in `ui.tar.gz`. **Icons, wallpapers, and gallery previews** load from GitHub via jsDelivr (`manifest.json` → `assetBase`). **AMUD Default** and **Luxury Gold** stay fully offline. Other themes need internet on first load (icons/wallpaper); CSS works offline after save.
+:::
+
+:::tip Offline default
+**AMUD Default** uses the local `/static/wallpaper.png` and Lucide icons — no CDN required.
 :::
 
 :::tip Combining with Built-in Settings
@@ -52,11 +56,11 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 | **Feminine pack (5)** | Sakura, lavender, rose gold, cotton candy, peach |
 | **Variety pack (6)** | Nebula, arctic frost, steampunk, zen, arcade, midnight city |
 
-★ = advanced layout effects (not just color swaps)
+★ = distinct UI profiles (layout, typography, icons) — not just color swaps
 
-Preview screenshots live in `docs/static/themes/assets/` and are shown on the [Theme Gallery](/themes).
+**CDN assets:** `themes-assets/` in the GitHub repo (icons, wallpapers, previews). Base URL is set in `manifest.json` (`assetBase`).
 
-Each classic theme includes a **bundled 2K wallpaper** in `docs/static/themes/wallpapers/`. Advanced themes use CSS-only backgrounds.
+Preview thumbnails and wallpapers are loaded from jsDelivr when you browse the theme gallery or apply a theme.
 
 **Raw CSS files:** [docs/static/themes/](https://github.com/boubli/AMUD-Dashboard/tree/main/docs/static/themes) (docs site) and **`ui/static/themes/`** (shipped with your dashboard for offline use).
 

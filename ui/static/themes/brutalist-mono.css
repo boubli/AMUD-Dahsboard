@@ -1,60 +1,41 @@
-/* AMUD Theme: Brutalist Mono — raw concrete UI */
+/* AMUD Theme: brutalist-mono — distinct UI profile: brutalist */
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
 
 :root {
+    --theme-font: 'Archivo Black', sans-serif;
     --theme-bg-fallback: #e8e8e8;
     --theme-card-r: 255;
     --theme-card-g: 255;
     --theme-card-b: 255;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-body-stack: linear-gradient(180deg, #e8e8e8 0%, #d4d4d4 100%);
-    --theme-procedural: 1;
+    --bg-card: rgba(255, 255, 255, var(--glass-opacity));
     --accent-color: #dc2626;
-    --accent-glow: rgba(220, 38, 38, 0.15);
-    
-    --border-card: #0a0a0a;
-    --border-hover: #dc2626;
+    --accent-glow: rgba(220, 38, 38, 0.18);
     --text-primary: #0a0a0a;
-    --text-secondary: #404040;
-    --text-muted: #737373;
-    --success: #16a34a;
-    --success-bg: rgba(22, 163, 74, 0.12);
-    --danger: #dc2626;
-    --danger-bg: rgba(220, 38, 38, 0.12);}
-
-.glass-panel {
-    border-radius: var(--radius-xl);
-    border: 3px solid #0a0a0a;
-    backdrop-filter: blur(var(--glass-blur-intensity));
-    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));
-    box-shadow: 6px 6px 0 #0a0a0a;
+    --text-secondary: #525252;
+    --text-muted: #525252;
+    --border-card: rgba(220, 38, 38, 0.18);
+    --border-hover: #dc2626;
+    --theme-procedural: 1;
 }
 
-/* App cards use AMUD metrics layout — no brutalist skew on dashboard tiles */
-.header-title {
-    text-transform: uppercase;
-    font-weight: 900;
-    letter-spacing: -0.02em;
-}
 
-.btn-primary {
-    border-radius: 0 !important;
-    border: 3px solid #0a0a0a !important;
-    box-shadow: 4px 4px 0 #0a0a0a;
-    font-weight: 800;
-    text-transform: uppercase;
-}
+:root { --radius-xl: 0; --theme-body-stack: linear-gradient(180deg, #e8e8e8, #d4d4d4); --theme-procedural: 1; color: #0a0a0a; }
+.app-card.glass-panel { border: 3px solid #0a0a0a; box-shadow: 6px 6px 0 #0a0a0a; border-radius: 0; }
+.btn-primary { border-radius: 0 !important; border: 3px solid #0a0a0a !important; box-shadow: 4px 4px 0 #0a0a0a; }
+.topbar { border-bottom: 3px solid #0a0a0a; }
 
-:root[data-theme="dark"] .glass-panel,
-:root[data-theme="light"] .glass-panel {
-    background: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-}
 
-.brand-title {
-    letter-spacing: -0.02em;
-}
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
 
-.topbar-action {
-    border-width: 3px;
-    border-radius: 0;
-    box-shadow: 4px 4px 0 #0a0a0a;
-}
+/* Theme id hook: [data-theme-id="brutalist-mono"] */
+[data-theme-id="brutalist-mono"] .dashboard-container { position: relative; z-index: 1; }

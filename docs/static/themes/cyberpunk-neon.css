@@ -1,60 +1,42 @@
-/* ═══════════════════════════════════════════
-   AMUD Theme: Cyberpunk Neon
-   Aggressive neon pink on deep black
-   ═══════════════════════════════════════════ */
+/* AMUD Theme: cyberpunk-neon — distinct UI profile: cyberpunk */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
 :root {
+    --theme-font: 'Orbitron', sans-serif;
     --theme-bg-fallback: #0a0a0f;
     --theme-card-r: 18;
     --theme-card-g: 18;
     --theme-card-b: 26;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 10;
-    --theme-overlay-g1: 10;
-    --theme-overlay-b1: 15;
-    --theme-overlay-r2: 15;
-    --theme-overlay-g2: 5;
-    --theme-overlay-b2: 20;
+    --bg-card: rgba(18, 18, 26, var(--glass-opacity));
     --accent-color: #ff2d95;
     --accent-glow: rgba(255, 45, 149, 0.18);
-    
-    --border-card: rgba(255, 45, 149, 0.10);
-    --border-hover: rgba(255, 45, 149, 0.40);
-    --text-primary: #e0e0ff;
-    --text-secondary: #a0a0cc;
-    --text-muted: #5a5a80;
-    --success: #39ff14;
-    --success-bg: rgba(57, 255, 20, 0.08);
-    --danger: #ff3131;
-    --danger-bg: rgba(255, 49, 49, 0.10);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(255, 45, 149, 0.18);
+    --border-hover: #ff2d95;
 }
 
-.glass-panel {
-    box-shadow:
-        0 0 1px rgba(255, 45, 149, 0.30),
-        0 4px 20px rgba(0, 0, 0, 0.50);
-}
 
-.header-title {
-    text-shadow:
-        0 0 10px rgba(255, 45, 149, 0.40),
-        0 0 30px rgba(255, 45, 149, 0.15);
-}
+.topbar { clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%); border-bottom: 2px solid var(--accent-color); }
+.app-card.glass-panel { clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); border: 1px solid var(--accent-color); }
+.brand-title { text-shadow: 0 0 12px var(--accent-color); }
+.btn-primary { clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+body::after { content:""; position:fixed; inset:0; pointer-events:none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,45,149,0.03) 2px, rgba(255,45,149,0.03) 4px); }
 
-body::after {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-    background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.03) 2px,
-        rgba(0, 0, 0, 0.03) 4px
-    );
-}
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="cyberpunk-neon"] */
+[data-theme-id="cyberpunk-neon"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="cyberpunk-neon"] .glass-panel { filter: brightness(1.05); }

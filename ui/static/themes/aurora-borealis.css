@@ -1,35 +1,40 @@
-/* AMUD Theme: Aurora Borealis — teal and violet northern lights */
+/* AMUD Theme: aurora-borealis — distinct UI profile: aurora */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600&display=swap');
 
 :root {
-    --theme-bg-fallback: #0a1628;
-    --theme-card-r: 15;
-    --theme-card-g: 35;
-    --theme-card-b: 55;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 10;
-    --theme-overlay-g1: 22;
-    --theme-overlay-b1: 40;
-    --theme-overlay-r2: 30;
-    --theme-overlay-g2: 20;
-    --theme-overlay-b2: 60;
-    --accent-color: #5eead4;
-    --accent-glow: rgba(94, 234, 212, 0.18);
-    
-    --border-card: rgba(94, 234, 212, 0.14);
-    --border-hover: rgba(167, 139, 250, 0.35);
-    --text-primary: #e8f4ff;
-    --text-secondary: #a5c4d4;
-    --text-muted: #5a7a8a;
-    --success: #34d399;
-    --success-bg: rgba(52, 211, 153, 0.12);
-    --danger: #f87171;
-    --danger-bg: rgba(248, 113, 113, 0.12);
+    --theme-font: 'Exo 2', sans-serif;
+    --theme-bg-fallback: #041016;
+    --theme-card-r: 8;
+    --theme-card-g: 32;
+    --theme-card-b: 40;
+    --bg-card: rgba(8, 32, 40, var(--glass-opacity));
+    --accent-color: #2dd4bf;
+    --accent-glow: rgba(45, 212, 191, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(45, 212, 191, 0.18);
+    --border-hover: #2dd4bf;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-}
 
-.header-title {
-    text-shadow: 0 0 24px rgba(94, 234, 212, 0.3);
-}
+body::before { content:""; position:fixed; inset:0; pointer-events:none; background: linear-gradient(120deg, transparent, rgba(45,212,191,0.12), transparent, rgba(99,102,241,0.1), transparent); animation: amud-aurora 12s ease-in-out infinite; }
+@keyframes amud-aurora { 0%,100% { opacity:0.6; transform: translateY(0); } 50% { opacity:1; transform: translateY(-3%); } }
+.app-card.glass-panel { border-radius: 16px 4px 16px 4px; }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="aurora-borealis"] */
+[data-theme-id="aurora-borealis"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="aurora-borealis"] .glass-panel { filter: brightness(1.05); }

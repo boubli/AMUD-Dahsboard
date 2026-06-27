@@ -1,34 +1,41 @@
-/* AMUD Theme: Tokyo Night — deep blue city night */
+/* AMUD Theme: tokyo-night — distinct UI profile: rain_city */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
 :root {
+    --theme-font: 'Inter', sans-serif;
     --theme-bg-fallback: #1a1b26;
     --theme-card-r: 36;
     --theme-card-g: 40;
     --theme-card-b: 59;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 26;
-    --theme-overlay-g1: 27;
-    --theme-overlay-b1: 38;
-    --theme-overlay-r2: 22;
-    --theme-overlay-g2: 22;
-    --theme-overlay-b2: 30;
+    --bg-card: rgba(36, 40, 59, var(--glass-opacity));
     --accent-color: #7aa2f7;
-    --accent-glow: rgba(122, 162, 247, 0.14);
-    
-    --border-card: rgba(122, 162, 247, 0.10);
-    --border-hover: rgba(122, 162, 247, 0.28);
-    --text-primary: #c0caf5;
-    --text-secondary: #a9b1d6;
-    --text-muted: #565f89;
-    --success: #9ece6a;
-    --success-bg: rgba(158, 206, 106, 0.10);
-    --danger: #f7768e;
-    --danger-bg: rgba(247, 118, 142, 0.10);
+    --accent-glow: rgba(122, 162, 247, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(122, 162, 247, 0.18);
+    --border-hover: #7aa2f7;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-}
 
-.header-title {
-    text-shadow: 0 0 20px rgba(122, 162, 247, 0.20);
-}
+.app-card.glass-panel { border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(122,162,247,0.2); }
+.topbar { border-bottom: 1px solid rgba(122,162,247,0.15); }
+body::before { content:""; position:fixed; inset:0; pointer-events:none; background: linear-gradient(105deg, transparent 40%, rgba(122,162,247,0.04) 50%, transparent 60%); animation: amud-rain-sweep 8s linear infinite; }
+@keyframes amud-rain-sweep { 0% { transform: translateX(-30%); } 100% { transform: translateX(30%); } }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="tokyo-night"] */
+[data-theme-id="tokyo-night"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="tokyo-night"] .glass-panel { filter: brightness(1.05); }

@@ -1,35 +1,39 @@
-/* AMUD Theme: Ocean Depths — deep navy with bioluminescent cyan */
+/* AMUD Theme: ocean-depths — distinct UI profile: porthole */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
 
 :root {
-    --theme-bg-fallback: #041220;
-    --theme-card-r: 8;
-    --theme-card-g: 25;
-    --theme-card-b: 45;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 4;
-    --theme-overlay-g1: 18;
-    --theme-overlay-b1: 32;
-    --theme-overlay-r2: 8;
-    --theme-overlay-g2: 35;
-    --theme-overlay-b2: 60;
+    --theme-font: 'Montserrat', sans-serif;
+    --theme-bg-fallback: #031018;
+    --theme-card-r: 6;
+    --theme-card-g: 28;
+    --theme-card-b: 42;
+    --bg-card: rgba(6, 28, 42, var(--glass-opacity));
     --accent-color: #22d3ee;
     --accent-glow: rgba(34, 211, 238, 0.18);
-    
-    --border-card: rgba(34, 211, 238, 0.12);
-    --border-hover: rgba(34, 211, 238, 0.32);
-    --text-primary: #e0f7fa;
-    --text-secondary: #7eb8c9;
-    --text-muted: #3d6a7a;
-    --success: #2dd4bf;
-    --success-bg: rgba(45, 212, 191, 0.12);
-    --danger: #fb7185;
-    --danger-bg: rgba(251, 113, 133, 0.12);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(34, 211, 238, 0.18);
+    --border-hover: #22d3ee;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 24px rgba(0, 20, 40, 0.5);
-}
 
-.header-title {
-    text-shadow: 0 0 22px rgba(34, 211, 238, 0.28);
-}
+.app-card.glass-panel { border-radius: 50%; aspect-ratio: unset; min-height: var(--bento-row-height); border: 4px solid rgba(34,211,238,0.35); box-shadow: inset 0 0 40px rgba(0,0,0,0.5); }
+.app-card-header { justify-content: center; text-align: center; }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="ocean-depths"] */
+[data-theme-id="ocean-depths"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="ocean-depths"] .glass-panel { filter: brightness(1.05); }

@@ -1,64 +1,41 @@
-/* AMUD Theme: Vaporwave Grid — 80s synth sunset */
+/* AMUD Theme: vaporwave-grid — distinct UI profile: vaporwave */
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 
 :root {
+    --theme-font: 'Pacifico', sans-serif;
     --theme-bg-fallback: #1a0a2e;
     --theme-card-r: 26;
     --theme-card-g: 10;
     --theme-card-b: 46;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-body-stack: linear-gradient(180deg, #1a0a2e 0%, #3d1a5c 35%, #ff6b9d 65%, #ffb347 100%);
-    --theme-procedural: 1;
+    --bg-card: rgba(26, 10, 46, var(--glass-opacity));
     --accent-color: #ff71ce;
-    --accent-glow: rgba(255, 113, 206, 0.25);
-    
-    --border-card: rgba(255, 113, 206, 0.2);
-    --border-hover: rgba(1, 205, 254, 0.45);
-    --text-primary: #e0f7ff;
-    --text-secondary: #b388ff;
-    --text-muted: #7c6a9e;
-    --success: #01cdfe;
-    --success-bg: rgba(1, 205, 254, 0.12);
-    --danger: #ff006e;
-    --danger-bg: rgba(255, 0, 110, 0.12);}
-
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background:
-        linear-gradient(transparent 60%, rgba(255, 113, 206, 0.15) 60%),
-        repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 39px,
-            rgba(1, 205, 254, 0.35) 39px,
-            rgba(1, 205, 254, 0.35) 40px
-        );
-    transform: perspective(400px) rotateX(55deg) scale(2);
-    transform-origin: center bottom;
-    opacity: calc(var(--wallpaper-overlay-strength) * 0.6);
+    --accent-glow: rgba(255, 113, 206, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(255, 113, 206, 0.18);
+    --border-hover: #ff71ce;
+    --theme-procedural: 1;
 }
 
-.dashboard-container,
-.settings-layout {
-    position: relative;
-    z-index: 1;
-}
 
-.header-title {
-    font-style: italic;
-    letter-spacing: 0.06em;
-    background: linear-gradient(90deg, #ff71ce, #01cdfe, #ff71ce);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 12px rgba(255, 113, 206, 0.4));
-}
+:root { --theme-body-stack: linear-gradient(180deg, #1a0a2e 0%, #3d1a5c 35%, #ff6b9d 65%, #ffb347 100%); --theme-procedural: 1; }
+.brand-title { font-style: italic; background: linear-gradient(90deg, #ff71ce, #01cdfe); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.app-card.glass-panel { border: 1px solid rgba(255,113,206,0.3); }
 
-.glass-panel {
-    border: 1px solid rgba(255, 113, 206, 0.25);
-    box-shadow: 0 0 20px rgba(1, 205, 254, 0.12);
-}
 
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="vaporwave-grid"] */
+[data-theme-id="vaporwave-grid"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="vaporwave-grid"] .glass-panel { filter: brightness(1.05); }

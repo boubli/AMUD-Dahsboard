@@ -1,44 +1,614 @@
 {
-  "version": 3,
-  "description": "Bundled AMUD themes — visual picker in Settings → Appearance. Each theme includes CSS, preview thumbnail, and optional wallpaper.",
-  "categories": ["default", "classic", "advanced", "nature", "terminal", "feminine", "variety"],
+  "version": 4,
+  "assetBase": "https://cdn.jsdelivr.net/gh/boubli/AMUD-Dashboard@v1.6.1/themes-assets",
+  "description": "Bundled AMUD themes \u2014 visual picker in Settings \u2192 Appearance. Each theme includes CSS, preview thumbnail, and optional wallpaper. Large assets (icons, wallpapers) load from GitHub CDN. Large assets (icons, wallpapers) load from GitHub CDN.",
+  "categories": [
+    "default",
+    "classic",
+    "advanced",
+    "nature",
+    "terminal",
+    "feminine",
+    "variety"
+  ],
   "themes": [
-    {"id": "default", "name": "AMUD Default", "file": "", "category": "default", "tags": ["default", "orange", "glass"], "preview": "/static/themes/previews/default.jpg", "wallpaper": "/static/wallpaper.png", "usesWallpaper": true},
-    {"id": "dracula", "name": "Dracula", "file": "dracula.css", "category": "classic", "tags": ["dark", "purple"], "preview": "/static/themes/previews/dracula.jpg", "wallpaper": "/static/themes/wallpapers/dracula.jpg", "usesWallpaper": true},
-    {"id": "nord", "name": "Nord", "file": "nord.css", "category": "classic", "tags": ["dark", "blue"], "preview": "/static/themes/previews/nord.jpg", "wallpaper": "/static/themes/wallpapers/nord.jpg", "usesWallpaper": true},
-    {"id": "cyberpunk-neon", "name": "Cyberpunk Neon", "file": "cyberpunk-neon.css", "category": "classic", "tags": ["neon", "sci-fi"], "preview": "/static/themes/previews/cyberpunk-neon.jpg", "wallpaper": "/static/themes/wallpapers/cyberpunk-neon.jpg", "usesWallpaper": true},
-    {"id": "sunset-warm", "name": "Sunset Warm", "file": "sunset-warm.css", "category": "classic", "tags": ["warm", "amber"], "preview": "/static/themes/previews/sunset-warm.jpg", "wallpaper": "/static/themes/wallpapers/sunset-warm.jpg", "usesWallpaper": true},
-    {"id": "catppuccin-mocha", "name": "Catppuccin Mocha", "file": "catppuccin-mocha.css", "category": "classic", "tags": ["pastel"], "preview": "/static/themes/previews/catppuccin-mocha.jpg", "wallpaper": "/static/themes/wallpapers/catppuccin-mocha.jpg", "usesWallpaper": true},
-    {"id": "gruvbox-dark", "name": "Gruvbox Dark", "file": "gruvbox-dark.css", "category": "classic", "tags": ["retro"], "preview": "/static/themes/previews/gruvbox-dark.jpg", "wallpaper": "/static/themes/wallpapers/gruvbox-dark.jpg", "usesWallpaper": true},
-    {"id": "tokyo-night", "name": "Tokyo Night", "file": "tokyo-night.css", "category": "classic", "tags": ["blue", "night"], "preview": "/static/themes/previews/tokyo-night.jpg", "wallpaper": "/static/themes/wallpapers/tokyo-night.jpg", "usesWallpaper": true},
-    {"id": "one-dark", "name": "One Dark", "file": "one-dark.css", "category": "classic", "tags": ["developer"], "preview": "/static/themes/previews/one-dark.jpg", "wallpaper": "/static/themes/wallpapers/one-dark.jpg", "usesWallpaper": true},
-    {"id": "everforest", "name": "Everforest", "file": "everforest.css", "category": "classic", "tags": ["green"], "preview": "/static/themes/previews/everforest.jpg", "wallpaper": "/static/themes/wallpapers/everforest.jpg", "usesWallpaper": true},
-    {"id": "monokai", "name": "Monokai", "file": "monokai.css", "category": "classic", "tags": ["developer"], "preview": "/static/themes/previews/monokai.jpg", "wallpaper": "/static/themes/wallpapers/monokai.jpg", "usesWallpaper": true},
-    {"id": "rose-pine", "name": "Rose Pine", "file": "rose-pine.css", "category": "classic", "tags": ["elegant"], "preview": "/static/themes/previews/rose-pine.jpg", "wallpaper": "/static/themes/wallpapers/rose-pine.jpg", "usesWallpaper": true},
-    {"id": "solarized-dark", "name": "Solarized Dark", "file": "solarized-dark.css", "category": "classic", "tags": ["scientific"], "preview": "/static/themes/previews/solarized-dark.jpg", "wallpaper": "/static/themes/wallpapers/solarized-dark.jpg", "usesWallpaper": true},
-    {"id": "terminal-phosphor", "name": "Terminal Phosphor", "file": "terminal-phosphor.css", "category": "terminal", "tags": ["advanced", "crt"], "preview": "/static/themes/previews/terminal-phosphor.jpg", "wallpaper": "", "usesWallpaper": false},
-    {"id": "vaporwave-grid", "name": "Vaporwave Grid", "file": "vaporwave-grid.css", "category": "advanced", "tags": ["advanced", "vaporwave"], "preview": "/static/themes/previews/vaporwave-grid.jpg", "wallpaper": "", "usesWallpaper": false},
-    {"id": "blueprint-tech", "name": "Blueprint Tech", "file": "blueprint-tech.css", "category": "advanced", "tags": ["advanced", "technical"], "preview": "/static/themes/previews/blueprint-tech.jpg", "wallpaper": "", "usesWallpaper": false},
-    {"id": "luxury-gold", "name": "Luxury Gold", "file": "luxury-gold.css", "category": "advanced", "tags": ["advanced", "luxury"], "preview": "/static/themes/previews/luxury-gold.jpg", "wallpaper": "/static/themes/wallpapers/luxury-gold.jpg", "usesWallpaper": true},
-    {"id": "holographic-prism", "name": "Holographic Prism", "file": "holographic-prism.css", "category": "advanced", "tags": ["advanced", "animated"], "preview": "/static/themes/previews/holographic-prism.jpg", "wallpaper": "/static/themes/wallpapers/holographic-prism.jpg", "usesWallpaper": true},
-    {"id": "brutalist-mono", "name": "Brutalist Mono", "file": "brutalist-mono.css", "category": "advanced", "tags": ["advanced", "brutalist"], "preview": "/static/themes/previews/brutalist-mono.jpg", "wallpaper": "", "usesWallpaper": false},
-    {"id": "aurora-borealis", "name": "Aurora Borealis", "file": "aurora-borealis.css", "category": "nature", "tags": ["nature", "aurora", "teal"], "preview": "/static/themes/previews/aurora-borealis.jpg", "wallpaper": "/static/themes/wallpapers/aurora-borealis.jpg", "usesWallpaper": true},
-    {"id": "desert-dusk", "name": "Desert Dusk", "file": "desert-dusk.css", "category": "nature", "tags": ["nature", "warm", "sand"], "preview": "/static/themes/previews/desert-dusk.jpg", "wallpaper": "/static/themes/wallpapers/desert-dusk.jpg", "usesWallpaper": true},
-    {"id": "ocean-depths", "name": "Ocean Depths", "file": "ocean-depths.css", "category": "nature", "tags": ["nature", "ocean", "cyan"], "preview": "/static/themes/previews/ocean-depths.jpg", "wallpaper": "/static/themes/wallpapers/ocean-depths.jpg", "usesWallpaper": true},
-    {"id": "rainforest-mist", "name": "Rainforest Mist", "file": "rainforest-mist.css", "category": "nature", "tags": ["nature", "green", "mist"], "preview": "/static/themes/previews/rainforest-mist.jpg", "wallpaper": "/static/themes/wallpapers/rainforest-mist.jpg", "usesWallpaper": true},
-    {"id": "volcanic-ember", "name": "Volcanic Ember", "file": "volcanic-ember.css", "category": "nature", "tags": ["nature", "volcanic", "ember"], "preview": "/static/themes/previews/volcanic-ember.jpg", "wallpaper": "/static/themes/wallpapers/volcanic-ember.jpg", "usesWallpaper": true},
-    {"id": "terminal-amber", "name": "Terminal Amber", "file": "terminal-amber.css", "category": "terminal", "tags": ["terminal", "crt", "amber"], "preview": "/static/themes/previews/terminal-amber.jpg", "wallpaper": "", "usesWallpaper": false},
-    {"id": "terminal-matrix", "name": "Terminal Matrix", "file": "terminal-matrix.css", "category": "terminal", "tags": ["terminal", "matrix", "green"], "preview": "/static/themes/previews/terminal-matrix.jpg", "wallpaper": "", "usesWallpaper": false},
-    {"id": "sakura-dream", "name": "Sakura Dream", "file": "sakura-dream.css", "category": "feminine", "tags": ["feminine", "pink", "sakura"], "preview": "/static/themes/previews/sakura-dream.jpg", "wallpaper": "/static/themes/wallpapers/sakura-dream.jpg", "usesWallpaper": true},
-    {"id": "lavender-mist", "name": "Lavender Mist", "file": "lavender-mist.css", "category": "feminine", "tags": ["feminine", "lavender", "pastel"], "preview": "/static/themes/previews/lavender-mist.jpg", "wallpaper": "/static/themes/wallpapers/lavender-mist.jpg", "usesWallpaper": true},
-    {"id": "rose-gold-blush", "name": "Rose Gold Blush", "file": "rose-gold-blush.css", "category": "feminine", "tags": ["feminine", "rose", "gold"], "preview": "/static/themes/previews/rose-gold-blush.jpg", "wallpaper": "/static/themes/wallpapers/rose-gold-blush.jpg", "usesWallpaper": true},
-    {"id": "cotton-candy", "name": "Cotton Candy", "file": "cotton-candy.css", "category": "feminine", "tags": ["feminine", "pastel", "candy"], "preview": "/static/themes/previews/cotton-candy.jpg", "wallpaper": "/static/themes/wallpapers/cotton-candy.jpg", "usesWallpaper": true},
-    {"id": "peach-blossom", "name": "Peach Blossom", "file": "peach-blossom.css", "category": "feminine", "tags": ["feminine", "peach", "blossom"], "preview": "/static/themes/previews/peach-blossom.jpg", "wallpaper": "/static/themes/wallpapers/peach-blossom.jpg", "usesWallpaper": true},
-    {"id": "nebula-void", "name": "Nebula Void", "file": "nebula-void.css", "category": "variety", "tags": ["space", "nebula", "purple"], "preview": "/static/themes/previews/nebula-void.jpg", "wallpaper": "/static/themes/wallpapers/nebula-void.jpg", "usesWallpaper": true},
-    {"id": "arctic-frost", "name": "Arctic Frost", "file": "arctic-frost.css", "category": "variety", "tags": ["ice", "frost", "minimal"], "preview": "/static/themes/previews/arctic-frost.jpg", "wallpaper": "/static/themes/wallpapers/arctic-frost.jpg", "usesWallpaper": true},
-    {"id": "steampunk-brass", "name": "Steampunk Brass", "file": "steampunk-brass.css", "category": "variety", "tags": ["steampunk", "brass", "vintage"], "preview": "/static/themes/previews/steampunk-brass.jpg", "wallpaper": "/static/themes/wallpapers/steampunk-brass.jpg", "usesWallpaper": true},
-    {"id": "zen-garden", "name": "Zen Garden", "file": "zen-garden.css", "category": "variety", "tags": ["zen", "garden", "calm"], "preview": "/static/themes/previews/zen-garden.jpg", "wallpaper": "/static/themes/wallpapers/zen-garden.jpg", "usesWallpaper": true},
-    {"id": "retro-arcade", "name": "Retro Arcade", "file": "retro-arcade.css", "category": "variety", "tags": ["retro", "arcade", "neon"], "preview": "/static/themes/previews/retro-arcade.jpg", "wallpaper": "/static/themes/wallpapers/retro-arcade.jpg", "usesWallpaper": true},
-    {"id": "midnight-city", "name": "Midnight City", "file": "midnight-city.css", "category": "variety", "tags": ["city", "night", "urban"], "preview": "/static/themes/previews/midnight-city.jpg", "wallpaper": "/static/themes/wallpapers/midnight-city.jpg", "usesWallpaper": true}
+    {
+      "id": "default",
+      "name": "AMUD Default",
+      "file": "",
+      "category": "default",
+      "tags": [
+        "default",
+        "orange",
+        "glass"
+      ],
+      "preview": "/static/wallpaper.png",
+      "wallpaper": "/static/wallpaper.png",
+      "usesWallpaper": true
+    },
+    {
+      "id": "dracula",
+      "name": "Dracula",
+      "file": "dracula.css",
+      "category": "classic",
+      "tags": [
+        "dark",
+        "purple"
+      ],
+      "preview": "previews/dracula.jpg",
+      "wallpaper": "wallpapers/dracula.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap",
+      "uiProfile": "gothic",
+      "iconPack": "icons/dracula/pack.json"
+    },
+    {
+      "id": "nord",
+      "name": "Nord",
+      "file": "nord.css",
+      "category": "classic",
+      "tags": [
+        "dark",
+        "blue"
+      ],
+      "preview": "previews/nord.jpg",
+      "wallpaper": "wallpapers/nord.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap",
+      "uiProfile": "arctic",
+      "iconPack": "icons/nord/pack.json"
+    },
+    {
+      "id": "cyberpunk-neon",
+      "name": "Cyberpunk Neon",
+      "file": "cyberpunk-neon.css",
+      "category": "classic",
+      "tags": [
+        "neon",
+        "sci-fi"
+      ],
+      "preview": "previews/cyberpunk-neon.jpg",
+      "wallpaper": "wallpapers/cyberpunk-neon.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap",
+      "uiProfile": "cyberpunk",
+      "iconPack": "icons/cyberpunk-neon/pack.json"
+    },
+    {
+      "id": "sunset-warm",
+      "name": "Sunset Warm",
+      "file": "sunset-warm.css",
+      "category": "classic",
+      "tags": [
+        "warm",
+        "amber"
+      ],
+      "preview": "previews/sunset-warm.jpg",
+      "wallpaper": "wallpapers/sunset-warm.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap",
+      "uiProfile": "polaroid",
+      "iconPack": "icons/sunset-warm/pack.json"
+    },
+    {
+      "id": "catppuccin-mocha",
+      "name": "Catppuccin Mocha",
+      "file": "catppuccin-mocha.css",
+      "category": "classic",
+      "tags": [
+        "pastel"
+      ],
+      "preview": "previews/catppuccin-mocha.jpg",
+      "wallpaper": "wallpapers/catppuccin-mocha.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap",
+      "uiProfile": "cafe",
+      "iconPack": "icons/catppuccin-mocha/pack.json"
+    },
+    {
+      "id": "gruvbox-dark",
+      "name": "Gruvbox Dark",
+      "file": "gruvbox-dark.css",
+      "category": "classic",
+      "tags": [
+        "retro"
+      ],
+      "preview": "previews/gruvbox-dark.jpg",
+      "wallpaper": "wallpapers/gruvbox-dark.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
+      "uiProfile": "retro_crt",
+      "iconPack": "icons/gruvbox-dark/pack.json"
+    },
+    {
+      "id": "tokyo-night",
+      "name": "Tokyo Night",
+      "file": "tokyo-night.css",
+      "category": "classic",
+      "tags": [
+        "blue",
+        "night"
+      ],
+      "preview": "previews/tokyo-night.jpg",
+      "wallpaper": "wallpapers/tokyo-night.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap",
+      "uiProfile": "rain_city",
+      "iconPack": "icons/tokyo-night/pack.json"
+    },
+    {
+      "id": "one-dark",
+      "name": "One Dark",
+      "file": "one-dark.css",
+      "category": "classic",
+      "tags": [
+        "developer"
+      ],
+      "preview": "previews/one-dark.jpg",
+      "wallpaper": "wallpapers/one-dark.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap",
+      "uiProfile": "ide",
+      "iconPack": "icons/one-dark/pack.json"
+    },
+    {
+      "id": "everforest",
+      "name": "Everforest",
+      "file": "everforest.css",
+      "category": "classic",
+      "tags": [
+        "green"
+      ],
+      "preview": "previews/everforest.jpg",
+      "wallpaper": "wallpapers/everforest.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap",
+      "uiProfile": "organic",
+      "iconPack": "icons/everforest/pack.json"
+    },
+    {
+      "id": "monokai",
+      "name": "Monokai",
+      "file": "monokai.css",
+      "category": "classic",
+      "tags": [
+        "developer"
+      ],
+      "preview": "previews/monokai.jpg",
+      "wallpaper": "wallpapers/monokai.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap",
+      "uiProfile": "neon_dev",
+      "iconPack": "icons/monokai/pack.json"
+    },
+    {
+      "id": "rose-pine",
+      "name": "Rose Pine",
+      "file": "rose-pine.css",
+      "category": "classic",
+      "tags": [
+        "elegant"
+      ],
+      "preview": "previews/rose-pine.jpg",
+      "wallpaper": "wallpapers/rose-pine.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap",
+      "uiProfile": "editorial",
+      "iconPack": "icons/rose-pine/pack.json"
+    },
+    {
+      "id": "solarized-dark",
+      "name": "Solarized Dark",
+      "file": "solarized-dark.css",
+      "category": "classic",
+      "tags": [
+        "scientific"
+      ],
+      "preview": "previews/solarized-dark.jpg",
+      "wallpaper": "wallpapers/solarized-dark.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap",
+      "uiProfile": "clinical",
+      "iconPack": "icons/solarized-dark/pack.json"
+    },
+    {
+      "id": "terminal-phosphor",
+      "name": "Terminal Phosphor",
+      "file": "terminal-phosphor.css",
+      "category": "terminal",
+      "tags": [
+        "advanced",
+        "crt"
+      ],
+      "preview": "previews/terminal-phosphor.jpg",
+      "wallpaper": "",
+      "usesWallpaper": false,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap",
+      "uiProfile": "crt_green",
+      "iconPack": "icons/terminal-phosphor/pack.json"
+    },
+    {
+      "id": "vaporwave-grid",
+      "name": "Vaporwave Grid",
+      "file": "vaporwave-grid.css",
+      "category": "advanced",
+      "tags": [
+        "advanced",
+        "vaporwave"
+      ],
+      "preview": "previews/vaporwave-grid.jpg",
+      "wallpaper": "",
+      "usesWallpaper": false,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Pacifico&display=swap",
+      "uiProfile": "vaporwave",
+      "iconPack": "icons/vaporwave-grid/pack.json"
+    },
+    {
+      "id": "blueprint-tech",
+      "name": "Blueprint Tech",
+      "file": "blueprint-tech.css",
+      "category": "advanced",
+      "tags": [
+        "advanced",
+        "technical"
+      ],
+      "preview": "previews/blueprint-tech.jpg",
+      "wallpaper": "",
+      "usesWallpaper": false,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap",
+      "uiProfile": "blueprint",
+      "iconPack": "icons/blueprint-tech/pack.json"
+    },
+    {
+      "id": "luxury-gold",
+      "name": "Luxury Gold",
+      "file": "luxury-gold.css",
+      "category": "advanced",
+      "tags": [
+        "advanced",
+        "luxury"
+      ],
+      "preview": "/static/themes/previews/luxury-gold.jpg",
+      "wallpaper": "/static/themes/wallpapers/luxury-gold.jpg",
+      "usesWallpaper": true
+    },
+    {
+      "id": "holographic-prism",
+      "name": "Holographic Prism",
+      "file": "holographic-prism.css",
+      "category": "advanced",
+      "tags": [
+        "advanced",
+        "animated"
+      ],
+      "preview": "previews/holographic-prism.jpg",
+      "wallpaper": "wallpapers/holographic-prism.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap",
+      "uiProfile": "holographic",
+      "iconPack": "icons/holographic-prism/pack.json"
+    },
+    {
+      "id": "brutalist-mono",
+      "name": "Brutalist Mono",
+      "file": "brutalist-mono.css",
+      "category": "advanced",
+      "tags": [
+        "advanced",
+        "brutalist"
+      ],
+      "preview": "previews/brutalist-mono.jpg",
+      "wallpaper": "",
+      "usesWallpaper": false,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap",
+      "uiProfile": "brutalist",
+      "iconPack": "icons/brutalist-mono/pack.json"
+    },
+    {
+      "id": "aurora-borealis",
+      "name": "Aurora Borealis",
+      "file": "aurora-borealis.css",
+      "category": "nature",
+      "tags": [
+        "nature",
+        "aurora",
+        "teal"
+      ],
+      "preview": "previews/aurora-borealis.jpg",
+      "wallpaper": "wallpapers/aurora-borealis.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600&display=swap",
+      "uiProfile": "aurora",
+      "iconPack": "icons/aurora-borealis/pack.json"
+    },
+    {
+      "id": "desert-dusk",
+      "name": "Desert Dusk",
+      "file": "desert-dusk.css",
+      "category": "nature",
+      "tags": [
+        "nature",
+        "warm",
+        "sand"
+      ],
+      "preview": "previews/desert-dusk.jpg",
+      "wallpaper": "wallpapers/desert-dusk.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap",
+      "uiProfile": "sandstone",
+      "iconPack": "icons/desert-dusk/pack.json"
+    },
+    {
+      "id": "ocean-depths",
+      "name": "Ocean Depths",
+      "file": "ocean-depths.css",
+      "category": "nature",
+      "tags": [
+        "nature",
+        "ocean",
+        "cyan"
+      ],
+      "preview": "previews/ocean-depths.jpg",
+      "wallpaper": "wallpapers/ocean-depths.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap",
+      "uiProfile": "porthole",
+      "iconPack": "icons/ocean-depths/pack.json"
+    },
+    {
+      "id": "rainforest-mist",
+      "name": "Rainforest Mist",
+      "file": "rainforest-mist.css",
+      "category": "nature",
+      "tags": [
+        "nature",
+        "green",
+        "mist"
+      ],
+      "preview": "previews/rainforest-mist.jpg",
+      "wallpaper": "wallpapers/rainforest-mist.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap",
+      "uiProfile": "jungle",
+      "iconPack": "icons/rainforest-mist/pack.json"
+    },
+    {
+      "id": "volcanic-ember",
+      "name": "Volcanic Ember",
+      "file": "volcanic-ember.css",
+      "category": "nature",
+      "tags": [
+        "nature",
+        "volcanic",
+        "ember"
+      ],
+      "preview": "previews/volcanic-ember.jpg",
+      "wallpaper": "wallpapers/volcanic-ember.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap",
+      "uiProfile": "volcanic",
+      "iconPack": "icons/volcanic-ember/pack.json"
+    },
+    {
+      "id": "terminal-amber",
+      "name": "Terminal Amber",
+      "file": "terminal-amber.css",
+      "category": "terminal",
+      "tags": [
+        "terminal",
+        "crt",
+        "amber"
+      ],
+      "preview": "previews/terminal-amber.jpg",
+      "wallpaper": "",
+      "usesWallpaper": false,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=VT323&display=swap",
+      "uiProfile": "crt_amber",
+      "iconPack": "icons/terminal-amber/pack.json"
+    },
+    {
+      "id": "terminal-matrix",
+      "name": "Terminal Matrix",
+      "file": "terminal-matrix.css",
+      "category": "terminal",
+      "tags": [
+        "terminal",
+        "matrix",
+        "green"
+      ],
+      "preview": "previews/terminal-matrix.jpg",
+      "wallpaper": "",
+      "usesWallpaper": false,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap",
+      "uiProfile": "matrix",
+      "iconPack": "icons/terminal-matrix/pack.json"
+    },
+    {
+      "id": "sakura-dream",
+      "name": "Sakura Dream",
+      "file": "sakura-dream.css",
+      "category": "feminine",
+      "tags": [
+        "feminine",
+        "pink",
+        "sakura"
+      ],
+      "preview": "previews/sakura-dream.jpg",
+      "wallpaper": "wallpapers/sakura-dream.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap",
+      "uiProfile": "sakura",
+      "iconPack": "icons/sakura-dream/pack.json"
+    },
+    {
+      "id": "lavender-mist",
+      "name": "Lavender Mist",
+      "file": "lavender-mist.css",
+      "category": "feminine",
+      "tags": [
+        "feminine",
+        "lavender",
+        "pastel"
+      ],
+      "preview": "previews/lavender-mist.jpg",
+      "wallpaper": "wallpapers/lavender-mist.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600&display=swap",
+      "uiProfile": "lavender",
+      "iconPack": "icons/lavender-mist/pack.json"
+    },
+    {
+      "id": "rose-gold-blush",
+      "name": "Rose Gold Blush",
+      "file": "rose-gold-blush.css",
+      "category": "feminine",
+      "tags": [
+        "feminine",
+        "rose",
+        "gold"
+      ],
+      "preview": "previews/rose-gold-blush.jpg",
+      "wallpaper": "wallpapers/rose-gold-blush.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600&display=swap",
+      "uiProfile": "jewelry",
+      "iconPack": "icons/rose-gold-blush/pack.json"
+    },
+    {
+      "id": "cotton-candy",
+      "name": "Cotton Candy",
+      "file": "cotton-candy.css",
+      "category": "feminine",
+      "tags": [
+        "feminine",
+        "pastel",
+        "candy"
+      ],
+      "preview": "previews/cotton-candy.jpg",
+      "wallpaper": "wallpapers/cotton-candy.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap",
+      "uiProfile": "carnival",
+      "iconPack": "icons/cotton-candy/pack.json"
+    },
+    {
+      "id": "peach-blossom",
+      "name": "Peach Blossom",
+      "file": "peach-blossom.css",
+      "category": "feminine",
+      "tags": [
+        "feminine",
+        "peach",
+        "blossom"
+      ],
+      "preview": "previews/peach-blossom.jpg",
+      "wallpaper": "wallpapers/peach-blossom.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap",
+      "uiProfile": "orchard",
+      "iconPack": "icons/peach-blossom/pack.json"
+    },
+    {
+      "id": "nebula-void",
+      "name": "Nebula Void",
+      "file": "nebula-void.css",
+      "category": "variety",
+      "tags": [
+        "space",
+        "nebula",
+        "purple"
+      ],
+      "preview": "previews/nebula-void.jpg",
+      "wallpaper": "wallpapers/nebula-void.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap",
+      "uiProfile": "cosmic",
+      "iconPack": "icons/nebula-void/pack.json"
+    },
+    {
+      "id": "arctic-frost",
+      "name": "Arctic Frost",
+      "file": "arctic-frost.css",
+      "category": "variety",
+      "tags": [
+        "ice",
+        "frost",
+        "minimal"
+      ],
+      "preview": "previews/arctic-frost.jpg",
+      "wallpaper": "wallpapers/arctic-frost.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;600&display=swap",
+      "uiProfile": "crystal",
+      "iconPack": "icons/arctic-frost/pack.json"
+    },
+    {
+      "id": "steampunk-brass",
+      "name": "Steampunk Brass",
+      "file": "steampunk-brass.css",
+      "category": "variety",
+      "tags": [
+        "steampunk",
+        "brass",
+        "vintage"
+      ],
+      "preview": "previews/steampunk-brass.jpg",
+      "wallpaper": "wallpapers/steampunk-brass.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Rye&display=swap",
+      "uiProfile": "steampunk",
+      "iconPack": "icons/steampunk-brass/pack.json"
+    },
+    {
+      "id": "zen-garden",
+      "name": "Zen Garden",
+      "file": "zen-garden.css",
+      "category": "variety",
+      "tags": [
+        "zen",
+        "garden",
+        "calm"
+      ],
+      "preview": "previews/zen-garden.jpg",
+      "wallpaper": "wallpapers/zen-garden.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&display=swap",
+      "uiProfile": "zen",
+      "iconPack": "icons/zen-garden/pack.json"
+    },
+    {
+      "id": "retro-arcade",
+      "name": "Retro Arcade",
+      "file": "retro-arcade.css",
+      "category": "variety",
+      "tags": [
+        "retro",
+        "arcade",
+        "neon"
+      ],
+      "preview": "previews/retro-arcade.jpg",
+      "wallpaper": "wallpapers/retro-arcade.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap",
+      "uiProfile": "arcade",
+      "iconPack": "icons/retro-arcade/pack.json"
+    },
+    {
+      "id": "midnight-city",
+      "name": "Midnight City",
+      "file": "midnight-city.css",
+      "category": "variety",
+      "tags": [
+        "city",
+        "night",
+        "urban"
+      ],
+      "preview": "previews/midnight-city.jpg",
+      "wallpaper": "wallpapers/midnight-city.jpg",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap",
+      "uiProfile": "skyline",
+      "iconPack": "icons/midnight-city/pack.json"
+    }
   ]
 }

@@ -22,6 +22,7 @@
     <script src="/static/admin.js"></script>
     <script id="amud-theme-config" type="application/json">{{theme_scheduler_config}}</script>
     <script src="/static/theme-scheduler.js?v={{app_version}}"></script>
+    <script src="/static/theme-engine.js?v={{app_version}}"></script>
 
     <style>
         :root {
@@ -360,7 +361,7 @@
     <style id="amud-custom-css">{{custom_css}}</style>
     <link rel="stylesheet" href="/static/theme-guards.css?v={{app_version}}">
 </head>
-<body class="settings-page" x-data="settingsState()">
+<body data-theme-id="{{active_theme_id}}" class="settings-page theme-{{active_theme_id}}" x-data="settingsState()">
     <!-- Ambient Wallpaper Background identical to dashboard -->
     <div class="wallpaper-bg" style="background-image: var(--brand-bg-image);"></div>
     <div class="wallpaper-overlay"></div>
@@ -754,18 +755,16 @@
                         <div class="settings-block">
                             <h3><i data-lucide="upload" style="color:var(--accent-color);"></i> Migrate from Homepage / Homarr</h3>
                             <p style="font-size:0.85rem; color:var(--text-muted);">Paste <code>services.yaml</code> from Homepage or a Homarr JSON export. Duplicates are skipped.</p>
-                            <form action="/api/migration/homepage/import" method="POST" style="margin-top:1rem;">
-                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                            <div style="margin-top:1rem;">
                                 <label for="homepage-services-yaml">Homepage services.yaml</label>
-                                <textarea id="homepage-services-yaml" name="services_yaml" class="form-control" rows="6" placeholder="- Group:&#10;    - Service:&#10;        href: https://..."></textarea>
-                                <button type="submit" class="btn btn-secondary" style="margin-top:0.75rem;">Import Homepage apps</button>
-                            </form>
-                            <form action="/api/migration/homarr/import" method="POST" style="margin-top:1.5rem;">
-                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                <textarea id="homepage-services-yaml" class="form-control" rows="6" placeholder="- Group:&#10;    - Service:&#10;        href: https://..."></textarea>
+                                <button type="button" class="btn btn-secondary" id="btn-homepage-import" style="margin-top:0.75rem;">Import Homepage apps</button>
+                            </div>
+                            <div style="margin-top:1.5rem;">
                                 <label for="homarr-export-json">Homarr export JSON</label>
-                                <textarea id="homarr-export-json" name="homarr_json" class="form-control" rows="6" placeholder='{ "apps": [ ... ] }'></textarea>
-                                <button type="submit" class="btn btn-secondary" style="margin-top:0.75rem;">Import Homarr apps</button>
-                            </form>
+                                <textarea id="homarr-export-json" class="form-control" rows="6" placeholder='{ "apps": [ ... ] }'></textarea>
+                                <button type="button" class="btn btn-secondary" id="btn-homarr-import" style="margin-top:0.75rem;">Import Homarr apps</button>
+                            </div>
                         </div>
 
                         <div class="settings-block">
@@ -911,7 +910,7 @@
                     </div>
                     <div style="display:flex; gap:0.5rem;">
                         <button type="button" class="btn btn-secondary" @click="window.location.reload()">Discard</button>
-                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                        <button type="submit" class="btn btn-primary" form="mainSettingsForm">Save Settings</button>
                     </div>
                 </div>
             </form>
@@ -2494,6 +2493,15 @@
                 });
             }
 
+            function resolveThemeAsset(path) {
+                if (!path) return '';
+                if (path.indexOf('http://') === 0 || path.indexOf('https://') === 0) return path;
+                if (path.indexOf('/') === 0) return path;
+                var base = (manifest.assetBase || '').replace(/\/$/, '');
+                if (!base) return path;
+                return base + '/' + path.replace(/^\//, '');
+            }
+
             function updateLightModeWarning() {
                 if (!lightWarning || !themeModeSelect) return;
                 const hasCss = (cssTextarea.value || '').trim().length > 0;
@@ -2534,7 +2542,7 @@
                 if (theme.id === 'default' || !theme.file) {
                     cssTextarea.value = '';
                     if (accentInput) accentInput.value = defaultAccent;
-                    if (bgInput && theme.wallpaper) bgInput.value = theme.wallpaper || defaultWallpaper;
+                    if (bgInput && theme.wallpaper) bgInput.value = resolveThemeAsset(theme.wallpaper) || defaultWallpaper;
                     finishPreview();
                     return;
                 }
@@ -2543,7 +2551,7 @@
                     cssTextarea.value = css;
                     syncAccentPickerFromCss(css, accentInput);
                     if (bgInput && theme.usesWallpaper && theme.wallpaper) {
-                        bgInput.value = theme.wallpaper;
+                        bgInput.value = resolveThemeAsset(theme.wallpaper);
                     }
                     finishPreview();
                 }).catch(function() {
@@ -2572,7 +2580,7 @@
                     card.setAttribute('aria-pressed', theme.id === selectedThemeId ? 'true' : 'false');
                     const preview = document.createElement('div');
                     preview.className = 'theme-picker-preview';
-                    preview.style.backgroundImage = "url('" + (theme.preview || '') + "')";
+                    preview.style.backgroundImage = "url('" + resolveThemeAsset(theme.preview || '') + "')";
                     const body = document.createElement('div');
                     body.className = 'theme-picker-card-body';
                     const title = document.createElement('span');
@@ -4089,6 +4097,41 @@
                 navigator.serviceWorker.register('/static/sw.js');
             });
         }
+
+        async function runMigrationImport(endpoint, fieldName, textareaId) {
+            const textarea = document.getElementById(textareaId);
+            const val = (textarea && textarea.value || '').trim();
+            if (!val) {
+                alert('Paste content into the field first.');
+                return;
+            }
+            const formData = new URLSearchParams();
+            formData.append(fieldName, val);
+            formData.append('csrf_token', amudCsrfToken());
+            try {
+                const res = await fetch(endpoint, { method: 'POST', headers: amudCsrfHeaders(), body: formData });
+                if (res.redirected) {
+                    window.location.href = res.url;
+                    return;
+                }
+                const text = await res.text();
+                if (res.ok) {
+                    alert('Import completed. Reloading settings…');
+                    window.location.reload();
+                } else {
+                    alert('Import failed: ' + (text || res.statusText));
+                }
+            } catch (err) {
+                alert('Import failed: network error.');
+            }
+        }
+
+        document.getElementById('btn-homepage-import')?.addEventListener('click', function() {
+            runMigrationImport('/api/migration/homepage/import', 'services_yaml', 'homepage-services-yaml');
+        });
+        document.getElementById('btn-homarr-import')?.addEventListener('click', function() {
+            runMigrationImport('/api/migration/homarr/import', 'homarr_json', 'homarr-export-json');
+        });
     </script>
 </body>
 </html>

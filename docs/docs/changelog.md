@@ -11,32 +11,18 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
-## Release validation audit (2026-06-25)
+## v1.6.1 — Distinct theme UI overhaul
 
-Manual validation was run in a clean Proxmox test container.
+**2026-06-27** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.1)
 
-**Validated good**
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`
-- `v1.5.6.0`
-- `v1.5.6.2`
-- `v1.5.6.3`
-- `v1.5.6.4`
-- `v1.6.0` (latest)
+### Added
+- **35 redesigned themes** — unique UI profiles (typography, card chrome, topbar, icons). **AMUD Default** and **Luxury Gold** unchanged.
+- **Manifest v4** + **`theme-engine.js`** — CDN icon packs and wallpapers via jsDelivr (`themes-assets/` on GitHub).
+- Theme generator/validation scripts under `scripts/`.
 
-**Removed as broken during audit**
-- `v1.1.0.0`, `v1.2.0.0`, `v1.3.0.0`, `v1.3.1.5`
-- `v1.3.7.1`, `v1.3.7.2`, `v1.3.7.3`
-- `v1.4.0.0`, `v1.4.2.0`, `v1.4.2.1`, `v1.4.2.2`
-- `v1.5.0.0`, `v1.5.5.2`
-- `v1.5.6.1` (withdrawn from Docker Hub)
-
-If a removed version is still cached in Docker Hub or local environments, upgrade to `v1.6.0` or newer.
+### Fixed
+- Settings **Save Settings** no longer broken by nested migration forms.
+- AMUD Default gallery preview image (Monstera wallpaper).
 
 ---
 

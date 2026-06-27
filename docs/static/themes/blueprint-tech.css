@@ -1,47 +1,41 @@
-/* AMUD Theme: Blueprint Tech — engineering schematic */
+/* AMUD Theme: blueprint-tech — distinct UI profile: blueprint */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap');
 
 :root {
-    --theme-bg-fallback: #0a1628;
-    --theme-card-r: 10;
-    --theme-card-g: 22;
-    --theme-card-b: 40;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-body-stack: linear-gradient(rgba(30, 144, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 144, 255, 0.08) 1px, transparent 1px), linear-gradient(180deg, #0a1628 0%, #0d2040 100%);
+    --theme-font: 'Roboto Mono', sans-serif;
+    --theme-bg-fallback: #0c1929;
+    --theme-card-r: 12;
+    --theme-card-g: 36;
+    --theme-card-b: 64;
+    --bg-card: rgba(12, 36, 64, var(--glass-opacity));
+    --accent-color: #60a5fa;
+    --accent-glow: rgba(96, 165, 250, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(96, 165, 250, 0.18);
+    --border-hover: #60a5fa;
     --theme-procedural: 1;
-    --accent-color: #38bdf8;
-    --accent-glow: rgba(56, 189, 248, 0.18);
-    
-    --border-card: rgba(56, 189, 248, 0.35);
-    --border-hover: rgba(125, 211, 252, 0.6);
-    --text-primary: #e0f2fe;
-    --text-secondary: #7dd3fc;
-    --text-muted: #64748b;
-    --success: #4ade80;
-    --success-bg: rgba(74, 222, 128, 0.1);
-    --danger: #f87171;
-    --danger-bg: rgba(248, 113, 113, 0.1);}
-
-.glass-panel {
-    backdrop-filter: blur(var(--glass-blur-intensity));
-    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));
-    border: 1px solid rgba(30, 144, 255, 0.25);
 }
 
-.header-title {
-    font-family: "Segoe UI", system-ui, sans-serif;
-    font-weight: 300;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    font-size: 0.95em;
-}
 
-.app-card-title,
-.settings-page-title {
-    letter-spacing: 0.08em;
-}
+:root { --theme-body-stack: linear-gradient(#0c1929, #0c1929), linear-gradient(rgba(96,165,250,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(96,165,250,0.15) 1px, transparent 1px); --theme-procedural: 1; background-size: auto, 24px 24px, 24px 24px; }
+.app-card.glass-panel { border: 1px dashed rgba(96,165,250,0.5); border-radius: 0; }
+.topbar { border: 1px dashed rgba(96,165,250,0.4); }
 
-.metric-label {
-    text-transform: uppercase;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-}
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="blueprint-tech"] */
+[data-theme-id="blueprint-tech"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="blueprint-tech"] .glass-panel { filter: brightness(1.05); }

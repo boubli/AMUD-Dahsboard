@@ -10,13 +10,11 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.6.0
+### What's new in v1.6.1
 
-- **Homepage & Homarr parity** — YAML/JSON import, Custom API, LDAP, boards, integration cache, 40+ new integrations
-- **Plex / Jellyfin cards** — per-app active stream counts
-- **\*arr calendar widget** — Sonarr/Radarr/Lidarr/Readarr upcoming releases
-- **Release trackers** — GitHub and Docker Hub version badges
-- **Multi-node agent** — tag telemetry with `AMUD_NODE_TAG` per host
+- **Distinct themes** — 35 themes with unique UI (fonts, cards, icons, layouts); CDN assets via jsDelivr
+- **Theme engine** — `theme-engine.js` loads per-theme icon packs and wallpapers from GitHub
+- **Settings fix** — theme gallery save works again; correct default theme preview image
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -35,7 +33,8 @@ After manual validation in a clean Proxmox test container, these releases are cu
 - `v1.5.6.2`
 - `v1.5.6.3`
 - `v1.5.6.4`
-- `v1.6.0` (current latest recommended)
+- `v1.6.1` (current latest recommended)
+- `v1.6.0`
 
 Broken tags identified during audit were removed from GitHub releases/tags and should not be used. **Do not use `v1.5.5.4` or `v1.5.6.1`.**
 

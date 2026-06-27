@@ -1,35 +1,38 @@
-/* AMUD Theme: Desert Dusk — warm sand and burnt orange sunset */
+/* AMUD Theme: desert-dusk — distinct UI profile: sandstone */
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap');
 
 :root {
-    --theme-bg-fallback: #2a1810;
-    --theme-card-r: 55;
-    --theme-card-g: 35;
-    --theme-card-b: 20;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 42;
-    --theme-overlay-g1: 24;
-    --theme-overlay-b1: 16;
-    --theme-overlay-r2: 80;
-    --theme-overlay-g2: 40;
-    --theme-overlay-b2: 20;
-    --accent-color: #f59e0b;
-    --accent-glow: rgba(245, 158, 11, 0.18);
-    
-    --border-card: rgba(245, 158, 11, 0.14);
-    --border-hover: rgba(251, 146, 60, 0.35);
-    --text-primary: #fef3e2;
-    --text-secondary: #d4b896;
-    --text-muted: #8a7355;
-    --success: #84cc16;
-    --success-bg: rgba(132, 204, 22, 0.12);
-    --danger: #ef4444;
-    --danger-bg: rgba(239, 68, 68, 0.12);
+    --theme-font: 'Libre Baskerville', sans-serif;
+    --theme-bg-fallback: #1a120c;
+    --theme-card-r: 48;
+    --theme-card-g: 36;
+    --theme-card-b: 28;
+    --bg-card: rgba(48, 36, 28, var(--glass-opacity));
+    --accent-color: #d97706;
+    --accent-glow: rgba(217, 119, 6, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(217, 119, 6, 0.18);
+    --border-hover: #d97706;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-}
 
-.header-title {
-    text-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
-}
+.app-card.glass-panel { border-radius: 6px; border: 2px solid rgba(217,119,6,0.25); background-image: linear-gradient(145deg, rgba(255,255,255,0.03), transparent); }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="desert-dusk"] */
+[data-theme-id="desert-dusk"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="desert-dusk"] .glass-panel { filter: brightness(1.05); }

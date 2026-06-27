@@ -1,35 +1,39 @@
-/* AMUD Theme: Rose Gold Blush — rose and gold accents */
+/* AMUD Theme: rose-gold-blush — distinct UI profile: jewelry */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600&display=swap');
 
 :root {
-    --theme-bg-fallback: #281818;
-    --theme-card-r: 45;
-    --theme-card-g: 30;
-    --theme-card-b: 32;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 40;
-    --theme-overlay-g1: 24;
-    --theme-overlay-b1: 24;
-    --theme-overlay-r2: 55;
-    --theme-overlay-g2: 35;
-    --theme-overlay-b2: 30;
+    --theme-font: 'Cormorant', sans-serif;
+    --theme-bg-fallback: #1a1214;
+    --theme-card-r: 44;
+    --theme-card-g: 32;
+    --theme-card-b: 36;
+    --bg-card: rgba(44, 32, 36, var(--glass-opacity));
     --accent-color: #e8b4b8;
-    --accent-glow: rgba(232, 180, 184, 0.20);
-    
-    --border-card: rgba(232, 180, 184, 0.14);
-    --border-hover: rgba(212, 175, 55, 0.35);
-    --text-primary: #fff5f5;
-    --text-secondary: #c9a8a0;
-    --text-muted: #8a6860;
-    --success: #d4af37;
-    --success-bg: rgba(212, 175, 55, 0.12);
-    --danger: #e87070;
-    --danger-bg: rgba(232, 112, 112, 0.12);
+    --accent-glow: rgba(232, 180, 184, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(232, 180, 184, 0.18);
+    --border-hover: #e8b4b8;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-}
 
-.header-title {
-    text-shadow: 0 0 18px rgba(232, 180, 184, 0.25);
-}
+.app-card.glass-panel { border: 1px solid rgba(232,180,184,0.4); border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); }
+.brand-title { letter-spacing: 0.15em; text-transform: uppercase; font-size: 0.9rem; }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="rose-gold-blush"] */
+[data-theme-id="rose-gold-blush"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="rose-gold-blush"] .glass-panel { filter: brightness(1.05); }

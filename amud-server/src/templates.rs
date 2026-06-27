@@ -222,6 +222,7 @@ pub(crate) struct BrandingRenderOptions<'a> {
     pub branding: &'a BrandingVars,
     pub custom_css: &'a str,
     pub default_tagline: &'a str,
+    pub active_theme_id: &'a str,
 }
 
 /// Shared placeholders for guest-facing pages (login, etc.) that should match dashboard branding.
@@ -250,6 +251,7 @@ pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptio
         .replace("{{tagline}}", &safe_tagline)
         .replace("{{accent_color}}", &safe_accent)
         .replace("{{theme_mode}}", &safe_theme)
+        .replace("{{active_theme_id}}", &escape_html(opts.active_theme_id))
         .replace("{{custom_css}}", opts.custom_css)
         .replace("{{favicon_url}}", &favicon_url);
 
@@ -368,6 +370,7 @@ mod tests {
                 branding: &branding,
                 custom_css: ".btn-primary { background: hotpink; }",
                 default_tagline: "Sign in",
+                active_theme_id: "default",
             },
         );
         assert!(html.contains(r#"data-theme="light""#));

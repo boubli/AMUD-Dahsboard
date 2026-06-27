@@ -1,34 +1,39 @@
-/* AMUD Theme: Everforest — calm muted green forest */
+/* AMUD Theme: everforest — distinct UI profile: organic */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+
 :root {
+    --theme-font: 'Merriweather', sans-serif;
     --theme-bg-fallback: #2d353b;
-    --theme-card-r: 45;
-    --theme-card-g: 53;
-    --theme-card-b: 48;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 45;
-    --theme-overlay-g1: 53;
-    --theme-overlay-b1: 59;
-    --theme-overlay-r2: 39;
-    --theme-overlay-g2: 46;
-    --theme-overlay-b2: 42;
+    --theme-card-r: 52;
+    --theme-card-g: 63;
+    --theme-card-b: 58;
+    --bg-card: rgba(52, 63, 58, var(--glass-opacity));
     --accent-color: #a7c080;
-    --accent-glow: rgba(167, 192, 128, 0.14);
-    
-    --border-card: rgba(167, 192, 128, 0.10);
-    --border-hover: rgba(167, 192, 128, 0.26);
-    --text-primary: #d3c6aa;
-    --text-secondary: #b8b4a8;
-    --text-muted: #7a8478;
-    --success: #83c092;
-    --success-bg: rgba(131, 192, 146, 0.10);
-    --danger: #e67e80;
-    --danger-bg: rgba(230, 126, 128, 0.10);
+    --accent-glow: rgba(167, 192, 128, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(167, 192, 128, 0.18);
+    --border-hover: #a7c080;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
-}
 
-.header-title {
-    text-shadow: 0 0 16px rgba(167, 192, 128, 0.18);
-}
+.app-card.glass-panel { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; border: 1px solid rgba(167,192,128,0.25); }
+.bento-grid { gap: 1.25rem; }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="everforest"] */
+[data-theme-id="everforest"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="everforest"] .glass-panel { filter: brightness(1.05); }

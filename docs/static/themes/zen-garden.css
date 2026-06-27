@@ -1,36 +1,40 @@
-/* AMUD Theme: Zen Garden — muted stone and bamboo green */
+/* AMUD Theme: zen-garden — distinct UI profile: zen */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&display=swap');
 
 :root {
-    --theme-bg-fallback: #1a1c18;
-    --theme-card-r: 35;
-    --theme-card-g: 38;
-    --theme-card-b: 32;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 26;
-    --theme-overlay-g1: 28;
-    --theme-overlay-b1: 24;
-    --theme-overlay-r2: 40;
-    --theme-overlay-g2: 45;
-    --theme-overlay-b2: 35;
-    --accent-color: #a8b5a0;
-    --accent-glow: rgba(168, 181, 160, 0.16);
-    
-    --border-card: rgba(168, 181, 160, 0.12);
-    --border-hover: rgba(168, 181, 160, 0.30);
-    --text-primary: #f0f2ec;
-    --text-secondary: #a8a898;
-    --text-muted: #606858;
-    --success: #8fbc8f;
-    --success-bg: rgba(143, 188, 143, 0.12);
-    --danger: #c08080;
-    --danger-bg: rgba(192, 128, 128, 0.12);
+    --theme-font: 'Noto Serif JP', sans-serif;
+    --theme-bg-fallback: #121210;
+    --theme-card-r: 32;
+    --theme-card-g: 30;
+    --theme-card-b: 28;
+    --bg-card: rgba(32, 30, 28, var(--glass-opacity));
+    --accent-color: #78716c;
+    --accent-glow: rgba(120, 113, 108, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(120, 113, 108, 0.18);
+    --border-hover: #78716c;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
-}
 
-.header-title {
-    text-shadow: none;
-    font-weight: 500;
-}
+.app-card.glass-panel { border-radius: 4px; border: none; box-shadow: 0 1px 0 rgba(255,255,255,0.06); }
+.bento-grid { gap: 2rem; }
+.topbar { background: transparent; border: none; }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="zen-garden"] */
+[data-theme-id="zen-garden"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="zen-garden"] .glass-panel { filter: brightness(1.05); }

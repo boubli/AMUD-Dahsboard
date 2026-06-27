@@ -1,35 +1,38 @@
-/* AMUD Theme: Rainforest Mist — moss green humid fog */
+/* AMUD Theme: rainforest-mist — distinct UI profile: jungle */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap');
 
 :root {
-    --theme-bg-fallback: #0f1f18;
-    --theme-card-r: 20;
-    --theme-card-g: 40;
-    --theme-card-b: 30;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 15;
-    --theme-overlay-g1: 31;
-    --theme-overlay-b1: 24;
-    --theme-overlay-r2: 25;
-    --theme-overlay-g2: 50;
-    --theme-overlay-b2: 38;
-    --accent-color: #6ee7b7;
-    --accent-glow: rgba(110, 231, 183, 0.16);
-    
-    --border-card: rgba(110, 231, 183, 0.12);
-    --border-hover: rgba(110, 231, 183, 0.30);
-    --text-primary: #ecfdf5;
-    --text-secondary: #9cb8a8;
-    --text-muted: #4d6b5a;
-    --success: #4ade80;
-    --success-bg: rgba(74, 222, 128, 0.12);
-    --danger: #f87171;
-    --danger-bg: rgba(248, 113, 113, 0.12);
+    --theme-font: 'Cormorant Garamond', sans-serif;
+    --theme-bg-fallback: #0a1410;
+    --theme-card-r: 16;
+    --theme-card-g: 36;
+    --theme-card-b: 28;
+    --bg-card: rgba(16, 36, 28, var(--glass-opacity));
+    --accent-color: #4ade80;
+    --accent-glow: rgba(74, 222, 128, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(74, 222, 128, 0.18);
+    --border-hover: #4ade80;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-}
 
-.header-title {
-    text-shadow: 0 0 18px rgba(110, 231, 183, 0.22);
-}
+.app-card.glass-panel { border-radius: 24px 8px 24px 8px; border: 1px solid rgba(74,222,128,0.2); backdrop-filter: blur(24px); }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="rainforest-mist"] */
+[data-theme-id="rainforest-mist"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="rainforest-mist"] .glass-panel { filter: brightness(1.05); }

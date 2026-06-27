@@ -1,32 +1,28 @@
-# Bundled AMUD themes (offline)
+# Bundled AMUD themes (offline CSS + CDN assets)
 
-These CSS files ship inside `ui.tar.gz` at `/static/themes/` on your AMUD server.
+Theme **CSS** ships inside `ui.tar.gz` at `/static/themes/`.
 
-## Manifest v3
-
-`manifest.json` lists all themes with preview thumbnails and matching wallpapers:
+Large assets (icons, wallpapers, previews) live in **`themes-assets/`** at the repo root and are served via jsDelivr:
 
 ```
-/static/themes/manifest.json
-/static/themes/dracula.css
-/static/themes/wallpapers/nord.jpg
-/static/themes/previews/nord.jpg
+https://cdn.jsdelivr.net/gh/boubli/AMUD-Dashboard@main/themes-assets
 ```
+
+## Manifest v4
+
+`manifest.json` includes `assetBase` and per-theme relative paths for `iconPack`, `preview`, and `wallpaper`.
+
+## Regenerate
+
+```bash
+python scripts/generate-theme-overhaul.py
+python scripts/validate-theme-assets.py
+```
+
+Commit `themes-assets/` and push to GitHub so CDN URLs resolve for users.
 
 ## Settings UI
 
-Open **Settings → Appearance → Theme Gallery** to preview themes visually. Click a card to load CSS and matching wallpaper into the live preview, then **Save Changes**.
+Open **Settings → Appearance → Theme Gallery**. Click a card to preview, then **Save Settings**.
 
-Keep in sync with `docs/static/themes/` when adding new themes:
-
-```powershell
-./scripts/sync-themes.ps1
-```
-
-Re-fetch real photos (vendored locally, offline-safe):
-
-```bash
-python scripts/fetch-theme-wallpapers.py
-```
-
-Legacy gradient generator (deprecated): `scripts/generate-theme-wallpapers.py`
+**Frozen themes (do not regenerate CSS):** `default`, `luxury-gold`.

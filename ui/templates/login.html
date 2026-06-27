@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/static/style.css">
     <script id="amud-theme-config" type="application/json">{{theme_scheduler_config}}</script>
     <script src="/static/theme-scheduler.js"></script>
+    <script src="/static/theme-engine.js"></script>
 
     <style>
         :root {
@@ -47,7 +48,7 @@
 
     <script src="/static/vendor/lucide.min.js"></script>
 </head>
-<body class="login-page {{video_bg_class}}">
+<body data-theme-id="{{active_theme_id}}" class="login-page theme-{{active_theme_id}} {{video_bg_class}}">
     {{video_bg_element}}
 
     <div class="login-shell">

@@ -7,6 +7,10 @@ pub async fn login_page(
     let settings = state.settings_cache.read().unwrap().clone();
     let branding = branding_from_settings(&settings);
     let custom_css = settings.get("custom_css").map(|s| s.as_str()).unwrap_or("");
+    let active_theme_id = settings
+        .get("active_theme_id")
+        .map(|s| s.as_str())
+        .unwrap_or("default");
 
     let login_tmpl = include_str!("../../../ui/templates/login.html");
     let result = apply_shared_branding(
@@ -15,6 +19,7 @@ pub async fn login_page(
             branding: &branding,
             custom_css,
             default_tagline: "Access administrative operations cockpit",
+            active_theme_id,
         },
     );
     let theme_config = build_theme_scheduler_json(&settings, &branding.theme_mode);

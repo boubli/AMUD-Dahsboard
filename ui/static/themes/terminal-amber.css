@@ -1,51 +1,41 @@
-/* AMUD Theme: Terminal Amber — amber CRT mainframe */
+/* AMUD Theme: terminal-amber — distinct UI profile: crt_amber */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 :root {
-    --theme-bg-fallback: #140a00;
-    --theme-card-r: 20;
-    --theme-card-g: 12;
+    --theme-font: 'VT323', sans-serif;
+    --theme-bg-fallback: #120a00;
+    --theme-card-r: 24;
+    --theme-card-g: 16;
     --theme-card-b: 4;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-body-stack: linear-gradient(180deg, rgba(20, 10, 0, 0.98) 0%, rgba(30, 18, 4, 0.95) 100%), linear-gradient(rgba(255, 176, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 176, 0, 0.05) 1px, transparent 1px);
-    --theme-procedural: 1;
+    --bg-card: rgba(24, 16, 4, var(--glass-opacity));
     --accent-color: #ffb000;
-    --accent-glow: rgba(255, 176, 0, 0.22);
-    
-    --border-card: rgba(255, 176, 0, 0.28);
-    --border-hover: rgba(255, 176, 0, 0.55);
-    --text-primary: #ffd080;
-    --text-secondary: #c99040;
-    --text-muted: #806020;
-    --success: #ffb000;
-    --success-bg: rgba(255, 176, 0, 0.12);
-    --danger: #ff4444;
-    --danger-bg: rgba(255, 68, 68, 0.12);}
-
-.glass-panel {
-    border-radius: var(--radius-xl);
-    backdrop-filter: blur(var(--glass-blur-intensity));
-    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));
-    box-shadow: 0 0 16px rgba(0, 255, 65, 0.12), inset 0 0 20px rgba(0, 255, 65, 0.02);
+    --accent-glow: rgba(255, 176, 0, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(255, 176, 0, 0.18);
+    --border-hover: #ffb000;
+    --theme-procedural: 1;
 }
 
-.header-title {
-    font-family: "Courier New", Courier, monospace;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    text-shadow: 0 0 8px rgba(255, 176, 0, 0.6);
-}
 
-body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9999;
-    background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.08) 2px,
-        rgba(0, 0, 0, 0.08) 4px
-    );
-}
+:root { --theme-font: 'VT323', monospace; --radius-xl: 2px; }
+body, .brand-title { font-family: var(--theme-font); font-size: 1.1rem; }
+.app-card.glass-panel { border: 2px solid rgba(255,176,0,0.4); box-shadow: inset 0 0 20px rgba(255,176,0,0.05); }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="terminal-amber"] */
+[data-theme-id="terminal-amber"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="terminal-amber"] .glass-panel { filter: brightness(1.05); }

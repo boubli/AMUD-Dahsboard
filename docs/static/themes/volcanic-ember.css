@@ -1,35 +1,39 @@
-/* AMUD Theme: Volcanic Ember — charcoal with molten red-orange */
+/* AMUD Theme: volcanic-ember — distinct UI profile: volcanic */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
 :root {
-    --theme-bg-fallback: #1a0a08;
-    --theme-card-r: 30;
-    --theme-card-g: 15;
+    --theme-font: 'Bebas Neue', sans-serif;
+    --theme-bg-fallback: #120808;
+    --theme-card-r: 40;
+    --theme-card-g: 16;
     --theme-card-b: 12;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 26;
-    --theme-overlay-g1: 10;
-    --theme-overlay-b1: 8;
-    --theme-overlay-r2: 60;
-    --theme-overlay-g2: 20;
-    --theme-overlay-b2: 10;
+    --bg-card: rgba(40, 16, 12, var(--glass-opacity));
     --accent-color: #f97316;
-    --accent-glow: rgba(249, 115, 22, 0.20);
-    
-    --border-card: rgba(249, 115, 22, 0.14);
-    --border-hover: rgba(239, 68, 68, 0.35);
-    --text-primary: #fef2f2;
-    --text-secondary: #c9a090;
-    --text-muted: #7a5048;
-    --success: #a3e635;
-    --success-bg: rgba(163, 230, 53, 0.12);
-    --danger: #ef4444;
-    --danger-bg: rgba(239, 68, 68, 0.15);
+    --accent-glow: rgba(249, 115, 22, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(249, 115, 22, 0.18);
+    --border-hover: #f97316;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
-}
 
-.header-title {
-    text-shadow: 0 0 24px rgba(249, 115, 22, 0.35);
-}
+.app-card.glass-panel { border: 1px solid rgba(249,115,22,0.35); box-shadow: 0 0 20px rgba(249,115,22,0.1); }
+body::after { content:""; position:fixed; inset:0; pointer-events:none; background: radial-gradient(ellipse at 50% 100%, rgba(249,115,22,0.08), transparent 60%); }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="volcanic-ember"] */
+[data-theme-id="volcanic-ember"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="volcanic-ember"] .glass-panel { filter: brightness(1.05); }

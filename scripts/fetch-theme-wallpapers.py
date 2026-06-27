@@ -16,6 +16,8 @@ UI_WP = ROOT / "ui" / "static" / "themes" / "wallpapers"
 UI_PR = ROOT / "ui" / "static" / "themes" / "previews"
 DOCS_WP = ROOT / "docs" / "static" / "themes" / "wallpapers"
 DOCS_PR = ROOT / "docs" / "static" / "themes" / "previews"
+CDN_WP = ROOT / "themes-assets" / "wallpapers"
+CDN_PR = ROOT / "themes-assets" / "previews"
 MANIFEST = ROOT / "ui" / "static" / "themes" / "manifest.json"
 
 # theme_id -> (source, url, credit line)
@@ -248,7 +250,7 @@ def license_label(source: str) -> str:
 
 
 def install_wallpaper(theme_id: str, tmp: Path, source: str, credit: str) -> tuple[str, str, str]:
-    for wp_dir in (UI_WP, DOCS_WP):
+    for wp_dir in (UI_WP, DOCS_WP, CDN_WP):
         out = wp_dir / f"{theme_id}.jpg"
         if out.exists():
             out.unlink()
@@ -257,7 +259,7 @@ def install_wallpaper(theme_id: str, tmp: Path, source: str, credit: str) -> tup
 
 
 def install_previews(theme_id: str, tmp: Path) -> None:
-    for pr_dir in (UI_PR, DOCS_PR):
+    for pr_dir in (UI_PR, DOCS_PR, CDN_PR):
         save_preview(tmp, pr_dir / f"{theme_id}.jpg")
 
 

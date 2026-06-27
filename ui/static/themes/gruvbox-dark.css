@@ -1,34 +1,39 @@
-/* AMUD Theme: Gruvbox Dark — warm retro terminal */
+/* AMUD Theme: gruvbox-dark — distinct UI profile: retro_crt */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap');
+
 :root {
+    --theme-font: 'IBM Plex Mono', sans-serif;
     --theme-bg-fallback: #282828;
     --theme-card-r: 60;
     --theme-card-g: 56;
     --theme-card-b: 54;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 40;
-    --theme-overlay-g1: 40;
-    --theme-overlay-b1: 40;
-    --theme-overlay-r2: 29;
-    --theme-overlay-g2: 32;
-    --theme-overlay-b2: 33;
-    --accent-color: #fe8019;
-    --accent-glow: rgba(254, 128, 25, 0.15);
-    
-    --border-card: rgba(254, 128, 25, 0.12);
-    --border-hover: rgba(254, 128, 25, 0.30);
-    --text-primary: #ebdbb2;
-    --text-secondary: #d5c4a1;
-    --text-muted: #928374;
-    --success: #b8bb26;
-    --success-bg: rgba(184, 187, 38, 0.10);
-    --danger: #fb4934;
-    --danger-bg: rgba(251, 73, 52, 0.10);
+    --bg-card: rgba(60, 56, 54, var(--glass-opacity));
+    --accent-color: #fabd2f;
+    --accent-glow: rgba(250, 189, 47, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(250, 189, 47, 0.18);
+    --border-hover: #fabd2f;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32);
-}
 
-.header-title {
-    text-shadow: 0 0 14px rgba(254, 128, 25, 0.18);
-}
+.app-card.glass-panel { border: 3px solid #3c3836; border-radius: 4px; box-shadow: inset 0 0 30px rgba(0,0,0,0.3); }
+.brand-title, .metric-value { font-family: var(--theme-font); }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="gruvbox-dark"] */
+[data-theme-id="gruvbox-dark"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="gruvbox-dark"] .glass-panel { filter: brightness(1.05); }

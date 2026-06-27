@@ -1,35 +1,38 @@
-/* AMUD Theme: Cotton Candy — blue-pink gradient pastel */
+/* AMUD Theme: cotton-candy — distinct UI profile: carnival */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
 
 :root {
-    --theme-bg-fallback: #1a1530;
-    --theme-card-r: 40;
-    --theme-card-g: 30;
-    --theme-card-b: 60;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 26;
-    --theme-overlay-g1: 21;
-    --theme-overlay-b1: 48;
-    --theme-overlay-r2: 48;
-    --theme-overlay-g2: 30;
-    --theme-overlay-b2: 55;
-    --accent-color: #a78bfa;
-    --accent-glow: rgba(167, 139, 250, 0.20);
-    
-    --border-card: rgba(167, 139, 250, 0.14);
-    --border-hover: rgba(244, 114, 182, 0.35);
-    --text-primary: #faf5ff;
-    --text-secondary: #c4b0d8;
-    --text-muted: #7a6898;
-    --success: #67e8f9;
-    --success-bg: rgba(103, 232, 249, 0.12);
-    --danger: #f472b6;
-    --danger-bg: rgba(244, 114, 182, 0.12);
+    --theme-font: 'Fredoka', sans-serif;
+    --theme-bg-fallback: #1a1020;
+    --theme-card-r: 48;
+    --theme-card-g: 28;
+    --theme-card-b: 52;
+    --bg-card: rgba(48, 28, 52, var(--glass-opacity));
+    --accent-color: #f472b6;
+    --accent-glow: rgba(244, 114, 182, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(244, 114, 182, 0.18);
+    --border-hover: #f472b6;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.3);
-}
 
-.header-title {
-    text-shadow: 0 0 20px rgba(244, 114, 182, 0.25);
-}
+.app-card.glass-panel { border-radius: 24px; border: 3px solid transparent; border-image: linear-gradient(135deg, #f472b6, #a78bfa, #38bdf8) 1; }
+
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="cotton-candy"] */
+[data-theme-id="cotton-candy"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="cotton-candy"] .glass-panel { filter: brightness(1.05); }

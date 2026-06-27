@@ -22,6 +22,7 @@
     <script src="/static/admin.js"></script>
     <script id="amud-theme-config" type="application/json">{{theme_scheduler_config}}</script>
     <script src="/static/theme-scheduler.js?v={{app_version}}"></script>
+    <script src="/static/theme-engine.js?v={{app_version}}"></script>
     <script id="amud-live-config" type="application/json">{"isAdmin":{{is_admin}},"hideTelemetry":{{hide_telemetry}}}</script>
     <script src="/static/dashboard-live.js?v={{app_version}}"></script>
     <script src="/static/app-search.js?v={{app_version}}"></script>
@@ -38,7 +39,7 @@
     <style id="amud-custom-css">{{custom_css}}</style>
     <link rel="stylesheet" href="/static/theme-guards.css?v={{app_version}}">
 </head>
-<body x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' } }" class="{{video_bg_class}} {{body_page_class}}">
+<body data-theme-id="{{active_theme_id}}" x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' } }" class="theme-{{active_theme_id}} {{video_bg_class}} {{body_page_class}}">
     {{video_bg_element}}
     {{update_banner}}
     <div class="dashboard-container">

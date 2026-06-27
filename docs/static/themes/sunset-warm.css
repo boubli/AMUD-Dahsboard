@@ -1,42 +1,40 @@
-/* ═══════════════════════════════════════════
-   AMUD Theme: Sunset Warm
-   Cozy amber tones with earthy warmth
-   ═══════════════════════════════════════════ */
+/* AMUD Theme: sunset-warm — distinct UI profile: polaroid */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
 :root {
-    --theme-bg-fallback: #1a1410;
-    --theme-card-r: 42;
-    --theme-card-g: 32;
-    --theme-card-b: 24;
-    --bg-card: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), var(--glass-opacity));
-    --theme-overlay-r1: 26;
-    --theme-overlay-g1: 20;
-    --theme-overlay-b1: 16;
-    --theme-overlay-r2: 35;
-    --theme-overlay-g2: 22;
-    --theme-overlay-b2: 12;
+    --theme-font: 'Lora', sans-serif;
+    --theme-bg-fallback: #1c1410;
+    --theme-card-r: 40;
+    --theme-card-g: 28;
+    --theme-card-b: 22;
+    --bg-card: rgba(40, 28, 22, var(--glass-opacity));
     --accent-color: #f59e0b;
-    --accent-glow: rgba(245, 158, 11, 0.15);
-    
-    --border-card: rgba(245, 158, 11, 0.10);
-    --border-hover: rgba(245, 158, 11, 0.28);
-    --text-primary: #fef3c7;
-    --text-secondary: #d4b896;
-    --text-muted: #8a7560;
-    --success: #84cc16;
-    --success-bg: rgba(132, 204, 22, 0.10);
-    --danger: #f43f5e;
-    --danger-bg: rgba(244, 63, 94, 0.10);
+    --accent-glow: rgba(245, 158, 11, 0.18);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #94a3b8;
+    --border-card: rgba(245, 158, 11, 0.18);
+    --border-hover: #f59e0b;
 }
 
-.glass-panel {
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.30);
-}
 
-.header-title {
-    text-shadow: 0 0 16px rgba(245, 158, 11, 0.20);
-}
+.app-card.glass-panel { border-radius: 4px; padding-bottom: 0.5rem; box-shadow: 0 8px 24px rgba(0,0,0,0.45), 0 0 0 8px rgba(255,255,255,0.06); transform: rotate(-0.4deg); }
+.app-card.glass-panel:nth-child(even) { transform: rotate(0.35deg); }
+.greeting-widget { border: 6px solid rgba(255,255,255,0.08); }
 
-.telemetry-bar-fill {
-    background: linear-gradient(90deg, #f59e0b, #f97316) !important;
-}
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+
+/* Theme id hook: [data-theme-id="sunset-warm"] */
+[data-theme-id="sunset-warm"] .dashboard-container { position: relative; z-index: 1; }
+:root[data-theme="light"] [data-theme-id="sunset-warm"] .glass-panel { filter: brightness(1.05); }
