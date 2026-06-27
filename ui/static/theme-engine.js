@@ -14,8 +14,10 @@
         '.category-tabs [data-lucide]',
         '.ws-status-pill [data-lucide]',
         '.settings-sidebar [data-lucide]',
+        '.settings-sidebar .amud-theme-icon[data-icon-name]',
         '.settings-page-title [data-lucide]',
         '.nav-item [data-lucide]',
+        '.nav-item .amud-theme-icon[data-icon-name]',
         '.save-bar [data-lucide]',
         '[data-theme-icon]'
     ].join(', ');
@@ -71,8 +73,8 @@
         return (manifest.themes || []).find(function (t) { return t.id === id; });
     }
 
-    function cacheKey(suffix) {
-        return 'amud-theme-' + themeId() + '-' + suffix;
+    function cacheKey(suffix, id) {
+        return 'amud-theme-' + (id || themeId()) + '-' + suffix;
     }
 
     function injectFont(fontUrl) {
@@ -94,8 +96,8 @@
         document.documentElement.style.setProperty('--brand-bg-image', "url('" + url.replace(/'/g, "\\'") + "')");
     }
 
-    function fetchSvg(url) {
-        var key = cacheKey('svg:' + url);
+    function fetchSvg(url, id) {
+        var key = cacheKey('svg:' + url, id);
         try {
             var cached = sessionStorage.getItem(key);
             if (cached) return Promise.resolve(cached);
@@ -111,9 +113,10 @@
             });
     }
 
-    function replaceLucideNode(el, svgText) {
+    function replaceIconNode(el, svgText, name) {
         var wrap = document.createElement('span');
         wrap.className = 'amud-theme-icon';
+        wrap.setAttribute('data-icon-name', name);
         wrap.innerHTML = svgText;
         var svg = wrap.querySelector('svg');
         if (svg) {
@@ -127,12 +130,18 @@
         el.replaceWith(wrap);
     }
 
+    function iconNameFromEl(el) {
+        return el.getAttribute('data-lucide')
+            || el.getAttribute('data-theme-icon')
+            || el.getAttribute('data-icon-name');
+    }
+
     function loadIconPack(manifest, id) {
         if (FROZEN_THEMES[id]) return Promise.resolve(null);
         var entry = themeEntry(manifest, id);
         if (!entry || !entry.iconPack) return Promise.resolve(null);
         var packUrl = resolveAssetUrl(manifest, entry.iconPack);
-        var key = cacheKey('pack:' + packUrl);
+        var key = cacheKey('pack:' + packUrl, id);
         try {
             var cached = sessionStorage.getItem(key);
             if (cached) return Promise.resolve(JSON.parse(cached));
@@ -155,22 +164,20 @@
         var tasks = [];
         nodes.forEach(function (el) {
             if (el.closest('.app-card')) return;
-            var name = el.getAttribute('data-lucide') || el.getAttribute('data-theme-icon');
+            var name = iconNameFromEl(el);
             if (!name || !pack.icons[name]) return;
             var file = pack.icons[name];
             var url = file.indexOf('http') === 0 ? file : base.replace(/\/$/, '') + '/' + file.replace(/^\//, '');
             tasks.push(
-                fetchSvg(url).then(function (svg) {
-                    replaceLucideNode(el, svg);
+                fetchSvg(url, themeId()).then(function (svg) {
+                    replaceIconNode(el, svg, name);
                 }).catch(function () { /* keep lucide */ })
             );
         });
         return Promise.all(tasks);
     }
 
-    function initThemeEngine() {
-        var id = themeId();
-        document.body.classList.add('theme-' + id);
+    function applyThemeChrome(id) {
         return loadManifest().then(function (manifest) {
             var entry = themeEntry(manifest, id);
             applyUiProfile(entry);
@@ -183,7 +190,21 @@
             return loadIconPack(manifest, id).then(function (pack) {
                 return swapChromeIcons(manifest, pack);
             });
-        }).catch(function () { /* offline / default */ });
+        });
+    }
+
+    function initThemeEngine() {
+        var id = themeId();
+        document.body.classList.add('theme-' + id);
+        return applyThemeChrome(id).catch(function () { /* offline / default */ });
+    }
+
+    function refreshChromeIcons(overrideId) {
+        var id = overrideId || themeId();
+        if (overrideId) {
+            document.body.setAttribute('data-theme-id', id);
+        }
+        return applyThemeChrome(id).catch(function () { /* ignore */ });
     }
 
     global.amudThemeEngine = {
@@ -192,6 +213,7 @@
         loadManifest: loadManifest,
         applyUiProfile: applyUiProfile,
         injectLayoutCss: injectLayoutCss,
+        refreshChromeIcons: refreshChromeIcons,
         init: initThemeEngine
     };
 

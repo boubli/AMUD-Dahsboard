@@ -26,9 +26,9 @@ FROZEN = {"default", "luxury-gold"}
 
 ICON_NAMES = [
     "sun", "moon", "cloud", "cpu", "hard-drive", "activity", "wifi", "settings",
-    "layout-grid", "search", "plus", "bell", "users", "rss", "server", "plug",
-    "home", "shield", "database", "zap", "eye", "palette", "arrow-left",
-    "external-link", "power", "play", "pause", "refresh",
+    "layout-grid", "layout-template", "search", "plus", "bell", "users", "rss", "server", "plug",
+    "home", "shield", "shield-check", "database", "zap", "eye", "palette", "arrow-left",
+    "external-link", "power", "play", "pause", "refresh", "cloud-sun", "heart", "tag", "scroll-text",
 ]
 
 # Per-theme design spec: colors + ui profile + font

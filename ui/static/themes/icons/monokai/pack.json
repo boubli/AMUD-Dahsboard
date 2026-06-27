@@ -11,6 +11,7 @@
     "wifi": "wifi.svg",
     "settings": "settings.svg",
     "layout-grid": "layout-grid.svg",
+    "layout-template": "layout-template.svg",
     "search": "search.svg",
     "plus": "plus.svg",
     "bell": "bell.svg",
@@ -20,6 +21,7 @@
     "plug": "plug.svg",
     "home": "home.svg",
     "shield": "shield.svg",
+    "shield-check": "shield-check.svg",
     "database": "database.svg",
     "zap": "zap.svg",
     "eye": "eye.svg",
@@ -29,6 +31,10 @@
     "power": "power.svg",
     "play": "play.svg",
     "pause": "pause.svg",
-    "refresh": "refresh.svg"
+    "refresh": "refresh.svg",
+    "cloud-sun": "cloud-sun.svg",
+    "heart": "heart.svg",
+    "tag": "tag.svg",
+    "scroll-text": "scroll-text.svg"
   }
 }

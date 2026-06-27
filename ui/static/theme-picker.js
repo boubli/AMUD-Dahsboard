@@ -125,6 +125,9 @@
             selectedThemeId = theme.id;
             if (activeThemeInput) activeThemeInput.value = theme.id;
             applyPreviewThemeMeta(theme);
+            if (global.amudThemeEngine?.refreshChromeIcons) {
+                global.amudThemeEngine.refreshChromeIcons(theme.id);
+            }
             if (theme.id === 'default' || !theme.file) {
                 applyDefaultTheme(theme);
                 return;

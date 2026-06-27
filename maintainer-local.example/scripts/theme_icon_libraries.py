@@ -103,6 +103,12 @@ _COMMON: dict[str, str] = {
     "pause": '<rect x="7" y="5" width="4" height="14" fill="{accent}"/><rect x="13" y="5" width="4" height="14" fill="{accent}"/>',
     "refresh": '<path d="M4 4v5h5M20 20v-5h-5M5 19a8 8 0 0 0 13-2M19 5a8 8 0 0 0-13 2" stroke="{accent}"/>',
     "sun": '<circle cx="12" cy="12" r="4" fill="{accent}"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke="{accent}"/>',
+    "layout-template": '<rect x="3" y="3" width="18" height="8" rx="1" stroke="{accent}"/><rect x="3" y="13" width="8" height="8" rx="1" stroke="{accent}"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="{accent}"/>',
+    "cloud-sun": '<circle cx="12" cy="9" r="3" fill="{accent}" opacity="0.35"/><path d="M7 17h11a4 4 0 0 0 0-8 5 5 0 0 0-9.5-2" stroke="{accent}" fill="none"/><path d="M12 3v1M12 21v1M4 12H3M21 12h-1" stroke="{accent}"/>',
+    "heart": '<path d="M12 20s-7-4.4-9-8.5C1.5 8 4 5 7.5 5c2 0 3.5 1.5 4.5 3 1-1.5 2.5-3 4.5-3 3.5 0 6 3 4.5 6.5C19 15.6 12 20 12 20z" stroke="{accent}" fill="{accent}" opacity="0.15"/>',
+    "tag": '<path d="M12 3 3 12v9h9l9-9-9-9z" stroke="{accent}" fill="none"/><circle cx="8" cy="8" r="1.5" fill="{accent}"/>',
+    "shield-check": '<path d="M12 3l8 3v6c0 5.5-3.5 9.5-8 11-4.5-1.5-8-5.5-8-11V6l8-3z" stroke="{accent}" fill="none"/><path d="M9 12l2 2 4-4" stroke="{accent}"/>',
+    "scroll-text": '<path d="M8 4h11M8 8h11M8 12h7" stroke="{accent}"/><path d="M4 4v16l3-2 3 2V4H4z" stroke="{accent}" fill="none"/>',
 }
 
 _STYLE_LIBS: dict[str, dict[str, str]] = {
