@@ -83,7 +83,8 @@ jobs:
           HUB_TOKEN=$(curl -fsS -H "Content-Type: application/json" \
             -d "{\"username\":\"${DOCKERHUB_USERNAME}\",\"password\":\"${DOCKERHUB_TOKEN}\"}" \
             https://hub.docker.com/v2/users/login/ | jq -r .token)
-          jq -n --rawfile body DOCKERHUB.md '{full_description: $body}' | \
+          jq -n --rawfile body DOCKERHUB.md \
+            '{description: "AMUD Dashboard — compiled Rust homelab cockpit with live Docker/Proxmox telemetry. Zero YAML.", full_description: $body}' | \
             curl -fsS -X PATCH \
               -H "Authorization: Bearer ${HUB_TOKEN}" \
               -H "Content-Type: application/json" \

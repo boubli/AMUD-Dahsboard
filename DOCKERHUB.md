@@ -1,10 +1,12 @@
-<div align="center">
-  <img src="https://boubli.github.io/AMUD-Dashboard/img/amud-logo-github.png" alt="AMUD Logo" width="300" />
-</div>
+<p align="center">
+  <img src="https://boubli.github.io/AMUD-Dashboard/img/amud-logo-github.png" alt="AMUD Logo" width="280" />
+</p>
 
 # AMUD Dashboard
 
-![AMUD Dashboard UI](https://boubli.github.io/AMUD-Dashboard/img/AMUD-Dashboard.png)
+<p align="center">
+  <img src="https://boubli.github.io/AMUD-Dashboard/img/AMUD-Dashboard.png" alt="AMUD Dashboard UI" width="720" />
+</p>
 
 AMUD (Advanced Modern Unified Dashboard) is a high-performance, intelligent homelab cockpit built for resource-constrained environments. While legacy dashboards demand heavy runtimes and YAML files, AMUD is a compiled Rust stack that idles around **30–50 MB RAM** (server + agent) with sub-millisecond routing.
 
