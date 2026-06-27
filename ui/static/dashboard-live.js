@@ -46,23 +46,36 @@
         if (el) el.style.width = `${Math.max(0, Math.min(100, pct))}%`;
     }
 
+    function bitUnitMultiplier(unit) {
+        const u = (unit || '').toUpperCase();
+        if (u === 'G') return 1_000_000_000;
+        if (u === 'M') return 1_000_000;
+        return 1_000;
+    }
+
+    function byteUnitMultiplier(unit) {
+        const u = (unit || 'B').toUpperCase();
+        if (u === 'GB') return 1024 * 1024 * 1024;
+        if (u === 'MB') return 1024 * 1024;
+        if (u === 'KB') return 1024;
+        return 1;
+    }
+
     function parseRateToBps(rateText) {
         const s = String(rateText || '').trim();
-        const bitMatch = s.match(/^([\d.]+)\s*([kMG]?)bit\/s$/i);
+        const bitRe = /^([\d.]+)\s*([kMG]?)bit\/s$/i;
+        const bitMatch = bitRe.exec(s);
         if (bitMatch) {
-            const v = parseFloat(bitMatch[1]);
+            const v = Number.parseFloat(bitMatch[1]);
             if (!Number.isFinite(v)) return 0;
-            const unit = (bitMatch[2] || '').toUpperCase();
-            const bitsPerSec = unit === 'G' ? v * 1_000_000_000 : unit === 'M' ? v * 1_000_000 : v * 1_000;
-            return bitsPerSec / 8;
+            return bitUnitMultiplier(bitMatch[2]) * v / 8;
         }
-        const m = s.match(/^([\d.]+)\s*([KMG]?B)\/s$/i);
+        const byteRe = /^([\d.]+)\s*([KMG]?B)\/s$/i;
+        const m = byteRe.exec(s);
         if (!m) return 0;
-        const v = parseFloat(m[1]);
+        const v = Number.parseFloat(m[1]);
         if (!Number.isFinite(v)) return 0;
-        const unit = (m[2] || 'B').toUpperCase();
-        const mult = unit === 'GB' ? 1024 * 1024 * 1024 : unit === 'MB' ? 1024 * 1024 : unit === 'KB' ? 1024 : 1;
-        return v * mult;
+        return v * byteUnitMultiplier(m[2]);
     }
 
     // Input is bytes per second (agent sends bit/s strings; we convert to B/s first).
@@ -362,9 +375,14 @@
                                 existingBadge.title = isAdmin
                                     ? 'Proxmox host agent status'
                                     : 'Service availability';
-                                const badgeStatus = isAdmin
-                                    ? (data.agent_connected ? 'running' : 'offline')
-                                    : guestAvailabilityStatus(data.agent_connected ? 'running' : 'offline');
+                                let badgeStatus;
+                                if (isAdmin) {
+                                    badgeStatus = data.agent_connected ? 'running' : 'offline';
+                                } else {
+                                    badgeStatus = guestAvailabilityStatus(
+                                        data.agent_connected ? 'running' : 'offline'
+                                    );
+                                }
                                 styleStatusBadge(existingBadge, badgeStatus);
                             }
                         }

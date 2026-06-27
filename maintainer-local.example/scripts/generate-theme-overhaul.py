@@ -20,6 +20,7 @@ LAYOUT_DIR = ROOT / "ui" / "static" / "theme-layouts"
 DOCS_THEMES = ROOT / "docs" / "static" / "themes"
 ASSET_BASE = "/static/themes"
 MANIFEST_JSON = "manifest.json"
+THEME_PROCEDURAL_VAR = "    --theme-procedural: 1;"
 
 FROZEN = {"default", "luxury-gold"}
 
@@ -274,19 +275,19 @@ PROFILE_ROOT_EXTRAS: dict[str, list[str]] = {
     ],
     "vaporwave": [
         "    --theme-body-stack: linear-gradient(180deg, #1a0a2e 0%, #3d1a5c 35%, #ff6b9d 65%, #ffb347 100%);",
-        "    --theme-procedural: 1;",
+        THEME_PROCEDURAL_VAR,
     ],
     "blueprint": [
         "    --theme-body-stack: linear-gradient(#0c1929, #0c1929),"
         " linear-gradient(rgba(96,165,250,0.15) 1px, transparent 1px),"
         " linear-gradient(90deg, rgba(96,165,250,0.15) 1px, transparent 1px);",
-        "    --theme-procedural: 1;",
+        THEME_PROCEDURAL_VAR,
         "    background-size: auto, 24px 24px, 24px 24px;",
     ],
     "brutalist": [
         "    --radius-xl: 0;",
         "    --theme-body-stack: linear-gradient(180deg, #e8e8e8, #d4d4d4);",
-        "    --theme-procedural: 1;",
+        THEME_PROCEDURAL_VAR,
         "    color: #0a0a0a;",
     ],
     "crt_amber": [
@@ -366,7 +367,7 @@ def gen_css(theme_id: str, spec: dict) -> str:
         f"    --border-hover: {accent};",
     ]
     if proc:
-        lines.append("    --theme-procedural: 1;")
+        lines.append(THEME_PROCEDURAL_VAR)
     for extra in PROFILE_ROOT_EXTRAS.get(profile, []):
         lines.append(extra)
     lines.append("}")

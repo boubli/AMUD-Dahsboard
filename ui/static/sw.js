@@ -18,14 +18,19 @@ const ASSETS_TO_CACHE = [
   '/static/embed-tabs.js'
 ];
 
+function parseManifestJson(res) {
+  if (!res.ok) return null;
+  return res.json();
+}
+
 function cacheThemePreviews() {
   return fetch('/static/themes/manifest.json', { cache: 'no-store' })
-    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(parseManifestJson)
     .then(function (manifest) {
-      if (!manifest || !manifest.themes) return [];
+      if (!manifest?.themes) return [];
       return manifest.themes
         .map(function (t) { return t.preview; })
-        .filter(function (p) { return p && p.indexOf('/') === 0; });
+        .filter(function (p) { return p?.startsWith('/'); });
     })
     .catch(function () { return []; });
 }

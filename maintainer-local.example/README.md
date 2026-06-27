@@ -9,7 +9,9 @@ cp -r maintainer-local.example maintainer-local
 # Windows: Copy-Item -Recurse maintainer-local.example maintainer-local
 ```
 
-`maintainer-local/` is gitignored — **never push it**. Use it for everything that is not homelab-facing: theme regeneration, `test_local.sh`, dashboard test scripts (`test-*.mjs`), Sonar, and git hooks.
+`maintainer-local/` is gitignored — **never push it**. Use it for everything that is not homelab-facing: theme regeneration, local test scripts (`test-*.mjs`, `test_local.sh`), Sonar, and git hooks.
+
+Test scripts are **not** in this template — add your own under `maintainer-local/scripts/` after setup.
 
 Enable git hooks from repo root:
 
