@@ -45,16 +45,15 @@ jobs:
 
       - name: Stage release binaries
         run: |
-          cp target/release/amud-server "${{ matrix.server_name }}"
-          cp target/release/amud-agent "${{ matrix.agent_name }}"
+          mkdir -p .release-staging
+          cp target/release/amud-server ".release-staging/${{ matrix.server_name }}"
+          cp target/release/amud-agent ".release-staging/${{ matrix.agent_name }}"
 
       - name: Upload binaries
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.server_name }}-binaries
-          path: |
-            ${{ matrix.server_name }}
-            ${{ matrix.agent_name }}
+          path: .release-staging/
 
   build-ui:
     name: Package UI assets
@@ -90,10 +89,10 @@ jobs:
       - name: Collect release files
         run: |
           mkdir -p dist
-          cp release-assets/amud-server-binaries/amud-server dist/
-          cp release-assets/amud-server-binaries/amud-agent dist/
-          cp release-assets/amud-server-arm64-binaries/amud-server-arm64 dist/
-          cp release-assets/amud-server-arm64-binaries/amud-agent-arm64 dist/
+          cp release-assets/amud-server-binaries/.release-staging/amud-server dist/
+          cp release-assets/amud-server-binaries/.release-staging/amud-agent dist/
+          cp release-assets/amud-server-arm64-binaries/.release-staging/amud-server-arm64 dist/
+          cp release-assets/amud-server-arm64-binaries/.release-staging/amud-agent-arm64 dist/
           cp release-assets/ui-tarball/ui.tar.gz dist/
           cd dist
           sha256sum amud-server amud-agent amud-server-arm64 amud-agent-arm64 ui.tar.gz > SHA256SUMS
