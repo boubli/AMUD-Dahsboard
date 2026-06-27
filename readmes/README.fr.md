@@ -20,24 +20,9 @@
 
 Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### État des versions (audit 2026-06-25)
+### État des versions
 
-Après validation manuelle dans un conteneur de test Proxmox propre, ces versions sont actuellement conservées comme bases de référence connues et fiables :
-
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`
-- `v1.5.6.0`
-- `v1.5.6.2`
-- `v1.5.6.3`
-- `v1.5.6.4`
-- `v1.6.0` (dernière recommandée actuellement)
-
-Les balises corrompues identifiées lors de l'audit ont été supprimées des versions/balises GitHub et ne doivent pas être utilisées. **N'utilisez pas `v1.5.5.4` ni `v1.5.6.1`.**
+**5** dernières versions validées et versions retirées : **[README anglais](../README.md)** (section Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

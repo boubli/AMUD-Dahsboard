@@ -413,6 +413,8 @@ async fn render_page(
         )
         .replace("{{video_bg_element}}", &video_bg_element);
 
+    let result = apply_branding_head(result, &branding);
+
     Html(apply_csp_nonce(result, nonce))
 }
 

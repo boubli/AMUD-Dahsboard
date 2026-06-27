@@ -20,24 +20,9 @@
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### 版本状态（审计 2026-06-25）
+### 版本状态
 
-在干净的 Proxmox 测试容器中进行手动验证后，以下版本目前被保留为已知正常的基线版本：
-
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`
-- `v1.5.6.0`
-- `v1.5.6.2`
-- `v1.5.6.3`
-- `v1.5.6.4`
-- `v1.6.0`（当前推荐最新版本）
-
-在审计过程中发现的损坏标签已从 GitHub 发布/标签中移除，不应使用。**请勿使用 `v1.5.5.4` 或 `v1.5.6.1`（已撤回）。**
+最近 **5** 个已验证版本及已撤回标签：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

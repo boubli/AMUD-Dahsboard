@@ -494,6 +494,7 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/", get(dashboard_handler))
         .route("/feeds", get(feeds_page_handler))
+        .route("/manifest.webmanifest", get(manifest_handler))
         .route("/status", get(status_page_handler))
         .route("/embed/:app_id", get(embed_app_handler))
         .route("/s/:token", get(share_link_handler))

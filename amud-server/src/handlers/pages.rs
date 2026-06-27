@@ -507,7 +507,22 @@ pub async fn settings_page_handler(
             },
         );
 
+    let result = apply_branding_head(result, &branding);
+
     Html(apply_csp_nonce(result, &csp.0)).into_response()
+}
+
+pub async fn manifest_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let settings = state.settings_cache.read().unwrap().clone();
+    let branding = branding_from_settings(&settings);
+    let body = crate::templates::build_web_manifest_json(&branding);
+    (
+        [
+            (header::CONTENT_TYPE, "application/manifest+json"),
+            (header::CACHE_CONTROL, "no-cache"),
+        ],
+        body,
+    )
 }
 
 fn render_guest_category_controls(

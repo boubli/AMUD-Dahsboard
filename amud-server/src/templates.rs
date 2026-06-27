@@ -225,6 +225,166 @@ pub(crate) struct BrandingRenderOptions<'a> {
     pub active_theme_id: &'a str,
 }
 
+pub(crate) const DEFAULT_FAVICON_URL: &str = "/static/AMUD-logo.png";
+pub(crate) const DEFAULT_APPLE_TOUCH_URL: &str = "/static/pwa-icon-192.png";
+pub(crate) const DEFAULT_PWA_ICON_192: &str = "/static/pwa-icon-192.png";
+pub(crate) const DEFAULT_PWA_ICON_512: &str = "/static/pwa-icon-512.png";
+
+pub(crate) struct BrandingIcons {
+    pub favicon_url: String,
+    pub apple_touch_url: String,
+    pub pwa_icon_url: String,
+    pub favicon_type: String,
+    pub uses_custom_logo: bool,
+}
+
+pub(crate) fn icon_mime_from_url(url: &str) -> &'static str {
+    let lower = url.to_lowercase();
+    if lower.ends_with(".svg") {
+        "image/svg+xml"
+    } else if lower.ends_with(".gif") {
+        "image/gif"
+    } else if lower.ends_with(".ico") {
+        "image/x-icon"
+    } else if lower.ends_with(".jpg") || lower.ends_with(".jpeg") {
+        "image/jpeg"
+    } else {
+        "image/png"
+    }
+}
+
+pub(crate) fn branding_icons(branding: &BrandingVars) -> BrandingIcons {
+    if branding.app_logo.is_empty() {
+        return BrandingIcons {
+            favicon_url: DEFAULT_FAVICON_URL.to_string(),
+            apple_touch_url: DEFAULT_APPLE_TOUCH_URL.to_string(),
+            pwa_icon_url: DEFAULT_PWA_ICON_192.to_string(),
+            favicon_type: "image/png".to_string(),
+            uses_custom_logo: false,
+        };
+    }
+    let url = escape_html(&branding.app_logo);
+    let favicon_type = icon_mime_from_url(&branding.app_logo).to_string();
+    BrandingIcons {
+        favicon_url: url.clone(),
+        apple_touch_url: url.clone(),
+        pwa_icon_url: url,
+        favicon_type,
+        uses_custom_logo: true,
+    }
+}
+
+pub(crate) fn apply_branding_head(html: String, branding: &BrandingVars) -> String {
+    let icons = branding_icons(branding);
+    html.replace("{{favicon_url}}", &icons.favicon_url)
+        .replace("{{favicon_type}}", &icons.favicon_type)
+        .replace("{{apple_touch_icon_url}}", &icons.apple_touch_url)
+}
+
+fn manifest_shortcut_icon(icons: &BrandingIcons) -> (String, String) {
+    if icons.uses_custom_logo {
+        (icons.pwa_icon_url.clone(), icons.favicon_type.clone())
+    } else {
+        (
+            DEFAULT_PWA_ICON_192.to_string(),
+            "image/png".to_string(),
+        )
+    }
+}
+
+/// Dynamic PWA manifest JSON from current branding settings.
+pub(crate) fn build_web_manifest_json(branding: &BrandingVars) -> String {
+    use serde_json::json;
+
+    let icons = branding_icons(branding);
+    let name = if branding.app_name.trim().is_empty() {
+        "AMUD Dashboard".to_string()
+    } else {
+        branding.app_name.clone()
+    };
+    let short_name: String = name.chars().take(12).collect();
+    let (shortcut_src, shortcut_type) = manifest_shortcut_icon(&icons);
+    let shortcut_icon = json!([{
+        "src": shortcut_src,
+        "sizes": "192x192",
+        "type": shortcut_type,
+    }]);
+
+    let icon_entries = if icons.uses_custom_logo {
+        json!([
+            {
+                "src": icons.pwa_icon_url,
+                "sizes": "192x192",
+                "type": icons.favicon_type,
+                "purpose": "any"
+            },
+            {
+                "src": icons.pwa_icon_url,
+                "sizes": "512x512",
+                "type": icons.favicon_type,
+                "purpose": "any"
+            }
+        ])
+    } else {
+        json!([
+            {
+                "src": DEFAULT_PWA_ICON_192,
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any"
+            },
+            {
+                "src": DEFAULT_PWA_ICON_512,
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any"
+            },
+            {
+                "src": DEFAULT_PWA_ICON_512,
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "maskable"
+            }
+        ])
+    };
+
+    serde_json::to_string(&json!({
+        "name": name,
+        "short_name": short_name,
+        "description": format!("{name} homelab operations cockpit for Proxmox, Docker, media services, and bookmarks."),
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "display_override": ["window-controls-overlay", "standalone", "browser"],
+        "orientation": "any",
+        "background_color": "#0a0b10",
+        "theme_color": branding.accent_color,
+        "categories": ["productivity", "utilities"],
+        "icons": icon_entries,
+        "shortcuts": [
+            {
+                "name": "Dashboard",
+                "short_name": "Dashboard",
+                "url": "/",
+                "icons": shortcut_icon
+            },
+            {
+                "name": "Settings",
+                "short_name": "Settings",
+                "url": "/admin/settings",
+                "icons": shortcut_icon
+            },
+            {
+                "name": "Feeds",
+                "short_name": "Feeds",
+                "url": "/feeds",
+                "icons": shortcut_icon
+            }
+        ]
+    }))
+    .unwrap_or_else(|_| "{}".to_string())
+}
+
 /// Shared placeholders for guest-facing pages (login, etc.) that should match dashboard branding.
 pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptions<'_>) -> String {
     let branding = opts.branding;
@@ -239,11 +399,6 @@ pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptio
     let safe_accent = escape_html(&branding.accent_color);
     let safe_theme = escape_html(&branding.theme_mode);
     let safe_app_logo_css = safe_css_url(&branding.app_logo);
-    let favicon_url = if branding.app_logo.is_empty() {
-        "/static/AMUD-logo.png".to_string()
-    } else {
-        escape_html(&branding.app_logo)
-    };
 
     html = html.replace("/* ROOT_CSS */", &root_css);
     html = html
@@ -252,8 +407,9 @@ pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptio
         .replace("{{accent_color}}", &safe_accent)
         .replace("{{theme_mode}}", &safe_theme)
         .replace("{{active_theme_id}}", &escape_html(opts.active_theme_id))
-        .replace("{{custom_css}}", opts.custom_css)
-        .replace("{{favicon_url}}", &favicon_url);
+        .replace("{{custom_css}}", opts.custom_css);
+
+    html = apply_branding_head(html, branding);
 
     if branding.app_logo.is_empty() {
         html = html.replace(
@@ -377,5 +533,75 @@ mod tests {
         assert!(html.contains(".btn-primary { background: hotpink; }"));
         assert!(html.contains("url('/static/custom-logo.png')"));
         assert!(html.contains("--accent-color: #ff00aa"));
+    }
+
+    #[test]
+    fn apply_branding_head_replaces_favicon_placeholders() {
+        let mut settings = HashMap::new();
+        settings.insert(
+            "app_logo".to_string(),
+            "/uploads/logo.png".to_string(),
+        );
+        let branding = branding_from_settings(&settings);
+        let html = apply_branding_head(
+            r#"<link rel="icon" href="{{favicon_url}}" type="{{favicon_type}}"><link rel="apple-touch-icon" href="{{apple_touch_icon_url}}">"#.to_string(),
+            &branding,
+        );
+        assert!(html.contains(r#"href="/uploads/logo.png""#));
+        assert!(html.contains(r#"type="image/png""#));
+        assert!(html.contains(r#"apple-touch-icon" href="/uploads/logo.png""#));
+    }
+
+    #[test]
+    fn branding_icons_defaults_when_logo_empty() {
+        let branding = branding_from_settings(&HashMap::new());
+        let icons = branding_icons(&branding);
+        assert_eq!(icons.favicon_url, DEFAULT_FAVICON_URL);
+        assert_eq!(icons.apple_touch_url, DEFAULT_APPLE_TOUCH_URL);
+        assert_eq!(icons.pwa_icon_url, DEFAULT_PWA_ICON_192);
+        assert!(!icons.uses_custom_logo);
+    }
+
+    #[test]
+    fn branding_icons_uses_custom_upload_logo() {
+        let mut settings = HashMap::new();
+        settings.insert(
+            "app_logo".to_string(),
+            "/uploads/123.png".to_string(),
+        );
+        let branding = branding_from_settings(&settings);
+        let icons = branding_icons(&branding);
+        assert_eq!(icons.favicon_url, "/uploads/123.png");
+        assert_eq!(icons.apple_touch_url, "/uploads/123.png");
+        assert_eq!(icons.pwa_icon_url, "/uploads/123.png");
+        assert_eq!(icons.favicon_type, "image/png");
+        assert!(icons.uses_custom_logo);
+    }
+
+    #[test]
+    fn branding_icons_svg_mime_type() {
+        let mut settings = HashMap::new();
+        settings.insert(
+            "app_logo".to_string(),
+            "/static/logo.svg".to_string(),
+        );
+        let branding = branding_from_settings(&settings);
+        let icons = branding_icons(&branding);
+        assert_eq!(icons.favicon_type, "image/svg+xml");
+    }
+
+    #[test]
+    fn build_web_manifest_json_uses_custom_icon() {
+        let mut settings = HashMap::new();
+        settings.insert("app_name".to_string(), "My Lab".to_string());
+        settings.insert(
+            "app_logo".to_string(),
+            "/uploads/custom.png".to_string(),
+        );
+        let branding = branding_from_settings(&settings);
+        let json = build_web_manifest_json(&branding);
+        assert!(json.contains(r#""name":"My Lab""#));
+        assert!(json.contains(r#""src":"/uploads/custom.png""#));
+        assert!(!json.contains("maskable"));
     }
 }

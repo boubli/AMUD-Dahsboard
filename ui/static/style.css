@@ -1826,14 +1826,6 @@ select.form-control option:disabled {
     animation-delay: 0.1s;
 }
 
-@media (max-width: 768px) {
-    .hero-section {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1.25rem;
-    }
-}
-
 .greeting-box {
     display: flex;
     flex-direction: column;
@@ -1910,6 +1902,61 @@ select.form-control option:disabled {
     letter-spacing: 0.1em;
     color: var(--text-muted);
     font-weight: 700;
+}
+
+.hero-widgets {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.weather-box {
+    display: none;
+    padding: 0.85rem 1.5rem;
+    align-items: center;
+    background: rgba(15, 20, 25, calc(var(--glass-opacity) - 0.1));
+}
+
+.weather-display {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.weather-temp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    color: var(--text-primary);
+    text-shadow: 0 0 30px var(--accent-glow);
+}
+
+.weather-meta {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+    gap: 0.15rem;
+}
+
+.weather-meta i,
+.weather-meta svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    color: var(--accent-color);
+}
+
+.weather-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.search-toggle {
+    display: none;
 }
 
 /* Search Bar Wrapper & Input */
@@ -2222,63 +2269,28 @@ input[type="color"].form-control {
     }
 
     .topbar {
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
-}
-
-/* Responsive adjustments for new sections */
-@media (max-width: 768px) {
-    body {
-        padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
-        background-attachment: scroll;
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
     }
 
-    .bento-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .telemetry-row {
-        grid-template-columns: 1fr;
-    }
-
-    .telemetry-card--host {
-        grid-column: span 1;
-    }
-
-    .streams-row {
-        grid-template-columns: 1fr;
-    }
-
-    .topbar,
-    .hero-section,
-    .app-card-header,
-    .stream-main {
-        flex-wrap: wrap;
-    }
-
-    .brand-title {
-        font-size: 1.15rem;
-    }
-
-    /* Removed mobile bottom-sheet styling override to keep modal centered */
-
-    .btn,
-    .btn-ctrl,
-    .nav-item,
-    .form-control {
-        min-height: 44px;
+    .brand-section {
+        grid-column: 2;
+        justify-content: center;
     }
 
     .topbar-end {
-        margin-left: auto;
-    }
-
-    .topbar-menu-toggle {
-        display: inline-flex;
-        min-height: 44px;
-        min-width: 44px;
-        justify-content: center;
+        grid-column: 3;
+        justify-self: end;
+        position: relative;
+        top: auto;
+        right: auto;
+        transform: none;
+        margin-left: 0;
     }
 
     .topbar-overflow {
@@ -2310,6 +2322,169 @@ input[type="color"].form-control {
         justify-content: flex-start;
     }
 
+    .topbar-menu-toggle {
+        display: inline-flex;
+        min-height: 44px;
+        min-width: 44px;
+        justify-content: center;
+    }
+}
+
+/* Responsive adjustments for new sections */
+@media (max-width: 768px) {
+    body {
+        padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+        background-attachment: scroll;
+    }
+
+    .bento-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .telemetry-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+    }
+
+    .telemetry-card {
+        padding: 0.7rem 0.85rem;
+    }
+
+    .telemetry-title {
+        font-size: 0.72rem;
+    }
+
+    .telemetry-value {
+        font-size: 0.85rem;
+    }
+
+    .telemetry-card--host {
+        grid-column: span 2;
+    }
+
+    .streams-row {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1.25rem;
+    }
+
+    .greeting-box {
+        width: 100%;
+        align-items: center;
+    }
+
+    .greeting-title {
+        word-break: break-word;
+        max-width: 100%;
+        font-size: 1.85rem;
+    }
+
+    .hero-widgets {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero-widgets .clock-box,
+    .weather-box {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
+    }
+
+    .weather-box {
+        display: flex;
+    }
+
+    .topbar-essential .weather-widget {
+        display: none;
+    }
+
+    .clock-time,
+    .weather-temp {
+        font-size: 2rem;
+    }
+
+    .app-card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+        flex-wrap: nowrap;
+    }
+
+    .app-card-identity {
+        min-width: 0;
+    }
+
+    .app-card-badges {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        justify-content: flex-start;
+    }
+
+    .container-controls {
+        flex-shrink: 0;
+    }
+
+    .stream-main {
+        flex-wrap: wrap;
+    }
+
+    .brand-title {
+        font-size: 1.15rem;
+    }
+
+    .btn,
+    .btn-ctrl,
+    .nav-item,
+    .form-control {
+        min-height: 44px;
+    }
+
+    .search-bar-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-toggle {
+        display: inline-flex;
+        align-self: center;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0.5rem;
+        border: 1px solid var(--border-card);
+        cursor: pointer;
+        color: var(--text-primary);
+        background: rgba(15, 20, 25, calc(var(--glass-opacity) - 0.1));
+    }
+
+    .search-toggle i,
+    .search-toggle svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .search-bar-wrapper:not(.is-expanded) .search-bar {
+        display: none;
+    }
+
+    .search-bar-wrapper.is-expanded .search-toggle {
+        display: none;
+    }
+
+    .search-bar-wrapper.is-expanded .search-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
     .pwa-install-banner {
         flex-direction: column;
         align-items: stretch;
@@ -2331,10 +2506,11 @@ input[type="color"].form-control {
     }
 
     .telemetry-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .clock-box,
+    .weather-box,
     .search-bar,
     .app-card,
     .stream-card {

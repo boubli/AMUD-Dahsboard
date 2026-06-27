@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{{app_name}} {{page_title_suffix}}</title>
-    <link rel="icon" href="/static/AMUD-logo.png" type="image/png">
-    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="{{favicon_url}}" type="{{favicon_type}}">
+    <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="{{accent_color}}">
     <meta name="description" content="AMUD Dashboard homelab operations cockpit">
     <meta name="csrf-token" content="{{csrf_token}}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{app_name}}">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/static/pwa-icon-192.png">
+    <link rel="apple-touch-icon" href="{{apple_touch_icon_url}}">
     <link rel="stylesheet" href="/static/style.css">
     
     <!-- Alpine.js for drawer state / bindings -->
@@ -47,7 +47,7 @@
         
         <!-- Header / Topbar -->
         <header class="topbar" x-data="{ topbarMenuOpen: false }">
-            <div class="brand-section">
+            <div class="brand-section topbar-inner">
                 <div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
                 <h1 class="brand-title">{{app_name}} {{page_title_suffix}}</h1>
             </div>
@@ -84,24 +84,38 @@
 
         <!-- Hero Greeting & Clock Widget -->
         <section class="hero-section">
-            <div class="greeting-box">
+            <div class="greeting-box greeting-widget">
                 <h2 class="greeting-title"><span id="greeting-text">Working late</span>, <span class="username-highlight" id="username-display">{{username}}</span></h2>
                 <p class="greeting-subtitle" id="live-date">Monday · June 1, 2026</p>
             </div>
-            <div class="clock-box glass-panel">
-                <div class="clock-display">
-                    <span class="clock-time" id="live-time">12:00</span>
-                    <div class="clock-meta">
-                        <span class="clock-ampm" id="live-ampm">AM</span>
-                        <span class="clock-label">LOCAL TIME</span>
+            <div class="hero-widgets">
+                <div class="clock-box glass-panel">
+                    <div class="clock-display">
+                        <span class="clock-time" id="live-time">12:00</span>
+                        <div class="clock-meta">
+                            <span class="clock-ampm" id="live-ampm">AM</span>
+                            <span class="clock-label">LOCAL TIME</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="weather-box glass-panel" aria-live="polite">
+                    <div class="weather-display">
+                        <span class="weather-temp" id="live-weather-temp">—</span>
+                        <div class="weather-meta">
+                            <i data-lucide="sun" id="weather-icon"></i>
+                            <span class="weather-label" id="live-weather-cond">Detecting...</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Search Bar Widget -->
-        <div class="search-bar-wrapper">
-            <div class="search-bar glass-panel">
+        <div class="search-bar-wrapper" id="search-bar-wrapper">
+            <button type="button" class="search-toggle glass-panel" id="search-toggle" aria-expanded="false" aria-controls="search-bar" aria-label="Open search">
+                <i data-lucide="search"></i>
+            </button>
+            <div class="search-bar glass-panel" id="search-bar">
                 <div class="search-mode-toggle" aria-label="Search mode">
                     <button type="button" id="search-mode-apps" class="search-mode-btn active" aria-pressed="true">Apps</button>
                     <button type="button" id="search-mode-web" class="search-mode-btn" aria-pressed="false">Web</button>
@@ -1209,38 +1223,73 @@
             const manualLat = '{{weather_latitude}}'.trim();
             const manualLon = '{{weather_longitude}}'.trim();
 
+            function weatherIconForCode(code) {
+                if (code === 0) return 'sun';
+                if (code > 0 && code <= 3) return 'cloud';
+                if (code >= 45 && code <= 48) return 'cloud-fog';
+                if (code >= 51 && code <= 67) return 'cloud-rain';
+                if (code >= 71 && code <= 77) return 'cloud-snow';
+                if (code >= 95) return 'cloud-lightning';
+                return 'sun';
+            }
+
+            function weatherConditionForCode(code) {
+                if (code === 0) return 'Clear';
+                if (code > 0 && code <= 3) return 'Cloudy';
+                if (code >= 45 && code <= 48) return 'Fog';
+                if (code >= 51 && code <= 67) return 'Rain';
+                if (code >= 71 && code <= 77) return 'Snow';
+                if (code >= 95) return 'Storm';
+                return 'Clear';
+            }
+
+            function setWeatherDisplay(temp, cond, iconName) {
+                const compact = document.getElementById('live-weather');
+                const tempEl = document.getElementById('live-weather-temp');
+                const condEl = document.getElementById('live-weather-cond');
+                const iconEl = document.getElementById('weather-icon');
+                const text = temp + '°C ' + cond;
+                if (compact) compact.textContent = text;
+                if (tempEl) tempEl.textContent = temp + '°C';
+                if (condEl) condEl.textContent = cond;
+                if (iconEl) {
+                    iconEl.setAttribute('data-lucide', iconName);
+                    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                        window.lucide.createIcons({ nodes: [iconEl] });
+                    }
+                }
+            }
+
+            function setWeatherError(label) {
+                setWeatherDisplay('—', label, 'cloud-off');
+            }
+
             function fetchWeather(lat, lon) {
                 fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
                     .then(res => res.json())
                     .then(data => {
                         if (data && data.current_weather) {
                             const w = data.current_weather;
-                            let cond = 'Clear';
-                            if (w.weathercode > 0 && w.weathercode <= 3) cond = 'Cloudy';
-                            if (w.weathercode >= 45 && w.weathercode <= 48) cond = 'Fog';
-                            if (w.weathercode >= 51 && w.weathercode <= 67) cond = 'Rain';
-                            if (w.weathercode >= 71 && w.weathercode <= 77) cond = 'Snow';
-                            if (w.weathercode >= 95) cond = 'Storm';
-                            document.getElementById('live-weather').textContent = `${w.temperature}°C ${cond}`;
+                            const cond = weatherConditionForCode(w.weathercode);
+                            const icon = weatherIconForCode(w.weathercode);
+                            setWeatherDisplay(String(w.temperature), cond, icon);
                         } else {
-                            document.getElementById('live-weather').textContent = 'Unavailable';
+                            setWeatherError('Unavailable');
                         }
                     })
                     .catch(() => {
-                        document.getElementById('live-weather').textContent = 'Offline';
+                        setWeatherError('Offline');
                     });
             }
 
             if (manualLat && manualLon && !isNaN(parseFloat(manualLat)) && !isNaN(parseFloat(manualLon))) {
-                // Use admin-configured coordinates for accurate weather
                 fetchWeather(manualLat, manualLon);
             } else {
-                // Fallback: auto-detect location via IP geolocation
                 fetch('https://get.geojs.io/v1/ip/geo.json')
                     .then(res => res.json())
                     .then(geo => fetchWeather(geo.latitude, geo.longitude))
                     .catch(() => {
-                        document.getElementById('live-weather').textContent = 'Offline';
+                        setWeatherError('Offline');
                     });
             }
         })();

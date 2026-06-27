@@ -54,6 +54,42 @@
         }
     }
 
+    function isMobileSearchCollapsed() {
+        const wrapper = document.getElementById('search-bar-wrapper');
+        if (!wrapper) return false;
+        return window.matchMedia('(max-width: 768px)').matches && !wrapper.classList.contains('is-expanded');
+    }
+
+    function expandSearchBar() {
+        const wrapper = document.getElementById('search-bar-wrapper');
+        const toggle = document.getElementById('search-toggle');
+        if (!wrapper) return;
+        wrapper.classList.add('is-expanded');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+    }
+
+    function collapseSearchBar() {
+        const wrapper = document.getElementById('search-bar-wrapper');
+        const toggle = document.getElementById('search-toggle');
+        if (!wrapper) return;
+        wrapper.classList.remove('is-expanded');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    function initSearchToggle() {
+        const wrapper = document.getElementById('search-bar-wrapper');
+        const toggle = document.getElementById('search-toggle');
+        if (!wrapper || !toggle) return;
+
+        toggle.addEventListener('click', function () {
+            expandSearchBar();
+            const input = document.getElementById('search-input');
+            if (input) {
+                input.focus();
+            }
+        });
+    }
+
     function refreshModeUi() {
         const mode = getMode();
         const engineSelect = document.getElementById('search-engine');
@@ -150,6 +186,9 @@
                 input.value = '';
                 applyAppFilter('');
                 input.blur();
+                if (window.matchMedia('(max-width: 768px)').matches) {
+                    collapseSearchBar();
+                }
                 return;
             }
             if (e.key !== 'Enter') return;
@@ -167,7 +206,14 @@
             }
         });
 
+        initSearchToggle();
+
+        globalThis.amudExpandAppSearch = expandSearchBar;
+        globalThis.amudCollapseAppSearch = collapseSearchBar;
         globalThis.amudFocusAppSearch = function () {
+            if (isMobileSearchCollapsed()) {
+                expandSearchBar();
+            }
             if (getMode() !== 'apps') setMode('apps');
             input.focus();
             input.select();
@@ -175,6 +221,9 @@
         globalThis.amudClearAppSearch = function () {
             input.value = '';
             applyAppFilter('');
+            if (window.matchMedia('(max-width: 768px)').matches) {
+                collapseSearchBar();
+            }
         };
     }
 

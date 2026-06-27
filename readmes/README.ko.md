@@ -20,24 +20,9 @@
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### 릴리스 상태(감사 2026-06-25)
+### 릴리스 상태
 
-깨끗한 Proxmox 테스트 컨테이너에서 수동 검증을 거친 후, 현재 다음 릴리스들이 검증된 기본 빌드로 유지됩니다.
-
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`
-- `v1.5.6.0`
-- `v1.5.6.2`
-- `v1.5.6.3`
-- `v1.5.6.4`
-- `v1.6.0` (현재 권장되는 최신 버전)
-
-감사 중 발견된 비정상적인 태그는 GitHub 릴리스/태그에서 제거되었으며 사용해서는 안 됩니다. **`v1.5.5.4` 또는 `v1.5.6.1`(철회)을 사용하지 마십시오.**
+최근 **5**개의 검증된 릴리스 및 철회된 태그: **[영어 README](../README.md)** (Release status 섹션) 참조.
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

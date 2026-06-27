@@ -20,24 +20,9 @@
 
 Historial completo: **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Estado de versiones (auditoría 2026-06-25)
+### Estado de versiones
 
-Después de la validación manual en un contenedor de prueba Proxmox limpio, estas versiones se mantienen como líneas base conocidas y buenas:
-
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`
-- `v1.5.6.0`
-- `v1.5.6.2`
-- `v1.5.6.3`
-- `v1.5.6.4`
-- `v1.6.0` (última recomendada actualmente)
-
-Las etiquetas rotas identificadas durante la auditoría se eliminaron de las versiones/etiquetas de GitHub y no deben usarse. **No uses `v1.5.5.4` ni `v1.5.6.1`.**
+Últimas **5** versiones validadas y etiquetas retiradas: **[README en inglés](../README.md)** (sección Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

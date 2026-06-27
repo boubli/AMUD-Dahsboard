@@ -32,8 +32,8 @@ pub(crate) use crate::settings::{
     AGENT_CONFIG_SETTING_KEYS, DONATION_LINKS, DONATION_MESSAGE, SECRET_SETTING_KEYS,
 };
 pub(crate) use crate::templates::{
-    apply_shared_branding, branding_from_settings, build_root_css, build_theme_scheduler_json,
-    escape_html, normalize_url, safe_css_url, BrandingRenderOptions,
+    apply_branding_head, apply_shared_branding, branding_from_settings, build_root_css,
+    build_theme_scheduler_json, escape_html, normalize_url, safe_css_url, BrandingRenderOptions,
 };
 pub(crate) use crate::webhooks::{normalize_webhook_event_types, send_webhook_notification};
 pub(crate) use axum::{

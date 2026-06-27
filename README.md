@@ -21,23 +21,15 @@ Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changel
 
 ### Release status (audit 2026-06-27)
 
-After manual validation in a clean Proxmox test container, these releases are currently kept as known-good baselines:
+Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
 - `v1.6.3` (current latest recommended)
 - `v1.6.0`
 - `v1.5.6.4`
 - `v1.5.6.3`
 - `v1.5.6.2`
-- `v1.5.6.0`
-- `v1.5.5.9`
-- `v1.5.5.6`
-- `v1.5.5.3`
-- `v1.4.1.0`
-- `v1.3.7`
-- `v1.3.6`
-- `v1.0.0`
 
-Broken or withdrawn tags should not be used. **Do not use `v1.5.5.4`, `v1.5.6.1`, or `v1.6.1`.**
+**Do not use:** `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

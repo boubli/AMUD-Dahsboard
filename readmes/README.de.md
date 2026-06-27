@@ -20,24 +20,9 @@
 
 Vollständiger Verlauf: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release-Status (Audit 2026-06-25)
+### Release-Status
 
-Nach manueller Validierung in einem sauberen Proxmox-Testcontainer werden diese Versionen derzeit als bekannte, gute Baselines beibehalten:
-
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`
-- `v1.5.6.0`
-- `v1.5.6.2`
-- `v1.5.6.3`
-- `v1.5.6.4`
-- `v1.6.0` (aktuell empfohlen)
-
-Während des Audits identifizierte fehlerhafte Tags wurden aus den GitHub-Releases/Tags entfernt und sollten nicht verwendet werden. **Verwenden Sie nicht `v1.5.5.4` oder `v1.5.6.1` (zurückgezogen).**
+Letzte **5** validierte Releases und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
