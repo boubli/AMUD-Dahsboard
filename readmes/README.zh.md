@@ -10,21 +10,34 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.6.3 新特性
+### v1.6.0 新特性
 
-- **37 款内置主题** — 设置 → 外观中的可视化**主题画廊**（预览 CSS + 壁纸后保存）
-- **18 个新主题包** — 自然、终端、柔美、多样；各含离线 Unsplash/Pexels 壁纸
-- **访客面板** — 紧凑卡片（图标、名称、在线/离线）
-- **RSS 设置** — 添加订阅弹窗与分类表布局修复
-- **集成卡片** — 6 格统计与 30 秒刷新（v1.5.6.2）
+- **与 Homepage 和 Homarr 功能对齐** — YAML/JSON 导入、自定义 API、LDAP、看板、集成缓存、40+ 个新集成
+- **Plex / Jellyfin 卡片** — 显示每个应用的活跃流媒体数量
+- **\*arr 日历小组件** — Sonarr/Radarr/Lidarr/Readarr 即将发布的内容
+- **版本追踪** — GitHub 和 Docker Hub 版本徽章
+- **多节点代理** — 允许每个主机使用 `AMUD_NODE_TAG` 标记遥测数据
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### 版本状态（审计 2026-06-26）
+### 版本状态（审计 2026-06-25）
 
-- `v1.5.6.3`（当前推荐）· 亦已验证：`v1.5.6.2`、`v1.5.6.0`、`v1.5.5.9` 等
+在干净的 Proxmox 测试容器中进行手动验证后，以下版本目前被保留为已知正常的基线版本：
 
-请勿使用 `v1.5.5.4` 或 `v1.5.6.1`（已撤回）。
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3`
+- `v1.5.5.6`
+- `v1.5.5.9`
+- `v1.5.6.0`
+- `v1.5.6.2`
+- `v1.5.6.3`
+- `v1.5.6.4`
+- `v1.6.0`（当前推荐最新版本）
+
+在审计过程中发现的损坏标签已从 GitHub 发布/标签中移除，不应使用。**请勿使用 `v1.5.5.4` 或 `v1.5.6.1`（已撤回）。**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

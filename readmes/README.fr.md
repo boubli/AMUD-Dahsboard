@@ -10,21 +10,34 @@
 
 **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galerie de thèmes](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Feuille de route](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Nouveautés de la v1.5.6.3
+### Nouveautés de la v1.6.0
 
-- **37 thèmes inclus** — **Galerie de thèmes** visuelle dans Paramètres → Apparence (aperçu CSS + fond, puis Enregistrer)
-- **18 nouveaux packs** — Nature, Terminal, Féminin, Variété ; fond d'écran Unsplash/Pexels inclus pour chacun
-- **Tableau invité** — cartes compactes (icône, nom, en ligne/hors ligne)
-- **RSS** — modal d'ajout de flux et tableau des catégories corrigé
-- **Cartes d'intégration** — grille 6 cellules et rafraîchissement 30 s (v1.5.6.2)
+- **Parité avec Homepage & Homarr** — importation YAML/JSON, API personnalisée, LDAP, tableaux, cache d'intégration, plus de 40 nouvelles intégrations
+- **Cartes Plex / Jellyfin** — nombre de flux actifs par application
+- **Widget calendrier \*arr** — sorties à venir pour Sonarr/Radarr/Lidarr/Readarr
+- **Suivi des versions** — badges de version GitHub et Docker Hub
+- **Agent multi-nœud** — marquage de la télémétrie avec `AMUD_NODE_TAG` par hôte
 
 Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### État des versions (audit 2026-06-26)
+### État des versions (audit 2026-06-25)
 
-- `v1.5.6.3` (dernière recommandée) · également validées : `v1.5.6.2`, `v1.5.6.0`, `v1.5.5.9`, `v1.5.5.6`, `v1.5.5.3`, `v1.4.1.0`, `v1.3.7`, `v1.3.6`, `v1.0.0`
+Après validation manuelle dans un conteneur de test Proxmox propre, ces versions sont actuellement conservées comme bases de référence connues et fiables :
 
-N'utilisez pas `v1.5.5.4` ni `v1.5.6.1` (retirée).
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3`
+- `v1.5.5.6`
+- `v1.5.5.9`
+- `v1.5.6.0`
+- `v1.5.6.2`
+- `v1.5.6.3`
+- `v1.5.6.4`
+- `v1.6.0` (dernière recommandée actuellement)
+
+Les balises corrompues identifiées lors de l'audit ont été supprimées des versions/balises GitHub et ne doivent pas être utilisées. **N'utilisez pas `v1.5.5.4` ni `v1.5.6.1`.**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

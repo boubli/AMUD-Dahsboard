@@ -10,21 +10,34 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme-Galerie](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Dokumentation](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Was ist neu in v1.5.6.3
+### Was ist neu in v1.6.0
 
-- **37 mitgelieferte Themes** — visuelle **Theme-Galerie** unter Einstellungen → Erscheinungsbild (CSS + Hintergrundbild vorab, dann Speichern)
-- **18 neue Pakete** — Natur, Terminal, Feminine, Variety; jeweils eigenes Unsplash/Pexels-Hintergrundbild offline
-- **Gast-Dashboard** — kompakte Karten (Icon, Name, Online/Offline)
-- **RSS-Einstellungen** — Feed-Modal und Kategorietabelle behoben
-- **Integrationskarten** — 6-Zellen-Raster, 30-Sekunden-Aktualisierung (v1.5.6.2)
+- **Homepage- & Homarr-Parität** — YAML/JSON-Import, benutzerdefinierte API, LDAP, Boards, Integrations-Cache, über 40 neue Integrationen
+- **Plex / Jellyfin Karten** — Anzahl aktiver Streams pro App
+- **\*arr-Kalender-Widget** — bevorstehende Veröffentlichungen von Sonarr/Radarr/Lidarr/Readarr
+- **Release-Tracker** — GitHub- und Docker Hub-Versions-Badges
+- **Multi-Node-Agent** — Telemetrie mit `AMUD_NODE_TAG` pro Host kennzeichnen
 
 Vollständiger Verlauf: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release-Status (Audit 2026-06-26)
+### Release-Status (Audit 2026-06-25)
 
-- `v1.5.6.3` (aktuell empfohlen) · außerdem validiert: `v1.5.6.2`, `v1.5.6.0`, `v1.5.5.9`, `v1.5.5.6`, `v1.5.5.3`, `v1.4.1.0`, `v1.3.7`, `v1.3.6`, `v1.0.0`
+Nach manueller Validierung in einem sauberen Proxmox-Testcontainer werden diese Versionen derzeit als bekannte, gute Baselines beibehalten:
 
-**Nicht** `v1.5.5.4` oder `v1.5.6.1` (zurückgezogen) verwenden.
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3`
+- `v1.5.5.6`
+- `v1.5.5.9`
+- `v1.5.6.0`
+- `v1.5.6.2`
+- `v1.5.6.3`
+- `v1.5.6.4`
+- `v1.6.0` (aktuell empfohlen)
+
+Während des Audits identifizierte fehlerhafte Tags wurden aus den GitHub-Releases/Tags entfernt und sollten nicht verwendet werden. **Verwenden Sie nicht `v1.5.5.4` oder `v1.5.6.1` (zurückgezogen).**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 

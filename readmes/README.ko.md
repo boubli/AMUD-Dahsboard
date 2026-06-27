@@ -10,19 +10,34 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.5.6.3 새로운 기능
+### v1.6.0 새로운 기능
 
-- **37개 번들 테마** — 설정 → 모양의 **테마 갤러리**(CSS + 배경화면 미리보기 후 저장)
-- **18개 신규 팩** — 자연, 터미널, 페미닌, 버라이어티; 테마별 Unsplash/Pexels 배경화면 포함
-- **게스트 대시보드** — 컴팩트 카드(아이콘, 이름, 온라인/오프라인)
-- **RSS 설정** — 피드 추가 모달 및 카테고리 표 수정
-- **통합 카드** — 6칸 그리드, 30초 새로고침(v1.5.6.2)
+- **Homepage & Homarr 기능 대등성** — YAML/JSON 가져오기, 사용자 정의 API, LDAP, 보드, 통합 캐시, 40개 이상의 신규 통합
+- **Plex / Jellyfin 카드** — 앱당 활성 스트림 수 표시
+- **\*arr 캘린더 위젯** — Sonarr/Radarr/Lidarr/Readarr 향후 출시 예정 정보
+- **릴리스 추적기** — GitHub 및 Docker Hub 버전 배지
+- **다중 노드 에이전트** — 호스트별 `AMUD_NODE_TAG`로 원격 측정 태그 지정
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### 릴리스 상태(감사 2026-06-26)
+### 릴리스 상태(감사 2026-06-25)
 
-- `v1.5.6.3`(권장) · `v1.5.5.4`, `v1.5.6.1`(철회) 사용 금지
+깨끗한 Proxmox 테스트 컨테이너에서 수동 검증을 거친 후, 현재 다음 릴리스들이 검증된 기본 빌드로 유지됩니다.
+
+- `v1.0.0`
+- `v1.3.6`
+- `v1.3.7`
+- `v1.4.1.0`
+- `v1.5.5.3`
+- `v1.5.5.6`
+- `v1.5.5.9`
+- `v1.5.6.0`
+- `v1.5.6.2`
+- `v1.5.6.3`
+- `v1.5.6.4`
+- `v1.6.0` (현재 권장되는 최신 버전)
+
+감사 중 발견된 비정상적인 태그는 GitHub 릴리스/태그에서 제거되었으며 사용해서는 안 됩니다. **`v1.5.5.4` 또는 `v1.5.6.1`(철회)을 사용하지 마십시오.**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
 
