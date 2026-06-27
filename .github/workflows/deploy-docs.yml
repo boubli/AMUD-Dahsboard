@@ -1,4 +1,4 @@
-name: Deploy Docs to GitHub Pages
+name: Deploy Docusaurus to GitHub Pages
 
 on:
   push:
@@ -11,37 +11,51 @@ on:
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Build and publish docs site
+  build:
+    name: Build Docusaurus
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5286caeca186269dad6339061c4c7c2f0 # v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: npm
           cache-dependency-path: docs/package-lock.json
 
-      - name: Install dependencies and build
-        run: |
-          cd docs
-          npm ci
-          npm run build
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./docs
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@4f9cc8f4e65c7972addcfc4d4d8d3da6ee5ea7f5 # v4
+      - name: Build Docusaurus website
+        run: npm run build
+        working-directory: ./docs
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/build
-          force_orphan: true
+          path: docs/build
+
+  deploy:
+    name: Deploy to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
