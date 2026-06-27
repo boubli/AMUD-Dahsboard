@@ -11,6 +11,14 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.6.0)
+
+- **Universal parity** — integration cache, Homepage/Homarr import, Custom API, LDAP, boards, manifest API
+- **Plex/Jellyfin cards** + **\*arr calendar** widget + release trackers
+- **40+ long-tail integrations** — Autobrr, Gotify, Prometheus, OMV, Kubernetes, Healthchecks, Gatus, …
+- **Multi-node agent** — `node_tag` / `AMUD_NODE_TAG` telemetry labels
+- **Comparison & migration docs** — [comparison](./comparison.md), [Homepage](./migration/homepage.md), [Homarr](./migration/homarr.md)
+
 ## Recently shipped (v1.5.x)
 
 - **Feeds redesign** — news cards, categories, hero headline, drag reorder (v1.5.4.0)
@@ -34,23 +42,24 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ## Now (active focus)
 
-- **Quality bar** — keep SonarCloud green, `cargo audit` clean, pinned CI actions.
-- **ARM64 release binaries** — official builds alongside x86_64.
-- **Webhook templates** — richer preset payloads beyond URL shortcuts.
+- **Universal dashboard parity** — integration cache, Homepage import, Custom API, LDAP, boards, long-tail integrations ([comparison](./comparison.md))
+- **Quality bar** — keep SonarCloud green, `cargo audit` clean, CI integration tests
+- **ARM64 release binaries** — official builds alongside x86_64
 
 ---
 
 ## Next
 
-- **Core integration expansion** — phased rollout: Tier 1 gaps (Proxmox, Tailscale, Netbird), Tier 2 full cards (Synology, Unraid, Home Assistant, …), Tier 3 health-check catalog (Gitea, MinIO, Jenkins, …). See integration dropdown optgroups in Add App.
-- **Backup/restore UX** — export scheduling reminders (basic validate/counts shipped in v1.5.3.0).
+- **Remaining Homepage widget catalog** — niche services via registry batches + Custom API
+- **Docusaurus locale packs** — translate docs site (READMEs already in 11 languages)
+- **Backup/restore UX** — export scheduling reminders
 
 ---
 
 ## Later (ideas, not commitments)
 
 - **Multi-node agent** — one dashboard, several Proxmox hosts reporting in.
-- **API tokens** — scoped read-only tokens for external dashboards/scripts.
+- **API tokens** — scoped read-only tokens for external dashboards/scripts (shipped; expand scopes).
 - **Mobile PWA polish** — offline shell, install prompts, tighter touch targets.
 - **Per-integration setup wizards** — guided Pi-hole, *arr, and DNS blocker configuration in Settings.
 

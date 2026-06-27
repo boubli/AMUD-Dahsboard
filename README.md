@@ -10,11 +10,13 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.5.6.4
+### What's new in v1.6.0
 
-- **13 new integrations** — Lidarr, Readarr, Whisparr, SABnzbd, NZBGet, Transmission, Jackett, Tautulli, Audiobookshelf, Immich, Tdarr, Maintainerr, Frigate
-- **Theme system fix** — wallpaper overlay strength slider; glass blur/opacity/radius work on all 37 themes (set overlay to **0** for clear wallpaper)
-- **Integration cards** — 8 metric cells always filled (CPU/RAM show `—` when agent off); no card hover lift
+- **Homepage & Homarr parity** — YAML/JSON import, Custom API, LDAP, boards, integration cache, 40+ new integrations
+- **Plex / Jellyfin cards** — per-app active stream counts
+- **\*arr calendar widget** — Sonarr/Radarr/Lidarr/Readarr upcoming releases
+- **Release trackers** — GitHub and Docker Hub version badges
+- **Multi-node agent** — tag telemetry with `AMUD_NODE_TAG` per host
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -32,7 +34,8 @@ After manual validation in a clean Proxmox test container, these releases are cu
 - `v1.5.6.0`
 - `v1.5.6.2`
 - `v1.5.6.3`
-- `v1.5.6.4` (current latest recommended)
+- `v1.5.6.4`
+- `v1.6.0` (current latest recommended)
 
 Broken tags identified during audit were removed from GitHub releases/tags and should not be used. **Do not use `v1.5.5.4` or `v1.5.6.1`.**
 
@@ -40,7 +43,9 @@ Broken tags identified during audit were removed from GitHub releases/tags and s
 
 A compiled, zero-dependency homelab control center and telemetry dashboard.
 
-Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes (PHP-FPM, Node.js) and rely on complex nested YAML configuration files, AMUD is written in compiled Rust and persisted entirely in SQLite. Combined, the server and telemetry agent idle at **35MB to 100MB of RAM** with sub-millisecond route execution.
+Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes (PHP-FPM, Node.js) and rely on complex nested YAML configuration files, AMUD is written in compiled Rust and persisted entirely in SQLite. Combined, the server and telemetry agent idle at **30–50 MB of RAM** (peak ~150 MB with a full integration grid) with sub-millisecond route execution.
+
+**Homepage & Homarr parity:** AMUD ships integration cache, Homepage YAML import, Custom API widgets, LDAP, per-user boards, Plex/Jellyfin cards, and a growing long-tail catalog — see [Comparison](https://boubli.github.io/AMUD-Dashboard/docs/comparison).
 
 ## Architecture & Design Decisions
 

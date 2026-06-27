@@ -598,7 +598,20 @@ pub async fn integration_data_handler(
             .unwrap_or(false)
     };
 
-    if let Some(data) = crate::integrations::fetch_integration_data(&app, accept_invalid).await {
+    let ttl = crate::integration_registry::ttl_for_type(&app.integration_type);
+    let app_id = app.id;
+    let app_clone = app.clone();
+    let cache = state.integration_cache.clone();
+    if let Some(data) =
+        cache
+            .get_or_fetch(app_id, ttl, || {
+                let a = app_clone.clone();
+                async move {
+                    crate::integrations::fetch_integration_data_uncached(&a, accept_invalid).await
+                }
+            })
+            .await
+    {
         return Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", "application/json")

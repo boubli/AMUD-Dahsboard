@@ -98,6 +98,7 @@ struct TelemetryConfig {
     external_ifaces: Vec<String>,
     internal_ifaces: Vec<String>,
     disk_mounts: Vec<String>,
+    node_tag: String,
 }
 
 fn telemetry_config() -> &'static RwLock<TelemetryConfig> {
@@ -116,6 +117,21 @@ struct NetworkBaseline {
 fn network_baseline() -> &'static Mutex<NetworkBaseline> {
     static BASELINE: OnceLock<Mutex<NetworkBaseline>> = OnceLock::new();
     BASELINE.get_or_init(|| Mutex::new(NetworkBaseline::default()))
+}
+
+fn agent_node_tag() -> String {
+    if let Ok(tag) = std::env::var("AMUD_NODE_TAG") {
+        let t = tag.trim();
+        if !t.is_empty() {
+            return t.to_string();
+        }
+    }
+    let cfg = telemetry_config().read().unwrap();
+    if cfg.node_tag.trim().is_empty() {
+        "Local".to_string()
+    } else {
+        cfg.node_tag.clone()
+    }
 }
 
 fn reset_network_baseline() {
@@ -165,6 +181,12 @@ fn apply_telemetry_config(config: &serde_json::Value) {
             .and_then(|v| v.as_str())
             .map(parse_mount_list)
             .unwrap_or_default();
+        tc.node_tag = config
+            .get("agent_node_tag")
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.trim().is_empty())
+            .unwrap_or("Local")
+            .to_string();
     }
     CONFIG_READY.store(true, Ordering::Release);
     reset_network_baseline();
@@ -1234,6 +1256,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             visible_ifaces,
             visible_mounts,
             disk_volumes,
+            node_tag: agent_node_tag(),
         };
 
         let mut serialized = serde_json::to_vec(&telemetry).unwrap_or_default();
@@ -1303,15 +1326,20 @@ fn discover_docker_apps() -> Vec<serde_json::Value> {
         let rows: Vec<Row> = serde_json::from_slice(&body).ok()?;
         let mut out = Vec::new();
         for row in rows {
+            let homepage_href = row.labels.get("homepage.href").cloned();
+            let homepage_name = row.labels.get("homepage.name").cloned();
             let enabled = row
                 .labels
                 .get("amud.enable")
                 .map(|s| s == "true")
-                .unwrap_or(false);
+                .unwrap_or(false)
+                || homepage_href.is_some()
+                || homepage_name.is_some();
             let url = row
                 .labels
                 .get("amud.url")
                 .cloned()
+                .or(homepage_href)
                 .or_else(|| row.labels.get("traefik.http.routers.amud.rule").cloned());
             if !enabled && url.is_none() {
                 continue;
@@ -1320,6 +1348,7 @@ fn discover_docker_apps() -> Vec<serde_json::Value> {
                 .labels
                 .get("amud.name")
                 .cloned()
+                .or(homepage_name)
                 .or_else(|| {
                     row.names
                         .first()
@@ -1331,14 +1360,34 @@ fn discover_docker_apps() -> Vec<serde_json::Value> {
                 .labels
                 .get("amud.category")
                 .cloned()
+                .or_else(|| row.labels.get("homepage.group").cloned())
                 .unwrap_or_else(|| "General".to_string());
-            let icon = row.labels.get("amud.icon").cloned().unwrap_or_default();
+            let icon = row
+                .labels
+                .get("amud.icon")
+                .cloned()
+                .or_else(|| row.labels.get("homepage.icon").cloned())
+                .unwrap_or_default();
+            let integration_type = row
+                .labels
+                .get("amud.integration")
+                .cloned()
+                .or_else(|| row.labels.get("homepage.widget.type").cloned())
+                .unwrap_or_default();
+            let api_key = row
+                .labels
+                .get("amud.api_key")
+                .cloned()
+                .or_else(|| row.labels.get("homepage.widget.key").cloned())
+                .unwrap_or_default();
             out.push(serde_json::json!({
                 "name": name,
                 "url": url,
                 "category": category,
                 "icon": icon,
                 "container_id": row.id,
+                "integration_type": integration_type,
+                "api_key": api_key,
             }));
         }
         Some(out)

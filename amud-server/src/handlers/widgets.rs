@@ -77,10 +77,11 @@ pub async fn delete_widget_handler(
     Redirect::to("/admin/settings?tab=widgets").into_response()
 }
 
-pub(crate) fn render_dashboard_widgets(
+pub(crate) async fn render_dashboard_widgets(
     widgets: &[crate::models::DashboardWidget],
     is_guest: bool,
 ) -> String {
+    let client = reqwest::Client::new();
     let visible: Vec<_> = widgets
         .iter()
         .filter(|w| !is_guest || w.guest_visible)
@@ -111,6 +112,27 @@ pub(crate) fn render_dashboard_widgets(
                 }
                 links
             }
+            "calendar_ics" => {
+                let events = if w.content.trim().starts_with("http://")
+                    || w.content.trim().starts_with("https://")
+                {
+                    crate::calendar::fetch_ics_events(&client, w.content.trim())
+                        .await
+                        .unwrap_or_default()
+                } else {
+                    crate::calendar::parse_ics_preview(&w.content)
+                };
+                render_calendar_list(&events)
+            }
+            "arr_calendar" => {
+                let events = crate::calendar::fetch_arr_calendar_lines(&client, &w.content).await;
+                render_calendar_list(&events)
+            }
+            "datetime" => format!(
+                r#"<p class="widget-datetime">{}</p>"#,
+                escape_html(&crate::calendar::format_datetime_widget())
+            ),
+            "resources" => r#"<p class="widget-resources" data-resources-widget>Host metrics load via WebSocket.</p>"#.to_string(),
             _ => format!(r#"<p class="widget-note">{}</p>"#, escape_html(&w.content)),
         };
         html.push_str(&format!(
@@ -121,5 +143,20 @@ pub(crate) fn render_dashboard_widgets(
         ));
     }
     html.push_str("</section>");
+    html
+}
+
+fn render_calendar_list(events: &[serde_json::Value]) -> String {
+    let mut html = String::from(r#"<ul class="widget-calendar">"#);
+    for ev in events {
+        let title = ev.get("title").and_then(|v| v.as_str()).unwrap_or("—");
+        let start = ev.get("start").and_then(|v| v.as_str()).unwrap_or("");
+        html.push_str(&format!(
+            "<li><span class=\"widget-cal-date\">{}</span> {}</li>",
+            escape_html(start),
+            escape_html(title)
+        ));
+    }
+    html.push_str("</ul>");
     html
 }

@@ -39,6 +39,16 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("oidc_client_secret", "");
     s.insert("oidc_redirect_uri", "");
     s.insert("oidc_default_role", "Guest");
+    s.insert("integration_cache_ttl_secs", "45");
+    s.insert("integration_cache_max_entries", "256");
+    s.insert("ldap_enabled", "0");
+    s.insert("ldap_url", "");
+    s.insert("ldap_bind_dn", "");
+    s.insert("ldap_bind_password", "");
+    s.insert("ldap_base_dn", "");
+    s.insert("ldap_user_filter", "(uid={username})");
+    s.insert("oidc_admin_group", "");
+    s.insert("agent_node_tag", "Local");
 
     s
 }
@@ -49,6 +59,7 @@ pub(crate) const SECRET_SETTING_KEYS: &[&str] = &[
     "plex_token",
     "ha_token",
     "oidc_client_secret",
+    "ldap_bind_password",
 ];
 
 pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
@@ -76,6 +87,15 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "oidc_client_id",
     "oidc_redirect_uri",
     "oidc_default_role",
+    "integration_cache_ttl_secs",
+    "integration_cache_max_entries",
+    "ldap_enabled",
+    "ldap_url",
+    "ldap_bind_dn",
+    "ldap_base_dn",
+    "ldap_user_filter",
+    "oidc_admin_group",
+    "agent_node_tag",
 ];
 
 pub(crate) const AGENT_CONFIG_SETTING_KEYS: &[&str] = &[
@@ -367,7 +387,9 @@ pub(crate) fn sanitize_dashboard_layout(value: &str) -> String {
 /// Widget type whitelist.
 pub(crate) fn sanitize_widget_type(value: &str) -> String {
     match value.trim().to_ascii_lowercase().as_str() {
-        "links" | "html" | "calendar_ics" => value.trim().to_ascii_lowercase(),
+        "links" | "html" | "calendar_ics" | "arr_calendar" | "datetime" | "resources" => {
+            value.trim().to_ascii_lowercase()
+        }
         _ => "note".to_string(),
     }
 }

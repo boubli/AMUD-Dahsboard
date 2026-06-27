@@ -464,7 +464,10 @@ pub(crate) fn build_rss_entries(feed: &Feed) -> Vec<Value> {
         .collect()
 }
 
-pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Option<Value> {
+pub async fn fetch_integration_data_uncached(
+    app: &App,
+    accept_invalid_certs: bool,
+) -> Option<Value> {
     if app.integration_type.is_empty() || app.api_key.is_empty() {
         return None;
     }
@@ -765,6 +768,131 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
         }
         "blocky" => return crate::homelab::fetch_blocky(&client, base_url, &app.api_key).await,
         "openwrt" => return crate::homelab::fetch_openwrt(&client, base_url, &app.api_key).await,
+        "plex" => {
+            return crate::integrations_longtail::fetch_plex_card(&client, base_url, &app.api_key)
+                .await;
+        }
+        "jellyfin" => {
+            return crate::integrations_longtail::fetch_jellyfin_card(
+                &client,
+                base_url,
+                &app.api_key,
+            )
+            .await;
+        }
+        "custom_api" => {
+            return crate::custom_api::fetch_custom_api(&client, base_url, &app.api_key).await;
+        }
+        "autobrr" => {
+            return crate::integrations_longtail::fetch_autobrr(&client, base_url, &app.api_key)
+                .await;
+        }
+        "gotify" => {
+            return crate::integrations_longtail::fetch_gotify(&client, base_url, &app.api_key)
+                .await;
+        }
+        "changedetection" => {
+            return crate::integrations_longtail::fetch_changedetection(
+                &client,
+                base_url,
+                &app.api_key,
+            )
+            .await;
+        }
+        "prometheus" => {
+            return crate::integrations_longtail::fetch_prometheus(&client, base_url, &app.api_key)
+                .await;
+        }
+        "openmediavault" => {
+            return crate::integrations_longtail::fetch_openmediavault(
+                &client,
+                base_url,
+                &app.api_key,
+            )
+            .await;
+        }
+        "freshrss" => {
+            return crate::integrations_longtail::fetch_freshrss(&client, base_url, &app.api_key)
+                .await;
+        }
+        "ntfy" => {
+            return crate::integrations_longtail::fetch_ntfy(&client, base_url, &app.api_key).await;
+        }
+        "coolify" => {
+            return crate::integrations_longtail::fetch_coolify(&client, base_url, &app.api_key)
+                .await;
+        }
+        "aria2" => {
+            return crate::integrations_longtail::fetch_aria2(&client, base_url, &app.api_key)
+                .await;
+        }
+        "kubernetes" => {
+            return crate::integrations_longtail::fetch_kubernetes_summary(
+                &client,
+                base_url,
+                &app.api_key,
+            )
+            .await;
+        }
+        "speedtest_tracker" => {
+            let json = crate::homelab::get_json(
+                &client,
+                &format!("{base_url}/api/v1/stats"),
+                Some(&format!("Bearer {}", app.api_key)),
+            )
+            .await?;
+            return Some(serde_json::json!({
+                "type": "speedtest_tracker",
+                "tier2": true,
+                "status": "ok",
+                "download": json.get("data").and_then(|d| d.get("download")).map(|v| v.to_string()).unwrap_or_else(|| "—".into()),
+            }));
+        }
+        "gitea" | "forgejo" => {
+            return crate::integrations_longtail::fetch_gitea_full(&client, base_url, &app.api_key)
+                .await;
+        }
+        "gitlab" => {
+            return crate::integrations_longtail::fetch_gitlab_full(
+                &client,
+                base_url,
+                &app.api_key,
+            )
+            .await;
+        }
+        "jenkins" => {
+            return crate::integrations_longtail::fetch_jenkins_full(
+                &client,
+                base_url,
+                &app.api_key,
+            )
+            .await;
+        }
+        "minio" => {
+            return crate::integrations_longtail::fetch_minio_full(&client, base_url, &app.api_key)
+                .await;
+        }
+        "github_release" => {
+            let (repo, current) = parse_release_tracker_key(&app.api_key)?;
+            return crate::integrations_longtail::fetch_github_release(&client, &repo, &current)
+                .await;
+        }
+        "dockerhub_release" => {
+            let (image, current) = parse_release_tracker_key(&app.api_key)?;
+            return crate::integrations_longtail::fetch_dockerhub_release(
+                &client, &image, &current,
+            )
+            .await;
+        }
+        t if crate::integrations_longtail::is_longtail_type(t) => {
+            return crate::integrations_longtail::fetch_longtail(
+                &client,
+                t,
+                base_url,
+                &app.api_key,
+            )
+            .await;
+        }
         t if crate::homelab::is_health_only(t) => {
             return crate::homelab::fetch_health_integration(&client, t, base_url, &app.api_key)
                 .await;
@@ -791,6 +919,15 @@ pub async fn fetch_integration_data(app: &App, accept_invalid_certs: bool) -> Op
     }
 
     None
+}
+
+fn parse_release_tracker_key(raw: &str) -> Option<(String, String)> {
+    let parts: Vec<&str> = raw.splitn(2, '|').collect();
+    if parts.len() == 2 && !parts[0].trim().is_empty() {
+        Some((parts[0].trim().to_string(), parts[1].trim().to_string()))
+    } else {
+        None
+    }
 }
 
 fn count_prowlarr_indexers(indexers: &Value) -> (u64, u64) {

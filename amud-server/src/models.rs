@@ -152,6 +152,7 @@ pub struct AppState {
     pub db: Arc<Mutex<Connection>>,
     pub sessions: Arc<RwLock<HashMap<String, Session>>>,
     pub latest_telemetry: Arc<RwLock<AgentTelemetry>>,
+    pub telemetry_by_node: Arc<RwLock<HashMap<String, AgentTelemetry>>>,
     pub agent_connected: Arc<RwLock<bool>>,
     pub media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
     pub app_statuses: Arc<RwLock<HashMap<String, AppStatus>>>,
@@ -171,4 +172,5 @@ pub struct AppState {
     pub logo_manifest: Arc<HashMap<String, String>>,
     pub telemetry_broadcast:
         tokio::sync::watch::Sender<Arc<crate::telemetry_broadcast::WsTelemetryBundle>>,
+    pub integration_cache: Arc<crate::integration_cache::IntegrationCache>,
 }

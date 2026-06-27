@@ -5,7 +5,7 @@ title: Features
 
 # Features
 
-Complete inventory of what AMUD Dashboard ships today (v1.5.6.4). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
+Complete inventory of what AMUD Dashboard ships today (v1.6.0). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
 
 ---
 
@@ -116,6 +116,15 @@ Configure per app under **Add/Edit App → Integration**. Data loads when the ca
 | **Blocky DNS** | Blocking status | — | No |
 | **OpenWrt** | LuCI reachability (limited) | — | No |
 | **RSS / Atom** | Top 3 headlines | — | **Yes** |
+| **Plex / Jellyfin** | Per-app streams, status | — | No |
+| **Custom API** | Up to 6 mapped JSON fields | — | No |
+| **Autobrr / Gotify / Prometheus / OMV / FreshRSS / ntfy / Coolify / Aria2 / Kubernetes** | Standard metric cards | — | No |
+
+### Migration & parity
+
+- **Homepage YAML import** — `services.yaml` → SQLite apps ([migration guide](./migration/homepage.md))
+- **Docker Homepage labels** — discovered via `amud-agent`
+- **Comparison matrix** — [AMUD vs Homepage vs Homarr](./comparison.md)
 
 ### Health-check integrations (1×1 link card)
 
@@ -155,6 +164,9 @@ Configured under **Settings → Integrations**. Polls every few seconds when mat
 | **Argon2id passwords** | Legacy SHA-256 hashes rehashed on login |
 | **Bootstrap admin** | Random one-time password printed on first boot |
 | **Sessions** | 24h HttpOnly cookies, CSRF tokens, login rate limiting |
+| **OIDC SSO** | OpenID Connect login with configurable issuer, client, redirect |
+| **LDAP** | Optional bind authentication for homelab directories |
+| **API tokens** | Scoped Bearer tokens (`read:apps`, `read:status`) for automation |
 | **Encrypted secrets** | Integration API keys stored with ChaCha20-Poly1305 at rest |
 | **Security headers** | CSP nonce, X-Frame-Options, HSTS-ready via reverse proxy |
 

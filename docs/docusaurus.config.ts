@@ -27,7 +27,7 @@ const config: Config = {
       attributes: {
         name: 'description',
         content:
-          'AMUD Dashboard (Advanced Modern Unified Dashboard) — compiled Rust homelab dashboard. Zero YAML, live Proxmox and Docker telemetry. ~26MB RAM idle.',
+          'AMUD Dashboard — compiled Rust homelab dashboard replacing Homepage/Homarr. Zero YAML, live Proxmox/Docker telemetry, 150+ integrations, LDAP, import tools.',
       },
     },
     {

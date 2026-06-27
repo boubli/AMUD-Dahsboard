@@ -67,6 +67,9 @@ graph TD
 4. Active guest or admin WebSocket clients receive the payload filtered by their authorization role (sensitive LXC/container names are hidden from Guest views).
 
 ### External Integrations
-- App-card integrations (AdGuard, Pi-hole, Radarr, Sonarr, Overseerr, Jellyseerr, RSS) are fetched by `amud-server` **on demand** when a card loads its integration widget.
-- Jellyfin, Plex, and Home Assistant are polled on background intervals when configured.
-- The dashboard loads widget details asynchronously via authenticated, CSRF-hardened API requests.
+- App-card integrations are fetched through a **server-side TTL cache** with singleflight (`integration_cache.rs`) so many cards do not hammer upstream APIs.
+- A **PollCoordinator** (`integration_coordinator.rs`) warms cache entries only for integrations present on the dashboard, on a staggered schedule.
+- Client cards still refresh on viewport visibility (~30s); responses are served from cache when fresh.
+- Jellyfin, Plex (global stream badges), and Home Assistant use lightweight background pollers when configured.
+- **Custom API** integrations allow arbitrary HTTP JSON field mapping without a new Rust fetcher per service.
+- **Homepage import** (`homepage_import.rs`) maps `services.yaml` widget types into AMUD integration types for migration.

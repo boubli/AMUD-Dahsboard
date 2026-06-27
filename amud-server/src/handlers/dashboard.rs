@@ -201,7 +201,7 @@ async fn render_page(
     let widgets_html = match mode {
         PageMode::Dashboard => {
             let widgets = with_db(state.db.clone(), load_dashboard_widgets).await;
-            super::widgets::render_dashboard_widgets(&widgets, is_guest)
+            super::widgets::render_dashboard_widgets(&widgets, is_guest).await
         }
         PageMode::Feeds => String::new(),
     };
@@ -882,7 +882,7 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, _show_cpu_ra
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <template x-for="key in ['version','users','flows','devices','stacks','zones','plugins','entities','sessions','missing','queue','library','datastores','proxy_hosts','routers','array_state','blocking','volumes','model','certificates','middlewares','services','lights_on','server_name','wanted','total','parity_status','luci']" :key="key">
+                            <template x-for="key in ['version','users','flows','devices','stacks','zones','plugins','entities','sessions','missing','queue','library','datastores','proxy_hosts','routers','array_state','blocking','volumes','model','certificates','middlewares','services','lights_on','server_name','wanted','total','parity_status','luci','active_streams','releases','watches','applications','teams','active','unread','nodes','pods','jobs']" :key="key">
                                 <div class="metric-block" x-show="integrationData[key] !== undefined && integrationData[key] !== null && integrationData[key] !== '—'">
                                     <span class="metric-value" x-text="integrationData[key]"></span>
                                     <span class="metric-label" x-text="key.replace(/_/g, ' ')"></span>

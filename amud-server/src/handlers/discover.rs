@@ -115,6 +115,20 @@ pub async fn import_discovered_apps_handler(
             if name.is_empty() || url.is_empty() {
                 continue;
             }
+            let integration_type = app
+                .get("integration_type")
+                .and_then(|v| v.as_str())
+                .map(|t| {
+                    crate::integration_registry::map_homepage_widget_type(t)
+                        .unwrap_or(t)
+                        .to_string()
+                })
+                .unwrap_or_default();
+            let api_key = app
+                .get("api_key")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
             let exists: i64 = db
                 .query_row(
                     "SELECT COUNT(*) FROM apps WHERE lower(name) = lower(?) OR url = ?",
@@ -137,8 +151,8 @@ pub async fn import_discovered_apps_handler(
                 .to_string();
             let sort_order = crate::db::next_app_sort_order(db);
             let _ = db.execute(
-                "INSERT INTO apps (name, url, icon, description, category, node_tag, sort_order, guest_visible, embed_mode) VALUES (?, ?, ?, '', ?, 'Local', ?, 1, 'link')",
-                params![name, url, icon, category, sort_order],
+                "INSERT INTO apps (name, url, icon, description, category, node_tag, sort_order, guest_visible, embed_mode, integration_type, api_key) VALUES (?, ?, ?, '', ?, 'Local', ?, 1, 'link', ?, ?)",
+                params![name, url, icon, category, sort_order, integration_type, api_key],
             );
         }
     })

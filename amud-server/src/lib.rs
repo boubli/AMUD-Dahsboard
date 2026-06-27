@@ -2,12 +2,22 @@ pub mod agent;
 pub mod apps;
 pub mod audit;
 pub mod auth;
+pub mod boards;
+pub mod calendar;
+pub mod custom_api;
 pub mod db;
 pub mod feed_icons;
 pub mod fritz;
 pub mod handlers;
+pub mod homarr_import;
 pub mod homelab;
+pub mod homepage_import;
+pub mod integration_cache;
+pub mod integration_coordinator;
+pub mod integration_registry;
 pub mod integrations;
+pub mod integrations_longtail;
+pub mod ldap_auth;
 pub mod logos;
 pub mod media;
 pub mod models;
@@ -27,6 +37,8 @@ use auth::{
 };
 use db::refresh_settings_cache;
 use handlers::*;
+use integration_cache::IntegrationCache;
+use integration_coordinator::start_integration_coordinator;
 use logos::build_logo_manifest;
 use media::start_media_poller;
 use models::{ActionResult, AgentTelemetry, AppState, Session};
@@ -178,6 +190,8 @@ pub async fn run() {
         [],
     )
     .unwrap();
+
+    crate::boards::ensure_dashboards_table(&conn);
 
     // Migrate existing apps with MAC address configured
     if let Ok(mut stmt) = conn.prepare("SELECT name, mac_address, icon FROM apps WHERE mac_address IS NOT NULL AND TRIM(mac_address) != ''") {
@@ -394,6 +408,7 @@ pub async fn run() {
     let shared_db = Arc::new(Mutex::new(conn));
     let sessions = Arc::new(RwLock::new(HashMap::<String, Session>::new()));
     let latest_telemetry = Arc::new(RwLock::new(AgentTelemetry::default()));
+    let telemetry_by_node = Arc::new(RwLock::new(HashMap::new()));
     let agent_connected = Arc::new(RwLock::new(false));
     let media_streams = Arc::new(RwLock::new(HashMap::new()));
     let app_statuses = Arc::new(RwLock::new(HashMap::new()));
@@ -412,10 +427,27 @@ pub async fn run() {
     let logo_manifest = Arc::new(build_logo_manifest());
     let telemetry_broadcast = new_telemetry_broadcast();
 
+    let cache_ttl = {
+        let cache = settings_cache.read().unwrap();
+        cache
+            .get("integration_cache_ttl_secs")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(45u64)
+    };
+    let cache_max = {
+        let cache = settings_cache.read().unwrap();
+        cache
+            .get("integration_cache_max_entries")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(256usize)
+    };
+    let integration_cache = Arc::new(IntegrationCache::new(cache_max, cache_ttl));
+
     let state = Arc::new(AppState {
         db: shared_db.clone(),
         sessions: sessions.clone(),
         latest_telemetry: latest_telemetry.clone(),
+        telemetry_by_node: telemetry_by_node.clone(),
         agent_connected: agent_connected.clone(),
         media_streams: media_streams.clone(),
         app_statuses: app_statuses.clone(),
@@ -434,12 +466,14 @@ pub async fn run() {
         smart_home_telemetry: Arc::new(RwLock::new(Default::default())),
         logo_manifest: logo_manifest.clone(),
         telemetry_broadcast: telemetry_broadcast.clone(),
+        integration_cache: integration_cache.clone(),
     });
 
     start_telemetry_broadcaster(state.clone());
     start_agent_listener(state.clone());
     start_session_cleanup(sessions.clone());
     start_action_results_cleanup(action_results.clone());
+    start_integration_coordinator(state.clone());
     tokio::spawn(start_ha_polling(state.clone()));
 
     start_media_poller(shared_db.clone(), settings_cache.clone(), media_streams);
@@ -546,6 +580,26 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/discover/docker", post(discover_docker_handler))
         .route("/api/telemetry/discover", post(telemetry_discover_handler))
         .route("/api/discover/import", post(import_discovered_apps_handler))
+        .route(
+            "/api/migration/homepage/preview",
+            post(homepage_import_preview_handler),
+        )
+        .route(
+            "/api/migration/homepage/import",
+            post(homepage_import_apply_handler),
+        )
+        .route(
+            "/api/migration/homarr/import",
+            post(homarr_import_apply_handler),
+        )
+        .route(
+            "/api/integrations/manifest",
+            get(integration_manifest_handler),
+        )
+        .route(
+            "/api/boards",
+            get(list_boards_handler).post(create_board_handler),
+        )
         .route("/api/tokens", get(list_api_tokens_handler))
         .route("/api/tokens/create", post(create_api_token_handler))
         .route("/api/tokens/delete", post(delete_api_token_handler))

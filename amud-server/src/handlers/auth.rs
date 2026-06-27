@@ -61,10 +61,30 @@ pub async fn login_handler(
 
     let username_db = username.clone();
     let password_db = password.clone();
-    let login = with_db(state.db.clone(), move |db| {
-        process_login(db, &username_db, &password_db)
-    })
-    .await;
+
+    let ldap_cfg = {
+        let cache = state.settings_cache.read().unwrap();
+        crate::ldap_auth::ldap_settings_from_map(&cache)
+    };
+    let mut ldap_ok = false;
+    if ldap_cfg.enabled && !password.is_empty() {
+        ldap_ok = crate::ldap_auth::ldap_authenticate(&ldap_cfg, &username, &password)
+            .await
+            .is_ok();
+    }
+
+    let login = if ldap_ok {
+        crate::db::LoginDbResult {
+            success: true,
+            role: "Guest".to_string(),
+            must_change_password: false,
+        }
+    } else {
+        with_db(state.db.clone(), move |db| {
+            process_login(db, &username_db, &password_db)
+        })
+        .await
+    };
 
     if login.success {
         clear_failed_logins(&state.login_attempts, &username);

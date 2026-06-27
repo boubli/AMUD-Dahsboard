@@ -436,6 +436,7 @@ mod tests {
             db: Arc::new(Mutex::new(conn)),
             sessions: Arc::new(RwLock::new(HashMap::new())),
             latest_telemetry: Arc::new(RwLock::new(AgentTelemetry::default())),
+            telemetry_by_node: Arc::new(RwLock::new(HashMap::new())),
             agent_connected: Arc::new(RwLock::new(false)),
             media_streams: Arc::new(RwLock::new(default_media_streams())),
             app_statuses: Arc::new(RwLock::new(HashMap::new())),
@@ -454,6 +455,7 @@ mod tests {
             next_agent_conn_id: Arc::new(std::sync::atomic::AtomicU64::new(1)),
             logo_manifest: Arc::new(HashMap::new()),
             telemetry_broadcast: crate::telemetry_broadcast::new_telemetry_broadcast(),
+            integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
         });
 
         let old_telemetry = AgentTelemetry {
@@ -504,6 +506,7 @@ mod tests {
             db: Arc::new(Mutex::new(conn)),
             sessions: Arc::new(RwLock::new(HashMap::new())),
             latest_telemetry: Arc::new(RwLock::new(AgentTelemetry::default())),
+            telemetry_by_node: Arc::new(RwLock::new(HashMap::new())),
             agent_connected: Arc::new(RwLock::new(false)),
             media_streams: Arc::new(RwLock::new(default_media_streams())),
             app_statuses: Arc::new(RwLock::new(HashMap::new())),
@@ -522,6 +525,7 @@ mod tests {
             next_agent_conn_id: Arc::new(std::sync::atomic::AtomicU64::new(1)),
             logo_manifest: Arc::new(HashMap::new()),
             telemetry_broadcast: crate::telemetry_broadcast::new_telemetry_broadcast(),
+            integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
         });
 
         let old_telemetry = AgentTelemetry {

@@ -391,6 +391,27 @@ pub async fn settings_page_handler(
         .get("oidc_redirect_uri")
         .map(|s| s.as_str())
         .unwrap_or("");
+    let oidc_admin_group = settings
+        .get("oidc_admin_group")
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    let ldap_enabled = settings
+        .get("ldap_enabled")
+        .map(|s| s.as_str())
+        .unwrap_or("0");
+    let ldap_url = settings.get("ldap_url").map(|s| s.as_str()).unwrap_or("");
+    let ldap_bind_dn = settings
+        .get("ldap_bind_dn")
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    let ldap_base_dn = settings
+        .get("ldap_base_dn")
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    let ldap_user_filter = settings
+        .get("ldap_user_filter")
+        .map(|s| s.as_str())
+        .unwrap_or("(uid={username})");
     let kiosk_mode = settings
         .get("kiosk_mode")
         .map(|s| s.as_str())
@@ -424,6 +445,19 @@ pub async fn settings_page_handler(
         .replace("{{oidc_issuer}}", &escape_html(oidc_issuer))
         .replace("{{oidc_client_id}}", &escape_html(oidc_client_id))
         .replace("{{oidc_redirect_uri}}", &escape_html(oidc_redirect_uri))
+        .replace("{{oidc_admin_group}}", &escape_html(oidc_admin_group))
+        .replace("{{ldap_url}}", &escape_html(ldap_url))
+        .replace("{{ldap_bind_dn}}", &escape_html(ldap_bind_dn))
+        .replace("{{ldap_base_dn}}", &escape_html(ldap_base_dn))
+        .replace("{{ldap_user_filter}}", &escape_html(ldap_user_filter))
+        .replace(
+            "{{eq_ldap_enabled_on}}",
+            if ldap_enabled == "1" { "selected" } else { "" },
+        )
+        .replace(
+            "{{eq_ldap_enabled_off}}",
+            if ldap_enabled != "1" { "selected" } else { "" },
+        )
         .replace(
             "{{eq_oidc_enabled_on}}",
             if oidc_enabled == "1" { "selected" } else { "" },

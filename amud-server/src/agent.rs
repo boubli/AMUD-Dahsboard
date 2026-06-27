@@ -18,13 +18,24 @@ use tokio::net::TcpListener as TokioTcpListener;
 #[cfg(unix)]
 use tokio::net::UnixListener as TokioUnixListener;
 
-pub(crate) fn handle_new_telemetry(state: &Arc<AppState>, metrics: AgentTelemetry) {
+pub(crate) fn handle_new_telemetry(state: &Arc<AppState>, mut metrics: AgentTelemetry) {
+    if metrics.node_tag.trim().is_empty() {
+        metrics.node_tag = "Local".to_string();
+    }
+    let node = metrics.node_tag.clone();
+    state
+        .telemetry_by_node
+        .write()
+        .unwrap()
+        .insert(node.clone(), metrics.clone());
     let old_metrics = {
         let lock = state.latest_telemetry.read().unwrap();
         lock.clone()
     };
     check_container_alerts(&old_metrics, &metrics, state);
-    *state.latest_telemetry.write().unwrap() = metrics;
+    if node == "Local" || state.telemetry_by_node.read().unwrap().len() <= 1 {
+        *state.latest_telemetry.write().unwrap() = metrics;
+    }
 }
 
 pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: bool) {
@@ -246,6 +257,7 @@ pub(crate) fn agent_config_payload(
             "telemetry_external_ifaces": settings.get("telemetry_external_ifaces").cloned().unwrap_or_default(),
             "telemetry_internal_ifaces": settings.get("telemetry_internal_ifaces").cloned().unwrap_or_default(),
             "telemetry_disk_mounts": settings.get("telemetry_disk_mounts").cloned().unwrap_or_default(),
+            "agent_node_tag": settings.get("agent_node_tag").cloned().unwrap_or_else(|| "Local".into()),
         }
     })
 }

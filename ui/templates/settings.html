@@ -752,6 +752,23 @@
                         </div>
 
                         <div class="settings-block">
+                            <h3><i data-lucide="upload" style="color:var(--accent-color);"></i> Migrate from Homepage / Homarr</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Paste <code>services.yaml</code> from Homepage or a Homarr JSON export. Duplicates are skipped.</p>
+                            <form action="/api/migration/homepage/import" method="POST" style="margin-top:1rem;">
+                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                <label for="homepage-services-yaml">Homepage services.yaml</label>
+                                <textarea id="homepage-services-yaml" name="services_yaml" class="form-control" rows="6" placeholder="- Group:&#10;    - Service:&#10;        href: https://..."></textarea>
+                                <button type="submit" class="btn btn-secondary" style="margin-top:0.75rem;">Import Homepage apps</button>
+                            </form>
+                            <form action="/api/migration/homarr/import" method="POST" style="margin-top:1.5rem;">
+                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                                <label for="homarr-export-json">Homarr export JSON</label>
+                                <textarea id="homarr-export-json" name="homarr_json" class="form-control" rows="6" placeholder='{ "apps": [ ... ] }'></textarea>
+                                <button type="submit" class="btn btn-secondary" style="margin-top:0.75rem;">Import Homarr apps</button>
+                            </form>
+                        </div>
+
+                        <div class="settings-block">
                             <h3><i data-lucide="play" style="color:var(--accent-color);"></i> Plex</h3>
                             <div class="form-group">
                                 <label for="setting-plex-url">Plex URL</label>
@@ -1079,6 +1096,10 @@
                                 <option value="note">Note</option>
                                 <option value="links">Links (url|label per line)</option>
                                 <option value="html">HTML (sanitized)</option>
+                                <option value="calendar_ics">Calendar (ICS body or URL)</option>
+                                <option value="arr_calendar">*arr calendar (sonarr|url|apikey per line)</option>
+                                <option value="datetime">Date / time</option>
+                                <option value="resources">Host resources summary</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1169,6 +1190,42 @@
                     <div class="form-group" style="margin-top:1rem;">
                         <label for="setting-oidc-redirect">Redirect URI</label>
                         <input type="url" id="setting-oidc-redirect" name="oidc_redirect_uri" class="form-control" value="{{oidc_redirect_uri}}" placeholder="https://dashboard.example.com/auth/oidc/callback">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-oidc-admin-group">Admin group (optional)</label>
+                        <input type="text" id="setting-oidc-admin-group" name="oidc_admin_group" class="form-control" value="{{oidc_admin_group}}" placeholder="homelab-admins">
+                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.35rem;">Users in this OIDC <code>groups</code> claim receive Admin role.</p>
+                    </div>
+                </div>
+
+                <div class="settings-block" style="margin-top:1.5rem;">
+                    <h3><i data-lucide="network" style="color:var(--accent-color);"></i> LDAP</h3>
+                    <div class="form-group">
+                        <label for="setting-ldap-enabled">Enable LDAP login</label>
+                        <select id="setting-ldap-enabled" name="ldap_enabled" class="form-control">
+                            <option value="0" {{eq_ldap_enabled_off}}>Disabled</option>
+                            <option value="1" {{eq_ldap_enabled_on}}>Enabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-ldap-url">LDAP URL</label>
+                        <input type="url" id="setting-ldap-url" name="ldap_url" class="form-control" value="{{ldap_url}}" placeholder="ldap://ldap.example.com:389">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-ldap-bind-dn">Bind DN</label>
+                        <input type="text" id="setting-ldap-bind-dn" name="ldap_bind_dn" class="form-control" value="{{ldap_bind_dn}}">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-ldap-bind-password">Bind password</label>
+                        <input type="password" id="setting-ldap-bind-password" name="ldap_bind_password" class="form-control" placeholder="Leave blank to keep unchanged">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-ldap-base-dn">Base DN</label>
+                        <input type="text" id="setting-ldap-base-dn" name="ldap_base_dn" class="form-control" value="{{ldap_base_dn}}" placeholder="dc=example,dc=com">
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="setting-ldap-user-filter">User filter</label>
+                        <input type="text" id="setting-ldap-user-filter" name="ldap_user_filter" class="form-control" value="{{ldap_user_filter}}" placeholder="(uid={username})">
                     </div>
                 </div>
 

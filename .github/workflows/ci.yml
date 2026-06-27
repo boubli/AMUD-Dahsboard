@@ -28,6 +28,9 @@ jobs:
       - name: cargo test
         run: cargo test --workspace --lib
 
+      - name: RAM benchmark
+        run: bash scripts/ram_benchmark.sh
+
   docs:
     runs-on: ubuntu-latest
     steps:

@@ -351,6 +351,8 @@
                         <option value="navidrome">Navidrome</option>
                         <option value="komga">Komga</option>
                         <option value="emby">Emby</option>
+                        <option value="plex">Plex</option>
+                        <option value="jellyfin">Jellyfin</option>
                         <option value="tdarr">Tdarr</option>
                         <option value="maintainerr">Maintainerr</option>
                         <option value="frigate">Frigate</option>
@@ -417,6 +419,19 @@
                         <option value="blue_iris">Blue Iris</option>
                         <option value="shinobi">Shinobi</option>
                         <option value="agent_dvr">Agent DVR</option>
+                        <option disabled>Automation &amp; monitoring</option>
+                        <option value="custom_api">Custom API</option>
+                        <option value="autobrr">Autobrr</option>
+                        <option value="gotify">Gotify</option>
+                        <option value="changedetection">ChangeDetection.io</option>
+                        <option value="prometheus">Prometheus</option>
+                        <option value="openmediavault">OpenMediaVault</option>
+                        <option value="freshrss">FreshRSS</option>
+                        <option value="ntfy">ntfy</option>
+                        <option value="coolify">Coolify</option>
+                        <option value="aria2">Aria2</option>
+                        <option value="speedtest_tracker">Speedtest Tracker</option>
+                        <option value="kubernetes">Kubernetes</option>
                     </select>
                 </div>
 
@@ -709,6 +724,8 @@
                         <option value="navidrome">Navidrome</option>
                         <option value="komga">Komga</option>
                         <option value="emby">Emby</option>
+                        <option value="plex">Plex</option>
+                        <option value="jellyfin">Jellyfin</option>
                         <option value="tdarr">Tdarr</option>
                         <option value="maintainerr">Maintainerr</option>
                         <option value="frigate">Frigate</option>
@@ -775,6 +792,19 @@
                         <option value="blue_iris">Blue Iris</option>
                         <option value="shinobi">Shinobi</option>
                         <option value="agent_dvr">Agent DVR</option>
+                        <option disabled>Automation &amp; monitoring</option>
+                        <option value="custom_api">Custom API</option>
+                        <option value="autobrr">Autobrr</option>
+                        <option value="gotify">Gotify</option>
+                        <option value="changedetection">ChangeDetection.io</option>
+                        <option value="prometheus">Prometheus</option>
+                        <option value="openmediavault">OpenMediaVault</option>
+                        <option value="freshrss">FreshRSS</option>
+                        <option value="ntfy">ntfy</option>
+                        <option value="coolify">Coolify</option>
+                        <option value="aria2">Aria2</option>
+                        <option value="speedtest_tracker">Speedtest Tracker</option>
+                        <option value="kubernetes">Kubernetes</option>
                     </select>
                 </div>
 
@@ -1198,6 +1228,34 @@
                         document.getElementById('live-weather').textContent = 'Offline';
                     });
             }
+        })();
+    </script>
+    <script>
+        (function () {
+            fetch('/api/integrations/manifest', { credentials: 'same-origin' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) {
+                    if (!data || !data.groups) return;
+                    ['add-app-integration-type', 'edit-app-integration-type'].forEach(function (id) {
+                        var sel = document.getElementById(id);
+                        if (!sel) return;
+                        var existing = new Set(Array.from(sel.options).map(function (o) { return o.value; }));
+                        data.groups.forEach(function (g) {
+                            var og = document.createElement('optgroup');
+                            og.label = g.group;
+                            (g.integrations || []).forEach(function (item) {
+                                if (!item.id || existing.has(item.id)) return;
+                                var opt = document.createElement('option');
+                                opt.value = item.id;
+                                opt.textContent = item.label + (item.health_only ? ' (health)' : '');
+                                og.appendChild(opt);
+                                existing.add(item.id);
+                            });
+                            if (og.children.length) sel.appendChild(og);
+                        });
+                    });
+                })
+                .catch(function () {});
         })();
     </script>
 </body>

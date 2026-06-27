@@ -8,6 +8,27 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.6.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.0) — 2026-06-25
+
+Universal dashboard parity — Homepage/Homarr import, integration cache, LDAP, Custom API, long-tail integrations, Plex/Jellyfin cards, *arr calendar, release trackers, multi-node agent.
+
+### Added
+- **Integration cache** + poll coordinator for scalable card refresh
+- **Homepage YAML** and **Homarr JSON** importers (Settings → Integrations)
+- **Homepage Docker labels** in agent discovery
+- **Custom API**, **LDAP**, **OIDC admin groups**, **per-user boards**
+- **Plex/Jellyfin** per-app cards, **\*arr calendar** widget, **release trackers**
+- **40+ integrations** (Autobrr, Gotify, Prometheus, OMV, Kubernetes, …)
+- **Server-driven integration manifest** for Add/Edit app UI
+- **Multi-node agent** `node_tag` support
+- Docs: comparison matrix, migration guides, architecture updates
+
+### Improved
+- Generic tier-2 integration card template
+- Promoted health-only services to full cards (Gitea, GitLab, Jenkins, MinIO, Kopia, Headscale, Stash, …)
+
+---
+
 ## [v1.5.6.4](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.5.6.4) — 2026-06-25
 
 Theme system fix, 13 new integrations, filled integration cards, no card hover.

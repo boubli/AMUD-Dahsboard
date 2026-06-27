@@ -49,6 +49,9 @@ pub struct AgentTelemetry {
     pub visible_mounts: Vec<String>,
     #[serde(default)]
     pub disk_volumes: Vec<DiskMountTelemetry>,
+    /// Host label for multi-node agent deployments (matches app `node_tag`).
+    #[serde(default)]
+    pub node_tag: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]

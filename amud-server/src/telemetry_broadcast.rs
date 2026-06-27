@@ -175,6 +175,7 @@ mod tests {
             )),
             sessions: Arc::new(RwLock::new(HashMap::new())),
             latest_telemetry: Arc::new(RwLock::new(system)),
+            telemetry_by_node: Arc::new(RwLock::new(HashMap::new())),
             agent_connected: Arc::new(RwLock::new(true)),
             media_streams: Arc::new(RwLock::new(HashMap::new())),
             app_statuses: Arc::new(RwLock::new(app_statuses)),
@@ -193,6 +194,7 @@ mod tests {
             smart_home_telemetry: Arc::new(RwLock::new(Default::default())),
             logo_manifest: Arc::new(HashMap::new()),
             telemetry_broadcast: new_telemetry_broadcast(),
+            integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
         }
     }
 

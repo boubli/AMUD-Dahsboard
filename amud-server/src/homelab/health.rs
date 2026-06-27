@@ -7,17 +7,6 @@ use std::time::Instant;
 
 pub const HEALTH_ONLY_TYPES: &[&str] = &[
     "kodi",
-    "channels_dvr",
-    "stash",
-    "calibre_web",
-    "kopia",
-    "restic",
-    "duplicati",
-    "urbackup",
-    "gitea",
-    "forgejo",
-    "gitlab",
-    "jenkins",
     "drone",
     "hubitat",
     "smartthings",
@@ -25,10 +14,8 @@ pub const HEALTH_ONLY_TYPES: &[&str] = &[
     "blue_iris",
     "shinobi",
     "agent_dvr",
-    "headscale",
     "wireguard_ui",
     "openvpn",
-    "minio",
     "seaweedfs",
     "garage",
 ];
@@ -134,8 +121,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn health_only_types_include_gitea() {
-        assert!(is_health_only("gitea"));
+    fn health_only_types_exclude_promoted_full_cards() {
+        assert!(is_health_only("kodi"));
+        assert!(!is_health_only("gitea"));
         assert!(!is_health_only("grafana"));
     }
 }

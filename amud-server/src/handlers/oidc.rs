@@ -91,28 +91,47 @@ pub async fn oidc_callback_handler(
     let access = token.access_token().secret();
     let issuer = settings.get("oidc_issuer").cloned().unwrap_or_default();
     let userinfo_url = format!("{}/userinfo", issuer.trim_end_matches('/'));
-    let username = match reqwest::Client::new()
+    let userinfo_resp = reqwest::Client::new()
         .get(&userinfo_url)
         .bearer_auth(access)
         .send()
-        .await
-    {
-        Ok(resp) if resp.status().is_success() => {
-            let body: serde_json::Value = resp.json().await.unwrap_or_default();
-            body.get("preferred_username")
-                .or_else(|| body.get("email"))
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| "oidc-user".to_string())
-        }
-        _ => "oidc-user".to_string(),
+        .await;
+    let userinfo_body: Option<serde_json::Value> = match userinfo_resp {
+        Ok(resp) if resp.status().is_success() => resp.json().await.ok(),
+        _ => None,
     };
+
+    let username = match &userinfo_body {
+        Some(body) => body
+            .get("preferred_username")
+            .or_else(|| body.get("email"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "oidc-user".to_string()),
+        None => "oidc-user".to_string(),
+    };
+
+    let admin_group = settings
+        .get("oidc_admin_group")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty());
+    let in_admin_group = admin_group.is_some_and(|group| {
+        userinfo_body
+            .as_ref()
+            .and_then(|body| {
+                body.get("groups")
+                    .or_else(|| body.get("roles"))
+                    .and_then(|g| g.as_array())
+            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str()).any(|g| g == group))
+            .unwrap_or(false)
+    });
 
     let default_role = settings
         .get("oidc_default_role")
         .map(|s| s.as_str())
         .unwrap_or("Guest");
-    let role = if default_role == "Admin" {
+    let role = if in_admin_group || default_role == "Admin" {
         "Admin"
     } else {
         "Guest"
