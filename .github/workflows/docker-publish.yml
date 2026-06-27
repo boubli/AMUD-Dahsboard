@@ -2,11 +2,13 @@ name: Publish Docker Image
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*.*.*'
   workflow_dispatch:
+
+concurrency:
+  group: docker-publish
+  cancel-in-progress: true
 
 jobs:
   push_to_registry:
@@ -40,8 +42,7 @@ jobs:
         with:
           images: tradmss/amud-dashboard
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-            type=raw,value=${{ steps.amud_version.outputs.value }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=latest
             type=ref,event=tag
 
       - name: Set up Docker Buildx

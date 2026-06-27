@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-binaries:
@@ -46,18 +51,17 @@ jobs:
       - name: Stage release binaries
         run: |
           set -euxo pipefail
-          mkdir -p release-staging
-          cp target/release/amud-server "release-staging/${{ matrix.server_name }}"
-          cp target/release/amud-agent "release-staging/${{ matrix.agent_name }}"
-          ls -la release-staging/
+          staging="release-staging-${{ matrix.server_name }}"
+          mkdir -p "$staging"
+          cp target/release/amud-server "$staging/${{ matrix.server_name }}"
+          cp target/release/amud-agent "$staging/${{ matrix.agent_name }}"
+          ls -la "$staging/"
 
       - name: Upload binaries
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.server_name }}-binaries
-          path: |
-            release-staging/${{ matrix.server_name }}
-            release-staging/${{ matrix.agent_name }}
+          path: release-staging-${{ matrix.server_name }}/
 
   build-ui:
     name: Package UI assets
@@ -93,13 +97,17 @@ jobs:
       - name: Collect release files
         run: |
           set -euxo pipefail
-          find release-assets -maxdepth 3 -type f | sort
           mkdir -p dist
-          cp release-assets/amud-server-binaries/amud-server dist/
-          cp release-assets/amud-server-binaries/amud-agent dist/
-          cp release-assets/amud-server-arm64-binaries/amud-server-arm64 dist/
-          cp release-assets/amud-server-arm64-binaries/amud-agent-arm64 dist/
-          cp release-assets/ui-tarball/ui.tar.gz dist/
+          find release-assets -type f \( \
+            -name 'amud-server' -o \
+            -name 'amud-agent' -o \
+            -name 'amud-server-arm64' -o \
+            -name 'amud-agent-arm64' -o \
+            -name 'ui.tar.gz' \
+          \) -exec cp {} dist/ \;
+          for asset in amud-server amud-agent amud-server-arm64 amud-agent-arm64 ui.tar.gz; do
+            test -f "dist/$asset"
+          done
           cd dist
           sha256sum amud-server amud-agent amud-server-arm64 amud-agent-arm64 ui.tar.gz > SHA256SUMS
           grep -qE '[[:space:]/]amud-server$' SHA256SUMS
