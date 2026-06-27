@@ -46,11 +46,9 @@
     banner.querySelector('.pwa-install-banner__install')?.addEventListener('click', async () => {
       if (!deferredPrompt) return;
       deferredPrompt.prompt();
-      try {
-        await deferredPrompt.userChoice;
-      } catch (_) {
-        /* ignore */
-      }
+      await deferredPrompt.userChoice.catch((error) => {
+        console.debug('AMUD PWA install prompt closed:', error);
+      });
       deferredPrompt = null;
       dismissBanner();
     });
