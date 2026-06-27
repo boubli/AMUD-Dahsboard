@@ -33,5 +33,5 @@ feed-rs = "2"
 md5 = "0.7"
 urlencoding = "2"
 serde_yaml = "0.9"
-ldap3 = { version = "0.11", default-features = false, features = ["tls-rustls"] }
+ldap3 = { version = "0.12", default-features = false, features = ["tls-rustls-ring"] }
 
