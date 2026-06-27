@@ -17,10 +17,10 @@
     --border-card: rgba(0, 255, 65, 0.18);
     --border-hover: #00ff41;
     --theme-procedural: 1;
+    --theme-font: 'Courier Prime', monospace;
 }
 
 
-:root { --theme-font: 'Courier Prime', monospace; }
 body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:0.15; background: repeating-linear-gradient(0deg, rgba(0,255,65,0.15) 0, transparent 2px, transparent 4px); animation: amud-matrix-scroll 20s linear infinite; }
 @keyframes amud-matrix-scroll { 0% { background-position: 0 0; } 100% { background-position: 0 400px; } }
 

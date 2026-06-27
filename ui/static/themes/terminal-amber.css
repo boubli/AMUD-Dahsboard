@@ -17,10 +17,11 @@
     --border-card: rgba(255, 176, 0, 0.18);
     --border-hover: #ffb000;
     --theme-procedural: 1;
+    --theme-font: 'VT323', monospace;
+    --radius-xl: 2px;
 }
 
 
-:root { --theme-font: 'VT323', monospace; --radius-xl: 2px; }
 body, .brand-title { font-family: var(--theme-font); font-size: 1.1rem; }
 .app-card.glass-panel { border: 2px solid rgba(255,176,0,0.4); box-shadow: inset 0 0 20px rgba(255,176,0,0.05); }
 

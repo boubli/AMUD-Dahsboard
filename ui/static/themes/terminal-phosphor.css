@@ -17,10 +17,11 @@
     --border-card: rgba(51, 255, 102, 0.18);
     --border-hover: #33ff66;
     --theme-procedural: 1;
+    --radius-xl: 4px;
+    --theme-font: 'Share Tech Mono', monospace;
 }
 
 
-:root { --radius-xl: 4px; --theme-font: 'Share Tech Mono', monospace; }
 body, .brand-title, .btn-primary { font-family: var(--theme-font); }
 body::after { content:""; position:fixed; inset:0; pointer-events:none; z-index:9999; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px); }
 .app-card.glass-panel { border: 1px solid rgba(51,255,102,0.35); box-shadow: 0 0 16px rgba(51,255,102,0.12); }

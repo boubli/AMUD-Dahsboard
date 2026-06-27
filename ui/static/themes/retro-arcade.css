@@ -16,10 +16,11 @@
     --text-muted: #94a3b8;
     --border-card: rgba(239, 68, 68, 0.18);
     --border-hover: #ef4444;
+    --radius-xl: 0;
+    --theme-font: 'Press Start 2P', cursive;
 }
 
 
-:root { --radius-xl: 0; --theme-font: 'Press Start 2P', cursive; }
 .brand-title { font-size: 0.75rem; line-height: 1.6; }
 .app-card.glass-panel { border: 4px solid var(--accent-color); border-radius: 0; image-rendering: pixelated; }
 .btn-primary { border-radius: 0; font-family: var(--theme-font); font-size: 0.65rem; }

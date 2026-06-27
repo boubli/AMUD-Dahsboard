@@ -23,16 +23,14 @@
     var manifestCache = null;
 
     function themeId() {
-        var body = document.body;
-        if (!body) return 'default';
-        return body.getAttribute('data-theme-id') || 'default';
+        return document.body?.getAttribute('data-theme-id') || 'default';
     }
 
     function resolveAssetUrl(manifest, path) {
         if (!path) return '';
         if (path.indexOf('http://') === 0 || path.indexOf('https://') === 0) return path;
         if (path.indexOf('/') === 0) return path;
-        var base = (manifest && manifest.assetBase) || '';
+        var base = manifest?.assetBase || '';
         if (!base) return '/' + path.replace(/^\//, '');
         return base.replace(/\/$/, '') + '/' + path.replace(/^\//, '');
     }
@@ -176,9 +174,9 @@
         return loadManifest().then(function (manifest) {
             var entry = themeEntry(manifest, id);
             applyUiProfile(entry);
-            if (entry && entry.layoutCss) injectLayoutCss(entry.layoutCss);
-            if (entry && entry.fontUrl) injectFont(entry.fontUrl);
-            if (entry && entry.wallpaper && entry.usesWallpaper !== false) {
+            if (entry?.layoutCss) injectLayoutCss(entry.layoutCss);
+            if (entry?.fontUrl) injectFont(entry.fontUrl);
+            if (entry?.wallpaper && entry.usesWallpaper !== false) {
                 var wp = resolveAssetUrl(manifest, entry.wallpaper);
                 if (wp) applyWallpaperUrl(wp);
             }

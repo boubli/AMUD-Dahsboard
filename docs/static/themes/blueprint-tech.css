@@ -17,10 +17,12 @@
     --border-card: rgba(96, 165, 250, 0.18);
     --border-hover: #60a5fa;
     --theme-procedural: 1;
+    --theme-body-stack: linear-gradient(#0c1929, #0c1929), linear-gradient(rgba(96,165,250,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(96,165,250,0.15) 1px, transparent 1px);
+    --theme-procedural: 1;
+    background-size: auto, 24px 24px, 24px 24px;
 }
 
 
-:root { --theme-body-stack: linear-gradient(#0c1929, #0c1929), linear-gradient(rgba(96,165,250,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(96,165,250,0.15) 1px, transparent 1px); --theme-procedural: 1; background-size: auto, 24px 24px, 24px 24px; }
 .app-card.glass-panel { border: 1px dashed rgba(96,165,250,0.5); border-radius: 0; }
 .topbar { border: 1px dashed rgba(96,165,250,0.4); }
 

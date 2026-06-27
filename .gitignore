@@ -13,13 +13,17 @@ frontend/.env*
 
 # Backend
 backend/__pycache__/
-scripts/__pycache__/
 backend/*.pyc
 backend/*.pyo
 backend/.pytest_cache/
 backend/venv/
 backend/env/
 backend/.env
+
+# Maintainer-only tooling — NEVER push (theme gen, tests, Sonar, hooks)
+# Setup: cp -r maintainer-local.example maintainer-local
+maintainer-local/
+maintainer-local.example/scripts/__pycache__/
 
 # Security/Data
 backend/uploads/*
@@ -34,12 +38,8 @@ scratch/
 test_reports/
 memory/
 
-# Local-only tests (run before release; not published to GitHub)
+# Local-only Rust integration tests (copy into maintainer-local/ if needed)
 amud-server/tests/
-scripts/test_local.sh
-scripts/test-dashboard-rates.mjs
-scripts/test-disk-volumes.mjs
-scripts/test-*.mjs
 
 # Local dev canvases / experiments
 canvases/
@@ -53,6 +53,8 @@ test_result.md
 target/
 target-run/
 target-test/
+agent.log
+server.log
 *.log
 
 # AMUD runtime secrets (local dev)

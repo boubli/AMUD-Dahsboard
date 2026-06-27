@@ -1,7 +1,6 @@
 # Wallpaper image credits
 
-Wallpapers are **vendored** in this repository (2560px JPEG) for offline use and stable GitHub Pages URLs.
-Re-fetch with `python scripts/fetch-theme-wallpapers.py`.
+Wallpapers are **vendored** in this repository (WebP) for offline use.
 
 | File | Source | License |
 |------|--------|---------|

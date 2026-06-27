@@ -16,13 +16,4 @@ Theme **CSS**, **icons**, **wallpapers**, and **gallery previews** ship inside `
 
 **Frozen themes:** `default` (AMUD Default) and `luxury-gold` keep Lucide icons and existing CSS.
 
-## Regenerate
-
-```bash
-python scripts/fetch-theme-wallpapers.py   # download JPG sources (once)
-python scripts/compress-theme-images.py    # WebP for ui.tar.gz
-python scripts/generate-theme-overhaul.py  # CSS, icons, manifest, layouts
-python scripts/validate-theme-assets.py
-```
-
-Sync docs copy: `bash scripts/sync-themes.sh`
+Theme assets are **pre-built in each release**. Maintainers: see [`maintainer-local.example/README.md`](../../../maintainer-local.example/README.md).
