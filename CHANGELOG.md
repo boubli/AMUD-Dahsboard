@@ -8,6 +8,22 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.6.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.3) — 2026-06-25
+
+ARM64 binaries, multi-arch Docker, GitHub Pages hero + GIFs, PWA/mobile polish.
+
+### Added
+- **ARM64 release binaries** — `amud-server-arm64` and `amud-agent-arm64` alongside amd64 builds
+- **Multi-arch Docker** — `linux/amd64` and `linux/arm64` images on Docker Hub
+- **GitHub Pages deploy** — restored workflow; rotating homepage hero carousel + GIF demo section
+- **PWA install UX** — manifest shortcuts, install banner, offline shell (`sw.js` v23)
+
+### Improved
+- **Mobile topbar** — overflow actions collapse into a touch-friendly menu at ≤768px
+- **`update-amud.sh` + in-app updater** — architecture-aware release asset selection
+
+---
+
 ## [v1.6.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.2) — 2026-06-27
 
 Offline bundled themes — replaces withdrawn v1.6.1.

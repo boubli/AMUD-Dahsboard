@@ -9,9 +9,19 @@ permissions:
   contents: write
 
 jobs:
-  build-release:
-    name: Build and Upload Release Assets
-    runs-on: ubuntu-22.04
+  build-binaries:
+    name: Build ${{ matrix.server_name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            server_name: amud-server
+            agent_name: amud-agent
+          - runner: ubuntu-24.04-arm
+            server_name: amud-server-arm64
+            agent_name: amud-agent-arm64
     steps:
       - name: Checkout Code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -28,23 +38,70 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.server_name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-${{ matrix.server_name }}-cargo-
 
       - name: Build Projects in Release Mode
         run: |
           GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release
 
-      - name: Package UI Templates and Assets
+      - name: Stage release binaries
         run: |
-          tar -czf ui.tar.gz ui/
+          cp target/release/amud-server "${{ matrix.server_name }}"
+          cp target/release/amud-agent "${{ matrix.agent_name }}"
 
-      - name: Generate SHA256 Checksums
+      - name: Upload binaries
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.server_name }}-binaries
+          path: |
+            ${{ matrix.server_name }}
+            ${{ matrix.agent_name }}
+
+  build-ui:
+    name: Package UI assets
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Package UI Templates and Assets
+        run: tar -czf ui.tar.gz ui/
+
+      - name: Upload UI archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ui-tarball
+          path: ui.tar.gz
+
+  publish-release:
+    name: Create GitHub Release
+    needs: [build-binaries, build-ui]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b903a7d9515cad07aeb7a1f2 # v4
+        with:
+          path: release-assets
+
+      - name: Collect release files
         run: |
-          sha256sum target/release/amud-server target/release/amud-agent ui.tar.gz > SHA256SUMS
+          mkdir -p dist
+          cp release-assets/amud-server-binaries/amud-server dist/
+          cp release-assets/amud-server-binaries/amud-agent dist/
+          cp release-assets/amud-server-arm64-binaries/amud-server-arm64 dist/
+          cp release-assets/amud-server-arm64-binaries/amud-agent-arm64 dist/
+          cp release-assets/ui-tarball/ui.tar.gz dist/
+          cd dist
+          sha256sum amud-server amud-agent amud-server-arm64 amud-agent-arm64 ui.tar.gz > SHA256SUMS
           grep -qE '[[:space:]/]amud-server$' SHA256SUMS
           grep -qE '[[:space:]/]amud-agent$' SHA256SUMS
+          grep -qE '[[:space:]/]amud-server-arm64$' SHA256SUMS
+          grep -qE '[[:space:]/]amud-agent-arm64$' SHA256SUMS
           grep -qE '[[:space:]/]ui\.tar\.gz$' SHA256SUMS
 
       - name: Create GitHub Release and Upload Assets
@@ -52,10 +109,12 @@ jobs:
         with:
           body_path: .github/release-notes/${{ github.ref_name }}.md
           files: |
-            target/release/amud-server
-            target/release/amud-agent
-            ui.tar.gz
-            SHA256SUMS
+            dist/amud-server
+            dist/amud-agent
+            dist/amud-server-arm64
+            dist/amud-agent-arm64
+            dist/ui.tar.gz
+            dist/SHA256SUMS
             setup-amud.sh
             update-amud.sh
             uninstall-amud.sh

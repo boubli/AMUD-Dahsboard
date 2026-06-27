@@ -11,6 +11,22 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.6.3 — ARM64, Pages, PWA
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.3)
+
+### Added
+- **ARM64 release binaries** — `amud-server-arm64` and `amud-agent-arm64` on GitHub Releases.
+- **Multi-arch Docker** — `linux/amd64` and `linux/arm64` images.
+- **GitHub Pages deploy** restored — rotating homepage hero + GIF demos.
+- **PWA install UX** — manifest shortcuts, install banner, offline shell (`sw.js` v23).
+
+### Improved
+- Mobile topbar overflow menu and touch targets.
+- Architecture-aware `update-amud.sh` and in-app updater.
+
+---
+
 ## v1.6.2 — Local bundled themes
 
 **2026-06-27** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.2)

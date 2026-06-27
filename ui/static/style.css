@@ -214,6 +214,73 @@ body::-webkit-scrollbar-button {
     border-color: var(--accent-color);
 }
 
+.topbar-end {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    position: relative;
+}
+
+.topbar-essential {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.topbar-overflow {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.topbar-menu-toggle {
+    display: none;
+}
+
+.pwa-install-banner {
+    position: fixed;
+    left: max(1rem, env(safe-area-inset-left));
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.pwa-install-banner__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.pwa-install-banner__copy strong {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.pwa-install-banner__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+@media (display-mode: standalone) {
+    body {
+        padding-top: max(0.75rem, env(safe-area-inset-top));
+    }
+}
+
 .weather-widget {
     display: flex;
     align-items: center;
@@ -2201,6 +2268,60 @@ input[type="color"].form-control {
     .nav-item,
     .form-control {
         min-height: 44px;
+    }
+
+    .topbar-end {
+        margin-left: auto;
+    }
+
+    .topbar-menu-toggle {
+        display: inline-flex;
+        min-height: 44px;
+        min-width: 44px;
+        justify-content: center;
+    }
+
+    .topbar-overflow {
+        display: none;
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        min-width: min(18rem, calc(100vw - 2rem));
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.5rem;
+        border-radius: 12px;
+        background: rgba(10, 11, 16, 0.96);
+        border: 1px solid var(--border-card);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+        z-index: 50;
+    }
+
+    .topbar-overflow.is-open {
+        display: flex;
+    }
+
+    .topbar-overflow .topbar-action,
+    .topbar-overflow form {
+        width: 100%;
+    }
+
+    .topbar-overflow .topbar-action {
+        justify-content: flex-start;
+    }
+
+    .pwa-install-banner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pwa-install-banner__actions {
+        width: 100%;
+    }
+
+    .pwa-install-banner__actions .topbar-action {
+        flex: 1;
+        justify-content: center;
     }
 }
 

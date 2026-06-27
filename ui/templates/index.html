@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{app_name}}">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/static/AMUD-logo.png">
+    <link rel="apple-touch-icon" href="/static/pwa-icon-192.png">
     <link rel="stylesheet" href="/static/style.css">
     
     <!-- Alpine.js for drawer state / bindings -->
@@ -28,6 +28,7 @@
     <script src="/static/app-search.js?v={{app_version}}"></script>
     <script src="/static/shortcuts.js?v={{app_version}}"></script>
     <script src="/static/embed-tabs.js?v={{app_version}}"></script>
+    <script src="/static/pwa-install.js?v={{app_version}}"></script>
     {{admin_drag_script}}
 
     <!-- Inline variables setup for clean database variable override -->
@@ -45,13 +46,14 @@
     <div class="dashboard-container">
         
         <!-- Header / Topbar -->
-        <header class="topbar">
+        <header class="topbar" x-data="{ topbarMenuOpen: false }">
             <div class="brand-section">
                 <div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
                 <h1 class="brand-title">{{app_name}} {{page_title_suffix}}</h1>
             </div>
             
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="topbar-end">
+                <div class="topbar-essential">
                 <div id="ws-status-pill" class="ws-status-pill ws-connecting" title="Live dashboard connection">
                     <span class="ws-status-dot"></span>
                     <span id="ws-status-text">Connecting</span>
@@ -61,10 +63,22 @@
                     <i data-lucide="sun"></i>
                     <span id="live-weather">Detecting...</span>
                 </div>
-                
-                <!-- Admin Operations -->
+                </div>
+
+                <button
+                    type="button"
+                    class="glass-panel topbar-action topbar-menu-toggle"
+                    @click="topbarMenuOpen = !topbarMenuOpen"
+                    :aria-expanded="topbarMenuOpen ? 'true' : 'false'"
+                    aria-controls="topbar-overflow-menu"
+                    aria-label="Open menu">
+                    <i data-lucide="menu"></i>
+                </button>
+
+                <div id="topbar-overflow-menu" class="topbar-overflow" :class="{ 'is-open': topbarMenuOpen }">
                 <!-- FEEDS_NAV -->
                 <!-- AUTH_BUTTONS -->
+                </div>
             </div>
         </header>
 

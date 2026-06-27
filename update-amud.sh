@@ -77,6 +77,19 @@ header_info() {
 EOF
 }
 
+resolve_release_asset_names() {
+  case "$(uname -m)" in
+    aarch64|arm64)
+      SERVER_ASSET="amud-server-arm64"
+      AGENT_ASSET="amud-agent-arm64"
+      ;;
+    *)
+      SERVER_ASSET="amud-server"
+      AGENT_ASSET="amud-agent"
+      ;;
+  esac
+}
+
 download_file() {
   local url="$1"
   local dest="$2"
@@ -209,6 +222,8 @@ verify_agent_connection() {
 
 header_info
 
+resolve_release_asset_names
+
 msg_info "Querying latest release from GitHub API"
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
 if [[ -z "$LATEST_RELEASE" ]]; then
@@ -222,13 +237,13 @@ download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/SH
 msg_ok "SHA256SUMS downloaded"
 
 msg_info "Downloading release assets to Proxmox host staging area"
-download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-server" "/tmp/amud-server" "server release binary"
-verify_release_asset /tmp/amud-server amud-server
+download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/${SERVER_ASSET}" "/tmp/amud-server" "server release binary"
+verify_release_asset /tmp/amud-server "${SERVER_ASSET}"
 download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/ui.tar.gz" "/tmp/ui.tar.gz" "UI templates/assets"
 verify_release_asset /tmp/ui.tar.gz ui.tar.gz
 if [[ -f "/usr/local/bin/amud-agent" ]]; then
-  download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent" "/tmp/amud-agent" "host agent release binary"
-  verify_release_asset /tmp/amud-agent amud-agent
+  download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/${AGENT_ASSET}" "/tmp/amud-agent" "host agent release binary"
+  verify_release_asset /tmp/amud-agent "${AGENT_ASSET}"
 fi
 msg_ok "Release assets downloaded and verified"
 
@@ -294,8 +309,8 @@ if [[ -f "/usr/local/bin/amud-agent" ]]; then
 
   if [[ ! -f /tmp/amud-agent ]]; then
     msg_info "Downloading host agent release binary"
-    download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent" "/tmp/amud-agent" "host agent release binary"
-    verify_release_asset /tmp/amud-agent amud-agent
+    download_file "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/${AGENT_ASSET}" "/tmp/amud-agent" "host agent release binary"
+    verify_release_asset /tmp/amud-agent "${AGENT_ASSET}"
   else
     msg_info "Installing staged host agent release binary"
   fi

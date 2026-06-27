@@ -230,6 +230,87 @@
   object-fit: cover;
 }
 
+.dashboard-hero-carousel__stage {
+  position: relative;
+  min-height: 200px;
+}
+
+.dashboard-hero-carousel__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+
+.dashboard-hero-carousel__slide.is-active {
+  opacity: 1;
+  position: relative;
+  pointer-events: auto;
+}
+
+.dashboard-hero-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0 0.25rem;
+}
+
+.dashboard-hero-carousel__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  padding: 0;
+}
+
+.dashboard-hero-carousel__dot.is-active {
+  background: var(--amud-orange);
+  box-shadow: 0 0 8px var(--amud-orange-glow);
+}
+
+.homepage-demos__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.homepage-demos__grid figure {
+  margin: 0;
+}
+
+.homepage-demos__grid img {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.homepage-demos__grid figcaption {
+  text-align: center;
+  margin-top: 0.75rem;
+  color: #a0aabf;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 996px) {
+  .dashboard-preview-container {
+    transform: none;
+    margin-top: 3rem;
+  }
+
+  .dashboard-preview-container:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-hero-carousel__slide {
+    transition: none;
+  }
+}
+
 .reflection {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;

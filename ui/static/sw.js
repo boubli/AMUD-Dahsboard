@@ -1,11 +1,15 @@
-const CACHE_NAME = 'amud-dashboard-v22';
+const CACHE_NAME = 'amud-dashboard-v23';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
   '/static/theme-engine.js',
   '/static/theme-picker.js',
   '/static/AMUD-logo.png',
+  '/static/pwa-icon-192.png',
+  '/static/pwa-icon-512.png',
   '/static/manifest.json',
+  '/static/offline.html',
+  '/static/pwa-install.js',
   '/static/themes/manifest.json',
   '/static/themes/_shared.css',
   '/static/vendor/alpine.min.js',
@@ -67,9 +71,12 @@ globalThis.addEventListener('fetch', event => {
     return;
   }
 
-  // Never cache HTML documents — avoids stale broken inline scripts after upgrades.
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request));
+    event.respondWith(
+      fetch(request).catch(() =>
+        caches.match('/static/offline.html').then((cached) => cached || Response.error())
+      )
+    );
     return;
   }
 

@@ -4,6 +4,7 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
+import DashboardHeroCarousel from '@site/src/components/DashboardHeroCarousel';
 import Heading from '@theme/Heading';
 
 import styles from './index.module.css';
@@ -62,8 +63,7 @@ function HomepageHeader() {
             <div className="mac-dot minimize"></div>
             <div className="mac-dot maximize"></div>
           </div>
-          <img src="img/AMUD-Dashboard.png" alt="AMUD Dashboard Preview" className="dashboard-preview-img" />
-          <div className="reflection"></div>
+          <DashboardHeroCarousel />
         </div>
       </div>
       

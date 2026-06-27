@@ -10,11 +10,12 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.6.2
+### What's new in v1.6.3
 
-- **Offline themes** — icons, wallpapers, and gallery previews ship in `ui.tar.gz` (no CDN)
-- **Manifest v5** — 35 themes with distinct icon art styles and layout profiles
-- **Settings fix** — theme gallery previews and sidebar icons follow the active theme
+- **ARM64 binaries** — official `amud-server-arm64` / `amud-agent-arm64` release assets
+- **Multi-arch Docker** — `tradmss/amud-dashboard` pulls amd64 or arm64 automatically
+- **GitHub Pages** — rotating hero carousel + GIF demos at [boubli.github.io/AMUD-Dashboard](https://boubli.github.io/AMUD-Dashboard/)
+- **PWA polish** — install banner, offline shell, mobile topbar menu
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -22,7 +23,7 @@ Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changel
 
 After manual validation in a clean Proxmox test container, these releases are currently kept as known-good baselines:
 
-- `v1.6.2` (current latest recommended)
+- `v1.6.3` (current latest recommended)
 - `v1.6.0`
 - `v1.5.6.4`
 - `v1.5.6.3`
@@ -39,16 +40,6 @@ After manual validation in a clean Proxmox test container, these releases are cu
 Broken or withdrawn tags should not be used. **Do not use `v1.5.5.4`, `v1.5.6.1`, or `v1.6.1`.**
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
-
-### In action
-
-**Add an app** — no YAML, straight from the dashboard:
-
-![Add app](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-add-app.gif)
-
-**Update AMUD** — native install from Settings → System:
-
-![Update AMUD](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-update.gif)
 
 A compiled, zero-dependency homelab control center and telemetry dashboard.
 

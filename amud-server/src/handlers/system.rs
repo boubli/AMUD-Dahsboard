@@ -276,6 +276,13 @@ fn checksum_entry_name(path: &str) -> String {
         .to_string()
 }
 
+fn native_server_asset_name() -> &'static str {
+    match std::env::consts::ARCH {
+        "aarch64" => "amud-server-arm64",
+        _ => "amud-server",
+    }
+}
+
 fn parse_checksums(content: &str) -> std::collections::HashMap<String, String> {
     let mut map = std::collections::HashMap::new();
     for line in content.lines() {
@@ -311,7 +318,8 @@ async fn perform_update(
         }
     };
 
-    let server_asset = assets.iter().find(|a| a.name == "amud-server");
+    let server_asset_name = native_server_asset_name();
+    let server_asset = assets.iter().find(|a| a.name == server_asset_name);
     let ui_asset = assets.iter().find(|a| a.name == "ui.tar.gz");
     let sums_asset = assets.iter().find(|a| a.name == "SHA256SUMS");
 
@@ -322,10 +330,10 @@ async fn perform_update(
             &sm.browser_download_url,
         ),
         _ => {
-            return Err(
-                "Required release assets (amud-server, ui.tar.gz, SHA256SUMS) are missing."
-                    .to_string(),
-            )
+            return Err(format!(
+                "Required release assets ({}, ui.tar.gz, SHA256SUMS) are missing.",
+                server_asset_name
+            ))
         }
     };
 
@@ -370,16 +378,16 @@ async fn perform_update(
     let checksum_map = parse_checksums(&sums_content);
 
     let expected_server_hash = checksum_map
-        .get("amud-server")
-        .ok_or_else(|| "amud-server missing from SHA256SUMS".to_string())?;
+        .get(server_asset_name)
+        .ok_or_else(|| format!("{} missing from SHA256SUMS", server_asset_name))?;
     let expected_ui_hash = checksum_map
         .get("ui.tar.gz")
         .ok_or_else(|| "ui.tar.gz missing from SHA256SUMS".to_string())?;
 
     if &server_hash != expected_server_hash {
         return Err(format!(
-            "Checksum mismatch for amud-server. Expected {}, got {}",
-            expected_server_hash, server_hash
+            "Checksum mismatch for {}. Expected {}, got {}",
+            server_asset_name, expected_server_hash, server_hash
         ));
     }
     if &ui_hash != expected_ui_hash {
@@ -579,7 +587,16 @@ pub async fn ready_handler(State(state): State<Arc<AppState>>) -> impl IntoRespo
 
 #[cfg(test)]
 mod tests {
-    use super::parse_checksums;
+    use super::{native_server_asset_name, parse_checksums};
+
+    #[test]
+    fn native_server_asset_name_is_arch_specific() {
+        let name = native_server_asset_name();
+        assert!(
+            name == "amud-server" || name == "amud-server-arm64",
+            "unexpected asset name: {name}"
+        );
+    }
 
     #[test]
     fn parse_checksums_accepts_basename_entries() {
@@ -604,6 +621,20 @@ mod tests {
         assert_eq!(
             map.get("ui.tar.gz").map(String::as_str),
             Some("4077e56a14f54740ef8748316a1df65ac23473422acdafd1565ff5baff7aea63")
+        );
+    }
+
+    #[test]
+    fn parse_checksums_accepts_arm64_release_assets() {
+        let content = "\
+09cfca48c100cbfc1f5064244f0f68bc75afdb6776f6970262a9df937f4d95f9  amud-server-arm64
+78a03ccde8a16cf8ed52e3ef3503abb8e87bef04ce12f60c7d2f8188cffa1687  amud-agent-arm64
+4077e56a14f54740ef8748316a1df65ac23473422acdafd1565ff5baff7aea63  ui.tar.gz
+";
+        let map = parse_checksums(content);
+        assert_eq!(
+            map.get("amud-server-arm64").map(String::as_str),
+            Some("09cfca48c100cbfc1f5064244f0f68bc75afdb6776f6970262a9df937f4d95f9")
         );
     }
 }

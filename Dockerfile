@@ -3,73 +3,63 @@
 # Stage 1: Build stage
 FROM rust:1-slim AS builder
 
-# musl-tools provides musl-gcc, needed to statically compile the bundled SQLite
-# C sources and ring against musl libc. The resulting binaries have zero dynamic
-# library dependencies, so they can run on a `scratch` image.
-RUN apt-get update && apt-get install -y \
-    musl-tools \
-    && rm -rf /var/lib/apt/lists/*
-
-# Add the fully-static musl target.
-RUN rustup target add x86_64-unknown-linux-musl
-
-WORKDIR /usr/src/amud
-
-# Copy workspace source files
-COPY . .
-
-# Pass the git tag to cargo
+ARG TARGETARCH
 ARG GIT_TAG
 ENV GIT_TAG=$GIT_TAG
 
-# crates.io occasionally fails with curl HTTP/2 framing errors in CI; retry and
-# disable HTTP/2 multiplexing so cargo falls back to a more stable transport.
+RUN apt-get update && apt-get install -y \
+    musl-tools \
+    gcc-aarch64-linux-gnu \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
+
+WORKDIR /usr/src/amud
+
+COPY . .
+
 ENV CARGO_NET_RETRY=10
 ENV CARGO_HTTP_MULTIPLEXING=false
 
-# Compile statically-linked release binaries (registry/git cached across builds).
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    set -e; \
+    set -euo pipefail; \
+    case "${TARGETARCH}" in \
+      amd64) export RUST_TARGET=x86_64-unknown-linux-musl ;; \
+      arm64) export RUST_TARGET=aarch64-unknown-linux-musl ;; \
+      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
     for attempt in 1 2 3; do \
-      cargo build --release --target x86_64-unknown-linux-musl && exit 0; \
+      cargo build --release --target "${RUST_TARGET}" && exit 0; \
       echo "cargo build attempt ${attempt} failed, retrying..."; \
       sleep $((attempt * 15)); \
     done; \
     exit 1
 
-# Create the runtime data directory so it can be copied into the scratch image
-# (which has no shell to run `mkdir`).
-RUN mkdir -p /out/data
+RUN mkdir -p /out/data /out/bin && \
+    case "${TARGETARCH}" in \
+      amd64) \
+        cp target/x86_64-unknown-linux-musl/release/amud-server /out/bin/amud-server; \
+        cp target/x86_64-unknown-linux-musl/release/amud-agent /out/bin/amud-agent; \
+        ;; \
+      arm64) \
+        cp target/aarch64-unknown-linux-musl/release/amud-server /out/bin/amud-server; \
+        cp target/aarch64-unknown-linux-musl/release/amud-agent /out/bin/amud-agent; \
+        ;; \
+    esac
 
 # Stage 2: Runtime stage
-# `scratch` is completely empty: no OS, no shell, no package manager, no glibc.
-# The binaries are statically linked (musl), SQLite is bundled, TLS uses
-# rustls/ring, and the only HTTPS client uses a custom certificate verifier
-# (no system CA store needed). Docker Scout has essentially nothing to scan, so
-# the previous 10 critical / 5 high / 48 medium OS-package CVEs are eliminated.
-#
-# Security note (SonarCloud): the process runs as root because scratch has no
-# /etc/passwd or useradd. This is intentional for a minimal homelab image.
-# The container only runs the static amud-server binary and mounts /app/data
-# for SQLite; it is not multi-tenant. Review this hotspot as Safe in SonarCloud.
 FROM scratch
 
 WORKDIR /app
 
-# Copy statically-linked binaries from builder stage
-COPY --from=builder /usr/src/amud/target/x86_64-unknown-linux-musl/release/amud-server /app/amud-server
-COPY --from=builder /usr/src/amud/target/x86_64-unknown-linux-musl/release/amud-agent /app/amud-agent
-
-# Copy static assets and UI files needed at runtime
+COPY --from=builder /out/bin/amud-server /app/amud-server
+COPY --from=builder /out/bin/amud-agent /app/amud-agent
 COPY --from=builder /usr/src/amud/ui /app/ui
-
-# Data directory used for the SQLite database
 COPY --from=builder /out/data /app/data
+
 VOLUME /app/data
 
-# Expose port 8000
 EXPOSE 8000
 
-# Set entrypoint to run the server
 ENTRYPOINT ["/app/amud-server"]

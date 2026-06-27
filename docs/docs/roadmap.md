@@ -11,6 +11,13 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.6.3)
+
+- **ARM64 release binaries** — `amud-server-arm64` / `amud-agent-arm64` alongside amd64
+- **Multi-arch Docker** — `linux/amd64` + `linux/arm64` on Docker Hub
+- **GitHub Pages** — auto-deploy restored; homepage hero carousel + GIF demos
+- **PWA / mobile polish** — install banner, offline shell, responsive topbar menu
+
 ## Recently shipped (v1.6.0)
 
 - **Universal parity** — integration cache, Homepage/Homarr import, Custom API, LDAP, boards, manifest API
@@ -42,15 +49,12 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ## Now (active focus)
 
-- **Universal dashboard parity** — integration cache, Homepage import, Custom API, LDAP, boards, long-tail integrations ([comparison](./comparison.md))
 - **Quality bar** — keep SonarCloud green, `cargo audit` clean, CI integration tests
-- **ARM64 release binaries** — official builds alongside x86_64
+- **Remaining Homepage widget catalog** — niche services via registry batches + Custom API
 
 ---
-
 ## Next
 
-- **Remaining Homepage widget catalog** — niche services via registry batches + Custom API
 - **Docusaurus locale packs** — translate docs site (READMEs already in 11 languages)
 - **Backup/restore UX** — export scheduling reminders
 
@@ -60,7 +64,6 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 - **Multi-node agent** — one dashboard, several Proxmox hosts reporting in.
 - **API tokens** — scoped read-only tokens for external dashboards/scripts (shipped; expand scopes).
-- **Mobile PWA polish** — offline shell, install prompts, tighter touch targets.
 - **Per-integration setup wizards** — guided Pi-hole, *arr, and DNS blocker configuration in Settings.
 
 ---
