@@ -73,3 +73,19 @@ jobs:
             GIT_TAG=${{ steps.amud_version.outputs.value }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Update Docker Hub repository overview
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          HUB_TOKEN=$(curl -fsS -H "Content-Type: application/json" \
+            -d "{\"username\":\"${DOCKERHUB_USERNAME}\",\"password\":\"${DOCKERHUB_TOKEN}\"}" \
+            https://hub.docker.com/v2/users/login/ | jq -r .token)
+          jq -n --rawfile body DOCKERHUB.md '{full_description: $body}' | \
+            curl -fsS -X PATCH \
+              -H "Authorization: Bearer ${HUB_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d @- \
+              "https://hub.docker.com/v2/repositories/tradmss/amud-dashboard/"

@@ -17,7 +17,7 @@ Docs: https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid]]></Overv
   <Category>Tools:Utilities Network:Management</Category>
   <WebUI>http://[IP]:[PORT:8000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/templates/amud-dashboard.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png</Icon>
+  <Icon>https://boubli.github.io/AMUD-Dashboard/img/amud-logo-github.png</Icon>
   <ExtraParams>--cap-drop=ALL --security-opt=no-new-privileges:true</ExtraParams>
   <Requires>Install **AMUD Agent** from the same repository. Match Agent Secret and Socket Path on both containers.</Requires>
   <Config Name="Web UI Port" Target="8000" Default="8000" Mode="tcp" Description="HTTP port for the AMUD Dashboard web interface." Type="Port" Display="always" Required="true" Mask="false">8000</Config>

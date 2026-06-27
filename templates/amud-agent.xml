@@ -19,7 +19,7 @@ Docs: https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid]]></Overv
   <Category>Tools:Utilities Network:Management</Category>
   <WebUI/>
   <TemplateURL>https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/templates/amud-agent.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png</Icon>
+  <Icon>https://boubli.github.io/AMUD-Dashboard/img/amud-logo-github.png</Icon>
   <ExtraParams>--cap-drop=ALL --security-opt=no-new-privileges:true --entrypoint=/app/amud-agent</ExtraParams>
   <Requires>Requires **AMUD Dashboard** from the same repository with matching Agent Secret and Socket Path.</Requires>
   <Config Name="Agent Socket Dir" Target="/var/run/amud" Default="/mnt/user/appdata/amud-dashboard/run" Mode="rw" Description="Shared directory for the Unix socket. Must match the AMUD Dashboard container exactly." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/amud-dashboard/run</Config>
