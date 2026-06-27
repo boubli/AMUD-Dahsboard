@@ -1,0 +1,6 @@
+/* AMUD layout profile: volcanic */
+
+[data-ui-profile="volcanic"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="volcanic"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="volcanic"] .category-tabs .filter-tab.active { font-weight: 600; }
+

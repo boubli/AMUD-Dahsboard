@@ -1,28 +1,28 @@
-# Bundled AMUD themes (offline CSS + CDN assets)
+# AMUD bundled themes
 
-Theme **CSS** ships inside `ui.tar.gz` at `/static/themes/`.
+Theme **CSS**, **icons**, **wallpapers**, and **gallery previews** ship inside `ui.tar.gz` at `/static/themes/` — fully offline after install.
 
-Large assets (icons, wallpapers, previews) live in **`themes-assets/`** at the repo root and are served via jsDelivr:
+## Layout
 
 ```
-https://cdn.jsdelivr.net/gh/boubli/AMUD-Dashboard@main/themes-assets
+/static/themes/manifest.json          — manifest v5
+/static/themes/_shared.css            — shared chrome rules
+/static/themes/{id}.css               — per-theme variables + profile
+/static/theme-layouts/{profile}.css   — layout profile (topbar, tabs, greeting)
+/static/themes/icons/{id}/pack.json   — custom icon pack (28 SVGs)
+/static/themes/wallpapers/{id}.webp   — background wallpaper
+/static/themes/previews/{id}.webp     — settings gallery thumbnail
 ```
 
-## Manifest v4
-
-`manifest.json` includes `assetBase` and per-theme relative paths for `iconPack`, `preview`, and `wallpaper`.
+**Frozen themes:** `default` (AMUD Default) and `luxury-gold` keep Lucide icons and existing CSS.
 
 ## Regenerate
 
 ```bash
-python scripts/generate-theme-overhaul.py
+python scripts/fetch-theme-wallpapers.py   # download JPG sources (once)
+python scripts/compress-theme-images.py    # WebP for ui.tar.gz
+python scripts/generate-theme-overhaul.py  # CSS, icons, manifest, layouts
 python scripts/validate-theme-assets.py
 ```
 
-Commit `themes-assets/` and push to GitHub so CDN URLs resolve for users.
-
-## Settings UI
-
-Open **Settings → Appearance → Theme Gallery**. Click a card to preview, then **Save Settings**.
-
-**Frozen themes (do not regenerate CSS):** `default`, `luxury-gold`.
+Sync docs copy: `bash scripts/sync-themes.sh`

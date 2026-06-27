@@ -1,0 +1,6 @@
+/* AMUD layout profile: sandstone */
+
+[data-ui-profile="sandstone"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="sandstone"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="sandstone"] .category-tabs .filter-tab.active { font-weight: 600; }
+

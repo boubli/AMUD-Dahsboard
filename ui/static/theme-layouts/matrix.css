@@ -1,0 +1,5 @@
+/* AMUD layout profile: matrix */
+
+[data-ui-profile="matrix"] .topbar { border-bottom: 1px solid rgba(0,255,65,0.3); }
+[data-ui-profile="matrix"] .greeting-widget { font-family: var(--theme-font); }
+

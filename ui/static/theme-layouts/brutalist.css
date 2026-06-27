@@ -1,0 +1,6 @@
+/* AMUD layout profile: brutalist */
+
+[data-ui-profile="brutalist"] .topbar { border-bottom: 4px solid #0a0a0a; }
+[data-ui-profile="brutalist"] .greeting-widget { border: 3px solid #0a0a0a; padding: 1rem; }
+[data-ui-profile="brutalist"] .category-tabs .filter-tab { border-radius: 0; border: 2px solid #0a0a0a; }
+

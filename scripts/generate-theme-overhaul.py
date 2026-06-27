@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Generate manifest v4, distinct theme CSS, CDN icon packs, and themes-assets binaries."""
+"""Generate manifest v5, distinct theme CSS, local icon packs, and bundled WebP assets."""
 
 from __future__ import annotations
 
 import json
-import re
 import shutil
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-UI_THEMES = ROOT / "ui" / "static" / "themes"
-ASSETS = ROOT / "themes-assets"
-DOCS_THEMES = ROOT / "docs" / "static" / "themes"
+sys.path.insert(0, str(ROOT / "scripts"))
+from theme_icon_libraries import build_svg  # noqa: E402
 
-ASSET_BASE = "https://cdn.jsdelivr.net/gh/boubli/AMUD-Dashboard@v1.6.1/themes-assets"
+UI_THEMES = ROOT / "ui" / "static" / "themes"
+LAYOUT_DIR = ROOT / "ui" / "static" / "theme-layouts"
+ASSETS_LEGACY = ROOT / "themes-assets"
+DOCS_THEMES = ROOT / "docs" / "static" / "themes"
+ASSET_BASE = "/static/themes"
 
 FROZEN = {"default", "luxury-gold"}
 
@@ -225,37 +228,66 @@ body::before { content:""; position:fixed; inset:0; pointer-events:none; backgro
 """,
 }
 
-ICON_SHAPES: dict[str, str] = {
-    "sun": '<circle cx="12" cy="12" r="4" fill="{accent}"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="{accent}"/>',
-    "moon": '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4 7 7 0 0 0 20 14.5z" stroke="{accent}" fill="none"/>',
-    "cloud": '<path d="M6 16h11a4 4 0 0 0 0-8 5 5 0 0 0-9.8 1.5A3.5 3.5 0 0 0 6 16z" stroke="{accent}" fill="none"/>',
-    "cpu": '<rect x="5" y="5" width="14" height="14" rx="2" stroke="{accent}" fill="none"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" stroke="{accent}"/>',
-    "hard-drive": '<rect x="3" y="6" width="18" height="12" rx="2" stroke="{accent}" fill="none"/><path d="M7 16h.01M11 16h6" stroke="{accent}"/>',
-    "activity": '<path d="M3 12h4l2-7 4 14 2-7h6" stroke="{accent}" fill="none"/>',
-    "wifi": '<path d="M2 8.5a14 14 0 0 1 20 0M5 12a9 9 0 0 1 14 0M8.5 15.5a4 4 0 0 1 7 0M12 19h.01" stroke="{accent}" fill="none"/>',
-    "settings": '<circle cx="12" cy="12" r="3" stroke="{accent}" fill="none"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4" stroke="{accent}"/>',
-    "layout-grid": '<rect x="3" y="3" width="8" height="8" rx="1" stroke="{accent}" fill="none"/><rect x="13" y="3" width="8" height="8" rx="1" stroke="{accent}" fill="none"/><rect x="3" y="13" width="8" height="8" rx="1" stroke="{accent}" fill="none"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="{accent}" fill="none"/>',
-    "search": '<circle cx="11" cy="11" r="6" stroke="{accent}" fill="none"/><path d="M16 16l5 5" stroke="{accent}"/>',
-    "plus": '<path d="M12 5v14M5 12h14" stroke="{accent}"/>',
-    "bell": '<path d="M6 17h12M10 20h4M5 9a7 7 0 0 1 14 0c0 5 2 6 2 6H3s2-1 2-6" stroke="{accent}" fill="none"/>',
-    "users": '<circle cx="9" cy="8" r="3" stroke="{accent}" fill="none"/><path d="M2 19c0-3 3-5 7-5s7 2 7 5M16 8a3 3 0 1 1 0 6M22 19c0-2.5-2-4.5-5-4.5" stroke="{accent}" fill="none"/>',
-    "rss": '<path d="M4 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM4 5v6a8 8 0 0 1 8 8h6" stroke="{accent}" fill="none"/><path d="M4 11v2a6 6 0 0 1 6 6h2" stroke="{accent}" fill="none"/>',
-    "server": '<rect x="3" y="4" width="18" height="6" rx="1" stroke="{accent}" fill="none"/><rect x="3" y="14" width="18" height="6" rx="1" stroke="{accent}" fill="none"/><path d="M7 7h.01M7 17h.01" stroke="{accent}"/>',
-    "plug": '<path d="M8 7V3M16 7V3M8 11h8v8a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-8z" stroke="{accent}" fill="none"/>',
-    "home": '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z" stroke="{accent}" fill="none"/>',
-    "shield": '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" stroke="{accent}" fill="none"/>',
-    "database": '<ellipse cx="12" cy="6" rx="8" ry="3" stroke="{accent}" fill="none"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" stroke="{accent}" fill="none"/>',
-    "zap": '<path d="M13 2 4 14h7l-1 8 10-14h-7l0-6z" stroke="{accent}" fill="none"/>',
-    "eye": '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="{accent}" fill="none"/><circle cx="12" cy="12" r="2.5" stroke="{accent}" fill="none"/>',
-    "palette": '<path d="M12 3a9 9 0 1 0 8 13.5 2.5 2.5 0 0 1-3-3A6 6 0 0 1 19 9a9 9 0 0 0-7-6z" stroke="{accent}" fill="none"/><circle cx="8" cy="10" r="1" fill="{accent}"/><circle cx="12" cy="7" r="1" fill="{accent}"/>',
-    "arrow-left": '<path d="M19 12H5M11 6l-6 6 6 6" stroke="{accent}" fill="none"/>',
-    "external-link": '<path d="M14 3h7v7M10 14 21 3M21 14v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6" stroke="{accent}" fill="none"/>',
-    "power": '<path d="M12 2v8M8.5 4.5a7 7 0 1 0 7 0" stroke="{accent}" fill="none"/>',
-    "play": '<polygon points="8,5 19,12 8,19" fill="{accent}"/>',
-    "pause": '<rect x="7" y="5" width="4" height="14" fill="{accent}"/><rect x="13" y="5" width="4" height="14" fill="{accent}"/>',
-    "refresh": '<path d="M4 4v5h5M20 20v-5h-5M5 19a8 8 0 0 0 13-2M19 5a8 8 0 0 0-13 2" stroke="{accent}" fill="none"/>',
-    "default": '<circle cx="12" cy="12" r="8" stroke="{accent}" fill="none"/>',
+# Extra layout rules (loaded via theme-layouts/*.css)
+LAYOUT_PROFILE_BLOCKS: dict[str, str] = {
+    "gothic": """
+[data-ui-profile="gothic"] .topbar-inner { flex-wrap: wrap; gap: 0.5rem; }
+[data-ui-profile="gothic"] .greeting-widget { border-left: 3px solid var(--accent-color); padding-left: 1rem; }
+[data-ui-profile="gothic"] .category-tabs { border-bottom: 1px solid var(--border-card); }
+[data-ui-profile="gothic"] .telemetry-bar-container { border-radius: 0 0 12px 12px; }
+""",
+    "arctic": """
+[data-ui-profile="arctic"] .topbar { max-width: 96%; margin-inline: auto; }
+[data-ui-profile="arctic"] .greeting-widget { text-align: center; }
+[data-ui-profile="arctic"] .category-tabs .filter-tab { border-radius: 999px; margin-right: 0.35rem; }
+""",
+    "cyberpunk": """
+[data-ui-profile="cyberpunk"] .topbar-inner { border-bottom: 2px solid var(--accent-color); }
+[data-ui-profile="cyberpunk"] .telemetry-bar-container .metric-block { clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+[data-ui-profile="cyberpunk"] .category-tabs .filter-tab.active { text-shadow: 0 0 8px var(--accent-color); }
+""",
+    "brutalist": """
+[data-ui-profile="brutalist"] .topbar { border-bottom: 4px solid #0a0a0a; }
+[data-ui-profile="brutalist"] .greeting-widget { border: 3px solid #0a0a0a; padding: 1rem; }
+[data-ui-profile="brutalist"] .category-tabs .filter-tab { border-radius: 0; border: 2px solid #0a0a0a; }
+""",
+    "crt_green": """
+[data-ui-profile="crt_green"] .topbar, [data-ui-profile="crt_green"] .greeting-title { text-transform: uppercase; letter-spacing: 0.1em; }
+[data-ui-profile="crt_green"] .telemetry-bar-container { font-family: var(--theme-font); }
+""",
+    "matrix": """
+[data-ui-profile="matrix"] .topbar { border-bottom: 1px solid rgba(0,255,65,0.3); }
+[data-ui-profile="matrix"] .greeting-widget { font-family: var(--theme-font); }
+""",
+    "zen": """
+[data-ui-profile="zen"] .topbar-inner { justify-content: center; }
+[data-ui-profile="zen"] .category-tabs { justify-content: center; border: none; }
+[data-ui-profile="zen"] .greeting-widget { max-width: 28rem; margin-inline: auto; text-align: center; }
+""",
+    "arcade": """
+[data-ui-profile="arcade"] .topbar-inner { font-family: var(--theme-font); font-size: 0.7rem; }
+[data-ui-profile="arcade"] .category-tabs .filter-tab { border-radius: 0; border: 2px solid var(--accent-color); }
+""",
 }
+
+EXPANDED_CHROME: str = """
+.dashboard-container { position: relative; z-index: 1; }
+.topbar-inner { align-items: center; }
+.greeting-widget .greeting-title { color: var(--text-primary); }
+.clock-widget .clock-time { color: var(--accent-color); }
+.category-tabs .filter-tab:hover { color: var(--accent-color); }
+.modal-content.glass-panel { border-color: var(--border-card); }
+.settings-page-title { font-family: var(--theme-font), system-ui, sans-serif; }
+.app-card-header .app-name { font-family: var(--theme-font), system-ui, sans-serif; }
+"""
+
+
+def layout_block(profile: str) -> str:
+    return LAYOUT_PROFILE_BLOCKS.get(profile, f"""
+[data-ui-profile="{profile}"] .topbar-inner {{ gap: 0.75rem; }}
+[data-ui-profile="{profile}"] .greeting-widget {{ border-radius: var(--radius-xl, 12px); }}
+[data-ui-profile="{profile}"] .category-tabs .filter-tab.active {{ font-weight: 600; }}
+""")
 
 
 def hex_to_rgb(h: str) -> tuple[int, int, int]:
@@ -283,6 +315,7 @@ def gen_css(theme_id: str, spec: dict) -> str:
 
     lines = [
         f"/* AMUD Theme: {theme_id} — distinct UI profile: {profile} */",
+        "@import url('_shared.css');",
         f"@import url('https://fonts.googleapis.com/css2?family={font_q}&display=swap');",
         "",
         ":root {",
@@ -308,23 +341,17 @@ def gen_css(theme_id: str, spec: dict) -> str:
     block = PROFILE_BLOCKS.get(profile, "")
     lines.append(block)
 
-    # Shared chrome overrides
     lines.extend([
         "",
         "body { font-family: var(--theme-font), system-ui, sans-serif; }",
         ".brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }",
-        ".topbar { transition: background 0.2s ease, border-color 0.2s ease; }",
-        ".telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }",
-        ".filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }",
-        ".btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }",
-        ".btn-secondary { border-color: var(--border-card); }",
-        ".weather-widget i, .weather-widget svg { color: var(--accent-color); }",
-        ".ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }",
-        ".status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }",
-        "::-webkit-scrollbar-thumb { background: var(--accent-color); }",
+        EXPANDED_CHROME,
         "",
-        f"/* Theme id hook: [data-theme-id=\"{theme_id}\"] */",
         f'[data-theme-id="{theme_id}"] .dashboard-container {{ position: relative; z-index: 1; }}',
+        f'[data-theme-id="{theme_id}"] .topbar-action:hover {{ color: var(--accent-color); }}',
+        f'[data-theme-id="{theme_id}"] .app-card:hover {{ border-color: var(--border-hover); }}',
+        f'[data-theme-id="{theme_id}"] .metric-value {{ font-weight: 600; }}',
+        f'[data-theme-id="{theme_id}"] .settings-sidebar .nav-item:hover {{ color: var(--accent-color); }}',
     ])
 
     if not light:
@@ -334,12 +361,7 @@ def gen_css(theme_id: str, spec: dict) -> str:
 
 
 def gen_icon_svg(name: str, accent: str, profile: str) -> str:
-    inner = ICON_SHAPES.get(name, ICON_SHAPES["default"]).format(accent=accent)
-    sw = "3" if profile in ("brutalist", "arcade") else "2"
-    return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" '
-        f'stroke-width="{sw}" stroke-linecap="round" stroke-linejoin="round">{inner}</svg>'
-    )
+    return build_svg(profile, name, accent)
 
 
 def load_old_manifest() -> dict:
@@ -347,7 +369,7 @@ def load_old_manifest() -> dict:
         return json.load(f)
 
 
-def build_manifest_v4(old: dict) -> dict:
+def build_manifest_v5(old: dict) -> dict:
     themes_out = []
     for t in old["themes"]:
         tid = t["id"]
@@ -359,63 +381,47 @@ def build_manifest_v4(old: dict) -> dict:
             themes_out.append(entry)
             continue
         if tid == "luxury-gold":
-            # keep local paths for frozen theme
+            entry["preview"] = "/static/themes/previews/luxury-gold.webp"
+            entry["wallpaper"] = "/static/themes/wallpapers/luxury-gold.webp"
             themes_out.append(entry)
             continue
         spec = THEME_SPECS.get(tid)
         if spec:
+            profile = spec["profile"]
             entry["fontUrl"] = f"https://fonts.googleapis.com/css2?family={spec['font_q']}&display=swap"
-            entry["uiProfile"] = spec["profile"]
-            entry["iconPack"] = f"icons/{tid}/pack.json"
-        entry["preview"] = f"previews/{tid}.jpg"
+            entry["uiProfile"] = profile
+            entry["layoutCss"] = f"/static/theme-layouts/{profile}.css"
+            entry["iconPack"] = f"/static/themes/icons/{tid}/pack.json"
+        entry["preview"] = f"/static/themes/previews/{tid}.webp"
         if t.get("usesWallpaper", True) and tid in THEME_SPECS:
-            entry["wallpaper"] = f"wallpapers/{tid}.jpg"
+            entry["wallpaper"] = f"/static/themes/wallpapers/{tid}.webp"
         elif not t.get("usesWallpaper", True):
             entry["wallpaper"] = ""
             entry["usesWallpaper"] = False
         themes_out.append(entry)
 
     return {
-        "version": 4,
+        "version": 5,
         "assetBase": ASSET_BASE,
-        "description": old.get("description", "") + " Large assets (icons, wallpapers) load from GitHub CDN.",
+        "description": (
+            "Bundled AMUD themes — CSS, icons, wallpapers, and previews ship in ui.tar.gz "
+            "(fully offline after install)."
+        ),
         "categories": old["categories"],
         "themes": themes_out,
     }
 
 
-def copy_assets(old: dict) -> None:
-    src_dirs_wp = [UI_THEMES / "wallpapers", ROOT / "docs" / "static" / "themes" / "wallpapers"]
-    src_dirs_pr = [UI_THEMES / "previews", ROOT / "docs" / "static" / "themes" / "previews"]
-    dst_wp = ASSETS / "wallpapers"
-    dst_pr = ASSETS / "previews"
-    dst_wp.mkdir(parents=True, exist_ok=True)
-    dst_pr.mkdir(parents=True, exist_ok=True)
-
-    for t in old["themes"]:
-        tid = t["id"]
-        if tid in FROZEN:
-            continue
-        wp = None
-        pr = None
-        for d in src_dirs_wp:
-            p = d / f"{tid}.jpg"
-            if p.exists():
-                wp = p
-                break
-        for d in src_dirs_pr:
-            p = d / f"{tid}.jpg"
-            if p.exists():
-                pr = p
-                break
-        if wp:
-            shutil.copy2(wp, dst_wp / f"{tid}.jpg")
-        if pr:
-            shutil.copy2(pr, dst_pr / f"{tid}.jpg")
+def gen_layout_css_files() -> None:
+    LAYOUT_DIR.mkdir(parents=True, exist_ok=True)
+    profiles = {spec["profile"] for spec in THEME_SPECS.values()}
+    for profile in sorted(profiles):
+        content = f"/* AMUD layout profile: {profile} */\n" + layout_block(profile) + "\n"
+        (LAYOUT_DIR / f"{profile}.css").write_text(content, encoding="utf-8")
 
 
 def gen_icon_packs() -> None:
-    icons_root = ASSETS / "icons"
+    icons_root = UI_THEMES / "icons"
     icons_root.mkdir(parents=True, exist_ok=True)
     for tid, spec in THEME_SPECS.items():
         pack_dir = icons_root / tid
@@ -428,7 +434,11 @@ def gen_icon_packs() -> None:
             svg = gen_icon_svg(name, accent, profile)
             (pack_dir / fname).write_text(svg, encoding="utf-8")
             icons_map[name] = fname
-        pack = {"version": 1, "base": f"icons/{tid}", "icons": icons_map}
+        pack = {
+            "version": 1,
+            "base": f"/static/themes/icons/{tid}",
+            "icons": icons_map,
+        }
         (pack_dir / "pack.json").write_text(json.dumps(pack, indent=2), encoding="utf-8")
 
 
@@ -441,24 +451,34 @@ def write_css_files() -> None:
 def sync_docs() -> None:
     DOCS_THEMES.mkdir(parents=True, exist_ok=True)
     shutil.copy2(UI_THEMES / "manifest.json", DOCS_THEMES / "manifest.json")
+    shutil.copy2(UI_THEMES / "_shared.css", DOCS_THEMES / "_shared.css")
     for css in UI_THEMES.glob("*.css"):
+        if css.name.startswith("_"):
+            continue
         shutil.copy2(css, DOCS_THEMES / css.name)
+    docs_layout = ROOT / "docs" / "static" / "theme-layouts"
+    docs_layout.mkdir(parents=True, exist_ok=True)
+    if LAYOUT_DIR.is_dir():
+        for lf in LAYOUT_DIR.glob("*.css"):
+            shutil.copy2(lf, docs_layout / lf.name)
+    for sub in ("wallpapers", "previews"):
+        src = UI_THEMES / sub
+        dst = DOCS_THEMES / sub
+        dst.mkdir(parents=True, exist_ok=True)
+        if src.is_dir():
+            for img in src.glob("*.webp"):
+                shutil.copy2(img, dst / img.name)
 
 
 def main() -> None:
     old = load_old_manifest()
     write_css_files()
+    gen_layout_css_files()
     gen_icon_packs()
-    copy_assets(old)
-    manifest = build_manifest_v4(old)
+    manifest = build_manifest_v5(old)
     (UI_THEMES / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    (ASSETS / "README.md").write_text(
-        "# AMUD theme CDN assets\n\nIcons, wallpapers, and previews served via jsDelivr.\n"
-        f"Base: `{ASSET_BASE}`\n",
-        encoding="utf-8",
-    )
     sync_docs()
-    print(f"Generated {len(THEME_SPECS)} CSS files, icon packs, manifest v4, themes-assets/")
+    print(f"Generated {len(THEME_SPECS)} CSS files, {len(set(s['profile'] for s in THEME_SPECS.values()))} layouts, icon packs, manifest v5")
 
 
 if __name__ == "__main__":

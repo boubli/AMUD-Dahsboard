@@ -1,4 +1,5 @@
 /* AMUD Theme: arctic-frost — distinct UI profile: crystal */
+@import url('_shared.css');
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;600&display=swap');
 
 :root {
@@ -23,16 +24,20 @@
 
 body { font-family: var(--theme-font), system-ui, sans-serif; }
 .brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
-.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
-.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
-.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
-.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
-.btn-secondary { border-color: var(--border-card); }
-.weather-widget i, .weather-widget svg { color: var(--accent-color); }
-.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
-.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
-::-webkit-scrollbar-thumb { background: var(--accent-color); }
 
-/* Theme id hook: [data-theme-id="arctic-frost"] */
+.dashboard-container { position: relative; z-index: 1; }
+.topbar-inner { align-items: center; }
+.greeting-widget .greeting-title { color: var(--text-primary); }
+.clock-widget .clock-time { color: var(--accent-color); }
+.category-tabs .filter-tab:hover { color: var(--accent-color); }
+.modal-content.glass-panel { border-color: var(--border-card); }
+.settings-page-title { font-family: var(--theme-font), system-ui, sans-serif; }
+.app-card-header .app-name { font-family: var(--theme-font), system-ui, sans-serif; }
+
+
 [data-theme-id="arctic-frost"] .dashboard-container { position: relative; z-index: 1; }
+[data-theme-id="arctic-frost"] .topbar-action:hover { color: var(--accent-color); }
+[data-theme-id="arctic-frost"] .app-card:hover { border-color: var(--border-hover); }
+[data-theme-id="arctic-frost"] .metric-value { font-weight: 600; }
+[data-theme-id="arctic-frost"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
 :root[data-theme="light"] [data-theme-id="arctic-frost"] .glass-panel { filter: brightness(1.05); }

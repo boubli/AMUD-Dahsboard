@@ -1,0 +1,6 @@
+/* AMUD layout profile: sakura */
+
+[data-ui-profile="sakura"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="sakura"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="sakura"] .category-tabs .filter-tab.active { font-weight: 600; }
+

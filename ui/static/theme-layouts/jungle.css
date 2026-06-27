@@ -1,0 +1,6 @@
+/* AMUD layout profile: jungle */
+
+[data-ui-profile="jungle"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="jungle"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="jungle"] .category-tabs .filter-tab.active { font-weight: 600; }
+

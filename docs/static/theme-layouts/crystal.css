@@ -1,0 +1,6 @@
+/* AMUD layout profile: crystal */
+
+[data-ui-profile="crystal"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="crystal"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="crystal"] .category-tabs .filter-tab.active { font-weight: 600; }
+

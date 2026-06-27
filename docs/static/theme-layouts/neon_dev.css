@@ -1,0 +1,6 @@
+/* AMUD layout profile: neon_dev */
+
+[data-ui-profile="neon_dev"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="neon_dev"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="neon_dev"] .category-tabs .filter-tab.active { font-weight: 600; }
+

@@ -1,0 +1,6 @@
+/* AMUD layout profile: zen */
+
+[data-ui-profile="zen"] .topbar-inner { justify-content: center; }
+[data-ui-profile="zen"] .category-tabs { justify-content: center; border: none; }
+[data-ui-profile="zen"] .greeting-widget { max-width: 28rem; margin-inline: auto; text-align: center; }
+

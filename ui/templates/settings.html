@@ -23,6 +23,7 @@
     <script id="amud-theme-config" type="application/json">{{theme_scheduler_config}}</script>
     <script src="/static/theme-scheduler.js?v={{app_version}}"></script>
     <script src="/static/theme-engine.js?v={{app_version}}"></script>
+    <script src="/static/theme-picker.js?v={{app_version}}"></script>
 
     <style>
         :root {
@@ -2414,7 +2415,13 @@
             initLivePreview();
             initThemeSchedulerUI();
             initGuestCategoryControls();
-            initThemePicker();
+            if (typeof window.amudInitThemePicker === 'function') {
+                window.amudInitThemePicker({
+                    defaultAccent: '{{accent_color}}',
+                    defaultWallpaper: '/static/wallpaper.png',
+                    syncAccentPickerFromCss: syncAccentPickerFromCss
+                });
+            }
             initTelemetryDiscover();
         });
 
@@ -2459,228 +2466,6 @@
                     if (window.lucide) window.lucide.createIcons();
                 }
             });
-        }
-
-        function initThemePicker() {
-            const grid = document.getElementById('theme-picker-grid');
-            const categoriesEl = document.getElementById('theme-picker-categories');
-            const searchInput = document.getElementById('theme-picker-search');
-            const statusEl = document.getElementById('theme-picker-status');
-            const downloadBtn = document.getElementById('btn-download-bundled-theme');
-            const cssTextarea = document.getElementById('setting-custom-css');
-            const bgInput = document.getElementById('setting-custom-bg-url');
-            const activeThemeInput = document.getElementById('setting-active-theme-id');
-            const accentInput = document.getElementById('setting-accent-color');
-            const themeModeSelect = document.getElementById('theme-mode-select');
-            const lightWarning = document.getElementById('theme-light-mode-warning');
-            const defaultAccent = '{{accent_color}}';
-            const defaultWallpaper = '/static/wallpaper.png';
-            if (!grid || !cssTextarea) return;
-
-            let manifest = { themes: [], categories: [] };
-            let activeCategory = 'all';
-            let selectedThemeId = (activeThemeInput && activeThemeInput.value) || 'default';
-
-            function selectedTheme() {
-                return manifest.themes.find(function(t) { return t.id === selectedThemeId; });
-            }
-
-            function fetchThemeCss(file) {
-                if (!file) return Promise.resolve('');
-                return fetch('/static/themes/' + file, { cache: 'no-store' }).then(function(res) {
-                    if (!res.ok) throw new Error('Theme file not found');
-                    return res.text();
-                });
-            }
-
-            function resolveThemeAsset(path) {
-                if (!path) return '';
-                if (path.indexOf('http://') === 0 || path.indexOf('https://') === 0) return path;
-                if (path.indexOf('/') === 0) return path;
-                var base = (manifest.assetBase || '').replace(/\/$/, '');
-                if (!base) return path;
-                return base + '/' + path.replace(/^\//, '');
-            }
-
-            function updateLightModeWarning() {
-                if (!lightWarning || !themeModeSelect) return;
-                const hasCss = (cssTextarea.value || '').trim().length > 0;
-                const isLight = themeModeSelect.value === 'light';
-                lightWarning.style.display = (hasCss && isLight) ? 'block' : 'none';
-            }
-
-            function markActiveCard() {
-                grid.querySelectorAll('.theme-picker-card').forEach(function(card) {
-                    card.classList.toggle('is-active', card.getAttribute('data-theme-id') === selectedThemeId);
-                });
-            }
-
-            function applyThemePreview(theme) {
-                if (!theme) return;
-                selectedThemeId = theme.id;
-                if (activeThemeInput) activeThemeInput.value = theme.id;
-
-                function finishPreview() {
-                    cssTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-                    if (typeof window.amudRefreshLivePreview === 'function') {
-                        window.amudRefreshLivePreview();
-                    }
-                    markActiveCard();
-                    updateLightModeWarning();
-                    if (statusEl) {
-                        statusEl.textContent = 'Previewing “' + theme.name + '”. Click Save Changes to apply dashboard-wide.';
-                    }
-                    if (window.settingsState && typeof window.settingsState === 'function') {
-                        try { window.settingsState().unsavedChanges = true; } catch (e) {}
-                    }
-                    const form = document.getElementById('mainSettingsForm');
-                    if (form && form._x_dataStack && form._x_dataStack[0]) {
-                        form._x_dataStack[0].unsavedChanges = true;
-                    }
-                }
-
-                if (theme.id === 'default' || !theme.file) {
-                    cssTextarea.value = '';
-                    if (accentInput) accentInput.value = defaultAccent;
-                    if (bgInput && theme.wallpaper) bgInput.value = resolveThemeAsset(theme.wallpaper) || defaultWallpaper;
-                    finishPreview();
-                    return;
-                }
-
-                fetchThemeCss(theme.file).then(function(css) {
-                    cssTextarea.value = css;
-                    syncAccentPickerFromCss(css, accentInput);
-                    if (bgInput && theme.usesWallpaper && theme.wallpaper) {
-                        bgInput.value = resolveThemeAsset(theme.wallpaper);
-                    }
-                    finishPreview();
-                }).catch(function() {
-                    if (statusEl) statusEl.textContent = 'Failed to load theme — update AMUD to the latest ui.tar.gz.';
-                });
-            }
-
-            function filteredThemes() {
-                const q = (searchInput && searchInput.value || '').trim().toLowerCase();
-                return manifest.themes.filter(function(theme) {
-                    if (activeCategory !== 'all' && theme.category !== activeCategory) return false;
-                    if (!q) return true;
-                    const hay = (theme.name + ' ' + (theme.tags || []).join(' ') + ' ' + theme.id).toLowerCase();
-                    return hay.indexOf(q) >= 0;
-                });
-            }
-
-            function renderGrid() {
-                const themes = filteredThemes();
-                grid.innerHTML = '';
-                themes.forEach(function(theme) {
-                    const card = document.createElement('button');
-                    card.type = 'button';
-                    card.className = 'theme-picker-card' + (theme.id === selectedThemeId ? ' is-active' : '');
-                    card.setAttribute('data-theme-id', theme.id);
-                    card.setAttribute('aria-pressed', theme.id === selectedThemeId ? 'true' : 'false');
-                    const preview = document.createElement('div');
-                    preview.className = 'theme-picker-preview';
-                    preview.style.backgroundImage = "url('" + resolveThemeAsset(theme.preview || '') + "')";
-                    const body = document.createElement('div');
-                    body.className = 'theme-picker-card-body';
-                    const title = document.createElement('span');
-                    title.className = 'theme-picker-card-title';
-                    title.textContent = theme.name;
-                    const tags = document.createElement('span');
-                    tags.className = 'theme-picker-card-tags';
-                    tags.textContent = (theme.tags || []).slice(0, 2).join(' · ');
-                    body.appendChild(title);
-                    body.appendChild(tags);
-                    card.appendChild(preview);
-                    card.appendChild(body);
-                    card.addEventListener('click', function() {
-                        applyThemePreview(theme);
-                    });
-                    grid.appendChild(card);
-                });
-                if (statusEl && !themes.length) {
-                    statusEl.textContent = 'No themes match your search.';
-                }
-            }
-
-            function renderCategories() {
-                if (!categoriesEl) return;
-                const cats = ['all'].concat(manifest.categories || []);
-                const labels = {
-                    all: 'All',
-                    default: 'Default',
-                    classic: 'Classic',
-                    advanced: 'Advanced',
-                    nature: 'Nature',
-                    terminal: 'Terminal',
-                    feminine: 'Feminine',
-                    variety: 'Variety'
-                };
-                categoriesEl.innerHTML = '';
-                cats.forEach(function(cat) {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'theme-picker-category' + (cat === activeCategory ? ' is-active' : '');
-                    btn.textContent = labels[cat] || cat;
-                    btn.addEventListener('click', function() {
-                        activeCategory = cat;
-                        categoriesEl.querySelectorAll('.theme-picker-category').forEach(function(b) {
-                            b.classList.toggle('is-active', b === btn);
-                        });
-                        renderGrid();
-                    });
-                    categoriesEl.appendChild(btn);
-                });
-            }
-
-            if (downloadBtn) {
-                downloadBtn.addEventListener('click', function() {
-                    const theme = selectedTheme();
-                    if (!theme || !theme.file) {
-                        if (statusEl) statusEl.textContent = 'Select a non-default theme to download CSS.';
-                        return;
-                    }
-                    fetchThemeCss(theme.file).then(function(css) {
-                        const blob = new Blob([css], { type: 'text/css' });
-                        const url = URL.createObjectURL(blob);
-                        const anchor = document.createElement('a');
-                        anchor.href = url;
-                        anchor.download = theme.file;
-                        anchor.click();
-                        URL.revokeObjectURL(url);
-                        if (statusEl) statusEl.textContent = 'Downloaded ' + theme.file + '.';
-                    }).catch(function() {
-                        if (statusEl) statusEl.textContent = 'Download failed.';
-                    });
-                });
-            }
-
-            if (searchInput) {
-                searchInput.addEventListener('input', renderGrid);
-            }
-            if (themeModeSelect) {
-                themeModeSelect.addEventListener('change', updateLightModeWarning);
-            }
-            cssTextarea.addEventListener('input', updateLightModeWarning);
-
-            fetch('/static/themes/manifest.json', { cache: 'no-store' })
-                .then(function(res) { return res.ok ? res.json() : { themes: [], categories: [] }; })
-                .then(function(data) {
-                    manifest = data && Array.isArray(data.themes) ? data : { themes: [], categories: [] };
-                    if (!manifest.categories || !manifest.categories.length) {
-                        manifest.categories = ['default', 'classic', 'advanced', 'nature', 'terminal', 'feminine', 'variety'];
-                    }
-                    renderCategories();
-                    renderGrid();
-                    markActiveCard();
-                    updateLightModeWarning();
-                    if (statusEl && manifest.themes.length) {
-                        statusEl.textContent = manifest.themes.length + ' themes available offline. Click one to preview.';
-                    }
-                })
-                .catch(function() {
-                    if (statusEl) statusEl.textContent = 'Theme gallery unavailable — reinstall ui.tar.gz from a recent release.';
-                });
         }
 
         async function parseApiResponse(res) {

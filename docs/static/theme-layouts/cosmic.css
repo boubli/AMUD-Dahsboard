@@ -1,0 +1,6 @@
+/* AMUD layout profile: cosmic */
+
+[data-ui-profile="cosmic"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="cosmic"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="cosmic"] .category-tabs .filter-tab.active { font-weight: 600; }
+

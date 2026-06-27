@@ -1,0 +1,6 @@
+/* AMUD layout profile: orchard */
+
+[data-ui-profile="orchard"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="orchard"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="orchard"] .category-tabs .filter-tab.active { font-weight: 600; }
+

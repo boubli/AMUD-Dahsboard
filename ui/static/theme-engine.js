@@ -1,5 +1,5 @@
 /**
- * AMUD Theme Engine — CDN icon packs, fonts, wallpaper resolution (manifest v4).
+ * AMUD Theme Engine — local icon packs, fonts, wallpaper (manifest v5).
  */
 (function (global) {
     'use strict';
@@ -33,8 +33,27 @@
         if (path.indexOf('http://') === 0 || path.indexOf('https://') === 0) return path;
         if (path.indexOf('/') === 0) return path;
         var base = (manifest && manifest.assetBase) || '';
-        if (!base) return path;
+        if (!base) return '/' + path.replace(/^\//, '');
         return base.replace(/\/$/, '') + '/' + path.replace(/^\//, '');
+    }
+
+    function injectLayoutCss(layoutUrl) {
+        if (!layoutUrl) return;
+        var id = 'amud-theme-layout';
+        var existing = document.getElementById(id);
+        if (existing && existing.getAttribute('data-href') === layoutUrl) return;
+        if (existing) existing.remove();
+        var link = document.createElement('link');
+        link.id = id;
+        link.rel = 'stylesheet';
+        link.href = layoutUrl;
+        link.setAttribute('data-href', layoutUrl);
+        document.head.appendChild(link);
+    }
+
+    function applyUiProfile(entry) {
+        if (!entry || !entry.uiProfile) return;
+        document.body.setAttribute('data-ui-profile', entry.uiProfile);
     }
 
     function loadManifest() {
@@ -156,10 +175,12 @@
         document.body.classList.add('theme-' + id);
         return loadManifest().then(function (manifest) {
             var entry = themeEntry(manifest, id);
+            applyUiProfile(entry);
+            if (entry && entry.layoutCss) injectLayoutCss(entry.layoutCss);
             if (entry && entry.fontUrl) injectFont(entry.fontUrl);
             if (entry && entry.wallpaper && entry.usesWallpaper !== false) {
                 var wp = resolveAssetUrl(manifest, entry.wallpaper);
-                if (wp && wp.indexOf('http') === 0) applyWallpaperUrl(wp);
+                if (wp) applyWallpaperUrl(wp);
             }
             return loadIconPack(manifest, id).then(function (pack) {
                 return swapChromeIcons(manifest, pack);
@@ -171,6 +192,8 @@
         themeId: themeId,
         resolveAssetUrl: resolveAssetUrl,
         loadManifest: loadManifest,
+        applyUiProfile: applyUiProfile,
+        injectLayoutCss: injectLayoutCss,
         init: initThemeEngine
     };
 

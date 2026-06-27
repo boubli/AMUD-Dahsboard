@@ -1,0 +1,6 @@
+/* AMUD layout profile: carnival */
+
+[data-ui-profile="carnival"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="carnival"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="carnival"] .category-tabs .filter-tab.active { font-weight: 600; }
+

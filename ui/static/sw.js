@@ -1,10 +1,13 @@
-const CACHE_NAME = 'amud-dashboard-v21';
+const CACHE_NAME = 'amud-dashboard-v22';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
+  '/static/theme-engine.js',
+  '/static/theme-picker.js',
   '/static/AMUD-logo.png',
   '/static/manifest.json',
   '/static/themes/manifest.json',
+  '/static/themes/_shared.css',
   '/static/vendor/alpine.min.js',
   '/static/vendor/lucide.min.js',
   '/static/admin.js',
@@ -15,10 +18,26 @@ const ASSETS_TO_CACHE = [
   '/static/embed-tabs.js'
 ];
 
+function cacheThemePreviews() {
+  return fetch('/static/themes/manifest.json', { cache: 'no-store' })
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (manifest) {
+      if (!manifest || !manifest.themes) return [];
+      return manifest.themes
+        .map(function (t) { return t.preview; })
+        .filter(function (p) { return p && p.indexOf('/') === 0; });
+    })
+    .catch(function () { return []; });
+}
+
 globalThis.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS_TO_CACHE))
+    cacheThemePreviews()
+      .then(function (previews) {
+        return caches.open(CACHE_NAME).then(function (cache) {
+          return cache.addAll(ASSETS_TO_CACHE.concat(previews.slice(0, 40)));
+        });
+      })
       .then(() => globalThis.skipWaiting())
   );
 });

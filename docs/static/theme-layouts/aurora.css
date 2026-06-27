@@ -1,0 +1,6 @@
+/* AMUD layout profile: aurora */
+
+[data-ui-profile="aurora"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="aurora"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="aurora"] .category-tabs .filter-tab.active { font-weight: 600; }
+

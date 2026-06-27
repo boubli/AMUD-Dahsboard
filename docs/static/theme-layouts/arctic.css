@@ -1,0 +1,6 @@
+/* AMUD layout profile: arctic */
+
+[data-ui-profile="arctic"] .topbar { max-width: 96%; margin-inline: auto; }
+[data-ui-profile="arctic"] .greeting-widget { text-align: center; }
+[data-ui-profile="arctic"] .category-tabs .filter-tab { border-radius: 999px; margin-right: 0.35rem; }
+

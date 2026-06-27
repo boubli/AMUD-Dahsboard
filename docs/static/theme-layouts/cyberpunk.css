@@ -1,0 +1,6 @@
+/* AMUD layout profile: cyberpunk */
+
+[data-ui-profile="cyberpunk"] .topbar-inner { border-bottom: 2px solid var(--accent-color); }
+[data-ui-profile="cyberpunk"] .telemetry-bar-container .metric-block { clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+[data-ui-profile="cyberpunk"] .category-tabs .filter-tab.active { text-shadow: 0 0 8px var(--accent-color); }
+

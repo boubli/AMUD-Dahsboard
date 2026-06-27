@@ -1,0 +1,6 @@
+/* AMUD layout profile: clinical */
+
+[data-ui-profile="clinical"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="clinical"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="clinical"] .category-tabs .filter-tab.active { font-weight: 600; }
+

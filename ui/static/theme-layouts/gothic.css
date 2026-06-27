@@ -1,0 +1,7 @@
+/* AMUD layout profile: gothic */
+
+[data-ui-profile="gothic"] .topbar-inner { flex-wrap: wrap; gap: 0.5rem; }
+[data-ui-profile="gothic"] .greeting-widget { border-left: 3px solid var(--accent-color); padding-left: 1rem; }
+[data-ui-profile="gothic"] .category-tabs { border-bottom: 1px solid var(--border-card); }
+[data-ui-profile="gothic"] .telemetry-bar-container { border-radius: 0 0 12px 12px; }
+

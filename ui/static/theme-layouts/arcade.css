@@ -1,0 +1,5 @@
+/* AMUD layout profile: arcade */
+
+[data-ui-profile="arcade"] .topbar-inner { font-family: var(--theme-font); font-size: 0.7rem; }
+[data-ui-profile="arcade"] .category-tabs .filter-tab { border-radius: 0; border: 2px solid var(--accent-color); }
+

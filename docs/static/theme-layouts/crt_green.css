@@ -1,0 +1,5 @@
+/* AMUD layout profile: crt_green */
+
+[data-ui-profile="crt_green"] .topbar, [data-ui-profile="crt_green"] .greeting-title { text-transform: uppercase; letter-spacing: 0.1em; }
+[data-ui-profile="crt_green"] .telemetry-bar-container { font-family: var(--theme-font); }
+

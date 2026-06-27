@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""Validate theme manifest v4, local CSS files, and CDN asset paths."""
+"""Validate theme manifest v5 and local bundled assets."""
 
 from __future__ import annotations
 
 import json
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,15 +18,11 @@ ICON_NAMES = [
 ]
 
 
-def head_ok(url: str) -> bool:
-    req = urllib.request.Request(url, method="HEAD")
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return 200 <= resp.status < 400
-    except urllib.error.HTTPError as e:
-        return e.code == 405  # some CDNs disallow HEAD
-    except Exception:
-        return False
+def local_path(url_or_path: str) -> Path | None:
+    if not url_or_path or not url_or_path.startswith("/static/"):
+        return None
+    rel = url_or_path.removeprefix("/static/")
+    return ROOT / "ui" / "static" / rel
 
 
 def main() -> int:
@@ -36,12 +30,12 @@ def main() -> int:
     with open(MANIFEST, encoding="utf-8") as f:
         manifest = json.load(f)
 
-    if manifest.get("version") != 4:
-        errors.append("manifest version must be 4")
+    if manifest.get("version") != 5:
+        errors.append("manifest version must be 5")
 
-    base = (manifest.get("assetBase") or "").rstrip("/")
-    if not base:
-        errors.append("assetBase missing")
+    base = manifest.get("assetBase") or ""
+    if base != "/static/themes":
+        errors.append(f"assetBase should be /static/themes (got {base!r})")
 
     for theme in manifest.get("themes", []):
         tid = theme["id"]
@@ -53,27 +47,40 @@ def main() -> int:
             if not path.is_file():
                 errors.append(f"{tid}: missing CSS {css_file}")
 
-        pack_local = ROOT / "themes-assets" / "icons" / tid / "pack.json"
-        if not pack_local.is_file():
-            errors.append(f"{tid}: missing local pack.json (commit themes-assets/)")
+        pack_path = local_path(theme.get("iconPack", ""))
+        if not pack_path or not pack_path.is_file():
+            errors.append(f"{tid}: missing icon pack {theme.get('iconPack')}")
         else:
-            pack = json.loads(pack_local.read_text(encoding="utf-8"))
+            pack = json.loads(pack_path.read_text(encoding="utf-8"))
+            pack_dir = pack_path.parent
             for name in ICON_NAMES:
                 if name not in pack.get("icons", {}):
                     errors.append(f"{tid}: pack missing icon {name}")
+                else:
+                    svg = pack_dir / pack["icons"][name]
+                    if not svg.is_file():
+                        errors.append(f"{tid}: missing SVG {name}")
 
-        if theme.get("iconPack") and base:
-            url = f"{base}/{theme['iconPack'].lstrip('/')}"
-            if not head_ok(url) and not (ROOT / "themes-assets" / theme["iconPack"]).is_file():
-                errors.append(f"{tid}: CDN pack not reachable yet (push themes-assets): {url}")
+        for key in ("preview", "wallpaper"):
+            val = theme.get(key)
+            if not val:
+                continue
+            p = local_path(val)
+            if p and not p.is_file():
+                errors.append(f"{tid}: missing {key} file {val}")
+
+        layout = theme.get("layoutCss")
+        profile = theme.get("uiProfile")
+        if layout and profile:
+            layout_file = ROOT / "ui" / "static" / "theme-layouts" / f"{profile}.css"
+            if not layout_file.is_file():
+                errors.append(f"{tid}: missing layout CSS for profile {profile}")
 
     if errors:
         print("Theme validation issues:")
         for e in errors:
             print(" -", e)
-        # Local-only assets are OK before push
-        local_only = all("CDN pack not reachable" in e for e in errors)
-        return 0 if local_only else 1
+        return 1
 
     print("Theme assets validation passed.")
     return 0

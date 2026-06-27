@@ -1,0 +1,14 @@
+/* Shared AMUD theme chrome — imported by generated per-theme CSS */
+.topbar { transition: background 0.2s ease, border-color 0.2s ease; }
+.telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
+.filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }
+.btn-primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; }
+.btn-secondary { border-color: var(--border-card); }
+.weather-widget i, .weather-widget svg { color: var(--accent-color); }
+.ws-status-pill.ws-connected .ws-status-dot { background: var(--accent-color); }
+.status-badge.status-online { background: var(--success-bg); color: var(--success, #10b981); }
+::-webkit-scrollbar-thumb { background: var(--accent-color); }
+.category-tabs .filter-tab { transition: color 0.15s ease, border-color 0.15s ease; }
+.save-bar { border-top-color: var(--border-card); }
+.settings-sidebar .nav-item.active { color: var(--accent-color); }
+.modal-header { border-bottom-color: var(--border-card); }

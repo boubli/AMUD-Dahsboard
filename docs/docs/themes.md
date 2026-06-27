@@ -10,12 +10,12 @@ AMUD supports full visual customization through **Custom CSS injection**. Copy C
 Browse, search, and **preview** all themes on the **[Theme Gallery](/themes)** page. Each card shows a screenshot so you can see how the theme looks before applying it. Click **Copy CSS** or **Download CSS**, then paste into your dashboard settings.
 :::
 
-:::tip CDN theme assets (manifest v4)
-Theme **CSS** ships in `ui.tar.gz`. **Icons, wallpapers, and gallery previews** load from GitHub via jsDelivr (`manifest.json` → `assetBase`). **AMUD Default** and **Luxury Gold** stay fully offline. Other themes need internet on first load (icons/wallpaper); CSS works offline after save.
+:::tip Bundled theme assets (manifest v5)
+Theme **CSS**, **icons**, **wallpapers**, and **gallery previews** all ship in `ui.tar.gz` under `/static/themes/` — **fully offline** after install. No jsDelivr or GitHub CDN required.
 :::
 
 :::tip Offline default
-**AMUD Default** uses the local `/static/wallpaper.png` and Lucide icons — no CDN required.
+**AMUD Default** uses the local `/static/wallpaper.png` and Lucide icons. Other themes use bundled WebP wallpapers, per-profile icon packs, and layout CSS from `/static/theme-layouts/`.
 :::
 
 :::tip Combining with Built-in Settings
@@ -58,9 +58,7 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 
 ★ = distinct UI profiles (layout, typography, icons) — not just color swaps
 
-**CDN assets:** `themes-assets/` in the GitHub repo (icons, wallpapers, previews). Base URL is set in `manifest.json` (`assetBase`).
-
-Preview thumbnails and wallpapers are loaded from jsDelivr when you browse the theme gallery or apply a theme.
+**Bundled assets:** `ui/static/themes/` (CSS, WebP wallpapers/previews, SVG icon packs) and `ui/static/theme-layouts/` ship in every release `ui.tar.gz`.
 
 **Raw CSS files:** [docs/static/themes/](https://github.com/boubli/AMUD-Dashboard/tree/main/docs/static/themes) (docs site) and **`ui/static/themes/`** (shipped with your dashboard for offline use).
 

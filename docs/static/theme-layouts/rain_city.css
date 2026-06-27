@@ -1,0 +1,6 @@
+/* AMUD layout profile: rain_city */
+
+[data-ui-profile="rain_city"] .topbar-inner { gap: 0.75rem; }
+[data-ui-profile="rain_city"] .greeting-widget { border-radius: var(--radius-xl, 12px); }
+[data-ui-profile="rain_city"] .category-tabs .filter-tab.active { font-weight: 600; }
+

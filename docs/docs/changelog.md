@@ -11,18 +11,24 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
-## v1.6.1 — Distinct theme UI overhaul
+## v1.6.2 — Local bundled themes
 
-**2026-06-27** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.1)
+**2026-06-27** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.2)
 
 ### Added
-- **35 redesigned themes** — unique UI profiles (typography, card chrome, topbar, icons). **AMUD Default** and **Luxury Gold** unchanged.
-- **Manifest v4** + **`theme-engine.js`** — CDN icon packs and wallpapers via jsDelivr (`themes-assets/` on GitHub).
-- Theme generator/validation scripts under `scripts/`.
+- **Manifest v5** — icons, wallpapers, and gallery previews bundled in `ui.tar.gz` (WebP + SVG), fully offline.
+- **Per-profile icon libraries** and **`theme-layouts/`** for distinct UI per theme.
+- **`theme-picker.js`** — settings gallery uses local preview images.
 
 ### Fixed
-- Settings **Save Settings** no longer broken by nested migration forms.
-- AMUD Default gallery preview image (Monstera wallpaper).
+- Theme gallery black boxes when CDN unavailable.
+- v1.6.1 withdrawn (broken CDN assets).
+
+---
+
+## v1.6.1 — Withdrawn
+
+**2026-06-27** — This release was **withdrawn** (GitHub release and tag removed). Theme gallery previews and CDN assets did not work reliably offline. Use **v1.6.0** until **v1.6.2** ships with bundled local theme assets.
 
 ---
 

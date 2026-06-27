@@ -1,7 +1,7 @@
 {
-  "version": 4,
-  "assetBase": "https://cdn.jsdelivr.net/gh/boubli/AMUD-Dashboard@v1.6.1/themes-assets",
-  "description": "Bundled AMUD themes \u2014 visual picker in Settings \u2192 Appearance. Each theme includes CSS, preview thumbnail, and optional wallpaper. Large assets (icons, wallpapers) load from GitHub CDN. Large assets (icons, wallpapers) load from GitHub CDN.",
+  "version": 5,
+  "assetBase": "/static/themes",
+  "description": "Bundled AMUD themes \u2014 CSS, icons, wallpapers, and previews ship in ui.tar.gz (fully offline after install).",
   "categories": [
     "default",
     "classic",
@@ -35,12 +35,13 @@
         "dark",
         "purple"
       ],
-      "preview": "previews/dracula.jpg",
-      "wallpaper": "wallpapers/dracula.jpg",
+      "preview": "/static/themes/previews/dracula.webp",
+      "wallpaper": "/static/themes/wallpapers/dracula.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap",
       "uiProfile": "gothic",
-      "iconPack": "icons/dracula/pack.json"
+      "iconPack": "/static/themes/icons/dracula/pack.json",
+      "layoutCss": "/static/theme-layouts/gothic.css"
     },
     {
       "id": "nord",
@@ -51,12 +52,13 @@
         "dark",
         "blue"
       ],
-      "preview": "previews/nord.jpg",
-      "wallpaper": "wallpapers/nord.jpg",
+      "preview": "/static/themes/previews/nord.webp",
+      "wallpaper": "/static/themes/wallpapers/nord.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap",
       "uiProfile": "arctic",
-      "iconPack": "icons/nord/pack.json"
+      "iconPack": "/static/themes/icons/nord/pack.json",
+      "layoutCss": "/static/theme-layouts/arctic.css"
     },
     {
       "id": "cyberpunk-neon",
@@ -67,12 +69,13 @@
         "neon",
         "sci-fi"
       ],
-      "preview": "previews/cyberpunk-neon.jpg",
-      "wallpaper": "wallpapers/cyberpunk-neon.jpg",
+      "preview": "/static/themes/previews/cyberpunk-neon.webp",
+      "wallpaper": "/static/themes/wallpapers/cyberpunk-neon.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap",
       "uiProfile": "cyberpunk",
-      "iconPack": "icons/cyberpunk-neon/pack.json"
+      "iconPack": "/static/themes/icons/cyberpunk-neon/pack.json",
+      "layoutCss": "/static/theme-layouts/cyberpunk.css"
     },
     {
       "id": "sunset-warm",
@@ -83,12 +86,13 @@
         "warm",
         "amber"
       ],
-      "preview": "previews/sunset-warm.jpg",
-      "wallpaper": "wallpapers/sunset-warm.jpg",
+      "preview": "/static/themes/previews/sunset-warm.webp",
+      "wallpaper": "/static/themes/wallpapers/sunset-warm.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap",
       "uiProfile": "polaroid",
-      "iconPack": "icons/sunset-warm/pack.json"
+      "iconPack": "/static/themes/icons/sunset-warm/pack.json",
+      "layoutCss": "/static/theme-layouts/polaroid.css"
     },
     {
       "id": "catppuccin-mocha",
@@ -98,12 +102,13 @@
       "tags": [
         "pastel"
       ],
-      "preview": "previews/catppuccin-mocha.jpg",
-      "wallpaper": "wallpapers/catppuccin-mocha.jpg",
+      "preview": "/static/themes/previews/catppuccin-mocha.webp",
+      "wallpaper": "/static/themes/wallpapers/catppuccin-mocha.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap",
       "uiProfile": "cafe",
-      "iconPack": "icons/catppuccin-mocha/pack.json"
+      "iconPack": "/static/themes/icons/catppuccin-mocha/pack.json",
+      "layoutCss": "/static/theme-layouts/cafe.css"
     },
     {
       "id": "gruvbox-dark",
@@ -113,12 +118,13 @@
       "tags": [
         "retro"
       ],
-      "preview": "previews/gruvbox-dark.jpg",
-      "wallpaper": "wallpapers/gruvbox-dark.jpg",
+      "preview": "/static/themes/previews/gruvbox-dark.webp",
+      "wallpaper": "/static/themes/wallpapers/gruvbox-dark.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
       "uiProfile": "retro_crt",
-      "iconPack": "icons/gruvbox-dark/pack.json"
+      "iconPack": "/static/themes/icons/gruvbox-dark/pack.json",
+      "layoutCss": "/static/theme-layouts/retro_crt.css"
     },
     {
       "id": "tokyo-night",
@@ -129,12 +135,13 @@
         "blue",
         "night"
       ],
-      "preview": "previews/tokyo-night.jpg",
-      "wallpaper": "wallpapers/tokyo-night.jpg",
+      "preview": "/static/themes/previews/tokyo-night.webp",
+      "wallpaper": "/static/themes/wallpapers/tokyo-night.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap",
       "uiProfile": "rain_city",
-      "iconPack": "icons/tokyo-night/pack.json"
+      "iconPack": "/static/themes/icons/tokyo-night/pack.json",
+      "layoutCss": "/static/theme-layouts/rain_city.css"
     },
     {
       "id": "one-dark",
@@ -144,12 +151,13 @@
       "tags": [
         "developer"
       ],
-      "preview": "previews/one-dark.jpg",
-      "wallpaper": "wallpapers/one-dark.jpg",
+      "preview": "/static/themes/previews/one-dark.webp",
+      "wallpaper": "/static/themes/wallpapers/one-dark.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap",
       "uiProfile": "ide",
-      "iconPack": "icons/one-dark/pack.json"
+      "iconPack": "/static/themes/icons/one-dark/pack.json",
+      "layoutCss": "/static/theme-layouts/ide.css"
     },
     {
       "id": "everforest",
@@ -159,12 +167,13 @@
       "tags": [
         "green"
       ],
-      "preview": "previews/everforest.jpg",
-      "wallpaper": "wallpapers/everforest.jpg",
+      "preview": "/static/themes/previews/everforest.webp",
+      "wallpaper": "/static/themes/wallpapers/everforest.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap",
       "uiProfile": "organic",
-      "iconPack": "icons/everforest/pack.json"
+      "iconPack": "/static/themes/icons/everforest/pack.json",
+      "layoutCss": "/static/theme-layouts/organic.css"
     },
     {
       "id": "monokai",
@@ -174,12 +183,13 @@
       "tags": [
         "developer"
       ],
-      "preview": "previews/monokai.jpg",
-      "wallpaper": "wallpapers/monokai.jpg",
+      "preview": "/static/themes/previews/monokai.webp",
+      "wallpaper": "/static/themes/wallpapers/monokai.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap",
       "uiProfile": "neon_dev",
-      "iconPack": "icons/monokai/pack.json"
+      "iconPack": "/static/themes/icons/monokai/pack.json",
+      "layoutCss": "/static/theme-layouts/neon_dev.css"
     },
     {
       "id": "rose-pine",
@@ -189,12 +199,13 @@
       "tags": [
         "elegant"
       ],
-      "preview": "previews/rose-pine.jpg",
-      "wallpaper": "wallpapers/rose-pine.jpg",
+      "preview": "/static/themes/previews/rose-pine.webp",
+      "wallpaper": "/static/themes/wallpapers/rose-pine.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap",
       "uiProfile": "editorial",
-      "iconPack": "icons/rose-pine/pack.json"
+      "iconPack": "/static/themes/icons/rose-pine/pack.json",
+      "layoutCss": "/static/theme-layouts/editorial.css"
     },
     {
       "id": "solarized-dark",
@@ -204,12 +215,13 @@
       "tags": [
         "scientific"
       ],
-      "preview": "previews/solarized-dark.jpg",
-      "wallpaper": "wallpapers/solarized-dark.jpg",
+      "preview": "/static/themes/previews/solarized-dark.webp",
+      "wallpaper": "/static/themes/wallpapers/solarized-dark.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap",
       "uiProfile": "clinical",
-      "iconPack": "icons/solarized-dark/pack.json"
+      "iconPack": "/static/themes/icons/solarized-dark/pack.json",
+      "layoutCss": "/static/theme-layouts/clinical.css"
     },
     {
       "id": "terminal-phosphor",
@@ -220,12 +232,13 @@
         "advanced",
         "crt"
       ],
-      "preview": "previews/terminal-phosphor.jpg",
+      "preview": "/static/themes/previews/terminal-phosphor.webp",
       "wallpaper": "",
       "usesWallpaper": false,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap",
       "uiProfile": "crt_green",
-      "iconPack": "icons/terminal-phosphor/pack.json"
+      "iconPack": "/static/themes/icons/terminal-phosphor/pack.json",
+      "layoutCss": "/static/theme-layouts/crt_green.css"
     },
     {
       "id": "vaporwave-grid",
@@ -236,12 +249,13 @@
         "advanced",
         "vaporwave"
       ],
-      "preview": "previews/vaporwave-grid.jpg",
+      "preview": "/static/themes/previews/vaporwave-grid.webp",
       "wallpaper": "",
       "usesWallpaper": false,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Pacifico&display=swap",
       "uiProfile": "vaporwave",
-      "iconPack": "icons/vaporwave-grid/pack.json"
+      "iconPack": "/static/themes/icons/vaporwave-grid/pack.json",
+      "layoutCss": "/static/theme-layouts/vaporwave.css"
     },
     {
       "id": "blueprint-tech",
@@ -252,12 +266,13 @@
         "advanced",
         "technical"
       ],
-      "preview": "previews/blueprint-tech.jpg",
+      "preview": "/static/themes/previews/blueprint-tech.webp",
       "wallpaper": "",
       "usesWallpaper": false,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap",
       "uiProfile": "blueprint",
-      "iconPack": "icons/blueprint-tech/pack.json"
+      "iconPack": "/static/themes/icons/blueprint-tech/pack.json",
+      "layoutCss": "/static/theme-layouts/blueprint.css"
     },
     {
       "id": "luxury-gold",
@@ -268,8 +283,8 @@
         "advanced",
         "luxury"
       ],
-      "preview": "/static/themes/previews/luxury-gold.jpg",
-      "wallpaper": "/static/themes/wallpapers/luxury-gold.jpg",
+      "preview": "/static/themes/previews/luxury-gold.webp",
+      "wallpaper": "/static/themes/wallpapers/luxury-gold.webp",
       "usesWallpaper": true
     },
     {
@@ -281,12 +296,13 @@
         "advanced",
         "animated"
       ],
-      "preview": "previews/holographic-prism.jpg",
-      "wallpaper": "wallpapers/holographic-prism.jpg",
+      "preview": "/static/themes/previews/holographic-prism.webp",
+      "wallpaper": "/static/themes/wallpapers/holographic-prism.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap",
       "uiProfile": "holographic",
-      "iconPack": "icons/holographic-prism/pack.json"
+      "iconPack": "/static/themes/icons/holographic-prism/pack.json",
+      "layoutCss": "/static/theme-layouts/holographic.css"
     },
     {
       "id": "brutalist-mono",
@@ -297,12 +313,13 @@
         "advanced",
         "brutalist"
       ],
-      "preview": "previews/brutalist-mono.jpg",
+      "preview": "/static/themes/previews/brutalist-mono.webp",
       "wallpaper": "",
       "usesWallpaper": false,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap",
       "uiProfile": "brutalist",
-      "iconPack": "icons/brutalist-mono/pack.json"
+      "iconPack": "/static/themes/icons/brutalist-mono/pack.json",
+      "layoutCss": "/static/theme-layouts/brutalist.css"
     },
     {
       "id": "aurora-borealis",
@@ -314,12 +331,13 @@
         "aurora",
         "teal"
       ],
-      "preview": "previews/aurora-borealis.jpg",
-      "wallpaper": "wallpapers/aurora-borealis.jpg",
+      "preview": "/static/themes/previews/aurora-borealis.webp",
+      "wallpaper": "/static/themes/wallpapers/aurora-borealis.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600&display=swap",
       "uiProfile": "aurora",
-      "iconPack": "icons/aurora-borealis/pack.json"
+      "iconPack": "/static/themes/icons/aurora-borealis/pack.json",
+      "layoutCss": "/static/theme-layouts/aurora.css"
     },
     {
       "id": "desert-dusk",
@@ -331,12 +349,13 @@
         "warm",
         "sand"
       ],
-      "preview": "previews/desert-dusk.jpg",
-      "wallpaper": "wallpapers/desert-dusk.jpg",
+      "preview": "/static/themes/previews/desert-dusk.webp",
+      "wallpaper": "/static/themes/wallpapers/desert-dusk.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap",
       "uiProfile": "sandstone",
-      "iconPack": "icons/desert-dusk/pack.json"
+      "iconPack": "/static/themes/icons/desert-dusk/pack.json",
+      "layoutCss": "/static/theme-layouts/sandstone.css"
     },
     {
       "id": "ocean-depths",
@@ -348,12 +367,13 @@
         "ocean",
         "cyan"
       ],
-      "preview": "previews/ocean-depths.jpg",
-      "wallpaper": "wallpapers/ocean-depths.jpg",
+      "preview": "/static/themes/previews/ocean-depths.webp",
+      "wallpaper": "/static/themes/wallpapers/ocean-depths.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap",
       "uiProfile": "porthole",
-      "iconPack": "icons/ocean-depths/pack.json"
+      "iconPack": "/static/themes/icons/ocean-depths/pack.json",
+      "layoutCss": "/static/theme-layouts/porthole.css"
     },
     {
       "id": "rainforest-mist",
@@ -365,12 +385,13 @@
         "green",
         "mist"
       ],
-      "preview": "previews/rainforest-mist.jpg",
-      "wallpaper": "wallpapers/rainforest-mist.jpg",
+      "preview": "/static/themes/previews/rainforest-mist.webp",
+      "wallpaper": "/static/themes/wallpapers/rainforest-mist.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap",
       "uiProfile": "jungle",
-      "iconPack": "icons/rainforest-mist/pack.json"
+      "iconPack": "/static/themes/icons/rainforest-mist/pack.json",
+      "layoutCss": "/static/theme-layouts/jungle.css"
     },
     {
       "id": "volcanic-ember",
@@ -382,12 +403,13 @@
         "volcanic",
         "ember"
       ],
-      "preview": "previews/volcanic-ember.jpg",
-      "wallpaper": "wallpapers/volcanic-ember.jpg",
+      "preview": "/static/themes/previews/volcanic-ember.webp",
+      "wallpaper": "/static/themes/wallpapers/volcanic-ember.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap",
       "uiProfile": "volcanic",
-      "iconPack": "icons/volcanic-ember/pack.json"
+      "iconPack": "/static/themes/icons/volcanic-ember/pack.json",
+      "layoutCss": "/static/theme-layouts/volcanic.css"
     },
     {
       "id": "terminal-amber",
@@ -399,12 +421,13 @@
         "crt",
         "amber"
       ],
-      "preview": "previews/terminal-amber.jpg",
+      "preview": "/static/themes/previews/terminal-amber.webp",
       "wallpaper": "",
       "usesWallpaper": false,
       "fontUrl": "https://fonts.googleapis.com/css2?family=VT323&display=swap",
       "uiProfile": "crt_amber",
-      "iconPack": "icons/terminal-amber/pack.json"
+      "iconPack": "/static/themes/icons/terminal-amber/pack.json",
+      "layoutCss": "/static/theme-layouts/crt_amber.css"
     },
     {
       "id": "terminal-matrix",
@@ -416,12 +439,13 @@
         "matrix",
         "green"
       ],
-      "preview": "previews/terminal-matrix.jpg",
+      "preview": "/static/themes/previews/terminal-matrix.webp",
       "wallpaper": "",
       "usesWallpaper": false,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap",
       "uiProfile": "matrix",
-      "iconPack": "icons/terminal-matrix/pack.json"
+      "iconPack": "/static/themes/icons/terminal-matrix/pack.json",
+      "layoutCss": "/static/theme-layouts/matrix.css"
     },
     {
       "id": "sakura-dream",
@@ -433,12 +457,13 @@
         "pink",
         "sakura"
       ],
-      "preview": "previews/sakura-dream.jpg",
-      "wallpaper": "wallpapers/sakura-dream.jpg",
+      "preview": "/static/themes/previews/sakura-dream.webp",
+      "wallpaper": "/static/themes/wallpapers/sakura-dream.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap",
       "uiProfile": "sakura",
-      "iconPack": "icons/sakura-dream/pack.json"
+      "iconPack": "/static/themes/icons/sakura-dream/pack.json",
+      "layoutCss": "/static/theme-layouts/sakura.css"
     },
     {
       "id": "lavender-mist",
@@ -450,12 +475,13 @@
         "lavender",
         "pastel"
       ],
-      "preview": "previews/lavender-mist.jpg",
-      "wallpaper": "wallpapers/lavender-mist.jpg",
+      "preview": "/static/themes/previews/lavender-mist.webp",
+      "wallpaper": "/static/themes/wallpapers/lavender-mist.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600&display=swap",
       "uiProfile": "lavender",
-      "iconPack": "icons/lavender-mist/pack.json"
+      "iconPack": "/static/themes/icons/lavender-mist/pack.json",
+      "layoutCss": "/static/theme-layouts/lavender.css"
     },
     {
       "id": "rose-gold-blush",
@@ -467,12 +493,13 @@
         "rose",
         "gold"
       ],
-      "preview": "previews/rose-gold-blush.jpg",
-      "wallpaper": "wallpapers/rose-gold-blush.jpg",
+      "preview": "/static/themes/previews/rose-gold-blush.webp",
+      "wallpaper": "/static/themes/wallpapers/rose-gold-blush.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600&display=swap",
       "uiProfile": "jewelry",
-      "iconPack": "icons/rose-gold-blush/pack.json"
+      "iconPack": "/static/themes/icons/rose-gold-blush/pack.json",
+      "layoutCss": "/static/theme-layouts/jewelry.css"
     },
     {
       "id": "cotton-candy",
@@ -484,12 +511,13 @@
         "pastel",
         "candy"
       ],
-      "preview": "previews/cotton-candy.jpg",
-      "wallpaper": "wallpapers/cotton-candy.jpg",
+      "preview": "/static/themes/previews/cotton-candy.webp",
+      "wallpaper": "/static/themes/wallpapers/cotton-candy.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap",
       "uiProfile": "carnival",
-      "iconPack": "icons/cotton-candy/pack.json"
+      "iconPack": "/static/themes/icons/cotton-candy/pack.json",
+      "layoutCss": "/static/theme-layouts/carnival.css"
     },
     {
       "id": "peach-blossom",
@@ -501,12 +529,13 @@
         "peach",
         "blossom"
       ],
-      "preview": "previews/peach-blossom.jpg",
-      "wallpaper": "wallpapers/peach-blossom.jpg",
+      "preview": "/static/themes/previews/peach-blossom.webp",
+      "wallpaper": "/static/themes/wallpapers/peach-blossom.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap",
       "uiProfile": "orchard",
-      "iconPack": "icons/peach-blossom/pack.json"
+      "iconPack": "/static/themes/icons/peach-blossom/pack.json",
+      "layoutCss": "/static/theme-layouts/orchard.css"
     },
     {
       "id": "nebula-void",
@@ -518,12 +547,13 @@
         "nebula",
         "purple"
       ],
-      "preview": "previews/nebula-void.jpg",
-      "wallpaper": "wallpapers/nebula-void.jpg",
+      "preview": "/static/themes/previews/nebula-void.webp",
+      "wallpaper": "/static/themes/wallpapers/nebula-void.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap",
       "uiProfile": "cosmic",
-      "iconPack": "icons/nebula-void/pack.json"
+      "iconPack": "/static/themes/icons/nebula-void/pack.json",
+      "layoutCss": "/static/theme-layouts/cosmic.css"
     },
     {
       "id": "arctic-frost",
@@ -535,12 +565,13 @@
         "frost",
         "minimal"
       ],
-      "preview": "previews/arctic-frost.jpg",
-      "wallpaper": "wallpapers/arctic-frost.jpg",
+      "preview": "/static/themes/previews/arctic-frost.webp",
+      "wallpaper": "/static/themes/wallpapers/arctic-frost.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;600&display=swap",
       "uiProfile": "crystal",
-      "iconPack": "icons/arctic-frost/pack.json"
+      "iconPack": "/static/themes/icons/arctic-frost/pack.json",
+      "layoutCss": "/static/theme-layouts/crystal.css"
     },
     {
       "id": "steampunk-brass",
@@ -552,12 +583,13 @@
         "brass",
         "vintage"
       ],
-      "preview": "previews/steampunk-brass.jpg",
-      "wallpaper": "wallpapers/steampunk-brass.jpg",
+      "preview": "/static/themes/previews/steampunk-brass.webp",
+      "wallpaper": "/static/themes/wallpapers/steampunk-brass.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Rye&display=swap",
       "uiProfile": "steampunk",
-      "iconPack": "icons/steampunk-brass/pack.json"
+      "iconPack": "/static/themes/icons/steampunk-brass/pack.json",
+      "layoutCss": "/static/theme-layouts/steampunk.css"
     },
     {
       "id": "zen-garden",
@@ -569,12 +601,13 @@
         "garden",
         "calm"
       ],
-      "preview": "previews/zen-garden.jpg",
-      "wallpaper": "wallpapers/zen-garden.jpg",
+      "preview": "/static/themes/previews/zen-garden.webp",
+      "wallpaper": "/static/themes/wallpapers/zen-garden.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&display=swap",
       "uiProfile": "zen",
-      "iconPack": "icons/zen-garden/pack.json"
+      "iconPack": "/static/themes/icons/zen-garden/pack.json",
+      "layoutCss": "/static/theme-layouts/zen.css"
     },
     {
       "id": "retro-arcade",
@@ -586,12 +619,13 @@
         "arcade",
         "neon"
       ],
-      "preview": "previews/retro-arcade.jpg",
-      "wallpaper": "wallpapers/retro-arcade.jpg",
+      "preview": "/static/themes/previews/retro-arcade.webp",
+      "wallpaper": "/static/themes/wallpapers/retro-arcade.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap",
       "uiProfile": "arcade",
-      "iconPack": "icons/retro-arcade/pack.json"
+      "iconPack": "/static/themes/icons/retro-arcade/pack.json",
+      "layoutCss": "/static/theme-layouts/arcade.css"
     },
     {
       "id": "midnight-city",
@@ -603,12 +637,13 @@
         "night",
         "urban"
       ],
-      "preview": "previews/midnight-city.jpg",
-      "wallpaper": "wallpapers/midnight-city.jpg",
+      "preview": "/static/themes/previews/midnight-city.webp",
+      "wallpaper": "/static/themes/wallpapers/midnight-city.webp",
       "usesWallpaper": true,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap",
       "uiProfile": "skyline",
-      "iconPack": "icons/midnight-city/pack.json"
+      "iconPack": "/static/themes/icons/midnight-city/pack.json",
+      "layoutCss": "/static/theme-layouts/skyline.css"
     }
   ]
 }
