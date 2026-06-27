@@ -49,11 +49,11 @@ sleep 1
 PEAK_RSS=$(rss_kb)
 echo "Peak RSS after load: ${PEAK_RSS} KB (limit ${PEAK_LIMIT_KB} KB)"
 
-if [ "$IDLE_RSS" -gt "$IDLE_LIMIT_KB" ]; then
+if [[ "$IDLE_RSS" -gt "$IDLE_LIMIT_KB" ]]; then
   echo "FAIL: idle RSS ${IDLE_RSS} KB exceeds ${IDLE_LIMIT_KB} KB"
   exit 1
 fi
-if [ "$PEAK_RSS" -gt "$PEAK_LIMIT_KB" ]; then
+if [[ "$PEAK_RSS" -gt "$PEAK_LIMIT_KB" ]]; then
   echo "FAIL: peak RSS ${PEAK_RSS} KB exceeds ${PEAK_LIMIT_KB} KB"
   exit 1
 fi
