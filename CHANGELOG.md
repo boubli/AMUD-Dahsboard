@@ -8,6 +8,25 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.6.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.2) — 2026-06-27
+
+Offline bundled themes — replaces withdrawn v1.6.1.
+
+### Added
+- **Manifest v5** — icons, wallpapers, and gallery previews in `ui.tar.gz` (`/static/themes/…`)
+- **WebP** wallpapers and preview thumbnails
+- **Per-profile icon libraries** (8 art styles across 35 themes)
+- **`theme-layouts/`** and extracted **`theme-picker.js`**
+
+### Fixed
+- Theme gallery black boxes when CDN unreachable
+- Theme save + local wallpaper/icon apply via `theme-engine.js`
+
+### Note
+- **v1.6.1 withdrawn** — do not use; upgrade to v1.6.2
+
+---
+
 ## [v1.6.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.0) — 2026-06-25
 
 Universal dashboard parity — Homepage/Homarr import, integration cache, LDAP, Custom API, long-tail integrations, Plex/Jellyfin cards, *arr calendar, release trackers, multi-node agent.
