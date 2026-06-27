@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png" alt="AMUD Logo" width="300" />
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-logo-github.png" alt="AMUD Logo" width="300" />
 </div>
 
 # AMUD Dashboard
@@ -39,7 +39,7 @@ Après validation manuelle dans un conteneur de test Proxmox propre, ces version
 
 Les balises corrompues identifiées lors de l'audit ont été supprimées des versions/balises GitHub et ne doivent pas être utilisées. **N'utilisez pas `v1.5.5.4` ni `v1.5.6.1`.**
 
-![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
+![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 Un centre de contrôle de serveur domestique (homelab) et tableau de bord de télémétrie compilé, sans aucune dépendance.
 

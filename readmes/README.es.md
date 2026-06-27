@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png" alt="AMUD Logo" width="300" />
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-logo-github.png" alt="AMUD Logo" width="300" />
 </div>
 
 # AMUD Dashboard
@@ -39,7 +39,7 @@ Después de la validación manual en un contenedor de prueba Proxmox limpio, est
 
 Las etiquetas rotas identificadas durante la auditoría se eliminaron de las versiones/etiquetas de GitHub y no deben usarse. **No uses `v1.5.5.4` ni `v1.5.6.1`.**
 
-![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
+![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 Un centro de control de homelab y panel de telemetría compilado y sin dependencias.
 

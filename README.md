@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png" alt="AMUD Logo" width="300" />
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-logo-github.png" alt="AMUD Logo" width="300" />
 </div>
 
 # AMUD Dashboard
@@ -10,35 +10,45 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.6.1
+### What's new in v1.6.2
 
-- **Distinct themes** — 35 themes with unique UI (fonts, cards, icons, layouts); CDN assets via jsDelivr
-- **Theme engine** — `theme-engine.js` loads per-theme icon packs and wallpapers from GitHub
-- **Settings fix** — theme gallery save works again; correct default theme preview image
+- **Offline themes** — icons, wallpapers, and gallery previews ship in `ui.tar.gz` (no CDN)
+- **Manifest v5** — 35 themes with distinct icon art styles and layout profiles
+- **Settings fix** — theme gallery previews and sidebar icons follow the active theme
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (audit 2026-06-25)
+### Release status (audit 2026-06-27)
 
 After manual validation in a clean Proxmox test container, these releases are currently kept as known-good baselines:
 
-- `v1.0.0`
-- `v1.3.6`
-- `v1.3.7`
-- `v1.4.1.0`
-- `v1.5.5.3`
-- `v1.5.5.6`
-- `v1.5.5.9`
-- `v1.5.6.0`
-- `v1.5.6.2`
-- `v1.5.6.3`
-- `v1.5.6.4`
-- `v1.6.1` (current latest recommended)
+- `v1.6.2` (current latest recommended)
 - `v1.6.0`
+- `v1.5.6.4`
+- `v1.5.6.3`
+- `v1.5.6.2`
+- `v1.5.6.0`
+- `v1.5.5.9`
+- `v1.5.5.6`
+- `v1.5.5.3`
+- `v1.4.1.0`
+- `v1.3.7`
+- `v1.3.6`
+- `v1.0.0`
 
-Broken tags identified during audit were removed from GitHub releases/tags and should not be used. **Do not use `v1.5.5.4` or `v1.5.6.1`.**
+Broken or withdrawn tags should not be used. **Do not use `v1.5.5.4`, `v1.5.6.1`, or `v1.6.1`.**
 
-![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
+![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+
+### In action
+
+**Add an app** — no YAML, straight from the dashboard:
+
+![Add app](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-add-app.gif)
+
+**Update AMUD** — native install from Settings → System:
+
+![Update AMUD](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-update.gif)
 
 A compiled, zero-dependency homelab control center and telemetry dashboard.
 

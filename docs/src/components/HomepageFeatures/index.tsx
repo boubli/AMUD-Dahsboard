@@ -134,6 +134,21 @@ export default function HomepageFeatures(): ReactNode {
             Full feature list →
           </Link>
         </div>
+        <div className="container" style={{ marginTop: '4rem', maxWidth: '960px' }}>
+          <Heading as="h2" style={{ textAlign: 'center', marginBottom: '2rem', color: '#fff' }}>
+            See it in action
+          </Heading>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+            <figure style={{ margin: 0 }}>
+              <img src="img/amud-add-app.gif" alt="Adding an app in AMUD Dashboard" style={{ width: '100%', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }} />
+              <figcaption style={{ textAlign: 'center', marginTop: '0.75rem', color: '#a0aabf', fontSize: '0.95rem' }}>Add an app — no YAML</figcaption>
+            </figure>
+            <figure style={{ margin: 0 }}>
+              <img src="img/amud-update.gif" alt="Updating AMUD from Settings" style={{ width: '100%', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }} />
+              <figcaption style={{ textAlign: 'center', marginTop: '0.75rem', color: '#a0aabf', fontSize: '0.95rem' }}>One-click update (native install)</figcaption>
+            </figure>
+          </div>
+        </div>
       </div>
     </section>
   );

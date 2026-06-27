@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png" alt="AMUD Logo" width="300" />
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-logo-github.png" alt="AMUD Logo" width="300" />
 </div>
 
 # AMUD Dashboard
@@ -39,7 +39,7 @@
 
 ऑडिट के दौरान पहचानी गई टूटी हुई टैगों को GitHub रिलीज़/टैग से हटा दिया गया है और उनका उपयोग नहीं किया जाना चाहिए। **`v1.5.5.4` या `v1.5.6.1` (वापस ली गई) का उपयोग न करें।**
 
-![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
+![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 एक संकलित (compiled), शून्य-निर्भरता वाला होमलैब नियंत्रण केंद्र और टेलीमेट्री डैशबोर्ड।
 

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png" alt="AMUD Logo" width="300" />
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-logo-github.png" alt="AMUD Logo" width="300" />
 </div>
 
 # AMUD Dashboard
@@ -39,7 +39,7 @@
 
 تمت إزالة العلامات التالفة التي تم تحديدها أثناء التدقيق من إصدارات/علامات GitHub ولا ينبغي استخدامها. **لا تستخدم `v1.5.5.4` أو `v1.5.6.1` (مسحوبة).**
 
-![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
+![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 مركز تحكم للوظائف المنزلية (homelab) ولوحة تحكم للقياس عن بعد، مجمع وبدون أي تبعيات خارجية.
 

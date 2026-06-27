@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/amud-logo-github.png" alt="AMUD Logo" width="300" />
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/amud-logo-github.png" alt="AMUD Logo" width="300" />
 </div>
 
 # AMUD Dashboard
@@ -39,7 +39,7 @@
 
 감사 중 발견된 비정상적인 태그는 GitHub 릴리스/태그에서 제거되었으며 사용해서는 안 됩니다. **`v1.5.5.4` 또는 `v1.5.6.1`(철회)을 사용하지 마십시오.**
 
-![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/assist/AMUD-Dashboard.png)
+![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 컴파일된 단일 바이너리로 작동하며 종속성이 없는 홈랩 제어 센터 및 원격 측정 대시보드입니다.
 
