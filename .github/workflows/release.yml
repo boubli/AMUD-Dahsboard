@@ -11,19 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-binaries:
-    name: Build ${{ matrix.server_name }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: ubuntu-22.04
-            server_name: amud-server
-            agent_name: amud-agent
-          - runner: ubuntu-24.04-arm
-            server_name: amud-server-arm64
-            agent_name: amud-agent-arm64
+  build-amd64:
+    name: Build amd64 binaries
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -40,28 +30,66 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-${{ matrix.server_name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-amd64-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.server_name }}-cargo-
+            ${{ runner.os }}-amd64-cargo-
 
       - name: Build Projects in Release Mode
-        run: |
-          GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release
+        run: GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release
 
-      - name: Stage release binaries
+      - name: Stage amd64 binaries
         run: |
           set -euxo pipefail
-          staging="release-staging-${{ matrix.server_name }}"
-          mkdir -p "$staging"
-          cp target/release/amud-server "$staging/${{ matrix.server_name }}"
-          cp target/release/amud-agent "$staging/${{ matrix.agent_name }}"
-          ls -la "$staging/"
+          mkdir -p release-out
+          cp target/release/amud-server release-out/amud-server
+          cp target/release/amud-agent release-out/amud-agent
+          ls -la release-out/
 
-      - name: Upload binaries
+      - name: Upload amd64 binaries
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ${{ matrix.server_name }}-binaries
-          path: release-staging-${{ matrix.server_name }}/
+          name: amd64-binaries
+          path: release-out/
+
+  build-arm64:
+    name: Build arm64 binaries
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+
+      - name: Cache Cargo Dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-arm64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-arm64-cargo-
+
+      - name: Build Projects in Release Mode
+        run: GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release
+
+      - name: Stage arm64 binaries
+        run: |
+          set -euxo pipefail
+          mkdir -p release-out
+          cp target/release/amud-server release-out/amud-server-arm64
+          cp target/release/amud-agent release-out/amud-agent-arm64
+          ls -la release-out/
+
+      - name: Upload arm64 binaries
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: arm64-binaries
+          path: release-out/
 
   build-ui:
     name: Package UI assets
@@ -81,7 +109,7 @@ jobs:
 
   publish-release:
     name: Create GitHub Release
-    needs: [build-binaries, build-ui]
+    needs: [build-amd64, build-arm64, build-ui]
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -98,16 +126,11 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p dist
-          find release-assets -type f \( \
-            -name 'amud-server' -o \
-            -name 'amud-agent' -o \
-            -name 'amud-server-arm64' -o \
-            -name 'amud-agent-arm64' -o \
-            -name 'ui.tar.gz' \
-          \) -exec cp {} dist/ \;
-          for asset in amud-server amud-agent amud-server-arm64 amud-agent-arm64 ui.tar.gz; do
-            test -f "dist/$asset"
-          done
+          cp release-assets/amd64-binaries/amud-server dist/
+          cp release-assets/amd64-binaries/amud-agent dist/
+          cp release-assets/arm64-binaries/amud-server-arm64 dist/
+          cp release-assets/arm64-binaries/amud-agent-arm64 dist/
+          cp release-assets/ui-tarball/ui.tar.gz dist/
           cd dist
           sha256sum amud-server amud-agent amud-server-arm64 amud-agent-arm64 ui.tar.gz > SHA256SUMS
           grep -qE '[[:space:]/]amud-server$' SHA256SUMS
