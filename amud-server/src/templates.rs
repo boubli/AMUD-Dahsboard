@@ -285,10 +285,7 @@ fn manifest_shortcut_icon(icons: &BrandingIcons) -> (String, String) {
     if icons.uses_custom_logo {
         (icons.pwa_icon_url.clone(), icons.favicon_type.clone())
     } else {
-        (
-            DEFAULT_PWA_ICON_192.to_string(),
-            "image/png".to_string(),
-        )
+        (DEFAULT_PWA_ICON_192.to_string(), "image/png".to_string())
     }
 }
 
@@ -538,10 +535,7 @@ mod tests {
     #[test]
     fn apply_branding_head_replaces_favicon_placeholders() {
         let mut settings = HashMap::new();
-        settings.insert(
-            "app_logo".to_string(),
-            "/uploads/logo.png".to_string(),
-        );
+        settings.insert("app_logo".to_string(), "/uploads/logo.png".to_string());
         let branding = branding_from_settings(&settings);
         let html = apply_branding_head(
             r#"<link rel="icon" href="{{favicon_url}}" type="{{favicon_type}}"><link rel="apple-touch-icon" href="{{apple_touch_icon_url}}">"#.to_string(),
@@ -565,10 +559,7 @@ mod tests {
     #[test]
     fn branding_icons_uses_custom_upload_logo() {
         let mut settings = HashMap::new();
-        settings.insert(
-            "app_logo".to_string(),
-            "/uploads/123.png".to_string(),
-        );
+        settings.insert("app_logo".to_string(), "/uploads/123.png".to_string());
         let branding = branding_from_settings(&settings);
         let icons = branding_icons(&branding);
         assert_eq!(icons.favicon_url, "/uploads/123.png");
@@ -581,10 +572,7 @@ mod tests {
     #[test]
     fn branding_icons_svg_mime_type() {
         let mut settings = HashMap::new();
-        settings.insert(
-            "app_logo".to_string(),
-            "/static/logo.svg".to_string(),
-        );
+        settings.insert("app_logo".to_string(), "/static/logo.svg".to_string());
         let branding = branding_from_settings(&settings);
         let icons = branding_icons(&branding);
         assert_eq!(icons.favicon_type, "image/svg+xml");
@@ -594,10 +582,7 @@ mod tests {
     fn build_web_manifest_json_uses_custom_icon() {
         let mut settings = HashMap::new();
         settings.insert("app_name".to_string(), "My Lab".to_string());
-        settings.insert(
-            "app_logo".to_string(),
-            "/uploads/custom.png".to_string(),
-        );
+        settings.insert("app_logo".to_string(), "/uploads/custom.png".to_string());
         let branding = branding_from_settings(&settings);
         let json = build_web_manifest_json(&branding);
         assert!(json.contains(r#""name":"My Lab""#));
