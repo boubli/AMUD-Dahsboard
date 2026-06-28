@@ -91,7 +91,9 @@ PVE_API_TOKEN=PVEAPIToken=root@pam!amud=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 
 ### Docker Compose
 
-For containerized hosts (combines server and agent communicating over a shared volume for the Unix socket):
+For containerized hosts on **x86_64/amd64** (combines server and agent communicating over a shared volume for the Unix socket).
+
+**ARM64 hosts:** Docker images are amd64-only. Use [native install](https://boubli.github.io/AMUD-Dashboard/docs/installation/linux) or `update-amud.sh` with release `*-arm64` binaries instead.
 
 ```yaml
 version: '3.8'

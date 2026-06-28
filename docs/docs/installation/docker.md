@@ -4,7 +4,11 @@ sidebar_position: 3
 
 # Docker Deployment
 
-Deploying AMUD in a Docker environment containerizes the entire dashboard and telemetry ecosystem. We provide pre-built, multi-architecture Docker images (`x86_64` and `arm64`) that enable instant setup.
+Deploying AMUD in a Docker environment containerizes the entire dashboard and telemetry ecosystem. We publish pre-built **amd64** (`x86_64`) images on Docker Hub for instant setup on typical Intel/AMD hosts.
+
+:::info ARM64 / Raspberry Pi / Ampere
+The Docker image is **amd64 only**. On ARM64 hosts, use the [native Linux install](/docs/installation/linux) or `update-amud.sh` — GitHub Releases ship `amud-server-arm64` and `amud-agent-arm64` binaries.
+:::
 
 ---
 

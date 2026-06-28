@@ -57,7 +57,9 @@ Full guide: [Proxmox installation](/docs/installation/proxmox)
 
 Use the two-container Compose stack (`amud_app` + `amud_agent`) from the [Docker installation guide](/docs/installation/docker).
 
-Image: `tradmss/amud-dashboard:latest` (x86_64 and arm64).
+Image: `tradmss/amud-dashboard:latest` (**amd64 / x86_64**).
+
+On **ARM64** (Raspberry Pi, Oracle Ampere, etc.), use [native install](/docs/installation/linux) or `update-amud.sh` instead of Docker — release binaries include `amud-server-arm64` and `amud-agent-arm64`.
 
 ---
 

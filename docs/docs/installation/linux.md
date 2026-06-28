@@ -71,7 +71,11 @@ Save the generated value; you will need to add it to the environment configurati
 
 ## 3. Download Release Assets
 
-We distribute pre-compiled `x86_64` and `arm64` binaries for every stable release.
+We distribute pre-compiled `x86_64` and `arm64` binaries for every stable release. On ARM64, use `update-amud.sh` (it picks `amud-server-arm64` / `amud-agent-arm64` automatically) or download the `-arm64` assets manually.
+
+:::note Docker vs native on ARM64
+Docker Hub images are **amd64 only**. For ARM64 homelabs, prefer native install below rather than running an emulated amd64 container.
+:::
 
 Download the dashboard server, telemetry agent, and frontend UI templates:
 

@@ -20,7 +20,7 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 ## Recently shipped (v1.6.3)
 
 - **ARM64 release binaries** — `amud-server-arm64` / `amud-agent-arm64` alongside amd64
-- **Multi-arch Docker** — `linux/amd64` + `linux/arm64` on Docker Hub
+- **Multi-arch Docker** — `linux/amd64` images on Docker Hub (ARM64: use native release binaries)
 - **GitHub Pages** — auto-deploy restored; homepage hero carousel + GIF demos
 - **PWA / mobile polish** — install banner, offline shell, responsive topbar menu
 

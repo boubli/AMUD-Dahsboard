@@ -32,15 +32,6 @@ jobs:
             echo "value=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Resolve Docker platforms
-        id: platforms
-        run: |
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            echo "value=linux/amd64,linux/arm64" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=linux/amd64" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Log in to Docker Hub
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
@@ -65,7 +56,7 @@ jobs:
         with:
           context: .
           push: true
-          platforms: ${{ steps.platforms.outputs.value }}
+          platforms: linux/amd64
           provenance: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
