@@ -10,24 +10,23 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.6.3
+### What's new in v1.6.4
 
-- **ARM64 binaries** — official `amud-server-arm64` / `amud-agent-arm64` release assets
-- **Multi-arch Docker** — `tradmss/amud-dashboard` pulls amd64 or arm64 automatically
-- **GitHub Pages** — rotating hero carousel + GIF demos at [boubli.github.io/AMUD-Dashboard](https://boubli.github.io/AMUD-Dashboard/)
-- **PWA polish** — install banner, offline shell, mobile topbar menu
+- **Branding logo fix** — custom uploaded logos work on login, guest dashboard, favicon, and PWA (not only when logged in)
+- **PWA mobile polish** — hero/menu overlap fixes, centered topbar, telemetry grid, expandable search
+- **Custom logo → manifest** — Settings Dashboard Logo drives favicon and Apple touch icon everywhere
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (audit 2026-06-27)
+### Release status (audit 2026-06-28)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.6.3` (current latest recommended)
+- `v1.6.4` (current latest recommended)
+- `v1.6.3`
 - `v1.6.0`
 - `v1.5.6.4`
 - `v1.5.6.3`
-- `v1.5.6.2`
 
 **Do not use:** `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 

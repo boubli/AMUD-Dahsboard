@@ -8,6 +8,25 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.6.4](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.4) — 2026-06-28
+
+Branding logo fix for guests/login, PWA mobile polish, custom logo favicon/manifest.
+
+### Fixed
+- **Custom logo empty for guests / login** — public `GET /uploads/` for branding images; upload stays admin-only
+- **Logo markup** — `<img>` on dashboard, login, settings; favicon and PWA manifest stay in sync
+- **Mobile overflow menu** — fixed panel below topbar; outside-click close; no hero overlap
+
+### Improved
+- **PWA mobile UI** — centered logo/title, hero layout, weather card, telemetry grid, expandable search
+- **Custom logo → PWA** — Settings Dashboard Logo drives favicon, Apple touch icon, manifest
+- **Service worker** — `sw.js` v26
+
+### Maintainer
+- CI hardening, Docker Hub overview sync, README release list trim
+
+---
+
 ## [v1.6.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.3) — 2026-06-25
 
 ARM64 binaries, multi-arch Docker, GitHub Pages hero + GIFs, PWA/mobile polish.

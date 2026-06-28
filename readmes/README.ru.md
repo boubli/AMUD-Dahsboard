@@ -10,13 +10,11 @@
 
 **[Список изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Блог](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Галерея тем](https://boubli.github.io/AMUD-Dashboard/themes)** · **[План разработки](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Документация](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Что нового в v1.6.0
+### Что нового в v1.6.4
 
-- **Паритет с Homepage и Homarr** — импорт YAML/JSON, пользовательский API, LDAP, доски, кэш интеграций, более 40 новых интеграций
-- **Карточки Plex / Jellyfin** — количество активных потоков для каждого приложения
-- **Виджет календаря \*arr** — предстоящие релизы Sonarr/Radarr/Lidarr/Readarr
-- **Отслеживание релизов** — значки версий GitHub и Docker Hub
-- **Мультинодовый агент** — маркировка телеметрии тегом `AMUD_NODE_TAG` для каждого хоста
+- **Исправление логотипа брендинга** — пользовательские логотипы на странице входа, гостевой панели, favicon и PWA
+- **Мобильная полировка PWA** — меню не перекрывает hero, центрированная верхняя панель, сетка телеметрии, раскрывающийся поиск
+- **Логотип → манифест** — логотип панели в Настройках управляет favicon и иконкой Apple везде
 
 Полная история: **[Журнал изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

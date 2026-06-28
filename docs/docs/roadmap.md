@@ -11,6 +11,12 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.6.4)
+
+- **Branding logo fix** — custom logos on login, guest dashboard, favicon, and PWA (public `/uploads/` read)
+- **PWA mobile polish** — hero/menu overlap, centered topbar, telemetry grid, expandable search
+- **Custom logo → manifest** — Settings Dashboard Logo drives favicon and Apple touch icon
+
 ## Recently shipped (v1.6.3)
 
 - **ARM64 release binaries** — `amud-server-arm64` / `amud-agent-arm64` alongside amd64

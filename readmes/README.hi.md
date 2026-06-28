@@ -10,13 +10,11 @@
 
 **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ब्लॉग](https://boubli.github.io/AMUD-Dashboard/blog)** · **[थीम गैलरी](https://boubli.github.io/AMUD-Dashboard/themes)** · **[रोडमैप](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/)** · **[अक्सर पूछे जाने वाले सवाल](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.6.0 में नया
+### v1.6.4 में नया
 
-- **Homepage और Homarr समानता** — YAML/JSON आयात, कस्टम API, LDAP, बोर्ड, इंटीग्रेशन कैश, 40+ नए इंटीग्रेशन
-- **Plex / Jellyfin कार्ड** — प्रति-ऐप सक्रिय स्ट्रीम गणना
-- **\*arr कैलेंडर विजेट** — Sonarr/Radarr/Lidarr/Readarr आगामी रिलीज़
-- **रिलीज़ ट्रैकर्स** — GitHub और Docker Hub संस्करण बैज
-- **मल्टी-नोड एजेंट** — प्रति होस्ट `AMUD_NODE_TAG` के साथ टेलीमेट्री टैग करें
+- **ब्रांडिंग लोगो फिक्स** — कस्टम लोगो लॉगिन, अतिथि डैशबोर्ड, favicon और PWA पर काम करते हैं (केवल लॉगिन पर नहीं)
+- **PWA मोबाइल पॉलिश** — मेनू हीरो को ओवरलैप नहीं करता, केंद्रित टॉपबार, टेलीमेट्री ग्रिड, विस्तार योग्य खोज
+- **लोगो → मैनिफ़ेस्ट** — सेटिंग्स डैशबोर्ड लोगो favicon और Apple टच आइकन को हर जगह नियंत्रित करता है
 
 पूरा इतिहास: **[चेंजलॉग](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

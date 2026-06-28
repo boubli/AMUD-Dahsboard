@@ -10,13 +10,11 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### الجديد في v1.6.0
+### الجديد في v1.6.4
 
-- **توافق ومماثلة مع Homepage و Homarr** — استيراد YAML/JSON، واجهة برمجة تطبيقات مخصصة (Custom API)، بروتوكول LDAP، لوحات متعددة، تخزين مؤقت للتكامل، وأكثر من 40 تكاملاً جديدًا
-- **بطاقات Plex / Jellyfin** — عدد البث المباشر النشط لكل تطبيق
-- **أداة تقويم \*arr** — الإصدارات القادمة لـ Sonarr/Radarr/Lidarr/Readarr
-- **متتبعات الإصدارات** — شارات إصدار GitHub و Docker Hub
-- **وكيل متعدد العقد** — وسم بيانات القياس والتحكم بـ `AMUD_NODE_TAG` لكل مضيف
+- **إصلاح شعار العلامة التجارية** — الشعارات المخصصة تعمل في تسجيل الدخول ولوحة الضيف والأيقونة وPWA (ليس فقط عند تسجيل الدخول)
+- **تحسينات PWA للجوال** — القائمة لا تغطي منطقة الترحيب، شريط علوي متمركز، شبكة قياس عن بعد، بحث قابل للتوسيع
+- **الشعار → البيان** — شعار لوحة التحكم في الإعدادات يتحكم في الأيقونة وأيقونة Apple في كل الصفحات
 
 السجل الكامل: **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

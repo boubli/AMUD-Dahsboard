@@ -10,13 +10,11 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.6.0 새로운 기능
+### v1.6.4 새로운 기능
 
-- **Homepage & Homarr 기능 대등성** — YAML/JSON 가져오기, 사용자 정의 API, LDAP, 보드, 통합 캐시, 40개 이상의 신규 통합
-- **Plex / Jellyfin 카드** — 앱당 활성 스트림 수 표시
-- **\*arr 캘린더 위젯** — Sonarr/Radarr/Lidarr/Readarr 향후 출시 예정 정보
-- **릴리스 추적기** — GitHub 및 Docker Hub 버전 배지
-- **다중 노드 에이전트** — 호스트별 `AMUD_NODE_TAG`로 원격 측정 태그 지정
+- **브랜딩 로고 수정** — 사용자 지정 로고가 로그인, 게스트 대시보드, 파비콘, PWA에서 작동 (로그인 시에만이 아님)
+- **PWA 모바일 개선** — 메뉴가 히어로와 겹치지 않음, 중앙 정렬 상단 바, 원격 측정 그리드, 확장 가능한 검색
+- **로고 → 매니페스트** — 설정의 대시보드 로고가 파비콘과 Apple 터치 아이콘을 전역에서 제어
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

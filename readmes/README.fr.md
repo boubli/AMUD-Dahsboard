@@ -10,13 +10,11 @@
 
 **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galerie de thèmes](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Feuille de route](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Nouveautés de la v1.6.0
+### Nouveautés de la v1.6.4
 
-- **Parité avec Homepage & Homarr** — importation YAML/JSON, API personnalisée, LDAP, tableaux, cache d'intégration, plus de 40 nouvelles intégrations
-- **Cartes Plex / Jellyfin** — nombre de flux actifs par application
-- **Widget calendrier \*arr** — sorties à venir pour Sonarr/Radarr/Lidarr/Readarr
-- **Suivi des versions** — badges de version GitHub et Docker Hub
-- **Agent multi-nœud** — marquage de la télémétrie avec `AMUD_NODE_TAG` par hôte
+- **Correction du logo de marque** — les logos personnalisés fonctionnent sur la page de connexion, le tableau invité, le favicon et la PWA
+- **Finitions mobile PWA** — menu sans chevauchement du hero, barre supérieure centrée, grille télémétrie, recherche extensible
+- **Logo → manifeste** — le logo du tableau dans Paramètres pilote le favicon et l’icône Apple partout
 
 Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

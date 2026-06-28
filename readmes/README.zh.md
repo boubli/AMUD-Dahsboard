@@ -10,13 +10,11 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.6.0 新特性
+### v1.6.4 新特性
 
-- **与 Homepage 和 Homarr 功能对齐** — YAML/JSON 导入、自定义 API、LDAP、看板、集成缓存、40+ 个新集成
-- **Plex / Jellyfin 卡片** — 显示每个应用的活跃流媒体数量
-- **\*arr 日历小组件** — Sonarr/Radarr/Lidarr/Readarr 即将发布的内容
-- **版本追踪** — GitHub 和 Docker Hub 版本徽章
-- **多节点代理** — 允许每个主机使用 `AMUD_NODE_TAG` 标记遥测数据
+- **品牌 Logo 修复** — 自定义 Logo 在登录页、访客面板、网站图标和 PWA 中均可显示（不仅限于已登录）
+- **PWA 移动端优化** — 菜单不再遮挡欢迎区、顶栏居中、遥测双列布局、可展开搜索
+- **Logo → 清单** — 设置中的面板 Logo 统一驱动 favicon 与 Apple 触摸图标
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 

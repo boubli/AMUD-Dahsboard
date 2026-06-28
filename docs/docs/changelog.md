@@ -11,6 +11,21 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.6.4 — Branding logo fix, PWA mobile polish
+
+**2026-06-28** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.4)
+
+### Fixed
+- **Custom logo for guests / login** — public read for `/uploads/` branding images; `<img>` logo on dashboard, login, settings
+- **Mobile overflow menu** — fixed panel below topbar; outside-click close
+
+### Improved
+- **PWA mobile UI** — centered topbar, hero layout, weather card, telemetry grid, expandable search
+- **Custom logo → favicon / PWA** — Settings Dashboard Logo drives manifest and icons everywhere
+- **Service worker** — `sw.js` v26
+
+---
+
 ## v1.6.3 — ARM64, Pages, PWA
 
 **2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.3)

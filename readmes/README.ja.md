@@ -10,13 +10,11 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.6.0 の新機能
+### v1.6.4 の新機能
 
-- **Homepage & Homarr との機能整合** — YAML/JSON インポート、カスタム API、LDAP、ボード、統合キャッシュ、40以上の新規統合
-- **Plex / Jellyfin カード** — アプリごとのアクティブストリーム数を表示
-- **\*arr カレンダーウィジェット** — Sonarr/Radarr/Lidarr/Readarr の今後のリリース予定
-- **リリース追跡** — GitHub および Docker Hub のバージョンバッジ
-- **マルチノードエージェント** — ホストごとに `AMUD_NODE_TAG` でテレメトリをタグ付け
+- **ブランディングロゴ修正** — カスタムロゴがログイン、ゲストダッシュボード、favicon、PWA で表示（ログイン時のみではない）
+- **PWA モバイル改善** — ヒーローと重ならないメニュー、中央揃えトップバー、テレメトリグリッド、展開式検索
+- **ロゴ → マニフェスト** — 設定のダッシュボードロゴが favicon と Apple タッチアイコンを全体で制御
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
