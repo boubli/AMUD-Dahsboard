@@ -48,11 +48,11 @@
         <!-- Header / Topbar -->
         <header class="topbar" x-data="{ topbarMenuOpen: false }">
             <div class="brand-section topbar-inner">
-                <div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
+                <div class="brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="{{app_name}}" class="brand-logo-img">{{end}}</div>
                 <h1 class="brand-title">{{app_name}} {{page_title_suffix}}</h1>
             </div>
             
-            <div class="topbar-end">
+            <div class="topbar-end" @click.outside="topbarMenuOpen = false">
                 <div class="topbar-essential">
                 <div id="ws-status-pill" class="ws-status-pill ws-connecting" title="Live dashboard connection">
                     <span class="ws-status-dot"></span>
@@ -75,7 +75,7 @@
                     <i data-lucide="menu"></i>
                 </button>
 
-                <div id="topbar-overflow-menu" class="topbar-overflow" :class="{ 'is-open': topbarMenuOpen }">
+                <div id="topbar-overflow-menu" class="topbar-overflow" :class="{ 'is-open': topbarMenuOpen }" @click="topbarMenuOpen = false">
                 <!-- FEEDS_NAV -->
                 <!-- AUTH_BUTTONS -->
                 </div>

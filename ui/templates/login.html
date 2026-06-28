@@ -55,7 +55,7 @@
         <div class="glass-panel" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
 
             <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-                <div class="brand-logo login-brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
+                <div class="brand-logo login-brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="{{app_name}}" class="brand-logo-img">{{end}}</div>
                 <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em;">Sign In</h2>
                 <p style="font-size: 0.8rem; color: var(--text-secondary);">{{tagline}}</p>
             </div>

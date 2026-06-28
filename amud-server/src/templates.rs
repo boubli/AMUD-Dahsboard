@@ -274,6 +274,18 @@ pub(crate) fn branding_icons(branding: &BrandingVars) -> BrandingIcons {
     }
 }
 
+const APP_LOGO_IMG_BLOCK: &str = "{{if app_logo}}<img src=\"{{app_logo}}\" alt=\"{{app_name}}\" class=\"brand-logo-img\">{{end}}";
+
+pub(crate) fn apply_app_logo_template(html: String, app_logo: &str) -> String {
+    if app_logo.is_empty() {
+        html.replace(APP_LOGO_IMG_BLOCK, "")
+    } else {
+        html.replace("{{if app_logo}}", "")
+            .replace("{{app_logo}}", &escape_html(app_logo))
+            .replace("{{end}}", "")
+    }
+}
+
 pub(crate) fn apply_branding_head(html: String, branding: &BrandingVars) -> String {
     let icons = branding_icons(branding);
     html.replace("{{favicon_url}}", &icons.favicon_url)
@@ -395,7 +407,6 @@ pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptio
     let safe_tagline = escape_html(tagline);
     let safe_accent = escape_html(&branding.accent_color);
     let safe_theme = escape_html(&branding.theme_mode);
-    let safe_app_logo_css = safe_css_url(&branding.app_logo);
 
     html = html.replace("/* ROOT_CSS */", &root_css);
     html = html
@@ -407,18 +418,7 @@ pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptio
         .replace("{{custom_css}}", opts.custom_css);
 
     html = apply_branding_head(html, branding);
-
-    if branding.app_logo.is_empty() {
-        html = html.replace(
-            "{{if app_logo}}style=\"background-image: url('{{app_logo}}');\"{{end}}",
-            "",
-        );
-    } else {
-        html = html
-            .replace("{{if app_logo}}", "")
-            .replace("{{app_logo}}", &safe_app_logo_css)
-            .replace("{{end}}", "");
-    }
+    html = apply_app_logo_template(html, &branding.app_logo);
 
     let bg_url = &branding.custom_bg_url;
     let is_video_bg = bg_url.ends_with(".mp4") || bg_url.ends_with(".webm");
@@ -518,7 +518,7 @@ mod tests {
         );
         let branding = branding_from_settings(&settings);
         let html = apply_shared_branding(
-            r#"<html data-theme="{{theme_mode}}"><style>:root { /* ROOT_CSS */ }</style><style id="x">{{custom_css}}</style><div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>"#.to_string(),
+            r#"<html data-theme="{{theme_mode}}"><style>:root { /* ROOT_CSS */ }</style><style id="x">{{custom_css}}</style><div class="brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="{{app_name}}" class="brand-logo-img">{{end}}</div>"#.to_string(),
             &BrandingRenderOptions {
                 branding: &branding,
                 custom_css: ".btn-primary { background: hotpink; }",
@@ -528,7 +528,7 @@ mod tests {
         );
         assert!(html.contains(r#"data-theme="light""#));
         assert!(html.contains(".btn-primary { background: hotpink; }"));
-        assert!(html.contains("url('/static/custom-logo.png')"));
+        assert!(html.contains(r#"src="/static/custom-logo.png""#));
         assert!(html.contains("--accent-color: #ff00aa"));
     }
 

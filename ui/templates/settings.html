@@ -373,7 +373,7 @@
         <aside class="settings-sidebar">
             <a href="/" class="settings-header-brand">
                 <i data-lucide="arrow-left" style="width:1.2rem; height:1.2rem; color:var(--text-muted);"></i>
-                <div class="brand-logo" {{if app_logo}}style="background-image: url('{{app_logo}}');"{{end}}></div>
+                <div class="brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="{{app_name}}" class="brand-logo-img">{{end}}</div>
                 <h2>{{app_name}} Settings</h2>
             </a>
 

@@ -89,15 +89,7 @@ pub async fn settings_page_handler(
         .replace("{{tagline}}", tagline)
         .replace("{{custom_bg_url}}", custom_bg_url);
 
-    if app_logo.is_empty() {
-        result = result.replace(
-            "{{if app_logo}}style=\"background-image: url('{{app_logo}}');\"{{end}}",
-            "",
-        );
-    } else {
-        result = result.replace("{{if app_logo}}", "").replace("{{end}}", "");
-    }
-    result = result.replace("{{app_logo}}", &escape_html(app_logo));
+    result = apply_app_logo_template(result, app_logo);
 
     let result = result
         .replace("{{accent_color}}", accent_color)

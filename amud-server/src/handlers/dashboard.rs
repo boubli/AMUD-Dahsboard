@@ -274,7 +274,6 @@ async fn render_page(
 
     let safe_app_name = escape_html(&branding.app_name);
     let safe_tagline = escape_html(tagline);
-    let safe_app_logo_css = safe_css_url(&branding.app_logo);
     let safe_accent = branding.accent_color.clone();
     let safe_glass_blur = branding
         .glass_blur
@@ -329,17 +328,7 @@ async fn render_page(
         )
         .replace("{{custom_bg_url}}", &safe_css_url(&branding.custom_bg_url));
 
-    if branding.app_logo.is_empty() {
-        result = result.replace(
-            "{{if app_logo}}style=\"background-image: url('{{app_logo}}');\"{{end}}",
-            "",
-        );
-    } else {
-        result = result
-            .replace("{{if app_logo}}", "")
-            .replace("{{app_logo}}", &safe_app_logo_css)
-            .replace("{{end}}", "");
-    }
+    result = apply_app_logo_template(result, &branding.app_logo);
 
     let result = result
         .replace("{{accent_color}}", &safe_accent)
