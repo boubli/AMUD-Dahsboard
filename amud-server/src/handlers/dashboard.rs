@@ -328,7 +328,7 @@ async fn render_page(
         )
         .replace("{{custom_bg_url}}", &safe_css_url(&branding.custom_bg_url));
 
-    result = apply_app_logo_template(result, &branding.app_logo);
+    result = apply_app_logo_template(result, &branding.app_logo, &branding.app_name);
 
     let result = result
         .replace("{{accent_color}}", &safe_accent)

@@ -11,6 +11,16 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.6.4.1 — Default logo hotfix
+
+**2026-06-28** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.4.1)
+
+### Fixed
+- **Default logo** — topbar no longer shows `{{if app_logo}}` when no custom logo is set; AMUD PNG shows via CSS again
+- **Custom logos** — uploaded logos still render as `<img>` on all pages
+
+---
+
 ## v1.6.4 — Branding logo fix, PWA mobile polish
 
 **2026-06-28** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.4)

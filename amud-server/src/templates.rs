@@ -274,16 +274,35 @@ pub(crate) fn branding_icons(branding: &BrandingVars) -> BrandingIcons {
     }
 }
 
-const APP_LOGO_IMG_BLOCK: &str = "{{if app_logo}}<img src=\"{{app_logo}}\" alt=\"{{app_name}}\" class=\"brand-logo-img\">{{end}}";
+const APP_LOGO_IF_MARKER: &str = "{{if app_logo}}";
+const APP_LOGO_END_MARKER: &str = "{{end}}";
 
-pub(crate) fn apply_app_logo_template(html: String, app_logo: &str) -> String {
-    if app_logo.is_empty() {
-        html.replace(APP_LOGO_IMG_BLOCK, "")
+pub(crate) fn apply_app_logo_template(html: String, app_logo: &str, app_name: &str) -> String {
+    let Some(start) = html.find(APP_LOGO_IF_MARKER) else {
+        return html;
+    };
+    let after_start = start + APP_LOGO_IF_MARKER.len();
+    let Some(end_rel) = html[after_start..].find(APP_LOGO_END_MARKER) else {
+        return html;
+    };
+    let end = after_start + end_rel;
+    let end_after = end + APP_LOGO_END_MARKER.len();
+
+    let replacement = if app_logo.trim().is_empty() {
+        String::new()
     } else {
-        html.replace("{{if app_logo}}", "")
-            .replace("{{app_logo}}", &escape_html(app_logo))
-            .replace("{{end}}", "")
-    }
+        format!(
+            r#"<img src="{}" alt="{}" class="brand-logo-img">"#,
+            escape_html(app_logo),
+            escape_html(app_name)
+        )
+    };
+
+    let mut out = String::with_capacity(html.len() - (end_after - start) + replacement.len());
+    out.push_str(&html[..start]);
+    out.push_str(&replacement);
+    out.push_str(&html[end_after..]);
+    out
 }
 
 pub(crate) fn apply_branding_head(html: String, branding: &BrandingVars) -> String {
@@ -418,7 +437,7 @@ pub(crate) fn apply_shared_branding(mut html: String, opts: &BrandingRenderOptio
         .replace("{{custom_css}}", opts.custom_css);
 
     html = apply_branding_head(html, branding);
-    html = apply_app_logo_template(html, &branding.app_logo);
+    html = apply_app_logo_template(html, &branding.app_logo, &branding.app_name);
 
     let bg_url = &branding.custom_bg_url;
     let is_video_bg = bg_url.ends_with(".mp4") || bg_url.ends_with(".webm");
@@ -530,6 +549,27 @@ mod tests {
         assert!(html.contains(".btn-primary { background: hotpink; }"));
         assert!(html.contains(r#"src="/static/custom-logo.png""#));
         assert!(html.contains("--accent-color: #ff00aa"));
+    }
+
+    #[test]
+    fn apply_app_logo_template_empty_logo_after_app_name_substituted() {
+        let html = r#"<div class="brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="AMUD DASHBOARD" class="brand-logo-img">{{end}}</div>"#;
+        let out = apply_app_logo_template(html.to_string(), "", "AMUD DASHBOARD");
+        assert_eq!(out, r#"<div class="brand-logo"></div>"#);
+        assert!(!out.contains("{{if app_logo}}"));
+        assert!(!out.contains("brand-logo-img"));
+    }
+
+    #[test]
+    fn apply_app_logo_template_custom_logo_after_app_name_substituted() {
+        let html = r#"<div class="brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="My Lab" class="brand-logo-img">{{end}}</div>"#;
+        let out = apply_app_logo_template(html.to_string(), "/uploads/logo.png", "My Lab");
+        assert_eq!(
+            out,
+            r#"<div class="brand-logo"><img src="/uploads/logo.png" alt="My Lab" class="brand-logo-img"></div>"#
+        );
+        assert!(!out.contains("{{if app_logo}}"));
+        assert!(!out.contains("{{app_logo}}"));
     }
 
     #[test]

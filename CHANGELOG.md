@@ -8,6 +8,16 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.6.4.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.4.1) — 2026-06-28
+
+Hotfix for v1.6.4 default logo showing raw template syntax instead of AMUD PNG.
+
+### Fixed
+- **Default logo** — `apply_app_logo_template` uses span-based `{{if app_logo}}…{{end}}` replacement so empty logo shows CSS default `/static/AMUD-logo.png`
+- **Custom logos** — still inject `<img>` when Settings Dashboard Logo is set
+
+---
+
 ## [v1.6.4](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.4) — 2026-06-28
 
 Branding logo fix for guests/login, PWA mobile polish, custom logo favicon/manifest.

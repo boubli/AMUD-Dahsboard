@@ -10,11 +10,9 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.6.4
+### What's new in v1.6.4.1
 
-- **Branding logo fix** — custom uploaded logos work on login, guest dashboard, favicon, and PWA (not only when logged in)
-- **PWA mobile polish** — hero/menu overlap fixes, centered topbar, telemetry grid, expandable search
-- **Custom logo → manifest** — Settings Dashboard Logo drives favicon and Apple touch icon everywhere
+- **Default logo hotfix** — AMUD logo shows again when no custom logo is uploaded (fixes `{{if app_logo}}` leak from v1.6.4)
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -22,8 +20,8 @@ Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changel
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.6.4` (current latest recommended)
-- `v1.6.3`
+- `v1.6.4.1` (current latest recommended)
+- `v1.6.4`
 - `v1.6.0`
 - `v1.5.6.4`
 - `v1.5.6.3`
