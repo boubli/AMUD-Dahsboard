@@ -538,49 +538,6 @@ pub(crate) fn serve_upload_file(filename: &str) -> Response {
     }
 }
 
-#[cfg(test)]
-mod upload_serve_tests {
-    use super::*;
-    use std::fs;
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    fn write_test_upload(name: &str, bytes: &[u8]) -> String {
-        fs::create_dir_all("data/uploads").ok();
-        let path = format!("data/uploads/{name}");
-        fs::write(&path, bytes).expect("write test upload");
-        name.to_string()
-    }
-
-    fn unique_name(ext: &str) -> String {
-        let nano = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        format!("test-upload-{nano}.{ext}")
-    }
-
-    #[test]
-    fn serve_upload_file_allows_anonymous_read() {
-        let name = unique_name("png");
-        write_test_upload(&name, b"\x89PNG");
-        let resp = serve_upload_file(&name);
-        assert_eq!(resp.status(), StatusCode::OK);
-        fs::remove_file(format!("data/uploads/{name}")).ok();
-    }
-
-    #[test]
-    fn serve_upload_file_rejects_path_traversal() {
-        let resp = serve_upload_file("../etc/passwd");
-        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
-    }
-
-    #[test]
-    fn serve_upload_file_missing_returns_not_found() {
-        let resp = serve_upload_file("does-not-exist-amud-test.png");
-        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
-    }
-}
-
 pub async fn integration_data_handler(
     headers: HeaderMap,
     Path(id): Path<i64>,
@@ -1317,4 +1274,47 @@ pub async fn delete_rss_feed_handler(
     .await;
 
     api_json(StatusCode::OK, serde_json::json!({"success": true}))
+}
+
+#[cfg(test)]
+mod upload_serve_tests {
+    use super::*;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn write_test_upload(name: &str, bytes: &[u8]) -> String {
+        fs::create_dir_all("data/uploads").ok();
+        let path = format!("data/uploads/{name}");
+        fs::write(&path, bytes).expect("write test upload");
+        name.to_string()
+    }
+
+    fn unique_name(ext: &str) -> String {
+        let nano = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        format!("test-upload-{nano}.{ext}")
+    }
+
+    #[test]
+    fn serve_upload_file_allows_anonymous_read() {
+        let name = unique_name("png");
+        write_test_upload(&name, b"\x89PNG");
+        let resp = serve_upload_file(&name);
+        assert_eq!(resp.status(), StatusCode::OK);
+        fs::remove_file(format!("data/uploads/{name}")).ok();
+    }
+
+    #[test]
+    fn serve_upload_file_rejects_path_traversal() {
+        let resp = serve_upload_file("../etc/passwd");
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[test]
+    fn serve_upload_file_missing_returns_not_found() {
+        let resp = serve_upload_file("does-not-exist-amud-test.png");
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
 }
