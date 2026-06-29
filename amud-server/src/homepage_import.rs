@@ -259,6 +259,32 @@ mod tests {
     }
 
     #[test]
+    fn maps_homepage_widget_aliases() {
+        use crate::integration_registry::map_homepage_widget_type;
+        assert_eq!(map_homepage_widget_type("diskstation"), Some("synology"));
+        assert_eq!(map_homepage_widget_type("cloudflared"), Some("cloudflare_tunnel"));
+        assert_eq!(map_homepage_widget_type("firefly"), Some("firefly_iii"));
+        assert_eq!(map_homepage_widget_type("watchtower"), Some("watchtower"));
+    }
+
+    #[test]
+    fn parses_diskstation_homepage_service() {
+        let yaml = r#"
+- NAS:
+    - Synology:
+        href: http://nas.local
+        widget:
+          type: diskstation
+          url: http://nas.local
+          username: admin
+          password: secret
+"#;
+        let apps = parse_homepage_services_yaml(yaml).unwrap();
+        assert_eq!(apps.len(), 1);
+        assert_eq!(apps[0].integration_type, "synology");
+    }
+
+    #[test]
     fn docker_label_discovery() {
         let mut labels = BTreeMap::new();
         labels.insert("homepage.name".into(), "Radarr".into());

@@ -608,6 +608,65 @@ pub async fn fetch_umami(client: &Client, base_url: &str, api_key: &str) -> Opti
     Some(tier2_ok("umami", json!({ "websites": sites })))
 }
 
+pub async fn fetch_watchtower(client: &Client, base_url: &str, api_key: &str) -> Option<Value> {
+    let base = base_url.trim_end_matches('/');
+    let mut req = client.get(format!("{base}/v1/containers"));
+    if !api_key.trim().is_empty() {
+        req = req.header("Authorization", format!("Bearer {}", api_key.trim()));
+    }
+    let resp = req.send().await.ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let body: Value = resp.json().await.ok()?;
+    let containers = body.as_array().map(|a| a.len()).unwrap_or(0);
+    Some(tier2_ok(
+        "watchtower",
+        json!({ "containers": containers, "status": "ok" }),
+    ))
+}
+
+pub async fn fetch_ombi(client: &Client, base_url: &str, api_key: &str) -> Option<Value> {
+    let base = base_url.trim_end_matches('/');
+    let resp = client
+        .get(format!("{base}/api/v1/Request/count"))
+        .header("ApiKey", api_key.trim())
+        .send()
+        .await
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let body: Value = resp.json().await.ok()?;
+    let pending = body
+        .get("pending")
+        .and_then(|v| v.as_i64())
+        .or_else(|| body.get("pending").and_then(|v| v.as_u64()).map(|n| n as i64))
+        .unwrap_or(0);
+    let total = body
+        .get("total")
+        .and_then(|v| v.as_i64())
+        .or_else(|| body.get("total").and_then(|v| v.as_u64()).map(|n| n as i64))
+        .unwrap_or(pending);
+    Some(tier2_ok(
+        "ombi",
+        json!({ "pending": pending, "total": total, "status": "ok" }),
+    ))
+}
+
+pub async fn fetch_filebrowser(client: &Client, base_url: &str, api_key: &str) -> Option<Value> {
+    let base = base_url.trim_end_matches('/');
+    let mut req = client.get(format!("{base}/api/health"));
+    if !api_key.trim().is_empty() {
+        req = req.header("X-Auth", api_key.trim());
+    }
+    let resp = req.send().await.ok()?;
+    if !resp.status().is_success() {
+        return Some(tier2_ok("filebrowser", json!({ "status": "error" })));
+    }
+    Some(tier2_ok("filebrowser", json!({ "status": "ok" })))
+}
+
 pub async fn fetch_longtail(
     client: &Client,
     integration_type: &str,

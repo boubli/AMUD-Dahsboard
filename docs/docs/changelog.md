@@ -11,6 +11,21 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.7.0 — Integration catalog parity
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.0)
+
+### Added
+- **Catalog parity** — 130+ integration types in manifest with correct poll TTL
+- **Homepage import** — 20+ new widget aliases (`diskstation`, `cloudflared`, `firefly`, …)
+- **Watchtower, Ombi, FileBrowser** — new app card integrations
+- **Manifest-driven Add App UI** — integration dropdown from `/api/integrations/manifest`
+
+### Improved
+- **Service worker** — `sw.js` v28
+
+---
+
 ## v1.6.5 — Mobile PWA follow-ups
 
 **2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.5)

@@ -347,120 +347,6 @@
                     <label for="add-app-integration-type">Integration</label>
                     <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type" @change="amudApplyIntegrationSpan(newApp)">
                         <option value="">None</option>
-                        <option disabled>DNS &amp; adblock</option>
-                        <option value="pihole">Pi-hole</option>
-                        <option value="adguard">AdGuard Home</option>
-                        <option value="technitium">Technitium DNS</option>
-                        <option value="blocky">Blocky DNS</option>
-                        <option disabled>Servarr &amp; requests</option>
-                        <option value="radarr">Radarr</option>
-                        <option value="sonarr">Sonarr</option>
-                        <option value="lidarr">Lidarr</option>
-                        <option value="readarr">Readarr</option>
-                        <option value="whisparr">Whisparr</option>
-                        <option value="overseerr">Overseerr</option>
-                        <option value="jellyseerr">Jellyseerr</option>
-                        <option value="prowlarr">Prowlarr</option>
-                        <option value="bazarr">Bazarr</option>
-                        <option value="mylar">Mylar</option>
-                        <option value="kapowarr">Kapowarr</option>
-                        <option value="huntarr">Huntarr</option>
-                        <option disabled>Download</option>
-                        <option value="qbittorrent">qBittorrent</option>
-                        <option value="sabnzbd">SABnzbd</option>
-                        <option value="nzbget">NZBGet</option>
-                        <option value="transmission">Transmission</option>
-                        <option value="deluge">Deluge</option>
-                        <option value="jackett">Jackett</option>
-                        <option disabled>Media &amp; photos</option>
-                        <option value="tautulli">Tautulli</option>
-                        <option value="audiobookshelf">Audiobookshelf</option>
-                        <option value="immich">Immich</option>
-                        <option value="photoprism">PhotoPrism</option>
-                        <option value="navidrome">Navidrome</option>
-                        <option value="komga">Komga</option>
-                        <option value="emby">Emby</option>
-                        <option value="plex">Plex</option>
-                        <option value="jellyfin">Jellyfin</option>
-                        <option value="tdarr">Tdarr</option>
-                        <option value="maintainerr">Maintainerr</option>
-                        <option value="frigate">Frigate</option>
-                        <option value="scrypted">Scrypted</option>
-                        <option disabled>Network &amp; infra</option>
-                        <option value="fritz">FRITZ!Box</option>
-                        <option value="unifi">UniFi Network</option>
-                        <option value="opnsense">OPNsense</option>
-                        <option value="pfsense">pfSense</option>
-                        <option value="openwrt">OpenWrt</option>
-                        <option value="tailscale">Tailscale</option>
-                        <option value="netbird">Netbird</option>
-                        <option value="portainer">Portainer</option>
-                        <option value="dockge">Dockge</option>
-                        <option value="truenas">TrueNAS</option>
-                        <option value="synology">Synology DSM</option>
-                        <option value="unraid">Unraid</option>
-                        <option value="proxmox">Proxmox VE</option>
-                        <option value="proxmox_backup">Proxmox Backup Server</option>
-                        <option value="nginx_proxy_manager">Nginx Proxy Manager</option>
-                        <option value="traefik">Traefik</option>
-                        <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
-                        <option disabled>Monitoring</option>
-                        <option value="uptime_kuma">Uptime Kuma</option>
-                        <option value="grafana">Grafana</option>
-                        <option value="netdata">Netdata</option>
-                        <option value="glances">Glances</option>
-                        <option value="beszel">Beszel</option>
-                        <option value="peanut">Peanut (UPS)</option>
-                        <option disabled>Self-hosted apps</option>
-                        <option value="paperless">Paperless-ngx</option>
-                        <option value="mealie">Mealie</option>
-                        <option value="nextcloud">Nextcloud</option>
-                        <option value="vaultwarden">Vaultwarden</option>
-                        <option value="homeassistant">Home Assistant</option>
-                        <option value="authentik">Authentik</option>
-                        <option value="authelia">Authelia</option>
-                        <option value="crowdsec">CrowdSec</option>
-                        <option value="node_red">Node-RED</option>
-                        <option value="zigbee2mqtt">Zigbee2MQTT</option>
-                        <option disabled>Health check only</option>
-                        <option value="gitea">Gitea</option>
-                        <option value="forgejo">Forgejo</option>
-                        <option value="gitlab">GitLab</option>
-                        <option value="jenkins">Jenkins</option>
-                        <option value="drone">Drone CI</option>
-                        <option value="minio">MinIO</option>
-                        <option value="garage">Garage</option>
-                        <option value="seaweedfs">SeaweedFS</option>
-                        <option value="kopia">Kopia</option>
-                        <option value="restic">Restic</option>
-                        <option value="duplicati">Duplicati</option>
-                        <option value="urbackup">UrBackup</option>
-                        <option value="kodi">Kodi</option>
-                        <option value="stash">Stash</option>
-                        <option value="channels_dvr">Channels DVR</option>
-                        <option value="calibre_web">Calibre-web</option>
-                        <option value="headscale">Headscale</option>
-                        <option value="wireguard_ui">WireGuard UI</option>
-                        <option value="openvpn">OpenVPN</option>
-                        <option value="hubitat">Hubitat</option>
-                        <option value="smartthings">SmartThings</option>
-                        <option value="iobroker">ioBroker</option>
-                        <option value="blue_iris">Blue Iris</option>
-                        <option value="shinobi">Shinobi</option>
-                        <option value="agent_dvr">Agent DVR</option>
-                        <option disabled>Automation &amp; monitoring</option>
-                        <option value="custom_api">Custom API</option>
-                        <option value="autobrr">Autobrr</option>
-                        <option value="gotify">Gotify</option>
-                        <option value="changedetection">ChangeDetection.io</option>
-                        <option value="prometheus">Prometheus</option>
-                        <option value="openmediavault">OpenMediaVault</option>
-                        <option value="freshrss">FreshRSS</option>
-                        <option value="ntfy">ntfy</option>
-                        <option value="coolify">Coolify</option>
-                        <option value="aria2">Aria2</option>
-                        <option value="speedtest_tracker">Speedtest Tracker</option>
-                        <option value="kubernetes">Kubernetes</option>
                     </select>
                 </div>
 
@@ -720,120 +606,6 @@
                     <label for="edit-app-integration-type">Integration</label>
                     <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type" @change="amudApplyIntegrationSpan(editApp)">
                         <option value="">None</option>
-                        <option disabled>DNS &amp; adblock</option>
-                        <option value="pihole">Pi-hole</option>
-                        <option value="adguard">AdGuard Home</option>
-                        <option value="technitium">Technitium DNS</option>
-                        <option value="blocky">Blocky DNS</option>
-                        <option disabled>Servarr &amp; requests</option>
-                        <option value="radarr">Radarr</option>
-                        <option value="sonarr">Sonarr</option>
-                        <option value="lidarr">Lidarr</option>
-                        <option value="readarr">Readarr</option>
-                        <option value="whisparr">Whisparr</option>
-                        <option value="overseerr">Overseerr</option>
-                        <option value="jellyseerr">Jellyseerr</option>
-                        <option value="prowlarr">Prowlarr</option>
-                        <option value="bazarr">Bazarr</option>
-                        <option value="mylar">Mylar</option>
-                        <option value="kapowarr">Kapowarr</option>
-                        <option value="huntarr">Huntarr</option>
-                        <option disabled>Download</option>
-                        <option value="qbittorrent">qBittorrent</option>
-                        <option value="sabnzbd">SABnzbd</option>
-                        <option value="nzbget">NZBGet</option>
-                        <option value="transmission">Transmission</option>
-                        <option value="deluge">Deluge</option>
-                        <option value="jackett">Jackett</option>
-                        <option disabled>Media &amp; photos</option>
-                        <option value="tautulli">Tautulli</option>
-                        <option value="audiobookshelf">Audiobookshelf</option>
-                        <option value="immich">Immich</option>
-                        <option value="photoprism">PhotoPrism</option>
-                        <option value="navidrome">Navidrome</option>
-                        <option value="komga">Komga</option>
-                        <option value="emby">Emby</option>
-                        <option value="plex">Plex</option>
-                        <option value="jellyfin">Jellyfin</option>
-                        <option value="tdarr">Tdarr</option>
-                        <option value="maintainerr">Maintainerr</option>
-                        <option value="frigate">Frigate</option>
-                        <option value="scrypted">Scrypted</option>
-                        <option disabled>Network &amp; infra</option>
-                        <option value="fritz">FRITZ!Box</option>
-                        <option value="unifi">UniFi Network</option>
-                        <option value="opnsense">OPNsense</option>
-                        <option value="pfsense">pfSense</option>
-                        <option value="openwrt">OpenWrt</option>
-                        <option value="tailscale">Tailscale</option>
-                        <option value="netbird">Netbird</option>
-                        <option value="portainer">Portainer</option>
-                        <option value="dockge">Dockge</option>
-                        <option value="truenas">TrueNAS</option>
-                        <option value="synology">Synology DSM</option>
-                        <option value="unraid">Unraid</option>
-                        <option value="proxmox">Proxmox VE</option>
-                        <option value="proxmox_backup">Proxmox Backup Server</option>
-                        <option value="nginx_proxy_manager">Nginx Proxy Manager</option>
-                        <option value="traefik">Traefik</option>
-                        <option value="cloudflare_tunnel">Cloudflare Tunnel</option>
-                        <option disabled>Monitoring</option>
-                        <option value="uptime_kuma">Uptime Kuma</option>
-                        <option value="grafana">Grafana</option>
-                        <option value="netdata">Netdata</option>
-                        <option value="glances">Glances</option>
-                        <option value="beszel">Beszel</option>
-                        <option value="peanut">Peanut (UPS)</option>
-                        <option disabled>Self-hosted apps</option>
-                        <option value="paperless">Paperless-ngx</option>
-                        <option value="mealie">Mealie</option>
-                        <option value="nextcloud">Nextcloud</option>
-                        <option value="vaultwarden">Vaultwarden</option>
-                        <option value="homeassistant">Home Assistant</option>
-                        <option value="authentik">Authentik</option>
-                        <option value="authelia">Authelia</option>
-                        <option value="crowdsec">CrowdSec</option>
-                        <option value="node_red">Node-RED</option>
-                        <option value="zigbee2mqtt">Zigbee2MQTT</option>
-                        <option disabled>Health check only</option>
-                        <option value="gitea">Gitea</option>
-                        <option value="forgejo">Forgejo</option>
-                        <option value="gitlab">GitLab</option>
-                        <option value="jenkins">Jenkins</option>
-                        <option value="drone">Drone CI</option>
-                        <option value="minio">MinIO</option>
-                        <option value="garage">Garage</option>
-                        <option value="seaweedfs">SeaweedFS</option>
-                        <option value="kopia">Kopia</option>
-                        <option value="restic">Restic</option>
-                        <option value="duplicati">Duplicati</option>
-                        <option value="urbackup">UrBackup</option>
-                        <option value="kodi">Kodi</option>
-                        <option value="stash">Stash</option>
-                        <option value="channels_dvr">Channels DVR</option>
-                        <option value="calibre_web">Calibre-web</option>
-                        <option value="headscale">Headscale</option>
-                        <option value="wireguard_ui">WireGuard UI</option>
-                        <option value="openvpn">OpenVPN</option>
-                        <option value="hubitat">Hubitat</option>
-                        <option value="smartthings">SmartThings</option>
-                        <option value="iobroker">ioBroker</option>
-                        <option value="blue_iris">Blue Iris</option>
-                        <option value="shinobi">Shinobi</option>
-                        <option value="agent_dvr">Agent DVR</option>
-                        <option disabled>Automation &amp; monitoring</option>
-                        <option value="custom_api">Custom API</option>
-                        <option value="autobrr">Autobrr</option>
-                        <option value="gotify">Gotify</option>
-                        <option value="changedetection">ChangeDetection.io</option>
-                        <option value="prometheus">Prometheus</option>
-                        <option value="openmediavault">OpenMediaVault</option>
-                        <option value="freshrss">FreshRSS</option>
-                        <option value="ntfy">ntfy</option>
-                        <option value="coolify">Coolify</option>
-                        <option value="aria2">Aria2</option>
-                        <option value="speedtest_tracker">Speedtest Tracker</option>
-                        <option value="kubernetes">Kubernetes</option>
                     </select>
                 </div>
 
@@ -967,16 +739,11 @@
         globalThis.activeCategoryFilter = 'all';
         const knownAppNames = new Set({{app_names_json}});
 
-        const HEALTH_ONLY_INTEGRATIONS = new Set([
-            'kodi','channels_dvr','stash','calibre_web','kopia','restic','duplicati','urbackup',
-            'gitea','forgejo','gitlab','jenkins','drone','hubitat','smartthings','iobroker',
-            'blue_iris','shinobi','agent_dvr','headscale','wireguard_ui','openvpn','minio','seaweedfs','garage'
-        ]);
-        window.HEALTH_ONLY_INTEGRATIONS = HEALTH_ONLY_INTEGRATIONS;
+        window.HEALTH_ONLY_INTEGRATIONS = window.HEALTH_ONLY_INTEGRATIONS || new Set();
 
         function amudApplyIntegrationSpan(app) {
             if (!app || !app.integration_type || app.integration_type === 'rss') return;
-            if (HEALTH_ONLY_INTEGRATIONS.has(app.integration_type)) return;
+            if (window.HEALTH_ONLY_INTEGRATIONS.has(app.integration_type)) return;
             app.card_span = '1x2';
         }
 
@@ -1305,29 +1072,32 @@
     </script>
     <script>
         (function () {
+            function populateIntegrationSelects(data) {
+                if (!data || !data.groups) return;
+                var healthOnly = new Set();
+                ['add-app-integration-type', 'edit-app-integration-type'].forEach(function (id) {
+                    var sel = document.getElementById(id);
+                    if (!sel) return;
+                    sel.innerHTML = '<option value="">None</option>';
+                    data.groups.forEach(function (g) {
+                        var og = document.createElement('optgroup');
+                        og.label = g.group;
+                        (g.integrations || []).forEach(function (item) {
+                            if (!item.id) return;
+                            if (item.health_only) healthOnly.add(item.id);
+                            var opt = document.createElement('option');
+                            opt.value = item.id;
+                            opt.textContent = item.label + (item.health_only ? ' (health)' : '');
+                            og.appendChild(opt);
+                        });
+                        if (og.children.length) sel.appendChild(og);
+                    });
+                });
+                window.HEALTH_ONLY_INTEGRATIONS = healthOnly;
+            }
             fetch('/api/integrations/manifest', { credentials: 'same-origin' })
                 .then(function (r) { return r.ok ? r.json() : null; })
-                .then(function (data) {
-                    if (!data || !data.groups) return;
-                    ['add-app-integration-type', 'edit-app-integration-type'].forEach(function (id) {
-                        var sel = document.getElementById(id);
-                        if (!sel) return;
-                        var existing = new Set(Array.from(sel.options).map(function (o) { return o.value; }));
-                        data.groups.forEach(function (g) {
-                            var og = document.createElement('optgroup');
-                            og.label = g.group;
-                            (g.integrations || []).forEach(function (item) {
-                                if (!item.id || existing.has(item.id)) return;
-                                var opt = document.createElement('option');
-                                opt.value = item.id;
-                                opt.textContent = item.label + (item.health_only ? ' (health)' : '');
-                                og.appendChild(opt);
-                                existing.add(item.id);
-                            });
-                            if (og.children.length) sel.appendChild(og);
-                        });
-                    });
-                })
+                .then(populateIntegrationSelects)
                 .catch(function () {});
         })();
     </script>

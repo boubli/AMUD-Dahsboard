@@ -25,7 +25,7 @@ AMUD targets **full parity** with [Homepage](https://gethomepage.dev/) and [Homa
 
 ## Integrations
 
-- **AMUD**: 90+ integration types (full cards + health-only + custom API)
+- **AMUD**: 130+ integration types (full cards + health-only + custom API)
 - **Homepage**: ~150 service widgets
 - **Homarr**: ~40 first-class integrations
 

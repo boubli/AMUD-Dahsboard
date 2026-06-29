@@ -5,7 +5,7 @@ title: Features
 
 # Features
 
-Complete inventory of what AMUD Dashboard ships today (v1.6.4). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
+Complete inventory of what AMUD Dashboard ships today (v1.7.0). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
 
 ![AMUD Dashboard — default theme](/img/AMUD-Dashboard.png)
 
@@ -83,6 +83,9 @@ Configure per app under **Add/Edit App → Integration**. Data loads when the ca
 | **Immich** | Photos, videos, assets, storage | — | No |
 | **Tdarr** | Staged queue, workers | — | No |
 | **Maintainerr** | Issues, rules | — | No |
+| **Watchtower** | Monitored containers | — | No |
+| **Ombi** | Pending media requests | — | No |
+| **FileBrowser** | Health status | — | No |
 | **Frigate** | Cameras up/total, detection FPS | — | No |
 | **Bazarr** | Missing subtitles (episodes/movies) | — | No |
 | **Uptime Kuma** | Monitors up/down | — | No |

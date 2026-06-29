@@ -8,6 +8,21 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.7.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.0) — 2026-06-25
+
+Integration catalog parity: manifest sync, Homepage import aliases, Watchtower/Ombi/FileBrowser, manifest-driven Add App UI.
+
+### Added
+- **Catalog parity** — 80+ types added to `INTEGRATION_CATALOG` (TTL + `/api/integrations/manifest`)
+- **Homepage import** — 20+ new `widget.type` aliases (`diskstation`, `cloudflared`, `firefly`, …)
+- **Integrations** — Watchtower, Ombi, FileBrowser app card fetchers
+- **Manifest-driven UI** — Add/Edit App integration dropdown from server catalog
+
+### Improved
+- **Service worker** — `sw.js` v28
+
+---
+
 ## [v1.6.5](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.5) — 2026-06-25
 
 Mobile PWA follow-ups: guest 2-col grid, weather sizing, admin card headers, Settings hamburger menu.

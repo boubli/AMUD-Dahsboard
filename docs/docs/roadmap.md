@@ -11,6 +11,10 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.7.0)
+
+- **Integration catalog parity** — 130+ types in manifest; Homepage import aliases; Watchtower, Ombi, FileBrowser; manifest-driven Add App dropdown (`sw.js` v28)
+
 ## Recently shipped (v1.6.5)
 
 - **Mobile PWA follow-ups** — guest 2-col grid, weather card sizing, admin header row, Settings hamburger menu (`sw.js` v27)
@@ -64,7 +68,7 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 ## Now (active focus)
 
 - **Quality bar** — keep SonarCloud green, `cargo audit` clean, CI integration tests
-- **Remaining Homepage widget catalog** — niche services via registry batches + Custom API
+- **Net-new Homepage widgets** — watchtower/ombi/filebrowser batch shipped in v1.7.0; continue small batches (ombi-adjacent, file tools) or Custom API templates
 
 ---
 ## Next
