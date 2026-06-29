@@ -72,11 +72,43 @@
             scroll-behavior: smooth;
         }
 
+        .settings-sidebar-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .settings-sidebar-top .settings-header-brand {
+            margin-bottom: 0;
+            min-width: 0;
+        }
+
+        .settings-menu-toggle {
+            display: none;
+        }
+
+        .settings-nav-panel {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .settings-sidebar-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
         .settings-header-brand {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            margin-bottom: 2.5rem;
             cursor: pointer;
             text-decoration: none;
             color: var(--text-color);
@@ -301,30 +333,67 @@
                 border-bottom: 1px solid rgba(255, 255, 255, 0.08);
                 position: sticky;
                 top: 0;
-                overflow-x: auto;
+                overflow: visible;
+                z-index: 100;
             }
 
-            .settings-header-brand {
-                margin-bottom: 1rem;
-                min-width: max-content;
+            .settings-sidebar-top {
+                margin-bottom: 0;
+            }
+
+            .settings-menu-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                min-width: 44px;
+                padding: 0.5rem;
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                background: rgba(255, 255, 255, 0.04);
+                color: var(--text-color);
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+
+            .settings-nav-panel {
+                display: none;
+                position: fixed;
+                top: calc(env(safe-area-inset-top) + 3.75rem);
+                left: max(1rem, env(safe-area-inset-left));
+                right: max(1rem, env(safe-area-inset-right));
+                max-height: calc(100dvh - env(safe-area-inset-top) - 5rem);
+                overflow-y: auto;
+                padding: 0.75rem;
+                border-radius: 12px;
+                background: rgba(10, 11, 16, 0.96);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+                z-index: 200;
+            }
+
+            .settings-nav-panel.is-open {
+                display: flex;
             }
 
             .nav-section {
-                display: inline-flex;
-                gap: 0.5rem;
-                margin: 0 1rem 0.75rem 0;
-                vertical-align: top;
+                display: block;
+                margin: 0 0 1rem;
             }
 
             .nav-section-title {
-                display: none;
+                display: block;
             }
 
             .nav-item {
-                width: auto;
-                min-width: max-content;
+                width: 100%;
+                min-width: 0;
                 min-height: 44px;
-                margin-bottom: 0;
+                margin-bottom: 0.25rem;
+            }
+
+            .settings-sidebar-footer {
+                margin-top: 0.5rem;
             }
 
             .settings-main {
@@ -371,12 +440,24 @@
     <div class="settings-layout">
         <!-- Sidebar Navigation -->
         <aside class="settings-sidebar">
-            <a href="/" class="settings-header-brand">
-                <i data-lucide="arrow-left" style="width:1.2rem; height:1.2rem; color:var(--text-muted);"></i>
-                <div class="brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="{{app_name}}" class="brand-logo-img">{{end}}</div>
-                <h2>{{app_name}} Settings</h2>
-            </a>
+            <div class="settings-sidebar-top">
+                <a href="/" class="settings-header-brand">
+                    <i data-lucide="arrow-left" style="width:1.2rem; height:1.2rem; color:var(--text-muted);"></i>
+                    <div class="brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="{{app_name}}" class="brand-logo-img">{{end}}</div>
+                    <h2>{{app_name}} Settings</h2>
+                </a>
+                <button
+                    type="button"
+                    class="settings-menu-toggle"
+                    @click="settingsMenuOpen = !settingsMenuOpen"
+                    :aria-expanded="settingsMenuOpen ? 'true' : 'false'"
+                    aria-controls="settings-nav-panel"
+                    aria-label="Open settings menu">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
 
+            <div id="settings-nav-panel" class="settings-nav-panel" :class="{ 'is-open': settingsMenuOpen }" @click.outside="settingsMenuOpen = false">
             <div class="nav-section">
                 <div class="nav-section-title">General</div>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'branding' }" @click="switchTab('branding')">
@@ -445,8 +526,9 @@
                 </button>
             </div>
             
-            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+            <div class="settings-sidebar-footer">
                 AMUD Dashboard {{app_version}}
+            </div>
             </div>
         </aside>
 
@@ -1710,6 +1792,7 @@
         function settingsState() {
             return {
                 proxmoxEnabled: {{proxmox_enabled}},
+                settingsMenuOpen: false,
                 activeTab: localStorage.getItem('amud_settings_tab') || 'branding',
                 unsavedChanges: false,
                 catModalOpen: false,
@@ -1782,6 +1865,7 @@
 
                 switchTab(tab) {
                     this.activeTab = tab;
+                    this.settingsMenuOpen = false;
                     localStorage.setItem('amud_settings_tab', tab);
                     if (tab === 'categories') loadCategories();
                     if (tab === 'webhooks') loadWebhooks();

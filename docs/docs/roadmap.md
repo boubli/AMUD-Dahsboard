@@ -11,6 +11,14 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.6.5)
+
+- **Mobile PWA follow-ups** — guest 2-col grid, weather card sizing, admin header row, Settings hamburger menu (`sw.js` v27)
+
+## Recently shipped (v1.6.4.1)
+
+- **Default logo hotfix** — span-based `{{if app_logo}}` template fix when no custom logo uploaded
+
 ## Recently shipped (v1.6.4)
 
 - **Branding logo fix** — custom logos on login, guest dashboard, favicon, and PWA (public `/uploads/` read)
@@ -20,7 +28,7 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 ## Recently shipped (v1.6.3)
 
 - **ARM64 release binaries** — `amud-server-arm64` / `amud-agent-arm64` alongside amd64
-- **Multi-arch Docker** — `linux/amd64` images on Docker Hub (ARM64: use native release binaries)
+- **Docker CI** — tag builds publish `linux/amd64` only (~3 min); ARM64 via native release binaries + `update-amud.sh`
 - **GitHub Pages** — auto-deploy restored; homepage hero carousel + GIF demos
 - **PWA / mobile polish** — install banner, offline shell, responsive topbar menu
 
@@ -68,9 +76,10 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ## Later (ideas, not commitments)
 
-- **Multi-node agent** — one dashboard, several Proxmox hosts reporting in.
-- **API tokens** — scoped read-only tokens for external dashboards/scripts (shipped; expand scopes).
-- **Per-integration setup wizards** — guided Pi-hole, *arr, and DNS blocker configuration in Settings.
+- **Multi-node agent UI** — per-app `node_tag` shipped in v1.6.0; later = aggregate telemetry from several agents in one dashboard view
+- **API tokens** — `read:apps` + `read:status` shipped; expand scopes for telemetry/feeds/webhooks
+- **Per-integration setup wizards** — guided Pi-hole, *arr, and DNS blocker configuration in Settings
+- **PWA offline polish** — richer offline shell and cache strategy beyond static asset precache
 
 ---
 

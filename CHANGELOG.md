@@ -8,6 +8,19 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.6.5](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.5) — 2026-06-25
+
+Mobile PWA follow-ups: guest 2-col grid, weather sizing, admin card headers, Settings hamburger menu.
+
+### Improved
+- **Weather card** — `clamp()` font sizing + length-based classes for narrow hero widgets
+- **Guest dashboard** — 2-column compact grid on mobile; vertical card layout (icon, name, status badge)
+- **Admin app cards** — single-row header on mobile; column layout only for guest compact cards
+- **Settings** — hamburger overflow menu replaces horizontal scroll nav on ≤820px
+- **Service worker** — `sw.js` v27
+
+---
+
 ## [v1.6.4.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.4.1) — 2026-06-28
 
 Hotfix for v1.6.4 default logo showing raw template syntax instead of AMUD PNG.

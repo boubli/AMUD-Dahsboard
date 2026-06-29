@@ -1250,7 +1250,16 @@
                 const iconEl = document.getElementById('weather-icon');
                 const text = temp + '°C ' + cond;
                 if (compact) compact.textContent = text;
-                if (tempEl) tempEl.textContent = temp + '°C';
+                if (tempEl) {
+                    const tempText = temp + '°C';
+                    tempEl.textContent = tempText;
+                    tempEl.classList.remove('weather-temp--compact', 'weather-temp--wide');
+                    if (tempText.length >= 7) {
+                        tempEl.classList.add('weather-temp--wide');
+                    } else if (tempText.length >= 5) {
+                        tempEl.classList.add('weather-temp--compact');
+                    }
+                }
                 if (condEl) condEl.textContent = cond;
                 if (iconEl) {
                     iconEl.setAttribute('data-lucide', iconName);

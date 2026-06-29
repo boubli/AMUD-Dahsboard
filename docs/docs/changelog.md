@@ -11,6 +11,19 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.6.5 — Mobile PWA follow-ups
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.5)
+
+### Improved
+- **Weather card** — responsive temperature sizing on narrow hero widgets
+- **Guest grid** — 2-column compact cards on mobile (icon, name, status)
+- **Admin cards** — single-row header on mobile
+- **Settings** — hamburger overflow menu on phones/tablets
+- **Service worker** — `sw.js` v27
+
+---
+
 ## v1.6.4.1 — Default logo hotfix
 
 **2026-06-28** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.6.4.1)
