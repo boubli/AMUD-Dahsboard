@@ -72,6 +72,13 @@
             scroll-behavior: smooth;
         }
 
+        .settings-mobile-nav {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
         .settings-sidebar-top {
             display: flex;
             align-items: center;
@@ -337,6 +344,10 @@
                 z-index: 100;
             }
 
+            .settings-mobile-nav {
+                position: relative;
+            }
+
             .settings-sidebar-top {
                 margin-bottom: 0;
             }
@@ -440,6 +451,7 @@
     <div class="settings-layout">
         <!-- Sidebar Navigation -->
         <aside class="settings-sidebar">
+            <div class="settings-mobile-nav" @click.outside="settingsMenuOpen = false">
             <div class="settings-sidebar-top">
                 <a href="/" class="settings-header-brand">
                     <i data-lucide="arrow-left" style="width:1.2rem; height:1.2rem; color:var(--text-muted);"></i>
@@ -457,7 +469,7 @@
                 </button>
             </div>
 
-            <div id="settings-nav-panel" class="settings-nav-panel" :class="{ 'is-open': settingsMenuOpen }" @click.outside="settingsMenuOpen = false">
+            <div id="settings-nav-panel" class="settings-nav-panel" :class="{ 'is-open': settingsMenuOpen }">
             <div class="nav-section">
                 <div class="nav-section-title">General</div>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'branding' }" @click="switchTab('branding')">
@@ -528,6 +540,7 @@
             
             <div class="settings-sidebar-footer">
                 AMUD Dashboard {{app_version}}
+            </div>
             </div>
             </div>
         </aside>

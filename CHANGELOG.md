@@ -8,6 +8,20 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.7.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.1) — 2026-06-25
+
+Mobile/PWA hotfix: Settings hamburger menu, desktop guest layout restored, shorter admin cards on phones.
+
+### Fixed
+- **Settings hamburger** — menu toggle and panel wrapped so outside-click no longer closes immediately
+- **Desktop guest cards** — horizontal header layout restored (v1.6.4.1 style); 2-col vertical tiles only on mobile
+
+### Improved
+- **Admin app cards (mobile)** — shorter metric tiles, 4-column grid, hidden descriptions, 44px edit controls
+- **Service worker** — `sw.js` v29
+
+---
+
 ## [v1.7.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.0) — 2026-06-25
 
 Integration catalog parity: manifest sync, Homepage import aliases, Watchtower/Ombi/FileBrowser, manifest-driven Add App UI.

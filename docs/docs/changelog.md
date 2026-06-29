@@ -11,6 +11,20 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.7.1 — Mobile/PWA hotfix
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.1)
+
+### Fixed
+- **Settings hamburger** — outside-click scoped to nav wrapper so menu stays open on tap
+- **Desktop guest cards** — horizontal icon+name | ONLINE layout restored; mobile keeps 2-col vertical tiles
+
+### Improved
+- **Admin cards (mobile)** — compact metrics grid, no description line, touch-friendly edit button
+- **Service worker** — `sw.js` v29
+
+---
+
 ## v1.7.0 — Integration catalog parity
 
 **2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.0)

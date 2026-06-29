@@ -583,7 +583,6 @@ body::-webkit-scrollbar-button {
 }
 
 .bento-grid--guest-compact {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: auto;
     gap: 0.65rem;
     align-items: start;
@@ -616,19 +615,13 @@ body::-webkit-scrollbar-button {
 }
 
 .app-card--guest-compact .app-card-header {
-    flex-direction: column;
     align-items: center;
-    text-align: center;
-    gap: 0.45rem;
     width: 100%;
 }
 
 .app-card--guest-compact .app-card-identity {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
+    gap: 0.55rem;
     min-width: 0;
-    width: 100%;
 }
 
 .app-card--guest-compact .app-card-icon {
@@ -643,9 +636,8 @@ body::-webkit-scrollbar-button {
 }
 
 .app-card--guest-compact .app-card-title {
-    font-size: 0.78rem;
+    font-size: 0.88rem;
     line-height: 1.2;
-    word-break: break-word;
 }
 
 .app-card--guest-compact .app-card-desc {
@@ -654,8 +646,6 @@ body::-webkit-scrollbar-button {
 
 .app-card--guest-compact .app-card-badges {
     flex-shrink: 0;
-    justify-content: center;
-    width: 100%;
 }
 
 .app-card--empty,
@@ -2456,8 +2446,21 @@ input[type="color"].form-control {
     .app-card--guest-compact .app-card-header {
         flex-direction: column;
         align-items: center;
+        text-align: center;
         gap: 0.45rem;
         flex-wrap: nowrap;
+    }
+
+    .app-card--guest-compact .app-card-identity {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        width: 100%;
+    }
+
+    .app-card--guest-compact .app-card-title {
+        font-size: 0.78rem;
+        word-break: break-word;
     }
 
     .app-card:not(.app-card--guest-compact) .app-card-header {
@@ -2561,6 +2564,39 @@ input[type="color"].form-control {
     .pwa-install-banner__actions .topbar-action {
         flex: 1;
         justify-content: center;
+    }
+
+    .app-card:not(.app-card--guest-compact).span-tall:has(.app-card-metrics-slot--filled),
+    .app-card:not(.app-card--guest-compact):has(.app-card-metrics-slot--filled) {
+        min-height: auto;
+    }
+
+    .app-card:not(.app-card--guest-compact) .integration-metrics-grid {
+        min-height: auto;
+        gap: 0.3rem;
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .app-card:not(.app-card--guest-compact) .integration-metrics-grid .metric-block {
+        min-height: 2rem;
+        padding: 0.25rem 0.15rem;
+    }
+
+    .app-card:not(.app-card--guest-compact) .integration-metrics-grid .metric-value {
+        font-size: 0.72rem;
+    }
+
+    .app-card:not(.app-card--guest-compact) .app-card-desc {
+        display: none;
+    }
+
+    .app-card:not(.app-card--guest-compact) {
+        padding: 0.85rem;
+    }
+
+    .btn-edit-app {
+        min-width: 44px;
+        min-height: 44px;
     }
 }
 

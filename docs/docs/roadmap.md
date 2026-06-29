@@ -11,6 +11,10 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.7.1)
+
+- **Mobile/PWA hotfix** — Settings hamburger fix; desktop guest cards restored; compact admin cards on phones (`sw.js` v29)
+
 ## Recently shipped (v1.7.0)
 
 - **Integration catalog parity** — 130+ types in manifest; Homepage import aliases; Watchtower, Ombi, FileBrowser; manifest-driven Add App dropdown (`sw.js` v28)
