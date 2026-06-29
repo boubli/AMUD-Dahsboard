@@ -641,7 +641,11 @@ pub async fn fetch_ombi(client: &Client, base_url: &str, api_key: &str) -> Optio
     let pending = body
         .get("pending")
         .and_then(|v| v.as_i64())
-        .or_else(|| body.get("pending").and_then(|v| v.as_u64()).map(|n| n as i64))
+        .or_else(|| {
+            body.get("pending")
+                .and_then(|v| v.as_u64())
+                .map(|n| n as i64)
+        })
         .unwrap_or(0);
     let total = body
         .get("total")

@@ -262,7 +262,10 @@ mod tests {
     fn maps_homepage_widget_aliases() {
         use crate::integration_registry::map_homepage_widget_type;
         assert_eq!(map_homepage_widget_type("diskstation"), Some("synology"));
-        assert_eq!(map_homepage_widget_type("cloudflared"), Some("cloudflare_tunnel"));
+        assert_eq!(
+            map_homepage_widget_type("cloudflared"),
+            Some("cloudflare_tunnel")
+        );
         assert_eq!(map_homepage_widget_type("firefly"), Some("firefly_iii"));
         assert_eq!(map_homepage_widget_type("watchtower"), Some("watchtower"));
     }

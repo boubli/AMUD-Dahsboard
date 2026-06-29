@@ -791,8 +791,12 @@ pub async fn fetch_integration_data_uncached(
             return crate::integrations_longtail::fetch_ombi(&client, base_url, &app.api_key).await;
         }
         "filebrowser" => {
-            return crate::integrations_longtail::fetch_filebrowser(&client, base_url, &app.api_key)
-                .await;
+            return crate::integrations_longtail::fetch_filebrowser(
+                &client,
+                base_url,
+                &app.api_key,
+            )
+            .await;
         }
         "autobrr" => {
             return crate::integrations_longtail::fetch_autobrr(&client, base_url, &app.api_key)
