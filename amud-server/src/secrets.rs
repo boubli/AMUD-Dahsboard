@@ -4,6 +4,7 @@ use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::{ChaCha20Poly1305, Nonce};
 use rusqlite::{params, Connection};
 use sha2::{Digest, Sha256};
+use std::io;
 use std::path::Path;
 use std::sync::OnceLock;
 
@@ -34,6 +35,44 @@ pub(crate) fn secrets_key_path(db_path: &str) -> std::path::PathBuf {
         .unwrap_or_else(|| Path::new(".amud-secrets-key").to_path_buf())
 }
 
+pub(crate) fn permission_denied_hint_for_path(path: &Path) -> String {
+    permission_denied_hint(path)
+}
+
+fn permission_denied_hint(path: &Path) -> String {
+    format!(
+        "\n\nApp data directory is not writable ({path}). \
+Unraid/Docker: ensure the bind mount is owned by PUID {PUID} (default 99) or chown appdata — \
+see https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied \
+and https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata \
+Setting AMUD_SECRETS_KEY alone does not fix this; amud.db must be writable too.",
+        path = path.display(),
+        PUID = std::env::var("PUID").unwrap_or_else(|_| "99".to_string())
+    )
+}
+
+fn map_io_error(path: &Path, action: &str, err: io::Error) -> String {
+    let mut msg = format!("{action} {}: {err}", path.display());
+    if err.kind() == io::ErrorKind::PermissionDenied {
+        if let Some(parent) = path.parent() {
+            msg.push_str(&permission_denied_hint(parent));
+        } else {
+            msg.push_str(&permission_denied_hint(path));
+        }
+    }
+    msg
+}
+
+fn ensure_parent_dir(path: &Path) -> Result<(), String> {
+    let Some(parent) = path.parent() else {
+        return Ok(());
+    };
+    if parent.as_os_str().is_empty() {
+        return Ok(());
+    }
+    std::fs::create_dir_all(parent).map_err(|e| map_io_error(parent, "create data directory", e))
+}
+
 fn load_or_create_key(db_path: &str) -> Result<[u8; 32], String> {
     if let Ok(raw) = std::env::var("AMUD_SECRETS_KEY") {
         if !raw.trim().is_empty() {
@@ -44,18 +83,16 @@ fn load_or_create_key(db_path: &str) -> Result<[u8; 32], String> {
     let key_path = secrets_key_path(db_path);
     if key_path.is_file() {
         let bytes = std::fs::read_to_string(&key_path)
-            .map_err(|e| format!("read secrets key file {}: {e}", key_path.display()))?;
+            .map_err(|e| map_io_error(&key_path, "read secrets key file", e))?;
         return parse_key_material(bytes.trim());
     }
 
     let mut key = [0u8; 32];
     getrandom::getrandom(&mut key).map_err(|e| format!("generate secrets key: {e}"))?;
     let encoded = URL_SAFE_NO_PAD.encode(key);
-    if let Some(parent) = key_path.parent() {
-        std::fs::create_dir_all(parent).ok();
-    }
+    ensure_parent_dir(&key_path)?;
     std::fs::write(&key_path, format!("{encoded}\n"))
-        .map_err(|e| format!("write secrets key file {}: {e}", key_path.display()))?;
+        .map_err(|e| map_io_error(&key_path, "write secrets key file", e))?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;

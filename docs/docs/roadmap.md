@@ -11,6 +11,10 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.7.2)
+
+- **Unraid Docker fix** — PUID 99 entrypoint, `.amud-secrets-key` permission denied resolved ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16))
+
 ## Recently shipped (v1.7.1)
 
 - **Mobile/PWA hotfix** — Settings hamburger fix; desktop guest cards restored; compact admin cards on phones (`sw.js` v29)

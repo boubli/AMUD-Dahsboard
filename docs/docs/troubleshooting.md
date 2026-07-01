@@ -331,13 +331,37 @@ systemctl restart amud-agent
 
 ---
 
+## Unraid: `.amud-secrets-key` permission denied
+
+**Symptom:** Dashboard container exits on first boot with:
+
+```
+Failed to initialize AMUD secrets encryption key: "write secrets key file /app/data/.amud-secrets-key: Permission denied (os error 13)"
+```
+
+The **AMUD-Agent** container may still appear running — it does not create this file.
+
+**Cause:** Unraid Community Applications creates appdata as `nobody:users` (UID **99**). On images before **v1.7.2**, the dashboard ran as hardened root (`--cap-drop=ALL`) and could not write to that folder. SQLite (`amud.db`) would fail next for the same reason.
+
+**Fixed in v1.7.2+:** The Docker image drops privileges to **PUID 99 / PGID 100** (Unraid defaults) before starting the server. Recreate the **AMUD-Dashboard** container after updating.
+
+**Still failing after v1.7.2?** See [Permission errors on appdata](./installation/unraid.md#permission-errors-on-appdata) below, or run:
+
+```bash
+ls -la /mnt/user/appdata/amud-dashboard/
+```
+
+**Note:** Setting `AMUD_SECRETS_KEY` alone does **not** fix this — the database file must also be writable in the same folder.
+
+---
+
 ## Unraid: permission denied on appdata
 
 **Symptom:** **AMUD-Dashboard** or **AMUD-Agent** will not start, or logs show errors writing to `/data` or binding the socket in `run/`.
 
 **Cause:** Host folders under `/mnt/user/appdata/amud-dashboard/` are not owned by the user the container runs as.
 
-**Fix:** See the full Unraid guide — [Permission errors on appdata](./installation/unraid.md#permission-errors-on-appdata). On templates that run the container as root, fix ownership with `chown -R 0:0` on both `data` and `run`.
+**Fix:** See the full Unraid guide — [Permission errors on appdata](./installation/unraid.md#permission-errors-on-appdata). **v1.7.2+** runs the dashboard as PUID 99 (Unraid default). Older images: `chown -R 0:0` or `chown -R 99:100` on both `data` and `run`. See also [`.amud-secrets-key` permission denied](#unraid-secrets-key-permission-denied).
 
 After fixing ownership, restart dashboard then agent.
 

@@ -8,6 +8,20 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.7.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.2) — 2026-06-25
+
+Unraid Docker first-boot fix: dashboard runs as PUID 99, clearer permission errors, IPC socket mode.
+
+### Fixed
+- **Unraid CA install** — dashboard entrypoint drops to PUID 99 / PGID 100 (matches `nobody:users` appdata); fixes `.amud-secrets-key: Permission denied` on first boot ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16))
+- **Agent IPC** — `AMUD_SOCKET_MODE` (default `666` in Docker/Unraid templates) so root agent connects when dashboard is non-root
+
+### Improved
+- **Startup errors** — permission-denied hints link to Unraid troubleshooting docs
+- **Docker image** — Alpine runtime + `su-exec` entrypoint (agent still runs as root via entrypoint override)
+
+---
+
 ## [v1.7.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.1) — 2026-06-25
 
 Mobile/PWA hotfix: Settings hamburger menu, desktop guest layout restored, shorter admin cards on phones.

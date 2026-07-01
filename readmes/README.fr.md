@@ -142,6 +142,8 @@ Modèles officiels : **AMUD Dashboard** + **AMUD Agent** (deux conteneurs, chemi
 2. Utilisez le **même** `AMUD_AGENT_SECRET` sur les deux conteneurs.
 3. Guide complet : [Documentation d'installation d'Unraid](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
 
+**Erreur de permissions au premier démarrage ?** Si les logs affichent `.amud-secrets-key: Permission denied`, mettez à jour vers **v1.7.2+** et recréez le conteneur, ou consultez le [dépannage](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied) et les [permissions appdata](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata).
+
 Le XML des modèles se trouve dans [`templates/`](templates/) avec [`ca_profile.xml`](ca_profile.xml) pour la soumission à Community Applications.
 
 ### Script d'installation automatique Proxmox LXC

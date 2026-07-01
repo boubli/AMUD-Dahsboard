@@ -13,6 +13,8 @@
 
 **Also install the companion template: AMUD Agent** (search Community Apps for "AMUD Agent"). Both containers must use the same Agent Secret and the same Socket Path.
 
+Unraid appdata is owned by `nobody` (UID 99) by default — the dashboard runs as PUID 99 so first boot works without SSH `chown`.
+
 Docs: https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid]]></Overview>
   <Category>Tools:Utilities Network:Management</Category>
   <WebUI>http://[IP]:[PORT:8000]/</WebUI>
@@ -24,6 +26,9 @@ Docs: https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid]]></Overv
   <Config Name="App Data" Target="/app/data" Default="/mnt/user/appdata/amud-dashboard/data" Mode="rw" Description="SQLite database and encrypted secrets (backup this folder)." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/amud-dashboard/data</Config>
   <Config Name="Agent Socket Dir" Target="/var/run/amud" Default="/mnt/user/appdata/amud-dashboard/run" Mode="rw" Description="Shared directory for the Unix socket. Must match the AMUD Agent container exactly." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/amud-dashboard/run</Config>
   <Config Name="Agent Secret" Target="AMUD_AGENT_SECRET" Default="" Mode="" Description="Long random string shared with the AMUD Agent container. Required — server will not start without it." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID for dashboard writes to App Data (Unraid default: 99 / nobody)." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group ID for dashboard writes to App Data (Unraid default: 100 / users)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+  <Config Name="Socket Permissions" Target="AMUD_SOCKET_MODE" Default="666" Mode="" Description="Unix socket file mode (octal). 666 lets the root agent connect when dashboard runs as PUID 99." Type="Variable" Display="advanced" Required="false" Mask="false">666</Config>
   <Config Name="DB_PATH" Target="DB_PATH" Default="/app/data/amud.db" Mode="" Description="SQLite file path inside the container." Type="Variable" Display="advanced" Required="false" Mask="false">/app/data/amud.db</Config>
   <Config Name="AMUD_SOCKET_PATH" Target="AMUD_SOCKET_PATH" Default="/var/run/amud/amud.sock" Mode="" Description="Unix socket path inside the container." Type="Variable" Display="advanced" Required="false" Mask="false">/var/run/amud/amud.sock</Config>
   <Config Name="BIND_ADDR" Target="BIND_ADDR" Default="0.0.0.0" Mode="" Description="Address the web server binds to." Type="Variable" Display="advanced" Required="false" Mask="false">0.0.0.0</Config>

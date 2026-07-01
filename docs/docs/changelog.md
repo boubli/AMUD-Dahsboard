@@ -11,6 +11,19 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.7.2 — Unraid Docker first-boot fix
+
+**2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.2)
+
+### Fixed
+- **Unraid Community Apps** — dashboard runs as PUID 99 by default; fixes `.amud-secrets-key` permission denied ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16))
+- **Docker agent IPC** — `AMUD_SOCKET_MODE=666` in compose/Unraid templates
+
+### Improved
+- Permission-denied startup hints with links to [troubleshooting](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied)
+
+---
+
 ## v1.7.1 — Mobile/PWA hotfix
 
 **2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.1)

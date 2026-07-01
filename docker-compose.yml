@@ -11,6 +11,9 @@ services:
       - DB_PATH=/app/data/amud.db
       # Optional: set AMUD_SECRETS_KEY to a 32-byte base64url/hex key (otherwise data/.amud-secrets-key is created)
       # - AMUD_SECRETS_KEY=${AMUD_SECRETS_KEY}
+      - PUID=${PUID:-99}
+      - PGID=${PGID:-100}
+      - AMUD_SOCKET_MODE=666
       - PORT=8000
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env or environment}

@@ -48,8 +48,10 @@ RUN mkdir -p /out/data /out/bin && \
         ;; \
     esac
 
-# Stage 2: Runtime stage
-FROM scratch
+# Stage 2: Runtime stage (Alpine + su-exec for PUID/PGID drop on dashboard only)
+FROM alpine:3.20
+
+RUN apk add --no-cache su-exec
 
 WORKDIR /app
 
@@ -57,9 +59,12 @@ COPY --from=builder /out/bin/amud-server /app/amud-server
 COPY --from=builder /out/bin/amud-agent /app/amud-agent
 COPY --from=builder /usr/src/amud/ui /app/ui
 COPY --from=builder /out/data /app/data
+COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 VOLUME /app/data
 
 EXPOSE 8000
 
-ENTRYPOINT ["/app/amud-server"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/app/amud-server"]

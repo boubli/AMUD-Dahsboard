@@ -142,6 +142,8 @@ volumes:
 2. Используйте **один и тот же** `AMUD_AGENT_SECRET` в обоих контейнерах.
 3. Полное руководство: [Документация по установке в Unraid](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
 
+**Ошибка прав при первом запуске?** Если в логе `.amud-secrets-key: Permission denied`, обновитесь до **v1.7.2+** и пересоздайте контейнер или см. [устранение неполадок](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied) и [права appdata](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata).
+
 Файлы XML шаблонов находятся в папке [`templates/`](templates/), а [`ca_profile.xml`](ca_profile.xml) используется для публикации в каталоге Community Applications.
 
 ### Скрипт автоустановки Proxmox LXC

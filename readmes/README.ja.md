@@ -142,6 +142,8 @@ volumes:
 2. 両方のコンテナで **同じ** `AMUD_AGENT_SECRET` を使用します。
 3. 完全なガイド: [Unraidインストール文書](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
 
+**初回起動の権限エラー？** ログに `.amud-secrets-key: Permission denied` と出る場合は **v1.7.2+** に更新してコンテナを再作成するか、[トラブルシューティング](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied)と [appdata 権限](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata)を参照してください。
+
 テンプレートXMLは [`templates/`](templates/) にあり、Community Applicationsへの提出用の [`ca_profile.xml`](ca_profile.xml) が含まれています。
 
 ### Proxmox LXCオートパイロットスクリプト

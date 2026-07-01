@@ -71,6 +71,9 @@ services:
       - PORT=8000
       - BIND_ADDR=0.0.0.0
       - DB_PATH=/app/data/amud.db
+      - PUID=${PUID:-99}
+      - PGID=${PGID:-100}
+      - AMUD_SOCKET_MODE=666
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=${AMUD_AGENT_SECRET:?Set AMUD_AGENT_SECRET in .env}
       - AMUD_ENABLE_PROXMOX=false # Set to true if running on Proxmox
@@ -113,6 +116,18 @@ AMUD_AGENT_SECRET=change-me-to-a-long-random-string
 ```
 
 Both `amud-dashboard` and `amud-agent` **must** use the same value. The server and agent refuse to start without it.
+
+### App data permissions (v1.7.2+)
+
+The dashboard entrypoint runs as **PUID 99 / PGID 100** by default (matches Unraid `nobody:users`). On generic Linux hosts, create and own the data folder before first boot:
+
+```bash
+mkdir -p data && chown 99:100 data
+```
+
+`AMUD_SOCKET_MODE=666` lets the root agent connect to the dashboard Unix socket when the server runs as a non-root user.
+
+Unraid permission errors: [Troubleshooting — `.amud-secrets-key` permission denied](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied).
 
 ### Deploying the Stack
 To start the services in detached background mode:
@@ -188,6 +203,9 @@ You can pass these environment variables to adjust container configurations:
 |---|---|---|---|
 | `PORT` | `amud_app` | `8000` | Port on which the Axum web server listens. |
 | `DB_PATH` | `amud_app` | `/app/data/amud.db` | Directory path pointing to the SQLite database file. |
+| `PUID` | `amud_app` | `99` | User ID for dashboard writes to the data volume (Unraid default: `nobody`). |
+| `PGID` | `amud_app` | `100` | Group ID for dashboard writes (Unraid default: `users`). |
+| `AMUD_SOCKET_MODE` | `amud_app` | `660` | Octal Unix socket permissions; use `666` in Docker when dashboard runs as non-root. |
 | `AMUD_SOCKET_PATH` | Both | `/var/run/amud/amud.sock` | File path pointing to the Unix socket for agent-server IPC. |
 | `AMUD_TCP_ADDR` | Both | `127.0.0.1:8050` | TCP bind address/port used for agent-server IPC on Windows or non-Unix setups. |
 | `AMUD_AGENT_SECRET` | Both | *(Required)* | Shared authentication secret between dashboard and agent. |

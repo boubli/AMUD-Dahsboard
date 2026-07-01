@@ -54,7 +54,6 @@ use axum::{
 };
 use rusqlite::{params, Connection};
 use std::collections::HashMap;
-use std::fs;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 use tokio::net::TcpListener as TokioTcpListener;
@@ -75,11 +74,21 @@ pub async fn run() {
     println!("AMUD Server starting up in Rust...");
 
     let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "data/amud.db".to_string());
-    if let Some(parent) = std::path::Path::new(&db_path).parent() {
-        fs::create_dir_all(parent).ok();
-    } else {
-        fs::create_dir_all("data").ok();
-    }
+    let db_parent = std::path::Path::new(&db_path)
+        .parent()
+        .map(std::path::Path::to_path_buf)
+        .unwrap_or_else(|| std::path::PathBuf::from("data"));
+    std::fs::create_dir_all(&db_parent).unwrap_or_else(|e| {
+        panic!(
+            "Failed to create data directory {}: {e}{}",
+            db_parent.display(),
+            if e.kind() == std::io::ErrorKind::PermissionDenied {
+                secrets::permission_denied_hint_for_path(&db_parent)
+            } else {
+                String::new()
+            }
+        );
+    });
     secrets::init_secrets_key(&db_path).expect("Failed to initialize AMUD secrets encryption key");
     let conn = Connection::open(&db_path).expect("Failed to open SQLite database");
     conn.execute_batch(

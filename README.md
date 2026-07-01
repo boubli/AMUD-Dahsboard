@@ -109,6 +109,9 @@ services:
       - PORT=8000
       - BIND_ADDR=0.0.0.0
       - DB_PATH=/app/data/amud.db
+      - PUID=99
+      - PGID=100
+      - AMUD_SOCKET_MODE=666
       - AMUD_SOCKET_PATH=/var/run/amud/amud.sock
       - AMUD_AGENT_SECRET=change-me-to-a-long-random-string # MUST match the agent secret below
     cap_drop:
@@ -148,6 +151,8 @@ Official templates: **AMUD Dashboard** + **AMUD Agent** (two containers, shared 
 1. Install both from the **Apps** tab after templates are published.
 2. Use the **same** `AMUD_AGENT_SECRET` on both containers.
 3. Full guide: [Unraid installation docs](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
+
+**First-boot permission error?** If the dashboard log shows `.amud-secrets-key: Permission denied`, update to **v1.7.2+** and recreate the container, or see [troubleshooting](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied) and [appdata permissions](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata).
 
 Template XML lives in [`templates/`](templates/) with [`ca_profile.xml`](ca_profile.xml) for Community Applications submission.
 

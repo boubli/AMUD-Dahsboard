@@ -142,6 +142,8 @@ Modelos oficiais: **AMUD Dashboard** + **AMUD Agent** (dois contêineres, caminh
 2. Use o **mesmo** `AMUD_AGENT_SECRET` em ambos os contêineres.
 3. Guia completo: [Docs de instalação no Unraid](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
 
+**Erro de permissão na primeira inicialização?** Se o log mostrar `.amud-secrets-key: Permission denied`, atualize para **v1.7.2+** e recrie o contêiner, ou consulte [solução de problemas](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied) e [permissões do appdata](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata).
+
 Os XMLs dos modelos ficam em [`templates/`](templates/) com [`ca_profile.xml`](ca_profile.xml) para envio ao Community Applications.
 
 ### Script LXC Autopilot do Proxmox

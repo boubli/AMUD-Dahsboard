@@ -142,6 +142,8 @@ volumes:
 2. استخدم نفس `AMUD_AGENT_SECRET` في كلتا الحاويتين.
 3. الدليل الكامل: [مستندات التثبيت على Unraid](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
 
+**خطأ صلاحيات عند أول تشغيل؟** إذا ظهر في السجل `.amud-secrets-key: Permission denied`، حدّث إلى **v1.7.2+** وأعد إنشاء الحاوية، أو راجع [استكشاف الأخطاء](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied) و[صلاحيات appdata](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata).
+
 يوجد ملف القالب XML في [`templates/`](templates/) مع [`ca_profile.xml`](ca_profile.xml) للإرسال إلى تطبيقات المجتمع.
 
 ### برنامج التثبيت التلقائي لـ Proxmox LXC

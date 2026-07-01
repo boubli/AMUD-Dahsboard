@@ -142,6 +142,8 @@ volumes:
 2. 在两个容器上使用**相同**的 `AMUD_AGENT_SECRET`。
 3. 完整指南：[Unraid 安装文档](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
 
+**首次启动权限错误？** 若日志出现 `.amud-secrets-key: Permission denied`，请更新到 **v1.7.2+** 并重建容器，或查看[故障排除](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied)与 [appdata 权限](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata)。
+
 模板 XML 位于 [`templates/`](templates/)，附带用于提交到 Community Applications 的 [`ca_profile.xml`](ca_profile.xml)。
 
 ### Proxmox LXC 自动引导脚本

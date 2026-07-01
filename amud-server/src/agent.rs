@@ -209,6 +209,25 @@ where
 }
 
 #[cfg(unix)]
+fn uds_socket_mode() -> u32 {
+    std::env::var("AMUD_SOCKET_MODE")
+        .ok()
+        .and_then(|raw| {
+            let trimmed = raw.trim();
+            if trimmed.is_empty() {
+                return None;
+            }
+            u32::from_str_radix(trimmed, 8).ok()
+        })
+        .unwrap_or(0o660)
+}
+
+#[cfg(unix)]
+fn apply_uds_socket_permissions(path: &FilePath) {
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(uds_socket_mode())).ok();
+}
+
+#[cfg(unix)]
 async fn run_uds_listener(path: &str, state: Arc<AppState>) {
     let Some(uds_path) = resolve_uds_path(path) else {
         return;
@@ -222,7 +241,7 @@ async fn run_uds_listener(path: &str, state: Arc<AppState>) {
 
     let listener = match TokioUnixListener::bind(&uds_path) {
         Ok(l) => {
-            std::fs::set_permissions(&uds_path, std::fs::Permissions::from_mode(0o660)).ok();
+            apply_uds_socket_permissions(&uds_path);
             l
         }
         Err(e) => {

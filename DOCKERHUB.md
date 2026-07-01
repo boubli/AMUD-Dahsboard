@@ -73,5 +73,8 @@ Create the token under **Datacenter → Permissions → API Tokens**. If unset, 
 
 ## Support
 
+Unraid first-boot error `.amud-secrets-key: Permission denied` → [Troubleshooting](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied)
+
 - **GitHub:** [boubli/AMUD-Dashboard](https://github.com/boubli/AMUD-Dashboard)
+- **Docs:** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
 - **Sponsor:** [GitHub Sponsors](https://github.com/sponsors/boubli)

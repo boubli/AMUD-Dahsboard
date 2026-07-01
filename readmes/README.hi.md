@@ -142,6 +142,8 @@ volumes:
 2. दोनों कंटेनरों पर **समान** `AMUD_AGENT_SECRET` का उपयोग करें।
 3. संपूर्ण गाइड: [Unraid स्थापना दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
 
+**पहले बूट पर अनुमति त्रुटि?** यदि लॉग में `.amud-secrets-key: Permission denied` दिखे, **v1.7.2+** पर अपडेट करें और कंटेनर पुनः बनाएं, या [समस्या निवारण](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied) और [appdata अनुमतियाँ](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata) देखें।
+
 टेम्पलेट XML, Community Applications में जमा करने के लिए [`ca_profile.xml`](ca_profile.xml) के साथ [`templates/`](templates/) में रहता है।
 
 ### Proxmox LXC ऑटोपायलट स्क्रिप्ट

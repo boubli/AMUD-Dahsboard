@@ -102,22 +102,35 @@ With both array and cache configured, the dashboard shows **separate disk tiles*
 
 ## Permission errors on appdata
 
-**Symptom:** The **AMUD-Dashboard** container fails to start, restarts in a loop, or logs show **permission denied** when writing to `/data` or the agent cannot use the shared socket under `run/`.
+**Symptom:** The **AMUD-Dashboard** container fails to start, restarts in a loop, or logs show **permission denied** when writing to `/app/data`, creating `.amud-secrets-key`, or when the agent cannot use the shared socket under `run/`.
 
-**Cause:** Unraid maps host paths into the container. If `data/` or `run/` on the host are owned by a user the container cannot write as, SQLite and the agent Unix socket will fail.
+See also: [Unraid: `.amud-secrets-key` permission denied](../troubleshooting.md#unraid-secrets-key-permission-denied) for the exact first-boot error from Community Applications.
+
+**Cause:** Unraid maps host paths into the container. If `data/` or `run/` on the host are not writable by the user the dashboard process runs as, SQLite and the agent Unix socket will fail.
 
 Default CA paths:
 
 | Path | Purpose |
 |------|---------|
-| `/mnt/user/appdata/amud-dashboard/data` | SQLite database and settings |
+| `/mnt/user/appdata/amud-dashboard/data` | SQLite database, `.amud-secrets-key`, settings |
 | `/mnt/user/appdata/amud-dashboard/run` | Shared socket between dashboard and agent |
 
-**Fix 1 — Match container user (most common)**
+**v1.7.2+ (recommended):** The dashboard image runs as **PUID 99 / PGID 100** by default to match Unraid `nobody:users` appdata. After updating, **recreate** the dashboard container — no SSH `chown` required on a fresh install.
 
-Our images run as **root** inside the container (`UID 0`). Ensure the host appdata folders are writable:
+**Fix 1 — Manual ownership (older images or custom paths)**
+
+If you cannot update yet, or use a custom appdata layout, align host ownership with the container user:
 
 ```bash
+# v1.7.2+ dashboard (PUID 99 — Unraid default)
+chown -R 99:100 /mnt/user/appdata/amud-dashboard/data
+chown -R 99:100 /mnt/user/appdata/amud-dashboard/run
+chmod -R 755 /mnt/user/appdata/amud-dashboard/data
+chmod -R 770 /mnt/user/appdata/amud-dashboard/run
+```
+
+```bash
+# Legacy images (root in container)
 chown -R 0:0 /mnt/user/appdata/amud-dashboard/data
 chown -R 0:0 /mnt/user/appdata/amud-dashboard/run
 chmod -R 755 /mnt/user/appdata/amud-dashboard/data
@@ -147,14 +160,16 @@ See also [Troubleshooting — Reset admin password](../troubleshooting.md#reset-
 
 ---
 
-**Fix 2 — Custom PUID/PGID templates**
+**Fix 2 — Custom PUID/PGID**
 
-If your template sets a non-root user (e.g. `PUID=99`, `PGID=100`), ownership must match that user instead of `0:0`:
+**v1.7.2+** defaults to `PUID=99` / `PGID=100` in the dashboard template. If you change these variables, ownership on the host must match:
 
 ```bash
 chown -R 99:100 /mnt/user/appdata/amud-dashboard/data
 chown -R 99:100 /mnt/user/appdata/amud-dashboard/run
 ```
+
+(Replace `99:100` with your chosen PUID/PGID.)
 
 **Verify**
 

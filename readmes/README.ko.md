@@ -142,6 +142,8 @@ volumes:
 2. 두 컨테이너 모두에 **동일한** `AMUD_AGENT_SECRET`을 사용합니다.
 3. 전체 가이드: [Unraid 설치 문서](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid)
 
+**첫 부팅 권한 오류?** 로그에 `.amud-secrets-key: Permission denied`가 보이면 **v1.7.2+**로 업데이트 후 컨테이너를 재생성하거나 [문제 해결](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied) 및 [appdata 권한](https://boubli.github.io/AMUD-Dashboard/docs/installation/unraid#permission-errors-on-appdata)을 참고하세요.
+
 템플릿 XML은 [`templates/`](templates/)에 위치하며, Community Applications 제출용 [`ca_profile.xml`](ca_profile.xml)과 함께 제공됩니다.
 
 ### Proxmox LXC 자동 가이드 스크립트
