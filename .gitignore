@@ -72,6 +72,8 @@ AUDIT_TASKS.md
 # Local GitHub reply drafts (paste manually — never commit)
 .github/*-reply-draft.md
 .github/*-draft.md
+.github/issue-replies/
+.github/RELEASE_PREP_*.md
 
 # Local-only planning notes
 *.local.md
