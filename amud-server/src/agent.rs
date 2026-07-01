@@ -241,7 +241,7 @@ async fn run_uds_listener(path: &str, state: Arc<AppState>) {
 
     let listener = match TokioUnixListener::bind(&uds_path) {
         Ok(l) => {
-            apply_uds_socket_permissions(&uds_path);
+            apply_uds_socket_permissions(FilePath::new(&uds_path));
             l
         }
         Err(e) => {
