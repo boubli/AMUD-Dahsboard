@@ -59,8 +59,9 @@ COPY --from=builder /usr/src/amud/ui /app/ui
 COPY --from=builder /out/data /app/data
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh && \
-    (getent group amud >/dev/null || addgroup -g 100 -S amud) && \
-    (getent passwd amud >/dev/null || adduser -u 99 -G amud -S -D -H amud) && \
+    GROUP_NAME=$(getent group 100 | cut -d: -f1) && \
+    if [ -z "$GROUP_NAME" ]; then addgroup -g 100 -S amud; GROUP_NAME=amud; fi && \
+    if ! getent passwd 99 >/dev/null; then adduser -u 99 -G "$GROUP_NAME" -S -D -H amud; fi && \
     chown -R 99:100 /app
 
 USER 99:100
