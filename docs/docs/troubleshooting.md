@@ -343,7 +343,7 @@ The **AMUD-Agent** container may still appear running — it does not create thi
 
 **Cause:** Unraid Community Applications creates appdata as `nobody:users` (UID **99**). On images before **v1.7.2**, the dashboard ran as hardened root (`--cap-drop=ALL`) and could not write to that folder. SQLite (`amud.db`) would fail next for the same reason.
 
-**Fixed in v1.7.2+:** The Docker image drops privileges to **PUID 99 / PGID 100** (Unraid defaults) before starting the server. Recreate the **AMUD-Dashboard** container after updating.
+**Fixed in v1.7.2+:** The Docker image runs the dashboard as **PUID 99 / PGID 100** (Unraid defaults). Recreate the **AMUD-Dashboard** container after updating.
 
 **Still failing after v1.7.2?** See [Permission errors on appdata](./installation/unraid.md#permission-errors-on-appdata) below, or run:
 
@@ -352,6 +352,24 @@ ls -la /mnt/user/appdata/amud-dashboard/
 ```
 
 **Note:** Setting `AMUD_SECRETS_KEY` alone does **not** fix this — the database file must also be writable in the same folder.
+
+---
+
+## Unraid: `su-exec: setgroups` loop
+
+**Symptom:** After updating to v1.7.2, dashboard logs repeat:
+
+```
+su-exec: setgroups(100): Operation not permitted
+```
+
+**Cause:** Early v1.7.2 images dropped to PUID 99 with `su-exec` at runtime. The Unraid template also sets `--cap-drop=ALL`, which blocks `setgroups()` — the container restarts in a loop. **Privileged mode is not required** and is not recommended.
+
+**Fix:** **Force Update** to the latest `tradmss/amud-dashboard:latest` image and **recreate** the dashboard container. Current images run as UID 99 by default (no runtime `su-exec`).
+
+**Stuck on an older image?** Add `--user 99:100` to the dashboard **Extra Parameters** (before `--cap-drop=ALL`) as a temporary workaround, or update the image.
+
+See [Permission errors on appdata](./installation/unraid.md#permission-errors-on-appdata).
 
 ---
 

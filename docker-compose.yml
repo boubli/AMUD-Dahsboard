@@ -29,6 +29,7 @@ services:
   agent:
     image: tradmss/amud-dashboard:latest
     container_name: amud_agent
+    user: "0:0"
     entrypoint: ["/app/amud-agent"]
     # For host telemetry mapping (custom NICs / disk paths), use host network + bind mounts:
     # network_mode: host

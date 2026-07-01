@@ -115,7 +115,7 @@ Default CA paths:
 | `/mnt/user/appdata/amud-dashboard/data` | SQLite database, `.amud-secrets-key`, settings |
 | `/mnt/user/appdata/amud-dashboard/run` | Shared socket between dashboard and agent |
 
-**v1.7.2+ (recommended):** The dashboard image runs as **PUID 99 / PGID 100** by default to match Unraid `nobody:users` appdata. After updating, **recreate** the dashboard container — no SSH `chown` required on a fresh install.
+**v1.7.2+ (recommended):** The dashboard image runs as **PUID 99 / PGID 100** inside the container (matches Unraid `nobody:users` appdata). After updating to the latest image, **recreate** the dashboard container — no SSH `chown` required on a fresh install.
 
 **Fix 1 — Manual ownership (older images or custom paths)**
 
@@ -162,14 +162,20 @@ See also [Troubleshooting — Reset admin password](../troubleshooting.md#reset-
 
 **Fix 2 — Custom PUID/PGID**
 
-**v1.7.2+** defaults to `PUID=99` / `PGID=100` in the dashboard template. If you change these variables, ownership on the host must match:
+The image defaults to UID **99** / GID **100**. If you use different values in the template, you must also set matching **Extra Parameters** on the dashboard container:
 
-```bash
-chown -R 99:100 /mnt/user/appdata/amud-dashboard/data
-chown -R 99:100 /mnt/user/appdata/amud-dashboard/run
+```
+--user YOUR_PUID:YOUR_PGID
 ```
 
-(Replace `99:100` with your chosen PUID/PGID.)
+Host appdata ownership must match:
+
+```bash
+chown -R YOUR_PUID:YOUR_PGID /mnt/user/appdata/amud-dashboard/data
+chown -R YOUR_PUID:YOUR_PGID /mnt/user/appdata/amud-dashboard/run
+```
+
+(Replace `YOUR_PUID:YOUR_PGID` with your chosen IDs, e.g. `99:100`.)
 
 **Verify**
 

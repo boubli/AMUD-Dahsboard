@@ -48,10 +48,8 @@ RUN mkdir -p /out/data /out/bin && \
         ;; \
     esac
 
-# Runtime: entrypoint may start as root, then drops dashboard to PUID 99 (agent keeps root for docker.sock).
+# Runtime: dashboard runs as UID 99 (Unraid nobody); agent overrides with --user 0 for docker.sock.
 FROM alpine:3.20
-
-RUN apk add --no-cache su-exec
 
 WORKDIR /app
 
@@ -60,7 +58,12 @@ COPY --from=builder /out/bin/amud-agent /app/amud-agent
 COPY --from=builder /usr/src/amud/ui /app/ui
 COPY --from=builder /out/data /app/data
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh && \
+    (getent group amud >/dev/null || addgroup -g 100 -S amud) && \
+    (getent passwd amud >/dev/null || adduser -u 99 -G amud -S -D -H amud) && \
+    chown -R 99:100 /app
+
+USER 99:100
 
 VOLUME /app/data
 

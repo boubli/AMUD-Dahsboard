@@ -88,6 +88,7 @@ services:
   agent:
     image: tradmss/amud-dashboard:latest
     container_name: amud_agent
+    user: "0:0"
     entrypoint: ["/app/amud-agent"]
     restart: always
     environment:
@@ -119,15 +120,15 @@ Both `amud-dashboard` and `amud-agent` **must** use the same value. The server a
 
 ### App data permissions (v1.7.2+)
 
-The dashboard entrypoint runs as **PUID 99 / PGID 100** by default (matches Unraid `nobody:users`). On generic Linux hosts, create and own the data folder before first boot:
+The dashboard image runs as **UID 99 / GID 100** by default (matches Unraid `nobody:users`). On generic Linux hosts, create and own the data folder before first boot:
 
 ```bash
 mkdir -p data && chown 99:100 data
 ```
 
-`AMUD_SOCKET_MODE=666` lets the root agent connect to the dashboard Unix socket when the server runs as a non-root user.
+`AMUD_SOCKET_MODE=666` lets the root agent connect to the dashboard Unix socket when the server runs as a non-root user. The agent service uses `user: "0:0"` for Docker socket access.
 
-Unraid permission errors: [Troubleshooting — `.amud-secrets-key` permission denied](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied).
+Unraid permission errors: [Troubleshooting — `.amud-secrets-key` permission denied](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-secrets-key-permission-denied). `su-exec: setgroups` loop: [Troubleshooting — setgroups](https://boubli.github.io/AMUD-Dashboard/docs/troubleshooting#unraid-su-exec-setgroups-loop).
 
 ### Deploying the Stack
 To start the services in detached background mode:
