@@ -10,17 +10,17 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.6.4 新特性
+### v1.7.2 新特性
 
-- **品牌 Logo 修复** — 自定义 Logo 在登录页、访客面板、网站图标和 PWA 中均可显示（不仅限于已登录）
-- **PWA 移动端优化** — 菜单不再遮挡欢迎区、顶栏居中、遥测双列布局、可展开搜索
-- **Logo → 清单** — 设置中的面板 Logo 统一驱动 favicon 与 Apple 触摸图标
+- **Unraid Docker 修复** — 面板以 PUID 99 首次启动（不再出现 `.amud-secrets-key` 权限错误）
+- **v1.7.1** — 移动端 PWA 修复（设置菜单、桌面访客卡片布局）
+- **v1.7.0** — 130+ 集成目录、Homepage 导入、清单驱动的添加应用下拉框
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 版本状态
 
-最近 **5** 个已验证版本及已撤回标签：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**v1.7.2**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

@@ -10,17 +10,17 @@
 
 **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ब्लॉग](https://boubli.github.io/AMUD-Dashboard/blog)** · **[थीम गैलरी](https://boubli.github.io/AMUD-Dashboard/themes)** · **[रोडमैप](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/)** · **[अक्सर पूछे जाने वाले सवाल](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.6.4 में नया
+### v1.7.2 में नया
 
-- **ब्रांडिंग लोगो फिक्स** — कस्टम लोगो लॉगिन, अतिथि डैशबोर्ड, favicon और PWA पर काम करते हैं (केवल लॉगिन पर नहीं)
-- **PWA मोबाइल पॉलिश** — मेनू हीरो को ओवरलैप नहीं करता, केंद्रित टॉपबार, टेलीमेट्री ग्रिड, विस्तार योग्य खोज
-- **लोगो → मैनिफ़ेस्ट** — सेटिंग्स डैशबोर्ड लोगो favicon और Apple टच आइकन को हर जगह नियंत्रित करता है
+- **Unraid Docker फिक्स** — पहली बूट पर PUID 99 (`.amud-secrets-key` अनुमति त्रुटि नहीं)
+- **v1.7.1** — मोबाइल PWA फिक्स (सेटिंग्स मेनू, डेस्कटॉप गेस्ट लेआउट)
+- **v1.7.0** — 130+ इंटीग्रेशन कैटलॉग, Homepage आयात, मैनिफ़ेस्ट-चालित ऐप UI
 
 पूरा इतिहास: **[चेंजलॉग](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### रिलीज़ स्थिति
 
-पिछले **5** सत्यापित रिलीज़ और वापस ली गई टैग: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग) देखें।
+अनुशंसित: **v1.7.2**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

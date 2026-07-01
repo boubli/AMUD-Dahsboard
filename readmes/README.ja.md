@@ -10,17 +10,17 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.6.4 の新機能
+### v1.7.2 の新機能
 
-- **ブランディングロゴ修正** — カスタムロゴがログイン、ゲストダッシュボード、favicon、PWA で表示（ログイン時のみではない）
-- **PWA モバイル改善** — ヒーローと重ならないメニュー、中央揃えトップバー、テレメトリグリッド、展開式検索
-- **ロゴ → マニフェスト** — 設定のダッシュボードロゴが favicon と Apple タッチアイコンを全体で制御
+- **Unraid Docker 修正** — 初回起動で PUID 99 として動作（`.amud-secrets-key` 権限エラー解消）
+- **v1.7.1** — モバイル PWA 修正（設定メニュー、デスクトップゲストレイアウト）
+- **v1.7.0** — 130+ 統合カタログ、Homepage インポート、マニフェスト連動のアプリ追加 UI
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### リリース状況
 
-直近 **5** 件の検証済みリリースと撤回タグ：**[英語 README](../README.md)**（Release status セクション）を参照。
+推奨バージョン: **v1.7.2**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

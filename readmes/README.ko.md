@@ -10,17 +10,17 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.6.4 새로운 기능
+### v1.7.2 새로운 기능
 
-- **브랜딩 로고 수정** — 사용자 지정 로고가 로그인, 게스트 대시보드, 파비콘, PWA에서 작동 (로그인 시에만이 아님)
-- **PWA 모바일 개선** — 메뉴가 히어로와 겹치지 않음, 중앙 정렬 상단 바, 원격 측정 그리드, 확장 가능한 검색
-- **로고 → 매니페스트** — 설정의 대시보드 로고가 파비콘과 Apple 터치 아이콘을 전역에서 제어
+- **Unraid Docker 수정** — 첫 부팅 시 PUID 99로 실행 (`.amud-secrets-key` 권한 오류 해결)
+- **v1.7.1** — 모바일 PWA 수정 (설정 메뉴, 데스크톱 게스트 레이아웃)
+- **v1.7.0** — 130+ 통합 카탈로그, Homepage 가져오기, 매니페스트 기반 앱 추가 UI
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 릴리스 상태
 
-최근 **5**개의 검증된 릴리스 및 철회된 태그: **[영어 README](../README.md)** (Release status 섹션) 참조.
+권장 버전: **v1.7.2**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

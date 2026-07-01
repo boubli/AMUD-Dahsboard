@@ -48,7 +48,7 @@ RUN mkdir -p /out/data /out/bin && \
         ;; \
     esac
 
-# Stage 2: Runtime stage (Alpine + su-exec for PUID/PGID drop on dashboard only)
+# Runtime: entrypoint may start as root, then drops dashboard to PUID 99 (agent keeps root for docker.sock).
 FROM alpine:3.20
 
 RUN apk add --no-cache su-exec

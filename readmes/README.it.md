@@ -10,17 +10,17 @@
 
 **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galleria dei Temi](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Tabella di marcia](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentazione](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novità in v1.6.4
+### Novità in v1.7.2
 
-- **Fix logo di branding** — i logo personalizzati funzionano su login, dashboard ospite, favicon e PWA
-- **Migliorie mobile PWA** — menu senza sovrapposizione all’hero, topbar centrata, griglia telemetria, ricerca espandibile
-- **Logo → manifest** — il logo dashboard in Impostazioni guida favicon e icona Apple ovunque
+- **Fix Unraid Docker** — dashboard come PUID 99 al primo avvio (niente `.amud-secrets-key: Permission denied`)
+- **v1.7.1** — fix PWA mobile (menu Impostazioni, layout ospite desktop)
+- **v1.7.0** — catalogo 130+ integrazioni, import Homepage, menu Aggiungi app da manifest
 
 Cronologia completa: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Stato release
 
-Ultimi **5** release validati e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
+Consigliato: **v1.7.2**. Dettagli e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

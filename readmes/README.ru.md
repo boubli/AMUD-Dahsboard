@@ -10,17 +10,17 @@
 
 **[Список изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Блог](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Галерея тем](https://boubli.github.io/AMUD-Dashboard/themes)** · **[План разработки](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Документация](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Что нового в v1.6.4
+### Что нового в v1.7.2
 
-- **Исправление логотипа брендинга** — пользовательские логотипы на странице входа, гостевой панели, favicon и PWA
-- **Мобильная полировка PWA** — меню не перекрывает hero, центрированная верхняя панель, сетка телеметрии, раскрывающийся поиск
-- **Логотип → манифест** — логотип панели в Настройках управляет favicon и иконкой Apple везде
+- **Исправление Unraid Docker** — панель под PUID 99 при первом запуске (без `.amud-secrets-key: Permission denied`)
+- **v1.7.1** — мобильные правки PWA (меню настроек, гостевой вид на десктопе)
+- **v1.7.0** — каталог 130+ интеграций, импорт Homepage, выпадающий список приложений из манифеста
 
 Полная история: **[Журнал изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Статус релизов
 
-Последние **5** проверенных релизов и отозванные теги: **[английский README](../README.md)** (раздел Release status).
+Рекомендуется: **v1.7.2**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

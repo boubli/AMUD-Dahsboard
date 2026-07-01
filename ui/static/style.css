@@ -2412,7 +2412,7 @@ input[type="color"].form-control {
     }
 
     .greeting-title {
-        word-break: break-word;
+        overflow-wrap: break-word;
         max-width: 100%;
         font-size: 1.85rem;
     }
@@ -2460,7 +2460,7 @@ input[type="color"].form-control {
 
     .app-card--guest-compact .app-card-title {
         font-size: 0.78rem;
-        word-break: break-word;
+        overflow-wrap: break-word;
     }
 
     .app-card:not(.app-card--guest-compact) .app-card-header {

@@ -57,7 +57,7 @@
     function isMobileSearchCollapsed() {
         const wrapper = document.getElementById('search-bar-wrapper');
         if (!wrapper) return false;
-        return window.matchMedia('(max-width: 768px)').matches && !wrapper.classList.contains('is-expanded');
+        return globalThis.matchMedia('(max-width: 768px)').matches && !wrapper.classList.contains('is-expanded');
     }
 
     function expandSearchBar() {
@@ -186,7 +186,7 @@
                 input.value = '';
                 applyAppFilter('');
                 input.blur();
-                if (window.matchMedia('(max-width: 768px)').matches) {
+                if (globalThis.matchMedia('(max-width: 768px)').matches) {
                     collapseSearchBar();
                 }
                 return;
@@ -221,7 +221,7 @@
         globalThis.amudClearAppSearch = function () {
             input.value = '';
             applyAppFilter('');
-            if (window.matchMedia('(max-width: 768px)').matches) {
+            if (globalThis.matchMedia('(max-width: 768px)').matches) {
                 collapseSearchBar();
             }
         };
