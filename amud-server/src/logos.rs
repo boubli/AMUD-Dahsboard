@@ -160,8 +160,15 @@ pub(crate) fn fallback_brand_logo(lowercase_icon: &str) -> String {
         "shinobi" => "/static/logos/shinobi.svg".to_string(),
         "agent_dvr" => "/static/logos/agent-dvr.svg".to_string(),
         "casaos" => "/static/logos/casaos.svg".to_string(),
+        "ollama" => "/static/logos/ollama.svg".to_string(),
+        "open_webui" | "open-webui" => "/static/logos/open-webui.svg".to_string(),
         _ => "/static/fallback.svg".to_string(),
     }
+}
+
+/// Logo path for an integration catalog id (manifest / picker UI).
+pub(crate) fn logo_for_integration_id(id: &str) -> String {
+    fallback_brand_logo(id)
 }
 
 #[cfg(test)]

@@ -112,6 +112,8 @@ Configure per app under **Add/Edit App → Integration**. Data loads when the ca
 | **Proxmox VE** | Nodes, VMs, LXCs, cluster CPU/RAM, version | — | No |
 | **Tailscale** | Devices online, exit nodes | — | No |
 | **Netbird** | Peers, connected, setup keys | — | No |
+| **Ollama** | Models installed, running models | — | No |
+| **Open WebUI** | Models (with API key), health | — | Optional |
 | **Synology DSM** | Version, model, volumes, uptime | — | No |
 | **Unraid** | Array state, parity, used slots | — | No |
 | **Dockge** | Compose stacks | — | No |

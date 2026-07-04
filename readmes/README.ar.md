@@ -10,10 +10,11 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### الجديد في v1.7.3
+### الجديد في v1.7.4
 
-- **قائمة التكامل** — Add/Edit App تعرض 130+ تكاملاً مجدداً (nonce CSP)
-- **متابعة Unraid** — بدون حلقة `su-exec: setgroups`؛ لوحة التحكم كـ UID 99 في الصورة
+- **منتقي التكامل** — قائمة مخصصة مع شعارات؛ يصلح أشرطة optgroup البيضاء على Windows
+- **Ollama + Open WebUI** — تكاملات AI & LLM جديدة (عدد النماذج، الحالة)
+- **v1.7.3** — قائمة التكامل (nonce CSP)؛ متابعة Unraid `su-exec: setgroups`
 - **v1.7.2** — صلاحيات Unraid عند أول تشغيل (PUID 99 appdata)
 - **v1.7.1** — إصلاحات PWA للجوال (قائمة الإعدادات، تخطيط الضيف على سطح المكتب)
 
@@ -21,7 +22,7 @@
 
 ### حالة الإصدار
 
-الإصدار الموصى به: **v1.7.3**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
+الإصدار الموصى به: **v1.7.4**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

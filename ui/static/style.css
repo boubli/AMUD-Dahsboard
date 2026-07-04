@@ -1740,6 +1740,140 @@ select.form-control option:disabled {
     opacity: 1;
 }
 
+select.form-control optgroup {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.78rem;
+}
+
+select.form-control optgroup option {
+    background-color: #0b0d16;
+    color: var(--text-primary);
+    font-weight: 400;
+    font-size: 0.88rem;
+}
+
+/* Integration picker (Add/Edit App) */
+.integration-picker {
+    position: relative;
+    margin-top: 0.35rem;
+}
+
+.integration-picker-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: left;
+    cursor: pointer;
+    padding-right: 2rem;
+    position: relative;
+}
+
+.integration-picker-trigger-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.integration-picker-trigger-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.integration-picker-chevron {
+    position: absolute;
+    right: 0.75rem;
+    width: 1rem;
+    height: 1rem;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.integration-picker-panel {
+    position: absolute;
+    z-index: 1200;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    max-height: min(320px, 50vh);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-card);
+    background: var(--bg-secondary, #12141c);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.integration-picker-panel[hidden] {
+    display: none !important;
+}
+
+.integration-picker-search {
+    margin: 0.5rem;
+    flex-shrink: 0;
+}
+
+.integration-picker-list {
+    overflow-y: auto;
+    padding: 0.25rem 0.5rem 0.5rem;
+}
+
+.integration-picker-group-label {
+    padding: 0.5rem 0.5rem 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    background: transparent;
+}
+
+.integration-picker-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.88rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.integration-picker-option:hover,
+.integration-picker-option:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+.integration-picker-option-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.integration-picker-option-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Delete application button */
 .btn-delete-app {
     background: none;
@@ -3695,6 +3829,26 @@ body::after {
 
 :root[data-theme="light"] select.form-control option:disabled {
     color: var(--text-muted);
+}
+
+:root[data-theme="light"] select.form-control optgroup {
+    background-color: rgba(0, 0, 0, 0.04);
+    color: var(--text-muted);
+}
+
+:root[data-theme="light"] select.form-control optgroup option {
+    background-color: #ffffff;
+    color: var(--text-primary);
+}
+
+:root[data-theme="light"] .integration-picker-panel {
+    background: #ffffff;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .integration-picker-option:hover,
+:root[data-theme="light"] .integration-picker-option:focus-visible {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .btn-secondary {

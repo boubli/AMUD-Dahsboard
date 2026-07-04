@@ -879,7 +879,7 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, _show_cpu_ra
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
                             <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <template x-for="key in ['version','users','flows','devices','stacks','zones','plugins','entities','sessions','missing','queue','library','datastores','proxy_hosts','routers','array_state','blocking','volumes','model','certificates','middlewares','services','lights_on','server_name','wanted','total','pending','containers','parity_status','luci','active_streams','releases','watches','applications','teams','active','unread','nodes','pods','jobs']" :key="key">
+                            <template x-for="key in ['version','users','flows','devices','stacks','zones','plugins','entities','sessions','missing','queue','library','datastores','proxy_hosts','routers','array_state','blocking','volumes','model','models','running','certificates','middlewares','services','lights_on','server_name','wanted','total','pending','containers','parity_status','luci','active_streams','releases','watches','applications','teams','active','unread','nodes','pods','jobs']" :key="key">
                                 <div class="metric-block" x-show="integrationData[key] !== undefined && integrationData[key] !== null && integrationData[key] !== '—'">
                                     <span class="metric-value" x-text="integrationData[key]"></span>
                                     <span class="metric-label" x-text="key.replace(/_/g, ' ')"></span>
@@ -995,7 +995,7 @@ fn render_apps_grid(
                 .replace('"', "&quot;")
                 .replace('\'', "&#39;");
             let edit_control = format!(
-                r#"<button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);"><i data-lucide="edit-2"></i></button>"#,
+                r#"<button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0); setTimeout(function(){{ if (window.amudRefreshIntegrationPicker) window.amudRefreshIntegrationPicker('edit-app-integration-picker', editApp.integration_type || ''); }}, 50);"><i data-lucide="edit-2"></i></button>"#,
                 escaped_json
             );
             format!(
@@ -1887,7 +1887,7 @@ fn render_proxmox_stream_card(
             .replace('\'', "&#39;");
         format!(
             r#"<div style="display: inline-flex; align-items: center; gap: 0.25rem; margin-left: 0.35rem;">
-                <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0);">
+                <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0); setTimeout(function(){{ if (window.amudRefreshIntegrationPicker) window.amudRefreshIntegrationPicker('edit-app-integration-picker', editApp.integration_type || ''); }}, 50);">
                     <i data-lucide="edit-2"></i>
                 </button>
                 <form action="/apps/delete" method="POST" style="margin: 0; display: inline-flex; align-items: center;">

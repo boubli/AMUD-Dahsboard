@@ -10,10 +10,11 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.3 新特性
+### v1.7.4 新特性
 
-- **集成下拉框修复** — Add/Edit App 再次显示 130+ 集成（CSP nonce）
-- **Unraid 后续修复** — 无 `su-exec: setgroups` 循环；镜像内以 UID 99 运行
+- **集成选择器** — 带品牌图标的自定义列表；修复 Windows 下白色 optgroup 条
+- **Ollama + Open WebUI** — 新增 AI & LLM 集成（模型数、健康状态）
+- **v1.7.3** — 集成下拉框（CSP nonce）；Unraid `su-exec: setgroups` 后续修复
 - **v1.7.2** — Unraid 首次启动权限（PUID 99 appdata）
 - **v1.7.1** — 移动端 PWA 修复（设置菜单、桌面访客卡片布局）
 
@@ -21,7 +22,7 @@
 
 ### 版本状态
 
-当前推荐：**v1.7.3**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**v1.7.4**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

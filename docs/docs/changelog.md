@@ -11,6 +11,22 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.7.4 — Integration picker + Ollama / Open WebUI
+
+**2026-07-04** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.4)
+
+### Added
+- **Ollama** and **Open WebUI** integrations (AI & LLM group)
+- **Custom integration picker** — logos, grouped headers, search; replaces native select
+
+### Fixed
+- **Integration dropdown** — white optgroup bars on Windows dark theme
+
+### Improved
+- Manifest `icon` field; PWA cache v31
+
+---
+
 ## v1.7.3 — Integration dropdown + Unraid follow-up
 
 **2026-07-01** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.3)

@@ -345,9 +345,18 @@
 
                 <div class="form-group">
                     <label for="add-app-integration-type">Integration</label>
-                    <select id="add-app-integration-type" name="integration_type" class="form-control" x-model="newApp.integration_type" @change="amudApplyIntegrationSpan(newApp)">
-                        <option value="">None</option>
-                    </select>
+                    <div id="add-app-integration-picker" class="integration-picker" data-alpine-field="newApp">
+                        <input type="hidden" id="add-app-integration-type" name="integration_type" x-model="newApp.integration_type">
+                        <button type="button" class="integration-picker-trigger form-control" aria-expanded="false" aria-haspopup="listbox">
+                            <img class="integration-picker-trigger-icon" src="/static/fallback.svg" alt="" width="20" height="20">
+                            <span class="integration-picker-trigger-label">None</span>
+                            <i data-lucide="chevron-down" class="integration-picker-chevron"></i>
+                        </button>
+                        <div class="integration-picker-panel" hidden>
+                            <input type="search" class="integration-picker-search form-control" placeholder="Filter integrations…" autocomplete="off">
+                            <div class="integration-picker-list" role="listbox"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group" x-show="newApp.integration_type !== ''">
@@ -491,6 +500,12 @@
                     <p class="form-help" x-show="newApp.integration_type === 'netbird'">
                         NetBird personal access token. URL is your NetBird dashboard/API host.
                     </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'ollama'">
+                        Ollama base URL (e.g. <code>http://host:11434</code>). No API key required for local installs.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'open_webui'">
+                        Open WebUI URL. Optional API key from Settings → Account → API Keys (lists models); without key, health check only.
+                    </p>
                     <p class="form-help" x-show="['synology','nginx_proxy_manager','homeassistant','emby','unraid','dockge','traefik','authentik','crowdsec','node_red','zigbee2mqtt','scrypted','mylar','kapowarr','huntarr','proxmox_backup','technitium','openwrt'].includes(newApp.integration_type)">
                         API key or credentials from the service settings. See docs for format hints per app.
                     </p>
@@ -604,9 +619,18 @@
 
                 <div class="form-group">
                     <label for="edit-app-integration-type">Integration</label>
-                    <select id="edit-app-integration-type" name="integration_type" class="form-control" x-model="editApp.integration_type" @change="amudApplyIntegrationSpan(editApp)">
-                        <option value="">None</option>
-                    </select>
+                    <div id="edit-app-integration-picker" class="integration-picker" data-alpine-field="editApp">
+                        <input type="hidden" id="edit-app-integration-type" name="integration_type" x-model="editApp.integration_type">
+                        <button type="button" class="integration-picker-trigger form-control" aria-expanded="false" aria-haspopup="listbox">
+                            <img class="integration-picker-trigger-icon" src="/static/fallback.svg" alt="" width="20" height="20">
+                            <span class="integration-picker-trigger-label">None</span>
+                            <i data-lucide="chevron-down" class="integration-picker-chevron"></i>
+                        </button>
+                        <div class="integration-picker-panel" hidden>
+                            <input type="search" class="integration-picker-search form-control" placeholder="Filter integrations…" autocomplete="off">
+                            <div class="integration-picker-list" role="listbox"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group" x-show="editApp.integration_type !== ''">
@@ -691,6 +715,12 @@
                     </p>
                     <p class="form-help" x-show="editApp.integration_type === 'deluge'">
                         Deluge Web UI password. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'ollama'">
+                        Ollama base URL (e.g. <code>http://host:11434</code>). No API key required for local installs.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'open_webui'">
+                        Open WebUI URL. Optional API key from Settings → Account → API Keys.
                     </p>
                 </div>
 
@@ -1070,34 +1100,16 @@
             }
         })();
     </script>
+    <script src="/static/integration-picker.js"></script>
     <script nonce="{{csp_nonce}}">
         (function () {
-            function populateIntegrationSelects(data) {
-                if (!data || !data.groups) return;
-                var healthOnly = new Set();
-                ['add-app-integration-type', 'edit-app-integration-type'].forEach(function (id) {
-                    var sel = document.getElementById(id);
-                    if (!sel) return;
-                    sel.innerHTML = '<option value="">None</option>';
-                    data.groups.forEach(function (g) {
-                        var og = document.createElement('optgroup');
-                        og.label = g.group;
-                        (g.integrations || []).forEach(function (item) {
-                            if (!item.id) return;
-                            if (item.health_only) healthOnly.add(item.id);
-                            var opt = document.createElement('option');
-                            opt.value = item.id;
-                            opt.textContent = item.label + (item.health_only ? ' (health)' : '');
-                            og.appendChild(opt);
-                        });
-                        if (og.children.length) sel.appendChild(og);
-                    });
-                });
-                window.HEALTH_ONLY_INTEGRATIONS = healthOnly;
-            }
             fetch('/api/integrations/manifest', { credentials: 'same-origin' })
                 .then(function (r) { return r.ok ? r.json() : null; })
-                .then(populateIntegrationSelects)
+                .then(function (data) {
+                    if (data && typeof window.amudInitIntegrationPickers === 'function') {
+                        window.amudInitIntegrationPickers(data);
+                    }
+                })
                 .catch(function () {});
         })();
     </script>

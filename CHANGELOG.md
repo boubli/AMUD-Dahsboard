@@ -8,6 +8,24 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.7.4](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.4) — 2026-07-04
+
+Custom integration picker with logos; Ollama and Open WebUI integrations.
+
+### Added
+- **Ollama** — `/api/tags` model count, `/api/ps` running models
+- **Open WebUI** — `/api/models` with API key, or `/health` without
+- **Integration picker** — custom dropdown with group headers, brand icons, and search filter (replaces native optgroup select)
+
+### Fixed
+- **Add/Edit App Integration field** — unreadable white optgroup bars on Windows dark theme
+
+### Improved
+- **Manifest API** — `icon` field per integration for picker UI
+- **PWA** — service worker cache v31
+
+---
+
 ## [v1.7.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.3) — 2026-07-01
 
 Integration dropdown fix (CSP nonce) and Unraid `su-exec: setgroups` follow-up.

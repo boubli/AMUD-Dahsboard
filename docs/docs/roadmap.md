@@ -11,6 +11,11 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.7.4)
+
+- **Integration picker** — custom dropdown with logos; fixes unreadable optgroup bars on Windows
+- **Ollama + Open WebUI** — new AI & LLM integrations (model counts, health)
+
 ## Recently shipped (v1.7.3)
 
 - **Integration dropdown fix** — CSP nonce on manifest loader; Add/Edit App catalog restored

@@ -735,6 +735,12 @@ pub async fn fetch_integration_data_uncached(
         "netbird" => {
             return crate::homelab::fetch_netbird(&client, base_url, &app.api_key).await;
         }
+        "ollama" => {
+            return crate::homelab::fetch_ollama(&client, base_url, &app.api_key).await;
+        }
+        "open_webui" => {
+            return crate::homelab::fetch_open_webui(&client, base_url, &app.api_key).await;
+        }
         "synology" => return crate::homelab::fetch_synology(&client, base_url, &app.api_key).await,
         "unraid" => return crate::homelab::fetch_unraid(&client, base_url, &app.api_key).await,
         "dockge" => return crate::homelab::fetch_dockge(&client, base_url, &app.api_key).await,

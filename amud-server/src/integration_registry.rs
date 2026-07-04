@@ -42,6 +42,7 @@ pub fn integration_manifest_json() -> Value {
         groups.entry(meta.group).or_default().push(json!({
             "id": meta.id,
             "label": meta.label,
+            "icon": crate::logos::logo_for_integration_id(meta.id),
             "tier": tier_str(meta.tier),
             "health_only": meta.tier == IntegrationTier::Health,
         }));
@@ -847,6 +848,21 @@ pub const INTEGRATION_CATALOG: &[IntegrationMeta] = &[
         group: "Custom",
         tier: IntegrationTier::Custom,
         ttl_secs: 30,
+    },
+    // AI & LLM
+    IntegrationMeta {
+        id: "ollama",
+        label: "Ollama",
+        group: "AI & LLM",
+        tier: IntegrationTier::Standard,
+        ttl_secs: 60,
+    },
+    IntegrationMeta {
+        id: "open_webui",
+        label: "Open WebUI",
+        group: "AI & LLM",
+        tier: IntegrationTier::Standard,
+        ttl_secs: 60,
     },
     // Phase 5 long-tail (standard tier)
     IntegrationMeta {

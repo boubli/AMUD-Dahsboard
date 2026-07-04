@@ -10,10 +10,11 @@
 
 **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ब्लॉग](https://boubli.github.io/AMUD-Dashboard/blog)** · **[थीम गैलरी](https://boubli.github.io/AMUD-Dashboard/themes)** · **[रोडमैप](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/)** · **[अक्सर पूछे जाने वाले सवाल](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.3 में नया
+### v1.7.4 में नया
 
-- **इंटीग्रेशन ड्रॉपडाउन फिक्स** — Add/Edit App में 130+ इंटीग्रेशन फिर दिखें (CSP nonce)
-- **Unraid फॉलो-अप** — `su-exec: setgroups` लूप नहीं; इमेज में UID 99
+- **इंटीग्रेशन पिकर** — लोगो के साथ कस्टम सूची; Windows पर सफेद optgroup पट्टियाँ ठीक
+- **Ollama + Open WebUI** — नई AI & LLM इंटीग्रेशन (मॉडल, स्वास्थ्य)
+- **v1.7.3** — इंटीग्रेशन ड्रॉपडाउन (CSP nonce); Unraid `su-exec: setgroups` फॉलो-अप
 - **v1.7.2** — Unraid पहली बूट अनुमतियाँ (PUID 99 appdata)
 - **v1.7.1** — मोबाइल PWA फिक्स (सेटिंग्स मेनू, डेस्कटॉप गेस्ट लेआउट)
 
@@ -21,7 +22,7 @@
 
 ### रिलीज़ स्थिति
 
-अनुशंसित: **v1.7.3**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
+अनुशंसित: **v1.7.4**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

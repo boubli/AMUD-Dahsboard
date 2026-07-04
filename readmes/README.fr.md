@@ -10,10 +10,11 @@
 
 **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galerie de thèmes](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Feuille de route](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Nouveautés de la v1.7.3
+### Nouveautés de la v1.7.4
 
-- **Menu Intégration** — Add/Edit App affiche à nouveau 130+ intégrations (nonce CSP)
-- **Suivi Unraid** — plus de boucle `su-exec: setgroups` ; tableau de bord en UID 99 dans l'image
+- **Sélecteur d'intégration** — liste personnalisée avec logos ; corrige les barres blanches optgroup sous Windows
+- **Ollama + Open WebUI** — nouvelles intégrations AI & LLM (modèles, état)
+- **v1.7.3** — menu Intégration (nonce CSP) ; suivi Unraid `su-exec: setgroups`
 - **v1.7.2** — permissions Unraid au premier démarrage (PUID 99 appdata)
 - **v1.7.1** — correctifs PWA mobile (menu Paramètres, cartes invité bureau, cartes admin compactes)
 
@@ -21,7 +22,7 @@ Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD
 
 ### État des versions
 
-Dernière version recommandée : **v1.7.3**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
+Dernière version recommandée : **v1.7.4**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

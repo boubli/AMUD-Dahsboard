@@ -10,10 +10,11 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.3 새로운 기능
+### v1.7.4 새로운 기능
 
-- **통합 드롭다운 수정** — Add/Edit App에서 130+ 통합 다시 표시 (CSP nonce)
-- **Unraid 후속 수정** — `su-exec: setgroups` 루프 없음; 이미지에서 UID 99로 실행
+- **통합 선택기** — 로고가 있는 맞춤 목록; Windows에서 흰색 optgroup 막대 수정
+- **Ollama + Open WebUI** — 새 AI & LLM 통합 (모델 수, 상태)
+- **v1.7.3** — 통합 드롭다운 (CSP nonce); Unraid `su-exec: setgroups` 후속 수정
 - **v1.7.2** — Unraid 첫 부팅 권한 (PUID 99 appdata)
 - **v1.7.1** — 모바일 PWA 수정 (설정 메뉴, 데스크톱 게스트 레이아웃)
 
@@ -21,7 +22,7 @@
 
 ### 릴리스 상태
 
-권장 버전: **v1.7.3**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
+권장 버전: **v1.7.4**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

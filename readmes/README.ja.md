@@ -10,10 +10,11 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.3 の新機能
+### v1.7.4 の新機能
 
-- **統合ドロップダウン修正** — Add/Edit App で 130+ 統合を再表示（CSP nonce）
-- **Unraid フォローアップ** — `su-exec: setgroups` ループ解消；イメージ内 UID 99 で実行
+- **統合ピッカー** — ロゴ付きカスタムリスト；Windows の白い optgroup バーを修正
+- **Ollama + Open WebUI** — 新しい AI & LLM 統合（モデル数、ヘルス）
+- **v1.7.3** — 統合ドロップダウン（CSP nonce）；Unraid `su-exec: setgroups` フォローアップ
 - **v1.7.2** — Unraid 初回起動の権限（PUID 99 appdata）
 - **v1.7.1** — モバイル PWA 修正（設定メニュー、デスクトップゲストレイアウト）
 
@@ -21,7 +22,7 @@
 
 ### リリース状況
 
-推奨バージョン: **v1.7.3**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.7.4**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

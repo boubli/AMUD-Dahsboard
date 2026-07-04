@@ -1,3 +1,4 @@
+mod ai;
 mod apps;
 mod health;
 mod media;
@@ -5,6 +6,7 @@ mod monitoring;
 mod network;
 mod tier2;
 
+pub use ai::*;
 pub use apps::*;
 pub use health::{fetch_health_integration, is_health_only, HEALTH_ONLY_TYPES};
 pub use media::*;
