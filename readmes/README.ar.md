@@ -10,17 +10,18 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### الجديد في v1.7.2
+### الجديد في v1.7.3
 
-- **إصلاح Unraid Docker** — لوحة التحكم تعمل كـ PUID 99 عند أول تشغيل (بدون خطأ `.amud-secrets-key`)
+- **قائمة التكامل** — Add/Edit App تعرض 130+ تكاملاً مجدداً (nonce CSP)
+- **متابعة Unraid** — بدون حلقة `su-exec: setgroups`؛ لوحة التحكم كـ UID 99 في الصورة
+- **v1.7.2** — صلاحيات Unraid عند أول تشغيل (PUID 99 appdata)
 - **v1.7.1** — إصلاحات PWA للجوال (قائمة الإعدادات، تخطيط الضيف على سطح المكتب)
-- **v1.7.0** — كتالوج 130+ تكامل، استيراد Homepage، قائمة إضافة التطبيق من المانيفست
 
 السجل الكامل: **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### حالة الإصدار
 
-الإصدار الموصى به: **v1.7.2**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
+الإصدار الموصى به: **v1.7.3**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

@@ -11,6 +11,11 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.7.3)
+
+- **Integration dropdown fix** — CSP nonce on manifest loader; Add/Edit App catalog restored
+- **Unraid Docker follow-up** — UID 99 in image, agent `--user 0`; `su-exec: setgroups` loop resolved ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16))
+
 ## Recently shipped (v1.7.2)
 
 - **Unraid Docker fix** — PUID 99 entrypoint, `.amud-secrets-key` permission denied resolved ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16))

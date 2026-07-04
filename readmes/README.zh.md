@@ -10,17 +10,18 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.2 新特性
+### v1.7.3 新特性
 
-- **Unraid Docker 修复** — 面板以 PUID 99 首次启动（不再出现 `.amud-secrets-key` 权限错误）
+- **集成下拉框修复** — Add/Edit App 再次显示 130+ 集成（CSP nonce）
+- **Unraid 后续修复** — 无 `su-exec: setgroups` 循环；镜像内以 UID 99 运行
+- **v1.7.2** — Unraid 首次启动权限（PUID 99 appdata）
 - **v1.7.1** — 移动端 PWA 修复（设置菜单、桌面访客卡片布局）
-- **v1.7.0** — 130+ 集成目录、Homepage 导入、清单驱动的添加应用下拉框
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 版本状态
 
-当前推荐：**v1.7.2**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**v1.7.3**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

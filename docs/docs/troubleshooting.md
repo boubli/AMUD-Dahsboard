@@ -355,6 +355,18 @@ ls -la /mnt/user/appdata/amud-dashboard/
 
 ---
 
+## Add App: Integration dropdown shows only None
+
+**Symptom:** In **Add App** or **Edit App**, the **Integration** dropdown only lists **None** — no Radarr, Sonarr, Plex, etc.
+
+**Cause:** On **v1.7.0–v1.7.2**, the script that loads `/api/integrations/manifest` was missing a CSP nonce. The browser blocked it silently under the dashboard's Content Security Policy.
+
+**Fix:** Update to **v1.7.3+** and hard refresh (Ctrl+Shift+R). After update, open DevTools → **Network** — you should see `/api/integrations/manifest` return **200** with a `groups` array.
+
+**Still empty after v1.7.3?** Confirm you are logged in as admin (manifest requires a session). Check **Console** for CSP or network errors.
+
+---
+
 ## Unraid: `su-exec: setgroups` loop
 
 **Symptom:** After updating to v1.7.2, dashboard logs repeat:
@@ -365,7 +377,7 @@ su-exec: setgroups(100): Operation not permitted
 
 **Cause:** Early v1.7.2 images dropped to PUID 99 with `su-exec` at runtime. The Unraid template also sets `--cap-drop=ALL`, which blocks `setgroups()` — the container restarts in a loop. **Privileged mode is not required** and is not recommended.
 
-**Fix:** **Force Update** to the latest `tradmss/amud-dashboard:latest` image and **recreate** the dashboard container. Current images run as UID 99 by default (no runtime `su-exec`).
+**Fix:** Update to **v1.7.3+** (or latest `tradmss/amud-dashboard:latest`), **Force Update**, and **recreate** the dashboard container. Turn **Privileged** off if you enabled it as a workaround.
 
 **Stuck on an older image?** Add `--user 99:100` to the dashboard **Extra Parameters** (before `--cap-drop=ALL`) as a temporary workaround, or update the image.
 

@@ -10,17 +10,18 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.2 の新機能
+### v1.7.3 の新機能
 
-- **Unraid Docker 修正** — 初回起動で PUID 99 として動作（`.amud-secrets-key` 権限エラー解消）
+- **統合ドロップダウン修正** — Add/Edit App で 130+ 統合を再表示（CSP nonce）
+- **Unraid フォローアップ** — `su-exec: setgroups` ループ解消；イメージ内 UID 99 で実行
+- **v1.7.2** — Unraid 初回起動の権限（PUID 99 appdata）
 - **v1.7.1** — モバイル PWA 修正（設定メニュー、デスクトップゲストレイアウト）
-- **v1.7.0** — 130+ 統合カタログ、Homepage インポート、マニフェスト連動のアプリ追加 UI
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### リリース状況
 
-推奨バージョン: **v1.7.2**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.7.3**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

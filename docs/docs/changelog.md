@@ -11,6 +11,20 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.7.3 — Integration dropdown + Unraid follow-up
+
+**2026-07-01** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.3)
+
+### Fixed
+- **Integration dropdown** — CSP nonce on manifest loader; Add/Edit App shows full catalog again
+- **Unraid Docker** — image runs as UID 99 (no runtime `su-exec`); fixes `setgroups` loop ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16))
+- **Agent** — `--user 0` in Unraid template and Compose for Docker socket
+
+### Improved
+- PWA cache v30; troubleshooting docs for empty Integration list
+
+---
+
 ## v1.7.2 — Unraid Docker first-boot fix
 
 **2026-06-25** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.2)

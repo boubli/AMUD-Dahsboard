@@ -8,6 +8,21 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.7.3](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.3) — 2026-07-01
+
+Integration dropdown fix (CSP nonce) and Unraid `su-exec: setgroups` follow-up.
+
+### Fixed
+- **Add/Edit App Integration dropdown** — manifest loader script had no CSP nonce; browser blocked it, leaving only "None" ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16) follow-up)
+- **Unraid Docker** — dashboard image defaults to UID 99 / GID 100 (no runtime `su-exec`); fixes `setgroups(100): Operation not permitted` under `--cap-drop=ALL`
+- **Agent Docker/Compose** — `--user 0` / `user: "0:0"` so agent keeps Docker socket access
+
+### Improved
+- **PWA** — service worker cache v30
+- **Docs** — troubleshooting for empty Integration list and Unraid setgroups loop
+
+---
+
 ## [v1.7.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.2) — 2026-06-25
 
 Unraid Docker first-boot fix: dashboard runs as PUID 99, clearer permission errors, IPC socket mode.

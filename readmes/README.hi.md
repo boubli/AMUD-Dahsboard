@@ -10,17 +10,18 @@
 
 **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ब्लॉग](https://boubli.github.io/AMUD-Dashboard/blog)** · **[थीम गैलरी](https://boubli.github.io/AMUD-Dashboard/themes)** · **[रोडमैप](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/)** · **[अक्सर पूछे जाने वाले सवाल](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.2 में नया
+### v1.7.3 में नया
 
-- **Unraid Docker फिक्स** — पहली बूट पर PUID 99 (`.amud-secrets-key` अनुमति त्रुटि नहीं)
+- **इंटीग्रेशन ड्रॉपडाउन फिक्स** — Add/Edit App में 130+ इंटीग्रेशन फिर दिखें (CSP nonce)
+- **Unraid फॉलो-अप** — `su-exec: setgroups` लूप नहीं; इमेज में UID 99
+- **v1.7.2** — Unraid पहली बूट अनुमतियाँ (PUID 99 appdata)
 - **v1.7.1** — मोबाइल PWA फिक्स (सेटिंग्स मेनू, डेस्कटॉप गेस्ट लेआउट)
-- **v1.7.0** — 130+ इंटीग्रेशन कैटलॉग, Homepage आयात, मैनिफ़ेस्ट-चालित ऐप UI
 
 पूरा इतिहास: **[चेंजलॉग](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### रिलीज़ स्थिति
 
-अनुशंसित: **v1.7.2**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
+अनुशंसित: **v1.7.3**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

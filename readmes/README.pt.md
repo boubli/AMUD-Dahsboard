@@ -10,17 +10,18 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galeria de Temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentação](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novidades na v1.7.2
+### Novidades na v1.7.3
 
-- **Correção Unraid Docker** — painel em PUID 99 na primeira inicialização (sem erro `.amud-secrets-key`)
+- **Menu Integração** — Add/Edit App mostra novamente 130+ integrações (nonce CSP)
+- **Follow-up Unraid** — sem loop `su-exec: setgroups`; painel como UID 99 na imagem
+- **v1.7.2** — permissões Unraid na primeira inicialização (PUID 99 appdata)
 - **v1.7.1** — correções PWA móvel (menu Definições, layout convidado no desktop)
-- **v1.7.0** — catálogo 130+ integrações, import Homepage, menu Adicionar app via manifesto
 
 Histórico completo: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Estado da versão
 
-Recomendado: **v1.7.2**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
+Recomendado: **v1.7.3**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
