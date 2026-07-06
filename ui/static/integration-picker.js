@@ -1,17 +1,16 @@
 (function () {
     'use strict';
 
-    var manifestIndex = {};
-    var NONE_ICON = '/static/fallback.svg';
+    let manifestIndex = {};
+    const NONE_ICON = '/static/fallback.svg';
 
     function alpineRoot() {
-        var body = document.body;
-        if (!body || !body._x_dataStack || !body._x_dataStack.length) return null;
-        return body._x_dataStack[0];
+        const body = document.body;
+        return body?._x_dataStack?.[0] ?? null;
     }
 
     function setAlpineIntegration(field, value) {
-        var root = alpineRoot();
+        const root = alpineRoot();
         if (!root) return;
         if (field === 'newApp') {
             root.newApp.integration_type = value;
@@ -28,7 +27,7 @@
 
     function buildManifestIndex(manifest) {
         manifestIndex = { '': { label: 'None', icon: NONE_ICON, health_only: false } };
-        if (!manifest || !manifest.groups) return;
+        if (!manifest?.groups) return;
         manifest.groups.forEach(function (g) {
             (g.integrations || []).forEach(function (item) {
                 if (!item.id) return;
@@ -46,10 +45,10 @@
     }
 
     function updateTrigger(picker, id) {
-        var meta = metaFor(id);
-        var trigger = picker.querySelector('.integration-picker-trigger');
-        var img = picker.querySelector('.integration-picker-trigger-icon');
-        var label = picker.querySelector('.integration-picker-trigger-label');
+        const meta = metaFor(id);
+        const trigger = picker.querySelector('.integration-picker-trigger');
+        const img = picker.querySelector('.integration-picker-trigger-icon');
+        const label = picker.querySelector('.integration-picker-trigger-label');
         if (img) {
             img.src = meta.icon;
             img.alt = meta.label;
@@ -60,12 +59,12 @@
         if (trigger) {
             trigger.setAttribute('aria-expanded', 'false');
         }
-        var hidden = picker.querySelector('input[type="hidden"]');
+        const hidden = picker.querySelector('input[type="hidden"]');
         if (hidden) {
             hidden.value = id;
             hidden.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        var field = picker.getAttribute('data-alpine-field');
+        const field = picker.dataset.alpineField;
         if (field) setAlpineIntegration(field, id);
     }
 
@@ -73,21 +72,26 @@
         document.querySelectorAll('.integration-picker-panel').forEach(function (panel) {
             if (except && panel === except) return;
             panel.hidden = true;
-            var picker = panel.closest('.integration-picker');
+            const picker = panel.closest('.integration-picker');
             if (picker) {
-                var trigger = picker.querySelector('.integration-picker-trigger');
+                const trigger = picker.querySelector('.integration-picker-trigger');
                 if (trigger) trigger.setAttribute('aria-expanded', 'false');
             }
         });
     }
 
-    function renderList(picker, filter) {
-        var list = picker.querySelector('.integration-picker-list');
-        if (!list || !window.INTEGRATION_MANIFEST) return;
-        var q = (filter || '').trim().toLowerCase();
-        list.replaceChildren();
+    function matchesFilter(item, groupName, q) {
+        if (!q) return true;
+        const needle = q.toLowerCase();
+        return (
+            item.label.toLowerCase().includes(needle) ||
+            item.id.toLowerCase().includes(needle) ||
+            groupName.toLowerCase().includes(needle)
+        );
+    }
 
-        var noneBtn = document.createElement('button');
+    function createNoneButton(picker) {
+        const noneBtn = document.createElement('button');
         noneBtn.type = 'button';
         noneBtn.className = 'integration-picker-option';
         noneBtn.dataset.id = '';
@@ -97,48 +101,58 @@
         noneBtn.addEventListener('click', function () {
             selectOption(picker, '');
         });
-        if (!q || 'none'.indexOf(q) !== -1) list.appendChild(noneBtn);
+        return noneBtn;
+    }
+
+    function createIntegrationButton(picker, item) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'integration-picker-option';
+        btn.dataset.id = item.id;
+        const icon = item.icon || NONE_ICON;
+        const suffix = item.health_only ? ' (health)' : '';
+        btn.innerHTML =
+            '<img src="' + icon + '" alt="" class="integration-picker-option-icon">' +
+            '<span class="integration-picker-option-label">' + item.label + suffix + '</span>';
+        btn.addEventListener('click', function () {
+            selectOption(picker, item.id);
+        });
+        return btn;
+    }
+
+    function renderList(picker, filter) {
+        const list = picker.querySelector('.integration-picker-list');
+        if (!list || !window.INTEGRATION_MANIFEST) return;
+        const q = (filter || '').trim().toLowerCase();
+        list.replaceChildren();
+
+        if (!q || 'none'.includes(q)) {
+            list.appendChild(createNoneButton(picker));
+        }
 
         window.INTEGRATION_MANIFEST.groups.forEach(function (g) {
-            var groupItems = (g.integrations || []).filter(function (item) {
+            const groupItems = (g.integrations || []).filter(function (item) {
                 if (!item.id) return false;
-                if (!q) return true;
-                return (
-                    item.label.toLowerCase().indexOf(q) !== -1 ||
-                    item.id.toLowerCase().indexOf(q) !== -1 ||
-                    g.group.toLowerCase().indexOf(q) !== -1
-                );
+                return matchesFilter(item, g.group, q);
             });
             if (!groupItems.length) return;
 
-            var heading = document.createElement('div');
+            const heading = document.createElement('div');
             heading.className = 'integration-picker-group-label';
             heading.textContent = g.group;
             list.appendChild(heading);
 
             groupItems.forEach(function (item) {
-                var btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'integration-picker-option';
-                btn.dataset.id = item.id;
-                var icon = item.icon || NONE_ICON;
-                var suffix = item.health_only ? ' (health)' : '';
-                btn.innerHTML =
-                    '<img src="' + icon + '" alt="" class="integration-picker-option-icon">' +
-                    '<span class="integration-picker-option-label">' + item.label + suffix + '</span>';
-                btn.addEventListener('click', function () {
-                    selectOption(picker, item.id);
-                });
-                list.appendChild(btn);
+                list.appendChild(createIntegrationButton(picker, item));
             });
         });
     }
 
     function selectOption(picker, id) {
         updateTrigger(picker, id);
-        var panel = picker.querySelector('.integration-picker-panel');
+        const panel = picker.querySelector('.integration-picker-panel');
         if (panel) panel.hidden = true;
-        var search = picker.querySelector('.integration-picker-search');
+        const search = picker.querySelector('.integration-picker-search');
         if (search) search.value = '';
         renderList(picker, '');
     }
@@ -147,14 +161,14 @@
         if (!picker || picker.dataset.amudPickerInit === '1') return;
         picker.dataset.amudPickerInit = '1';
 
-        var trigger = picker.querySelector('.integration-picker-trigger');
-        var panel = picker.querySelector('.integration-picker-panel');
-        var search = picker.querySelector('.integration-picker-search');
+        const trigger = picker.querySelector('.integration-picker-trigger');
+        const panel = picker.querySelector('.integration-picker-panel');
+        const search = picker.querySelector('.integration-picker-search');
 
         if (trigger && panel) {
             trigger.addEventListener('click', function (e) {
                 e.stopPropagation();
-                var open = panel.hidden;
+                const open = panel.hidden;
                 closeAllPanels(open ? panel : null);
                 panel.hidden = !open;
                 trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -174,8 +188,8 @@
             });
         }
 
-        var hidden = picker.querySelector('input[type="hidden"]');
-        var initial = hidden ? hidden.value : '';
+        const hidden = picker.querySelector('input[type="hidden"]');
+        const initial = hidden ? hidden.value : '';
         updateTrigger(picker, initial);
         renderList(picker, '');
     }
@@ -197,8 +211,8 @@
         window.INTEGRATION_MANIFEST = manifest;
         buildManifestIndex(manifest);
 
-        var healthOnly = new Set();
-        if (manifest && manifest.groups) {
+        const healthOnly = new Set();
+        if (manifest?.groups) {
             manifest.groups.forEach(function (g) {
                 (g.integrations || []).forEach(function (item) {
                     if (item.id && item.health_only) healthOnly.add(item.id);
@@ -211,7 +225,7 @@
     };
 
     window.amudRefreshIntegrationPicker = function (pickerId, value) {
-        var picker = document.getElementById(pickerId);
+        const picker = document.getElementById(pickerId);
         if (picker) updateTrigger(picker, value || '');
     };
 })();

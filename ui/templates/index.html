@@ -347,14 +347,15 @@
                     <label for="add-app-integration-type">Integration</label>
                     <div id="add-app-integration-picker" class="integration-picker" data-alpine-field="newApp">
                         <input type="hidden" id="add-app-integration-type" name="integration_type" x-model="newApp.integration_type">
-                        <button type="button" class="integration-picker-trigger form-control" aria-expanded="false" aria-haspopup="listbox">
+                        <button type="button" class="integration-picker-trigger form-control" aria-expanded="false" aria-haspopup="true">
                             <img class="integration-picker-trigger-icon" src="/static/fallback.svg" alt="" width="20" height="20">
                             <span class="integration-picker-trigger-label">None</span>
                             <i data-lucide="chevron-down" class="integration-picker-chevron"></i>
                         </button>
                         <div class="integration-picker-panel" hidden>
-                            <input type="search" class="integration-picker-search form-control" placeholder="Filter integrations…" autocomplete="off">
-                            <div class="integration-picker-list" role="listbox"></div>
+                            <label for="add-app-integration-search" class="visually-hidden">Filter integrations</label>
+                            <input type="search" id="add-app-integration-search" class="integration-picker-search form-control" placeholder="Filter integrations…" autocomplete="off">
+                            <div class="integration-picker-list"></div>
                         </div>
                     </div>
                 </div>
@@ -621,14 +622,15 @@
                     <label for="edit-app-integration-type">Integration</label>
                     <div id="edit-app-integration-picker" class="integration-picker" data-alpine-field="editApp">
                         <input type="hidden" id="edit-app-integration-type" name="integration_type" x-model="editApp.integration_type">
-                        <button type="button" class="integration-picker-trigger form-control" aria-expanded="false" aria-haspopup="listbox">
+                        <button type="button" class="integration-picker-trigger form-control" aria-expanded="false" aria-haspopup="true">
                             <img class="integration-picker-trigger-icon" src="/static/fallback.svg" alt="" width="20" height="20">
                             <span class="integration-picker-trigger-label">None</span>
                             <i data-lucide="chevron-down" class="integration-picker-chevron"></i>
                         </button>
                         <div class="integration-picker-panel" hidden>
-                            <input type="search" class="integration-picker-search form-control" placeholder="Filter integrations…" autocomplete="off">
-                            <div class="integration-picker-list" role="listbox"></div>
+                            <label for="edit-app-integration-search" class="visually-hidden">Filter integrations</label>
+                            <input type="search" id="edit-app-integration-search" class="integration-picker-search form-control" placeholder="Filter integrations…" autocomplete="off">
+                            <div class="integration-picker-list"></div>
                         </div>
                     </div>
                 </div>
