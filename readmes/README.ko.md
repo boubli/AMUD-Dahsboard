@@ -26,7 +26,7 @@
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
-컴파일된 단일 바이너리로 작동하며 종속성이 없는 홈랩 제어 센터 및 원격 측정 대시보드입니다.
+**홈랩을 하나로.** Rust로 만든 빠르고 YAML이 필요 없는 대시보드로, Proxmox와 Docker 실시간 텔레메트리, 컨테이너 제어, 인기 있는 셀프호스팅 서비스 연동을 모두 UI에서 제공합니다.
 
 무거운 런타임(PHP-FPM, Node.js)에서 실행되고 복잡하게 중첩된 YAML 설정 파일에 의존하는 기존 대시보드(Heimdall, Homepage, Homarr)와 달리, AMUD는 컴파일된 Rust로 작성되었으며 데이터는 SQLite에 완전히 영구 저장됩니다. 서버와 원격 측정 에ージェント를 합쳐도 대기 상태에서 **35MB ~ 100MB RAM**만 사용하며, 라우팅 실행 속도는 밀리초 미만입니다.
 

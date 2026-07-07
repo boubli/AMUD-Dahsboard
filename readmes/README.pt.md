@@ -26,7 +26,7 @@ Recomendado: **v1.7.4**. Detalhes e tags retiradas: **[README em inglês](../REA
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
-Um painel de telemetria e central de controle homelab compilado, livre de dependências.
+**Unifique seu homelab.** Um painel rápido, feito em Rust e sem YAML, com telemetria ao vivo de Proxmox e Docker, controles de contêineres e integrações para os serviços auto-hospedados mais populares — tudo pela interface.
 
 Ao contrário dos painéis legados (Heimdall, Homepage, Homarr) que rodam em runtimes pesados (PHP-FPM, Node.js) e dependem de arquivos complexos de configuração YAML aninhados, o AMUD é escrito em Rust compilado e persistido inteiramente em SQLite. Juntos, o servidor e o agente de telemetria consomem entre **35MB e 100MB de RAM** em repouso, com execução de rotas em submilisegundos.
 

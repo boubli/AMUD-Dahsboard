@@ -34,7 +34,7 @@ Last **5** validated releases (full history: **[Changelog](https://boubli.github
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
-A compiled, zero-dependency homelab control center and telemetry dashboard.
+**Unify your homelab.** A fast, Rust-powered, zero-YAML dashboard with live Proxmox & Docker telemetry, container controls, and integrations for popular self-hosted services — all from the UI.
 
 Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes (PHP-FPM, Node.js) and rely on complex nested YAML configuration files, AMUD is written in compiled Rust and persisted entirely in SQLite. Combined, the server and telemetry agent idle at **30–50 MB of RAM** (peak ~150 MB with a full integration grid) with sub-millisecond route execution.
 

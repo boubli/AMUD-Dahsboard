@@ -26,7 +26,7 @@ Aktuell empfohlen: **v1.7.4**. Details und zurückgezogene Tags: **[englisches R
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
-Ein kompiliertes, abhängigkeitsfreies Homelab-Kontrollzentrum und Telemetrie-Dashboard.
+**Vereine dein Homelab.** Ein schnelles, in Rust geschriebenes Dashboard ohne YAML – mit Live-Telemetrie für Proxmox und Docker, Container-Steuerung und Integrationen für beliebte selbstgehostete Dienste, alles über die Oberfläche.
 
 Im Gegensatz zu älteren Dashboards (Heimdall, Homepage, Homarr), die auf schwerfälligen Laufzeiten (PHP-FPM, Node.js) laufen und auf komplexen verschachtelten YAML-Konfigurationsdateien basieren, ist AMUD in kompiliertem Rust geschrieben und wird vollständig in SQLite gespeichert. Zusammen verbrauchen Server und Telemetrie-Agent im Leerlauf nur **35 MB bis 100 MB RAM** bei einer Routenausführung im Sub-Millisekundenbereich.
 

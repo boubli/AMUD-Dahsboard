@@ -26,7 +26,7 @@
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
-一个编译型的、零依赖的家庭实验室控制中心和遥测仪表板。
+**统一你的家庭实验室。** 一个快速、基于 Rust、零 YAML 的仪表板，提供 Proxmox 与 Docker 实时遥测、容器控制，以及对热门自托管服务的集成——全部通过界面完成。
 
 与运行在笨重运行时（PHP-FPM、Node.js）并依赖复杂的嵌套 YAML 配置文件的主流仪表板（Heimdall、Homepage、Homarr）不同，AMUD 采用编译型 Rust 编写，并完全持久化在 SQLite 中。服务器和遥测代理在空闲时的总内存占用仅为 **35MB 到 100MB RAM**，路由执行时间在亚毫秒级。
 

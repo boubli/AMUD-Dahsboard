@@ -26,7 +26,7 @@
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
-コンパイル済みの、依存関係のないホームラボコントロールセンターおよびテレメトリダッシュボードです。
+**ホームラボを統合。** Rust 製で高速、YAML 不要のダッシュボード。Proxmox と Docker のリアルタイムテレメトリ、コンテナ操作、人気のセルフホストサービスとの連携を、すべて UI から。
 
 重いランタイム（PHP-FPM、Node.js）で動作し、複雑なネストされたYAML設定ファイルに依存する従来のダッシュボード（Heimdall、Homepage、Homarr）とは異なり、AMUDはコンパイル済みのRustで書かれており、完全にSQLiteに保存されます。サーバーとテレメトリエージェントを合わせても、アイドル時のRAM使用量は **35MB〜100MB** で、ルート実行速度はミリ秒未満です。
 
