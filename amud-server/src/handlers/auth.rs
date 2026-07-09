@@ -212,7 +212,30 @@ async fn handle_ws_session(
 ) {
     let mut rx = state.telemetry_broadcast.subscribe();
 
+    let public = if limited_telemetry {
+        let settings = state.settings_cache.read().unwrap();
+        telemetry_public_from_cache(&settings)
+    } else {
+        false
+    };
+    let live_bundle = crate::telemetry_broadcast::WsTelemetryBundle::from_state(&state);
+    let first_frame = crate::telemetry_broadcast::ws_frame_from_bundle(
+        &live_bundle,
+        limited_telemetry,
+        public,
+    );
+    if socket
+        .send(WsMessage::Text(first_frame.to_string()))
+        .await
+        .is_err()
+    {
+        return;
+    }
+
     loop {
+        if rx.changed().await.is_err() {
+            break;
+        }
         let bundle = rx.borrow().clone();
         let public = if limited_telemetry {
             let settings = state.settings_cache.read().unwrap();
@@ -220,25 +243,17 @@ async fn handle_ws_session(
         } else {
             false
         };
-        let frame = if limited_telemetry {
-            if public {
-                bundle.guest_public.clone()
-            } else {
-                bundle.guest_redacted.clone()
-            }
-        } else {
-            bundle.full.clone()
-        };
+        let frame = crate::telemetry_broadcast::ws_frame_from_bundle(
+            &bundle,
+            limited_telemetry,
+            public,
+        );
 
         if socket
             .send(WsMessage::Text(frame.to_string()))
             .await
             .is_err()
         {
-            break;
-        }
-
-        if rx.changed().await.is_err() {
             break;
         }
     }

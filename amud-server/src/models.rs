@@ -173,4 +173,5 @@ pub struct AppState {
     pub telemetry_broadcast:
         tokio::sync::watch::Sender<Arc<crate::telemetry_broadcast::WsTelemetryBundle>>,
     pub integration_cache: Arc<crate::integration_cache::IntegrationCache>,
+    pub http_clients: Arc<crate::http_client::SharedHttpClients>,
 }

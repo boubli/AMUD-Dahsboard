@@ -124,8 +124,10 @@
                 <label for="search-engine" class="visually-hidden">Search engine</label>
                 <select id="search-engine" class="search-engine-select" aria-label="Search engine">
                     <option value="google">Google</option>
-                    <option value="duckduckgo">DuckDuckGo</option>
                     <option value="bing">Bing</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="github">GitHub</option>
                 </select>
                 <div class="search-input-divider"></div>
                 <div class="search-input-wrapper">
@@ -1021,6 +1023,21 @@
         (function() {
             const manualLat = '{{weather_latitude}}'.trim();
             const manualLon = '{{weather_longitude}}'.trim();
+            const tempUnit = ('{{weather_temp_unit}}'.trim() || 'celsius').toLowerCase();
+
+            function formatTemp(celsius) {
+                const c = Number(celsius);
+                if (!Number.isFinite(c)) return { value: '—', suffix: '' };
+                if (tempUnit === 'fahrenheit') {
+                    return { value: String(Math.round(c * 9 / 5 + 32)), suffix: '°F' };
+                }
+                return { value: String(c), suffix: '°C' };
+            }
+
+            function tempDisplay(celsius) {
+                const t = formatTemp(celsius);
+                return t.value + t.suffix;
+            }
 
             function weatherIconForCode(code) {
                 if (code === 0) return 'sun';
@@ -1047,10 +1064,10 @@
                 const tempEl = document.getElementById('live-weather-temp');
                 const condEl = document.getElementById('live-weather-cond');
                 const iconEl = document.getElementById('weather-icon');
-                const text = temp + '°C ' + cond;
+                const tempText = tempDisplay(temp);
+                const text = tempText + ' ' + cond;
                 if (compact) compact.textContent = text;
                 if (tempEl) {
-                    const tempText = temp + '°C';
                     tempEl.textContent = tempText;
                     tempEl.classList.remove('weather-temp--compact', 'weather-temp--wide');
                     if (tempText.length >= 7) {

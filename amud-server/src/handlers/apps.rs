@@ -597,12 +597,14 @@ pub async fn integration_data_handler(
     let app_id = app.id;
     let app_clone = app.clone();
     let cache = state.integration_cache.clone();
+    let clients = state.http_clients.clone();
     if let Some(data) =
         cache
             .get_or_fetch(app_id, ttl, || {
                 let a = app_clone.clone();
                 async move {
-                    crate::integrations::fetch_integration_data_uncached(&a, accept_invalid).await
+                    crate::integrations::fetch_integration_data_uncached(&a, accept_invalid, &clients)
+                        .await
                 }
             })
             .await

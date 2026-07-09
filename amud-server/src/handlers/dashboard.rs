@@ -68,6 +68,10 @@ async fn render_page(
         .get("weather_longitude")
         .map(|s| s.as_str())
         .unwrap_or("");
+    let weather_temp_unit = settings
+        .get("weather_temp_unit")
+        .map(|s| s.as_str())
+        .unwrap_or("celsius");
     let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
     let telemetry_public = settings
         .get("telemetry_public")
@@ -346,6 +350,7 @@ async fn render_page(
         .replace("{{username}}", &escape_html(username))
         .replace("{{weather_latitude}}", &safe_weather_lat)
         .replace("{{weather_longitude}}", &safe_weather_lon)
+        .replace("{{weather_temp_unit}}", &escape_html(weather_temp_unit))
         .replace("<!-- CATEGORY_OPTIONS -->", &category_options_html)
         .replace("{{csrf_token}}", &safe_csrf_meta)
         .replace("{{telemetry_public}}", telemetry_public)

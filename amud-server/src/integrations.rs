@@ -467,12 +467,13 @@ pub(crate) fn build_rss_entries(feed: &Feed) -> Vec<Value> {
 pub async fn fetch_integration_data_uncached(
     app: &App,
     accept_invalid_certs: bool,
+    clients: &crate::http_client::SharedHttpClients,
 ) -> Option<Value> {
     if app.integration_type.is_empty() || app.api_key.is_empty() {
         return None;
     }
 
-    let client = build_client(accept_invalid_certs);
+    let client = crate::http_client::select_http_client(clients, accept_invalid_certs).clone();
     let base_url = app.url.trim_end_matches('/');
 
     match app.integration_type.as_str() {
@@ -687,8 +688,7 @@ pub async fn fetch_integration_data_uncached(
             return crate::homelab::fetch_truenas(&client, base_url, &app.api_key).await;
         }
         "unifi" => {
-            let unifi_client = crate::homelab::build_homelab_client(accept_invalid_certs);
-            return crate::homelab::fetch_unifi(&unifi_client, base_url, &app.api_key).await;
+            return crate::homelab::fetch_unifi(&clients.homelab, base_url, &app.api_key).await;
         }
         "grafana" => {
             return crate::homelab::fetch_grafana(&client, base_url, &app.api_key).await;

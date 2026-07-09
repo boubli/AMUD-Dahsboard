@@ -46,6 +46,21 @@
         if (el) el.style.width = `${Math.max(0, Math.min(100, pct))}%`;
     }
 
+    function formatBytesShort(bytes) {
+        const n = Number(bytes);
+        if (!Number.isFinite(n) || n <= 0) return '—';
+        if (n >= 1_000_000_000_000) {
+            return `${(n / 1_000_000_000_000).toFixed(1)} TB`;
+        }
+        if (n >= 1_000_000_000) {
+            return `${(n / 1_000_000_000).toFixed(1)} GB`;
+        }
+        if (n >= 1_000_000) {
+            return `${(n / 1_000_000).toFixed(0)} MB`;
+        }
+        return `${(n / 1_000).toFixed(0)} KB`;
+    }
+
     function bitUnitMultiplier(unit) {
         const u = (unit || '').toUpperCase();
         if (u === 'G') return 1_000_000_000;
@@ -361,10 +376,10 @@
                         }
 
                         const cpuPct = match.cpu ? `${(match.cpu * 100).toFixed(1)}%` : '0%';
-                        const ramPct = match.mem && match.maxmem
-                            ? `${((match.mem / match.maxmem) * 100).toFixed(1)}%`
-                            : '0%';
-                        updateCardContainerMetrics(card, cpuPct, ramPct, match.cpu > 0.8);
+                        const ramDisplay = match.mem != null && match.mem > 0
+                            ? formatBytesShort(match.mem)
+                            : '—';
+                        updateCardContainerMetrics(card, cpuPct, ramDisplay, match.cpu > 0.8);
                     }
                     if (!match && isHostAgentApp) {
                         const badgeContainer = card.querySelector('.app-card-badges');
@@ -389,7 +404,7 @@
                         updateCardContainerMetrics(
                             card,
                             `${sys.cpu_usage ?? 0}%`,
-                            `${sys.ram_usage ?? 0}%`,
+                            `${(sys.ram_used_gb ?? 0).toFixed(1)} GB`,
                             (sys.cpu_usage ?? 0) > 80
                         );
                     }
@@ -505,12 +520,12 @@
         };
     }
 
-    function updateCardContainerMetrics(card, cpuPct, ramPct, cpuHot) {
+    function updateCardContainerMetrics(card, cpuDisplay, ramDisplay, cpuHot) {
         const cpuEl = card.querySelector('[data-lxc-cpu] .metric-value');
         const ramEl = card.querySelector('[data-lxc-ram] .metric-value');
         if (cpuEl && ramEl) {
-            cpuEl.textContent = cpuPct;
-            ramEl.textContent = ramPct;
+            cpuEl.textContent = cpuDisplay;
+            ramEl.textContent = ramDisplay;
             if (cpuHot) cpuEl.style.color = '#ef4444';
             else cpuEl.style.removeProperty('color');
             return;
@@ -518,8 +533,8 @@
         const metricsGrid = card.querySelector('[data-lxc-metrics]');
         if (typeof global.shouldUpdateLxcMetrics === 'function' && global.shouldUpdateLxcMetrics(metricsGrid)) {
             global.setMetricsGrid(metricsGrid, [
-                { value: cpuPct, label: 'CPU', valueStyle: cpuHot ? 'color: #ef4444' : '' },
-                { value: ramPct, label: 'RAM' },
+                { value: cpuDisplay, label: 'CPU', valueStyle: cpuHot ? 'color: #ef4444' : '' },
+                { value: ramDisplay, label: 'RAM' },
             ]);
         }
     }

@@ -32,6 +32,10 @@ pub async fn settings_page_handler(
         .get("weather_longitude")
         .map(|s| s.as_str())
         .unwrap_or("");
+    let weather_temp_unit = settings
+        .get("weather_temp_unit")
+        .map(|s| s.as_str())
+        .unwrap_or("celsius");
     let jellyfin_url = settings
         .get("jellyfin_url")
         .map(|s| s.as_str())
@@ -118,6 +122,14 @@ pub async fn settings_page_handler(
         )
         .replace("{{weather_latitude}}", weather_latitude)
         .replace("{{weather_longitude}}", weather_longitude)
+        .replace(
+            "{{eq_weather_temp_celsius}}",
+            crate::templates::theme_eq_attr(weather_temp_unit, "celsius"),
+        )
+        .replace(
+            "{{eq_weather_temp_fahrenheit}}",
+            crate::templates::theme_eq_attr(weather_temp_unit, "fahrenheit"),
+        )
         .replace(
             "{{pve_api_token_placeholder}}",
             &escape_html(&pve_api_token_placeholder),

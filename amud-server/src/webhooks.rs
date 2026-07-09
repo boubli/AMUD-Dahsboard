@@ -2,9 +2,8 @@ use crate::db::load_app_name_urls;
 use crate::models::{AgentTelemetry, AppState, AppStatus, LxcContainer};
 use crate::security::{url_allowed_for_health_check, url_allowed_for_webhook};
 use futures_util::future::join_all;
-use rusqlite::Connection;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 pub(crate) const WEBHOOK_EVENT_TYPES: &[&str] = &[
@@ -31,27 +30,19 @@ pub(crate) fn normalize_webhook_event_types(raw: &str) -> Option<String> {
     Some(events.join(","))
 }
 
-pub(crate) fn start_status_poller(
-    db: Arc<Mutex<Connection>>,
-    settings_cache: Arc<RwLock<HashMap<String, String>>>,
-    app_statuses: Arc<RwLock<HashMap<String, AppStatus>>>,
-) {
+pub(crate) fn start_status_poller(state: Arc<AppState>) {
     tokio::spawn(async move {
         loop {
             let accept_invalid = {
-                let cache = settings_cache.read().unwrap();
+                let cache = state.settings_cache.read().unwrap();
                 cache
                     .get("accept_invalid_certs")
                     .map(|s| s == "1")
                     .unwrap_or(false)
             };
-            let client = reqwest::Client::builder()
-                .timeout(Duration::from_secs(4))
-                .redirect(reqwest::redirect::Policy::none())
-                .danger_accept_invalid_certs(accept_invalid)
-                .build()
-                .unwrap_or_else(|_| reqwest::Client::new());
-            let db_for_blocking = db.clone();
+            let client =
+                crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
+            let db_for_blocking = state.db.clone();
             let apps = tokio::task::spawn_blocking(move || {
                 let db = db_for_blocking.lock().unwrap();
                 load_app_name_urls(&db)
@@ -90,7 +81,7 @@ pub(crate) fn start_status_poller(
             .await;
             let next: HashMap<String, AppStatus> = checks.into_iter().collect();
 
-            *app_statuses.write().unwrap() = next;
+            *state.app_statuses.write().unwrap() = next;
             tokio::time::sleep(Duration::from_secs(15)).await;
         }
     });
@@ -403,7 +394,8 @@ mod tests {
     use crate::apps::{is_jellyfin_app, is_plex_app};
     use crate::media::default_media_streams;
     use crate::models::App;
-    use rusqlite::params;
+    use rusqlite::{params, Connection};
+    use std::sync::{Mutex, RwLock};
 
     #[tokio::test]
     async fn test_check_container_alerts_transition() {
@@ -456,6 +448,7 @@ mod tests {
             logo_manifest: Arc::new(HashMap::new()),
             telemetry_broadcast: crate::telemetry_broadcast::new_telemetry_broadcast(),
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
+            http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
         });
 
         let old_telemetry = AgentTelemetry {
@@ -526,6 +519,7 @@ mod tests {
             logo_manifest: Arc::new(HashMap::new()),
             telemetry_broadcast: crate::telemetry_broadcast::new_telemetry_broadcast(),
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
+            http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
         });
 
         let old_telemetry = AgentTelemetry {

@@ -12,6 +12,7 @@ pub mod handlers;
 pub mod homarr_import;
 pub mod homelab;
 pub mod homepage_import;
+pub mod http_client;
 pub mod integration_cache;
 pub mod integration_coordinator;
 pub mod integration_registry;
@@ -37,6 +38,7 @@ use auth::{
 };
 use db::refresh_settings_cache;
 use handlers::*;
+use http_client::build_shared_http_clients;
 use integration_cache::IntegrationCache;
 use integration_coordinator::start_integration_coordinator;
 use logos::build_logo_manifest;
@@ -451,6 +453,7 @@ pub async fn run() {
             .unwrap_or(256usize)
     };
     let integration_cache = Arc::new(IntegrationCache::new(cache_max, cache_ttl));
+    let http_clients = Arc::new(build_shared_http_clients());
 
     let state = Arc::new(AppState {
         db: shared_db.clone(),
@@ -476,6 +479,7 @@ pub async fn run() {
         logo_manifest: logo_manifest.clone(),
         telemetry_broadcast: telemetry_broadcast.clone(),
         integration_cache: integration_cache.clone(),
+        http_clients: http_clients.clone(),
     });
 
     start_telemetry_broadcaster(state.clone());
@@ -485,8 +489,8 @@ pub async fn run() {
     start_integration_coordinator(state.clone());
     tokio::spawn(start_ha_polling(state.clone()));
 
-    start_media_poller(shared_db.clone(), settings_cache.clone(), media_streams);
-    start_status_poller(shared_db.clone(), settings_cache.clone(), app_statuses);
+    start_media_poller(state.clone());
+    start_status_poller(state.clone());
 
     let app = build_app_router(state);
 

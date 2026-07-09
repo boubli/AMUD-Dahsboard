@@ -1,9 +1,8 @@
 use crate::apps::{is_jellyfin_app, is_plex_app};
 use crate::db::{load_apps_from_db, load_settings_snapshot};
 use crate::models::MediaStream;
-use rusqlite::Connection;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::Arc;
 use std::time::Duration;
 
 pub(crate) fn default_media_streams() -> HashMap<String, MediaStream> {
@@ -203,16 +202,12 @@ pub(crate) async fn poll_plex(
     }
 }
 
-pub(crate) fn start_media_poller(
-    db: Arc<Mutex<Connection>>,
-    settings_cache: Arc<RwLock<HashMap<String, String>>>,
-    media_streams: Arc<RwLock<HashMap<String, MediaStream>>>,
-) {
+pub(crate) fn start_media_poller(state: Arc<crate::models::AppState>) {
     tokio::spawn(async move {
         loop {
-            let cached = settings_cache.read().unwrap().clone();
+            let cached = state.settings_cache.read().unwrap().clone();
             let settings = if cached.is_empty() {
-                load_settings_snapshot(&db)
+                load_settings_snapshot(&state.db)
             } else {
                 cached
             };
@@ -220,12 +215,9 @@ pub(crate) fn start_media_poller(
                 .get("accept_invalid_certs")
                 .map(|v| v == "1")
                 .unwrap_or(false);
-            let client = reqwest::Client::builder()
-                .timeout(Duration::from_secs(4))
-                .danger_accept_invalid_certs(accept_invalid)
-                .build()
-                .unwrap_or_else(|_| reqwest::Client::new());
-            let db_for_blocking = db.clone();
+            let client =
+                crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
+            let db_for_blocking = state.db.clone();
             let apps = tokio::task::spawn_blocking(move || {
                 let db = db_for_blocking.lock().unwrap();
                 load_apps_from_db(&db)
@@ -272,7 +264,7 @@ pub(crate) fn start_media_poller(
             let (jellyfin, plex) = tokio::join!(jellyfin_fut, plex_fut);
 
             {
-                let mut streams = media_streams.write().unwrap();
+                let mut streams = state.media_streams.write().unwrap();
                 if let Some(jellyfin) = jellyfin {
                     streams.insert("jellyfin".to_string(), jellyfin);
                 } else {

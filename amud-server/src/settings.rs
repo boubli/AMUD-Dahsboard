@@ -65,6 +65,7 @@ pub(crate) const SECRET_SETTING_KEYS: &[&str] = &[
 pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "weather_latitude",
     "weather_longitude",
+    "weather_temp_unit",
     "accept_invalid_certs",
     "webhooks_allow_private_ips",
     "enable_proxmox",

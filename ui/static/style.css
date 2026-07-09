@@ -2221,6 +2221,7 @@ select.form-control optgroup option {
     outline: none;
     cursor: pointer;
     padding-right: 0.5rem;
+    min-width: 5.5rem;
 }
 
 .search-engine-select option {

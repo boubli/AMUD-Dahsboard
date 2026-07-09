@@ -154,15 +154,28 @@
         }
     }
 
+    const SEARCH_ENGINES = {
+        google: function (q) {
+            return 'https://www.google.com/search?q=' + encodeURIComponent(q);
+        },
+        bing: function (q) {
+            return 'https://www.bing.com/search?q=' + encodeURIComponent(q);
+        },
+        duckduckgo: function (q) {
+            return 'https://duckduckgo.com/?q=' + encodeURIComponent(q);
+        },
+        youtube: function (q) {
+            return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+        },
+        github: function (q) {
+            return 'https://github.com/search?q=' + encodeURIComponent(q);
+        },
+    };
+
     function openWebSearch(query) {
         const engine = document.getElementById('search-engine')?.value || 'google';
-        let url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-        if (engine === 'duckduckgo') {
-            url = 'https://duckduckgo.com/?q=' + encodeURIComponent(query);
-        } else if (engine === 'bing') {
-            url = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
-        }
-        globalThis.open(url, '_blank');
+        const build = SEARCH_ENGINES[engine] || SEARCH_ENGINES.google;
+        globalThis.open(build(query), '_blank');
     }
 
     function init() {

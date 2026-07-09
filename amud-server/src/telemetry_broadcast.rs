@@ -133,6 +133,23 @@ impl WsTelemetryBundle {
     }
 }
 
+/// Select the WebSocket JSON frame for a connected session role.
+pub(crate) fn ws_frame_from_bundle(
+    bundle: &WsTelemetryBundle,
+    limited_telemetry: bool,
+    public: bool,
+) -> Arc<str> {
+    if limited_telemetry {
+        if public {
+            bundle.guest_public.clone()
+        } else {
+            bundle.guest_redacted.clone()
+        }
+    } else {
+        bundle.full.clone()
+    }
+}
+
 pub(crate) fn new_telemetry_broadcast() -> watch::Sender<Arc<WsTelemetryBundle>> {
     let (tx, _) = watch::channel(Arc::new(WsTelemetryBundle::default()));
     tx
@@ -143,6 +160,9 @@ pub(crate) fn start_telemetry_broadcaster(state: Arc<AppState>) {
         let mut interval = tokio::time::interval(Duration::from_secs(3));
         loop {
             interval.tick().await;
+            if state.telemetry_broadcast.receiver_count() == 0 {
+                continue;
+            }
             let bundle = Arc::new(WsTelemetryBundle::from_state(&state));
             let _ = state.telemetry_broadcast.send(bundle);
         }
@@ -195,7 +215,16 @@ mod tests {
             logo_manifest: Arc::new(HashMap::new()),
             telemetry_broadcast: new_telemetry_broadcast(),
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
+            http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
         }
+    }
+
+    #[test]
+    fn telemetry_broadcast_receiver_count_tracks_subscribers() {
+        let tx = new_telemetry_broadcast();
+        assert_eq!(tx.receiver_count(), 0);
+        let _rx = tx.subscribe();
+        assert_eq!(tx.receiver_count(), 1);
     }
 
     #[test]

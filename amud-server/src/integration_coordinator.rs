@@ -38,13 +38,18 @@ pub fn start_integration_coordinator(state: Arc<AppState>) {
                 }
                 let app = app.clone();
                 let cache = state.integration_cache.clone();
+                let clients = state.http_clients.clone();
                 let ttl = ttl_for_type(&app.integration_type);
                 let _ = cache
                     .get_or_fetch(app.id, ttl, || {
                         let a = app.clone();
                         async move {
-                            crate::integrations::fetch_integration_data_uncached(&a, accept_invalid)
-                                .await
+                            crate::integrations::fetch_integration_data_uncached(
+                                &a,
+                                accept_invalid,
+                                &clients,
+                            )
+                            .await
                         }
                     })
                     .await;

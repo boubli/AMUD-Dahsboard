@@ -478,12 +478,6 @@
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'appearance' }" @click="switchTab('appearance')">
                     <i data-lucide="palette"></i> Appearance
                 </button>
-                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'weather' }" @click="switchTab('weather')">
-                    <i data-lucide="cloud-sun"></i> Weather
-                </button>
-                <button type="button" x-show="proxmoxEnabled" class="nav-item" :class="{ 'active': activeTab === 'proxmox' }" @click="switchTab('proxmox')">
-                    <i data-lucide="server"></i> Proxmox VE
-                </button>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'integrations' }" @click="switchTab('integrations')">
                     <i data-lucide="plug"></i> Integrations
                 </button>
@@ -680,7 +674,7 @@
                                         <label for="theme-scheduler-select">Automatic light / dark</label>
                                         <select name="theme_scheduler" id="theme-scheduler-select" class="form-control" style="height:3rem; cursor:pointer;">
                                             <option value="off" {{eq_theme_scheduler_off}}>Off — use fixed theme mode</option>
-                                            <option value="sunrise_sunset" {{eq_theme_scheduler_sunrise}}>Sunrise / sunset (Weather coordinates)</option>
+                                            <option value="sunrise_sunset" {{eq_theme_scheduler_sunrise}}>Sunrise / sunset (coordinates below)</option>
                                             <option value="manual" {{eq_theme_scheduler_manual}}>Manual schedule</option>
                                         </select>
                                     </div>
@@ -694,7 +688,29 @@
                                             <input type="time" id="theme-dark-at" name="theme_dark_at" class="form-control" value="{{theme_dark_at}}" style="height:3rem;">
                                         </div>
                                     </div>
-                                    <p id="theme-scheduler-hint" style="font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">Sunrise/sunset mode uses the latitude and longitude from the Weather tab.</p>
+                                    <p id="theme-scheduler-hint" style="font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">Sunrise/sunset mode uses the latitude and longitude from Geolocation below.</p>
+                                </div>
+
+                                <div class="settings-block" style="margin:0;">
+                                    <h3><i data-lucide="cloud-sun" style="color:var(--accent-color);"></i> Weather</h3>
+                                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Configure location and units for the dashboard weather widget. Leave coordinates blank to auto-detect via IP geolocation.</p>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-weather-latitude">Latitude</label>
+                                            <input type="text" id="setting-weather-latitude" name="weather_latitude" class="form-control" value="{{weather_latitude}}" placeholder="e.g. 33.5731">
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-weather-longitude">Longitude</label>
+                                            <input type="text" id="setting-weather-longitude" name="weather_longitude" class="form-control" value="{{weather_longitude}}" placeholder="e.g. -7.5898">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top:1rem; margin-bottom:0;">
+                                        <label for="setting-weather-temp-unit">Temperature unit</label>
+                                        <select id="setting-weather-temp-unit" name="weather_temp_unit" class="form-control" style="height:3rem; cursor:pointer;">
+                                            <option value="celsius" {{eq_weather_temp_celsius}}>Celsius (°C)</option>
+                                            <option value="fahrenheit" {{eq_weather_temp_fahrenheit}}>Fahrenheit (°F)</option>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div class="settings-block" style="margin:0;">
@@ -773,47 +789,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB: WEATHER -->
-                    <div x-show="activeTab === 'weather'" x-transition.opacity style="display:none;">
-                        <h1 class="settings-page-title">Weather</h1>
-                        <p class="settings-page-subtitle">Configure location parameters for the local weather widget.</p>
-                        
-                        <div class="settings-block">
-                            <h3><i data-lucide="map-pin" style="color:var(--accent-color);"></i> Geolocation</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Set manual coordinates for accurate weather. Leave blank to auto-detect via IP geolocation.</p>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                <div class="form-group">
-                                    <label for="setting-weather-latitude">Latitude</label>
-                                    <input type="text" id="setting-weather-latitude" name="weather_latitude" class="form-control" value="{{weather_latitude}}" placeholder="e.g. 33.5731">
-                                </div>
-                                <div class="form-group">
-                                    <label for="setting-weather-longitude">Longitude</label>
-                                    <input type="text" id="setting-weather-longitude" name="weather_longitude" class="form-control" value="{{weather_longitude}}" placeholder="e.g. -7.5898">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB: PROXMOX -->
-                    <div x-show="activeTab === 'proxmox' && proxmoxEnabled" x-transition.opacity style="display:none;">
-                        <h1 class="settings-page-title">Proxmox Integration</h1>
-                        <p class="settings-page-subtitle">Connect AMUD to your Proxmox VE hypervisor API.</p>
-                        
-                        <div class="settings-block">
-                            <h3><i data-lucide="server" style="color:var(--accent-color);"></i> API Configuration</h3>
-                            <div class="form-group">
-                                <label for="pve_api_token">PVE API Token</label>
-                                <input type="password" name="pve_api_token" id="pve_api_token" class="form-control" value="" placeholder="{{pve_api_token_placeholder}}" style="font-family: monospace;" @input="unsavedChanges = true">
-                            </div>
-                            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                <button type="button" id="btn-test-pve" class="btn btn-secondary" @click="testProxmoxConnection()" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: auto; max-width: 200px;">
-                                    <i data-lucide="refresh-cw" id="icon-test-pve" style="width: 0.95rem; height: 0.95rem;"></i> Test Connection
-                                </button>
-                                <div id="pve-test-result" style="display: none; padding: 0.6rem; border-radius: var(--radius-xl); font-size: 0.85rem; font-weight: 500; border: 1px solid transparent; transition: all 0.3s ease;"></div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- TAB: INTEGRATIONS -->
                     <div x-show="activeTab === 'integrations'" x-transition.opacity style="display:none;">
                         <h1 class="settings-page-title">Integrations</h1>
@@ -824,10 +799,24 @@
                             <div class="form-group">
                                 <label for="setting-enable-proxmox">Proxmox VE Integration Status</label>
                                 <select id="setting-enable-proxmox" name="enable_proxmox" class="form-control" style="height:3rem; cursor:pointer;" @change="proxmoxEnabled = $event.target.value === '1'">
-                                    <option value="0" {{eq_enable_proxmox_off}}>Disabled (Hide Proxmox VE Sidebar Tab and Monitoring)</option>
-                                    <option value="1" {{eq_enable_proxmox_on}}>Enabled (Show Proxmox VE Sidebar Tab and Monitoring)</option>
+                                    <option value="0" {{eq_enable_proxmox_off}}>Disabled (hide Proxmox monitoring)</option>
+                                    <option value="1" {{eq_enable_proxmox_on}}>Enabled (Proxmox VE monitoring)</option>
                                 </select>
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">When enabled, the Proxmox VE tab will appear in the settings sidebar, and container/VM status monitoring will run.</p>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">When enabled, container and VM status monitoring runs against your Proxmox API.</p>
+                            </div>
+                        </div>
+
+                        <div class="settings-block" x-show="proxmoxEnabled" x-transition.opacity>
+                            <h3><i data-lucide="key" style="color:var(--accent-color);"></i> Proxmox API</h3>
+                            <div class="form-group">
+                                <label for="pve_api_token">PVE API Token</label>
+                                <input type="password" name="pve_api_token" id="pve_api_token" class="form-control" value="" placeholder="{{pve_api_token_placeholder}}" style="font-family: monospace;" @input="unsavedChanges = true">
+                            </div>
+                            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button type="button" id="btn-test-pve" class="btn btn-secondary" @click="testProxmoxConnection()" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: auto; max-width: 200px;">
+                                    <i data-lucide="refresh-cw" id="icon-test-pve" style="width: 0.95rem; height: 0.95rem;"></i> Test Connection
+                                </button>
+                                <div id="pve-test-result" style="display: none; padding: 0.6rem; border-radius: var(--radius-xl); font-size: 0.85rem; font-weight: 500; border: 1px solid transparent; transition: all 0.3s ease;"></div>
                             </div>
                         </div>
 
@@ -1845,6 +1834,15 @@
                         window.history.replaceState({}, document.title, window.location.pathname);
                     }
 
+                    if (this.activeTab === 'weather') {
+                        this.activeTab = 'appearance';
+                        localStorage.setItem('amud_settings_tab', 'appearance');
+                    }
+                    if (this.activeTab === 'proxmox') {
+                        this.activeTab = 'integrations';
+                        localStorage.setItem('amud_settings_tab', 'integrations');
+                    }
+
                     if (!this.proxmoxEnabled && this.activeTab === 'proxmox') {
                         this.activeTab = 'branding';
                         localStorage.setItem('amud_settings_tab', 'branding');
@@ -2450,7 +2448,7 @@
                 }
                 if (hint) {
                     if (mode === 'sunrise_sunset') {
-                        hint.textContent = 'Sunrise/sunset mode uses the latitude and longitude from the Weather tab.';
+                        hint.textContent = 'Sunrise/sunset mode uses the latitude and longitude from Geolocation below.';
                     } else if (mode === 'manual') {
                         hint.textContent = 'Dark mode applies from the dark time until the light time.';
                     } else {
