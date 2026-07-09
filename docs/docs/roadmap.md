@@ -11,6 +11,12 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.7.5)
+
+- **App cards** — container RAM in MB/GB; settings reorganized (Weather → Appearance, Proxmox → Integrations)
+- **Web search** — Google, Bing, DuckDuckGo, YouTube, GitHub; °C/°F weather unit
+- **Server memory** — WebSocket-gated telemetry, shared HTTP pollers, mimalloc
+
 ## Recently shipped (v1.7.4)
 
 - **Integration picker** — custom dropdown with logos; fixes unreadable optgroup bars on Windows

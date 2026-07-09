@@ -8,6 +8,23 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.7.5](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.5) — 2026-07-09
+
+Dashboard polish (RAM on cards, settings layout, web search) and server idle memory cuts.
+
+### Added
+- **°C / °F** — `weather_temp_unit` in Appearance → Weather
+- **Web search engines** — Google, Bing, DuckDuckGo, YouTube, GitHub
+- **Git pre-commit hook** — `scripts/setup-githooks.sh` runs `cargo fmt` before commits
+
+### Improved
+- **App cards** — container RAM as absolute bytes (`512 MB`, `1.2 GB`), not %
+- **Settings** — Weather under Appearance; Proxmox API under Integrations; old tabs auto-migrate
+- **Server memory** — telemetry broadcaster gated on WebSocket subscribers; shared HTTP clients for pollers; mimalloc allocator
+- **PWA** — service worker cache v32
+
+---
+
 ## [v1.7.4](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.4) — 2026-07-04
 
 Custom integration picker with logos; Ollama and Open WebUI integrations.

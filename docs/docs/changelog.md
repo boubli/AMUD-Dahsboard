@@ -11,6 +11,23 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.7.5 — Dashboard polish + idle server memory
+
+**2026-07-09** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.5)
+
+### Added
+- **°C / °F** weather unit (Appearance)
+- **Web search** — Google, Bing, DuckDuckGo, YouTube, GitHub
+- **Pre-commit hook** — `scripts/setup-githooks.sh` for `cargo fmt`
+
+### Improved
+- **App cards** — RAM in MB/GB on containers
+- **Settings** — Weather → Appearance; Proxmox → Integrations
+- **Server** — idle telemetry skip, shared HTTP clients, mimalloc
+- PWA cache v32
+
+---
+
 ## v1.7.4 — Integration picker + Ollama / Open WebUI
 
 **2026-07-04** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.4)

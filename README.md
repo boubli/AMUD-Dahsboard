@@ -10,25 +10,28 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.7.4
+### What's new in v1.7.5
 
-- **Integration picker** — custom dropdown with brand logos; fixes white optgroup bars on Windows
-- **Ollama + Open WebUI** — new AI & LLM integrations (model counts, health)
+- **App cards** — container RAM shown as `512 MB` / `1.2 GB`, not a percentage
+- **Settings** — Weather under Appearance (°C/°F); Proxmox API under Integrations
+- **Web search** — Google, Bing, DuckDuckGo, YouTube, GitHub
+- **Server** — less idle RAM churn (WebSocket-gated telemetry, shared HTTP clients, mimalloc)
+- **v1.7.4** — Integration picker; Ollama + Open WebUI
 - **v1.7.3** — Integration dropdown CSP fix; Unraid `su-exec: setgroups` follow-up ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16))
 - **v1.7.2** — Unraid first-boot permission fix (PUID 99 appdata)
 - **v1.7.1** — mobile PWA fixes (settings menu, guest desktop layout, compact admin cards)
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (2026-07-04)
+### Release status (2026-07-09)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.7.4` (current latest recommended)
+- `v1.7.5` (current latest recommended)
+- `v1.7.4`
 - `v1.7.3`
 - `v1.7.1`
 - `v1.7.0`
-- `v1.6.5`
 
 **Do not use:** `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 

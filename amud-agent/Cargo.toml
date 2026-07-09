@@ -1,6 +1,6 @@
 [package]
 name = "amud-agent"
-version = "1.7.4"
+version = "1.7.5"
 edition = "2021"
 
 

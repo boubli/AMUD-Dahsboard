@@ -33,10 +33,7 @@ pub fn build_shared_http_clients() -> SharedHttpClients {
     }
 }
 
-pub fn select_http_client(
-    clients: &SharedHttpClients,
-    accept_invalid: bool,
-) -> &reqwest::Client {
+pub fn select_http_client(clients: &SharedHttpClients, accept_invalid: bool) -> &reqwest::Client {
     if accept_invalid {
         &clients.permissive
     } else {

@@ -117,8 +117,8 @@ pub async fn start_ha_polling(state: Arc<AppState>) {
             .get("accept_invalid_certs")
             .map(|v| v == "1")
             .unwrap_or(false);
-        let client = crate::http_client::select_http_client(&state.http_clients, accept_invalid)
-            .clone();
+        let client =
+            crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
 
         let telemetry = match poll_ha_template(&client, &ha_url, &ha_token).await {
             Some(summary) => summary,

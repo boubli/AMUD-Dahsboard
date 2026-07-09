@@ -219,11 +219,8 @@ async fn handle_ws_session(
         false
     };
     let live_bundle = crate::telemetry_broadcast::WsTelemetryBundle::from_state(&state);
-    let first_frame = crate::telemetry_broadcast::ws_frame_from_bundle(
-        &live_bundle,
-        limited_telemetry,
-        public,
-    );
+    let first_frame =
+        crate::telemetry_broadcast::ws_frame_from_bundle(&live_bundle, limited_telemetry, public);
     if socket
         .send(WsMessage::Text(first_frame.to_string()))
         .await
@@ -243,11 +240,8 @@ async fn handle_ws_session(
         } else {
             false
         };
-        let frame = crate::telemetry_broadcast::ws_frame_from_bundle(
-            &bundle,
-            limited_telemetry,
-            public,
-        );
+        let frame =
+            crate::telemetry_broadcast::ws_frame_from_bundle(&bundle, limited_telemetry, public);
 
         if socket
             .send(WsMessage::Text(frame.to_string()))

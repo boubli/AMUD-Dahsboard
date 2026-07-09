@@ -69,6 +69,24 @@ AMUD uses an embedded SQLite database managed via `rusqlite`.
 
 ---
 
+## Git hooks (recommended)
+
+CI runs `cargo fmt --all -- --check`. To avoid a red build because of formatting, enable the repo hook once after clone:
+
+```bash
+bash scripts/setup-githooks.sh
+```
+
+On Windows (PowerShell):
+
+```powershell
+.\scripts\setup-githooks.ps1
+```
+
+Pre-commit runs `cargo fmt --all` and re-stages any `.rs` files it touched.
+
+---
+
 ## Maintainers (local only)
 
 Theme generators, Rust pre-push checks, and Sonar config live in **`maintainer-local.example/`**. Copy to gitignored `maintainer-local/` — see [`maintainer-local.example/README.md`](maintainer-local.example/README.md). The public GitHub repo ships pre-built assets in `ui/static/themes/` only.
