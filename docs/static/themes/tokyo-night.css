@@ -43,4 +43,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="tokyo-night"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="tokyo-night"] .metric-value { font-weight: 600; }
 [data-theme-id="tokyo-night"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="tokyo-night"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — tokyo-night */
+:root[data-theme="light"][data-theme-id="tokyo-night"] {
+    --theme-bg-fallback: #f7f9ff;
+    --theme-card-r: 36;
+    --theme-card-g: 40;
+    --theme-card-b: 59;
+    --bg-card: rgba(36, 40, 59, var(--glass-opacity));
+    --accent-color: #7aa2f7;
+    --accent-glow: rgba(122, 162, 247, 0.2);
+    --text-primary: #22304f;
+    --text-secondary: #4a5881;
+    --text-muted: #7280a9;
+    --border-card: rgba(122, 162, 247, 0.14);
+    --border-hover: #7aa2f7;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="tokyo-night"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

@@ -77,6 +77,7 @@ pub async fn settings_page_handler(
         .get("enable_proxmox")
         .map(|s| s.as_str())
         .unwrap_or("0");
+    let feeds_enabled_flag = crate::settings::feeds_enabled(&settings);
 
     let mut result = settings_tmpl
         .replace("/* ROOT_CSS */", &root_css)
@@ -89,6 +90,10 @@ pub async fn settings_page_handler(
             } else {
                 "false"
             },
+        )
+        .replace(
+            "{{feeds_enabled}}",
+            if feeds_enabled_flag { "true" } else { "false" },
         )
         .replace("{{tagline}}", tagline)
         .replace("{{custom_bg_url}}", custom_bg_url);
@@ -290,6 +295,112 @@ pub async fn settings_page_handler(
                     .map(String::as_str)
                     .unwrap_or(""),
             ),
+        )
+        .replace(
+            "{{integration_cache_ttl_secs}}",
+            &escape_html(
+                settings
+                    .get("integration_cache_ttl_secs")
+                    .map(String::as_str)
+                    .unwrap_or("45"),
+            ),
+        )
+        .replace(
+            "{{integration_cache_max_entries}}",
+            &escape_html(
+                settings
+                    .get("integration_cache_max_entries")
+                    .map(String::as_str)
+                    .unwrap_or("256"),
+            ),
+        )
+        .replace(
+            "{{agent_telemetry_interval_secs}}",
+            &escape_html(
+                settings
+                    .get("agent_telemetry_interval_secs")
+                    .map(String::as_str)
+                    .unwrap_or("5"),
+            ),
+        )
+        .replace(
+            "{{agent_lxc_poll_interval_secs}}",
+            &escape_html(
+                settings
+                    .get("agent_lxc_poll_interval_secs")
+                    .map(String::as_str)
+                    .unwrap_or("10"),
+            ),
+        )
+        .replace(
+            "{{agent_docker_poll_interval_secs}}",
+            &escape_html(
+                settings
+                    .get("agent_docker_poll_interval_secs")
+                    .map(String::as_str)
+                    .unwrap_or("10"),
+            ),
+        )
+        .replace(
+            "{{status_poll_interval_secs}}",
+            &escape_html(
+                settings
+                    .get("status_poll_interval_secs")
+                    .map(String::as_str)
+                    .unwrap_or("15"),
+            ),
+        )
+        .replace(
+            "{{media_poll_interval_secs}}",
+            &escape_html(
+                settings
+                    .get("media_poll_interval_secs")
+                    .map(String::as_str)
+                    .unwrap_or("5"),
+            ),
+        )
+        .replace(
+            "{{ha_poll_interval_secs}}",
+            &escape_html(
+                settings
+                    .get("ha_poll_interval_secs")
+                    .map(String::as_str)
+                    .unwrap_or("15"),
+            ),
+        )
+        .replace(
+            "{{telemetry_broadcast_interval_secs}}",
+            &escape_html(
+                settings
+                    .get("telemetry_broadcast_interval_secs")
+                    .map(String::as_str)
+                    .unwrap_or("5"),
+            ),
+        )
+        .replace(
+            "{{integration_coordinator_interval_secs}}",
+            &escape_html(
+                settings
+                    .get("integration_coordinator_interval_secs")
+                    .map(String::as_str)
+                    .unwrap_or("45"),
+            ),
+        )
+        .replace(
+            "{{eq_feeds_enabled_on}}",
+            if crate::settings::feeds_enabled(&settings) {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_feeds_enabled_off}}",
+            if !crate::settings::feeds_enabled(&settings) {
+                "selected"
+            } else {
+                ""
+            },
         );
 
     let db_categories = with_db(state.db.clone(), load_categories).await;

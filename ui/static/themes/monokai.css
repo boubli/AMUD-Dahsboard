@@ -41,4 +41,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="monokai"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="monokai"] .metric-value { font-weight: 600; }
 [data-theme-id="monokai"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="monokai"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — monokai */
+:root[data-theme="light"][data-theme-id="monokai"] {
+    --theme-bg-fallback: #fafdf2;
+    --theme-card-r: 46;
+    --theme-card-g: 45;
+    --theme-card-b: 40;
+    --bg-card: rgba(46, 45, 40, var(--glass-opacity));
+    --accent-color: #81b024;
+    --accent-glow: rgba(166, 226, 46, 0.2);
+    --text-primary: #2a3c2b;
+    --text-secondary: #52645d;
+    --text-muted: #7a8c85;
+    --border-card: rgba(166, 226, 46, 0.14);
+    --border-hover: #81b024;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="monokai"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

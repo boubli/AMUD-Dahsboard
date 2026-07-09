@@ -3761,26 +3761,15 @@ body::after {
 }
 
 /* ============================================================
-   PHASE 5: LIGHT MODE
+   PHASE 5: LIGHT MODE (structural globals — palettes live in themes)
    ============================================================ */
 
 :root[data-theme="light"] {
-    --bg-card: rgba(255, 255, 255, 0.65);
-    --border-card: rgba(0, 0, 0, 0.08);
-    --border-hover: rgba(0, 0, 0, 0.16);
-    --text-primary: #1e293b;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --success: #16a34a;
-    --success-bg: rgba(22, 163, 74, 0.1);
-    --danger: #dc2626;
-    --danger-bg: rgba(220, 38, 38, 0.1);
     color-scheme: light;
 }
 
 :root[data-theme="light"] body {
-    background-color: #f0f2f5;
-    background-image: none;
+    background-color: var(--theme-bg-fallback, #f8fafc);
     color: var(--text-primary);
     color-scheme: light;
     scrollbar-color: rgba(0, 0, 0, 0.16) rgba(0, 0, 0, 0.05);
@@ -3788,7 +3777,33 @@ body::after {
 
 :root[data-theme="light"] body::before,
 :root[data-theme="light"] body::after {
-    display: none;
+    opacity: 0.35;
+}
+
+/* AMUD light mode — default (bundled in style.css) */
+:root[data-theme="light"][data-theme-id="default"] {
+    --theme-bg-fallback: #f4f6f9;
+    --theme-card-r: 255;
+    --theme-card-g: 252;
+    --theme-card-b: 248;
+    --bg-card: rgba(255, 252, 248, var(--glass-opacity));
+    --accent-color: #b45309;
+    --accent-glow: rgba(207, 100, 39, 0.2);
+    --text-primary: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #78716c;
+    --border-card: rgba(207, 100, 39, 0.14);
+    --border-hover: #b45309;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="default"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
 }
 
 /* Light mode glass panels */
@@ -3812,11 +3827,11 @@ body::after {
 :root[data-theme="light"] .greeting-title {
     background: linear-gradient(
         90deg,
-        #1e293b 0%,
-        #1e293b 40%,
+        var(--text-primary) 0%,
+        var(--text-primary) 40%,
         var(--accent-color) 50%,
-        #1e293b 60%,
-        #1e293b 100%
+        var(--text-primary) 60%,
+        var(--text-primary) 100%
     );
     background-size: 200% auto;
     -webkit-background-clip: text;
@@ -3961,7 +3976,7 @@ body::after {
 }
 
 :root[data-theme="light"] .filter-tab.active {
-    color: #0f172a;
+    color: var(--text-primary);
     box-shadow: 0 0 12px var(--accent-glow);
 }
 
@@ -3985,8 +4000,8 @@ body::after {
 }
 
 :root[data-theme="light"] .preview-scene {
-    background: #e2e8f0;
-    border-color: rgba(0, 0, 0, 0.08);
+    background: var(--theme-bg-fallback, #e2e8f0);
+    border-color: var(--border-card, rgba(0, 0, 0, 0.08));
 }
 
 :root[data-theme="light"] .appearance-preview-header p {

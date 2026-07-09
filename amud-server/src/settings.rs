@@ -41,6 +41,15 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("oidc_default_role", "Guest");
     s.insert("integration_cache_ttl_secs", "45");
     s.insert("integration_cache_max_entries", "256");
+    s.insert("feeds_enabled", "1");
+    s.insert("agent_telemetry_interval_secs", "5");
+    s.insert("agent_lxc_poll_interval_secs", "10");
+    s.insert("agent_docker_poll_interval_secs", "10");
+    s.insert("status_poll_interval_secs", "15");
+    s.insert("media_poll_interval_secs", "5");
+    s.insert("ha_poll_interval_secs", "15");
+    s.insert("telemetry_broadcast_interval_secs", "5");
+    s.insert("integration_coordinator_interval_secs", "45");
     s.insert("ldap_enabled", "0");
     s.insert("ldap_url", "");
     s.insert("ldap_bind_dn", "");
@@ -90,6 +99,15 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "oidc_default_role",
     "integration_cache_ttl_secs",
     "integration_cache_max_entries",
+    "feeds_enabled",
+    "agent_telemetry_interval_secs",
+    "agent_lxc_poll_interval_secs",
+    "agent_docker_poll_interval_secs",
+    "status_poll_interval_secs",
+    "media_poll_interval_secs",
+    "ha_poll_interval_secs",
+    "telemetry_broadcast_interval_secs",
+    "integration_coordinator_interval_secs",
     "ldap_enabled",
     "ldap_url",
     "ldap_bind_dn",
@@ -104,6 +122,11 @@ pub(crate) const AGENT_CONFIG_SETTING_KEYS: &[&str] = &[
     "telemetry_external_ifaces",
     "telemetry_internal_ifaces",
     "telemetry_disk_mounts",
+    "enable_proxmox",
+    "agent_telemetry_interval_secs",
+    "agent_lxc_poll_interval_secs",
+    "agent_docker_poll_interval_secs",
+    "agent_node_tag",
 ];
 
 pub(crate) fn allowed_setting_keys() -> std::collections::HashSet<String> {
@@ -546,5 +569,93 @@ mod tests {
             "/mnt/user,/mnt/user/cache"
         );
         assert_eq!(sanitize_disk_mount_list("relative,/../etc"), "");
+    }
+}
+
+pub(crate) fn setting_flag(settings: &HashMap<String, String>, key: &str, default: bool) -> bool {
+    settings.get(key).map(|s| s == "1").unwrap_or(default)
+}
+
+pub(crate) fn feeds_enabled(settings: &HashMap<String, String>) -> bool {
+    setting_flag(settings, "feeds_enabled", true)
+}
+
+pub(crate) fn setting_u64_bounded(
+    settings: &HashMap<String, String>,
+    key: &str,
+    default: u64,
+    min: u64,
+    max: u64,
+) -> u64 {
+    let v = settings
+        .get(key)
+        .and_then(|s| s.trim().parse::<u64>().ok())
+        .unwrap_or(default);
+    v.clamp(min, max)
+}
+
+pub(crate) fn sanitize_interval_setting(value: &str, default: u64, min: u64, max: u64) -> String {
+    let v = value.trim().parse::<u64>().unwrap_or(default);
+    v.clamp(min, max).to_string()
+}
+
+pub(crate) fn sanitize_cache_max_entries(value: &str) -> String {
+    sanitize_interval_setting(value, 256, 16, 512)
+}
+
+pub(crate) fn sanitize_cache_ttl_secs(value: &str) -> String {
+    sanitize_interval_setting(value, 45, 5, 600)
+}
+
+pub(crate) fn apply_integration_cache_limits(
+    cache: &crate::integration_cache::IntegrationCache,
+    settings: &HashMap<String, String>,
+) {
+    let max = setting_u64_bounded(settings, "integration_cache_max_entries", 256, 16, 512) as usize;
+    let ttl = setting_u64_bounded(settings, "integration_cache_ttl_secs", 45, 5, 600);
+    cache.set_limits(max, ttl);
+}
+
+#[cfg(test)]
+mod v177_tests {
+    use super::*;
+
+    #[test]
+    fn feeds_enabled_defaults_true() {
+        assert!(feeds_enabled(&HashMap::new()));
+    }
+
+    #[test]
+    fn feeds_disabled_when_zero() {
+        let mut s = HashMap::new();
+        s.insert("feeds_enabled".to_string(), "0".to_string());
+        assert!(!feeds_enabled(&s));
+    }
+
+    #[test]
+    fn setting_u64_bounded_clamps_high() {
+        let mut s = HashMap::new();
+        s.insert(
+            "agent_telemetry_interval_secs".to_string(),
+            "999".to_string(),
+        );
+        assert_eq!(
+            setting_u64_bounded(&s, "agent_telemetry_interval_secs", 5, 3, 60),
+            60
+        );
+    }
+
+    #[test]
+    fn apply_integration_cache_limits_updates_ttl() {
+        let cache = crate::integration_cache::IntegrationCache::new(64, 45);
+        let mut s = HashMap::new();
+        s.insert("integration_cache_ttl_secs".to_string(), "90".to_string());
+        s.insert(
+            "integration_cache_max_entries".to_string(),
+            "32".to_string(),
+        );
+        apply_integration_cache_limits(&cache, &s);
+        assert_eq!(cache.default_ttl(), std::time::Duration::from_secs(90));
+        assert_eq!(cache.len(), 0);
     }
 }

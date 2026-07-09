@@ -8,6 +8,22 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.7.7](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.7) — 2026-07-09
+
+Optimize without feature loss, per-theme light mode, and RSS feeds toggle.
+
+### Added
+- **`feeds_enabled`** — stop background RSS polling and hide `/feeds` while keeping feed sources in SQLite
+- **Settings → Performance & resources** — cache TTL/max entries, advanced poll intervals, feeds toggle
+
+### Improved
+- **Agent** — selective sysinfo refresh, Docker/LXC poll caches, reused Disks/Components, GPU backoff, configurable intervals via agent config sync
+- **Server** — idle poller gating (status/media/HA/coordinator), telemetry broadcast slimming for admin-only sessions, integration cache hot-reload on save
+- **Light mode** — per-theme palettes (36 bundled + default); narrowed global light CSS; settings preview uses theme variables
+- PWA cache v34
+
+---
+
 ## [v1.7.5](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.5) — 2026-07-09
 
 Dashboard polish (RAM on cards, settings layout, web search) and server idle memory cuts.

@@ -1,7 +1,7 @@
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::atomic::AtomicU64;
+use std::sync::atomic::{AtomicU64, AtomicUsize};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Instant;
 
@@ -174,4 +174,6 @@ pub struct AppState {
         tokio::sync::watch::Sender<Arc<crate::telemetry_broadcast::WsTelemetryBundle>>,
     pub integration_cache: Arc<crate::integration_cache::IntegrationCache>,
     pub http_clients: Arc<crate::http_client::SharedHttpClients>,
+    /// Active WebSocket sessions with guest/limited telemetry (for broadcast slimming).
+    pub ws_limited_clients: Arc<AtomicUsize>,
 }

@@ -41,4 +41,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="steampunk-brass"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="steampunk-brass"] .metric-value { font-weight: 600; }
 [data-theme-id="steampunk-brass"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="steampunk-brass"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — steampunk-brass */
+:root[data-theme="light"][data-theme-id="steampunk-brass"] {
+    --theme-bg-fallback: #faf5f0;
+    --theme-card-r: 48;
+    --theme-card-g: 40;
+    --theme-card-b: 28;
+    --bg-card: rgba(48, 40, 28, var(--glass-opacity));
+    --accent-color: #b45309;
+    --accent-glow: rgba(180, 83, 9, 0.2);
+    --text-primary: #2d2224;
+    --text-secondary: #554a56;
+    --text-muted: #7d727e;
+    --border-card: rgba(180, 83, 9, 0.14);
+    --border-hover: #b45309;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="steampunk-brass"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

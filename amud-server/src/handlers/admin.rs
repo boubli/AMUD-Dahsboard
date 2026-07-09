@@ -23,6 +23,10 @@ pub async fn settings_handler(
     let agent_config_keys_changed = form
         .keys()
         .any(|k| AGENT_CONFIG_SETTING_KEYS.contains(&k.as_str()) || k == "pve_api_token");
+    let purge_rss_cache = form
+        .get("feeds_enabled")
+        .map(|s| s.as_str() == "0")
+        .unwrap_or(false);
     let new_token = with_db(state.db.clone(), move |db| {
         let mut new_token = None;
         let mut changed_keys = 0usize;
@@ -66,8 +70,28 @@ pub async fn settings_handler(
                 || key == "status_page_public"
                 || key == "kiosk_mode"
                 || key == "iframe_embeds_enabled"
+                || key == "feeds_enabled"
+                || key == "enable_proxmox"
             {
                 sanitize_bool_setting(&val)
+            } else if key == "integration_cache_max_entries" {
+                sanitize_cache_max_entries(&val)
+            } else if key == "integration_cache_ttl_secs" {
+                sanitize_cache_ttl_secs(&val)
+            } else if key == "agent_telemetry_interval_secs" {
+                sanitize_interval_setting(&val, 5, 3, 60)
+            } else if key == "agent_lxc_poll_interval_secs"
+                || key == "agent_docker_poll_interval_secs"
+            {
+                sanitize_interval_setting(&val, 10, 5, 120)
+            } else if key == "status_poll_interval_secs" || key == "ha_poll_interval_secs" {
+                sanitize_interval_setting(&val, 15, 10, 300)
+            } else if key == "media_poll_interval_secs" {
+                sanitize_interval_setting(&val, 5, 3, 120)
+            } else if key == "telemetry_broadcast_interval_secs" {
+                sanitize_interval_setting(&val, 5, 3, 60)
+            } else if key == "integration_coordinator_interval_secs" {
+                sanitize_interval_setting(&val, 45, 15, 600)
             } else if key == "telemetry_external_ifaces" || key == "telemetry_internal_ifaces" {
                 sanitize_iface_list(&val)
             } else if key == "telemetry_disk_mounts" {
@@ -104,6 +128,16 @@ pub async fn settings_handler(
         new_token
     })
     .await;
+
+    {
+        let settings = state.settings_cache.read().unwrap().clone();
+        apply_integration_cache_limits(&state.integration_cache, &settings);
+        if purge_rss_cache {
+            let cache = state.integration_cache.clone();
+            let ids = with_db(state.db.clone(), crate::db::load_rss_app_ids).await;
+            cache.invalidate_many(&ids);
+        }
+    }
 
     if agent_config_keys_changed || new_token.is_some() {
         push_agent_config(&state, new_token.as_deref());

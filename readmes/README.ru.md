@@ -10,19 +10,18 @@
 
 **[Список изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Блог](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Галерея тем](https://boubli.github.io/AMUD-Dashboard/themes)** · **[План разработки](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Документация](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Что нового в v1.7.6
+### Что нового в v1.7.7
 
-- **Память** — пулинг клиентов PVE/Docker в агенте + mimalloc; сервер с 2 потоками Tokio, переиспользование буферов телеметрии, ограниченные cooldown вебхуков
-- **Настройки** — логотип и обои в Branding; исправление макета Внешний вид; исправлен placeholder `{{app_logo}}`
-- **v1.7.5** — RAM контейнеров в MB/GB; погода во Внешний вид; веб-поиск; меньше RAM в простое на сервере
-- **v1.7.4** — выбор интеграции; Ollama + Open WebUI
-- **v1.7.3** — меню интеграций (CSP nonce); доработка Unraid `su-exec: setgroups`
+- **Производительность** — настраиваемые интервалы опроса; агент с выборочным sysinfo и кэшами Docker/LXC
+- **Feeds** — отключить фоновый опрос RSS и скрыть страницу Feeds (источники остаются в БД)
+- **Светлая тема** — палитры для каждой темы; превью в настройках читает CSS-переменные темы
+- **v1.7.6** — оптимизация памяти (пулинг PVE/Docker, mimalloc, Tokio)
 
 Полная история: **[Журнал изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Статус релизов
 
-Рекомендуется: **v1.7.6**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
+Рекомендуется: **v1.7.7**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

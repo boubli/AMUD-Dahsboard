@@ -11,6 +11,22 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.7.7 — Optimize, light mode, feeds toggle
+
+**2026-07-09** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.7)
+
+### Added
+- **`feeds_enabled`** — disable RSS background work and Feeds page; sources remain in DB
+- **Performance settings** — integration cache limits, poll interval tuning, feeds toggle under Integrations
+
+### Improved
+- **Agent** — selective sysinfo, Docker/LXC caches, GPU backoff, configurable intervals, `enable_proxmox` gate
+- **Server** — idle poller gating, telemetry broadcast slimming, cache hot-reload on settings save
+- **Light mode** — per-theme palettes for all bundled themes; settings live preview fix
+- PWA cache v34
+
+---
+
 ## v1.7.6 — Codebase-wide memory optimization
 
 **2026-07-09** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.6)

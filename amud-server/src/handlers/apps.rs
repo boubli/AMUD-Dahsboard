@@ -585,6 +585,17 @@ pub async fn integration_data_handler(
 
     let app = app.unwrap();
 
+    if app.integration_type == "rss" {
+        let settings = state.settings_cache.read().unwrap();
+        if !crate::settings::feeds_enabled(&settings) {
+            return Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(Body::from(r#"{"error":"feeds_disabled"}"#))
+                .unwrap();
+        }
+    }
+
     let accept_invalid = {
         let cache = state.settings_cache.read().unwrap();
         cache

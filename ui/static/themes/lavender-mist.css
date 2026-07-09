@@ -40,4 +40,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="lavender-mist"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="lavender-mist"] .metric-value { font-weight: 600; }
 [data-theme-id="lavender-mist"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="lavender-mist"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — lavender-mist */
+:root[data-theme="light"][data-theme-id="lavender-mist"] {
+    --theme-bg-fallback: #fbfbff;
+    --theme-card-r: 40;
+    --theme-card-g: 32;
+    --theme-card-b: 56;
+    --bg-card: rgba(40, 32, 56, var(--glass-opacity));
+    --accent-color: #c4b5fd;
+    --accent-glow: rgba(196, 181, 253, 0.2);
+    --text-primary: #303350;
+    --text-secondary: #585b82;
+    --text-muted: #8083aa;
+    --border-card: rgba(196, 181, 253, 0.14);
+    --border-hover: #c4b5fd;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="lavender-mist"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

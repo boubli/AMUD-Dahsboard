@@ -40,4 +40,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="cotton-candy"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="cotton-candy"] .metric-value { font-weight: 600; }
 [data-theme-id="cotton-candy"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="cotton-candy"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — cotton-candy */
+:root[data-theme="light"][data-theme-id="cotton-candy"] {
+    --theme-bg-fallback: #fef7fb;
+    --theme-card-r: 48;
+    --theme-card-g: 28;
+    --theme-card-b: 52;
+    --bg-card: rgba(48, 28, 52, var(--glass-opacity));
+    --accent-color: #f472b6;
+    --accent-glow: rgba(244, 114, 182, 0.2);
+    --text-primary: #382743;
+    --text-secondary: #604f75;
+    --text-muted: #88779d;
+    --border-card: rgba(244, 114, 182, 0.14);
+    --border-hover: #f472b6;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="cotton-candy"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

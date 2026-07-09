@@ -1,4 +1,15 @@
 use super::imports::*;
+use std::sync::atomic::Ordering;
+
+struct WsLimitedGuard {
+    counter: Arc<std::sync::atomic::AtomicUsize>,
+}
+
+impl Drop for WsLimitedGuard {
+    fn drop(&mut self) {
+        self.counter.fetch_sub(1, Ordering::Relaxed);
+    }
+}
 
 pub async fn login_page(
     Extension(csp): Extension<CspNonce>,
@@ -210,6 +221,15 @@ async fn handle_ws_session(
     limited_telemetry: bool,
     _public_at_connect: bool,
 ) {
+    let _limited_guard = if limited_telemetry {
+        state.ws_limited_clients.fetch_add(1, Ordering::Relaxed);
+        Some(WsLimitedGuard {
+            counter: state.ws_limited_clients.clone(),
+        })
+    } else {
+        None
+    };
+
     let mut rx = state.telemetry_broadcast.subscribe();
 
     let public = if limited_telemetry {

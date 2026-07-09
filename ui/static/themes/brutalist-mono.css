@@ -47,3 +47,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="brutalist-mono"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="brutalist-mono"] .metric-value { font-weight: 600; }
 [data-theme-id="brutalist-mono"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
+/* AMUD light mode — brutalist-mono */
+:root[data-theme="light"][data-theme-id="brutalist-mono"] {
+    --theme-bg-fallback: #fdf2f2;
+    --theme-card-r: 255;
+    --theme-card-g: 255;
+    --theme-card-b: 255;
+    --bg-card: rgba(255, 255, 255, var(--glass-opacity));
+    --accent-color: #dc2626;
+    --accent-glow: rgba(220, 38, 38, 0.2);
+    --text-primary: #341a29;
+    --text-secondary: #5c425b;
+    --text-muted: #846a83;
+    --border-card: rgba(220, 38, 38, 0.14);
+    --border-hover: #dc2626;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="brutalist-mono"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

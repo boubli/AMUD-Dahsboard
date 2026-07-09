@@ -47,6 +47,22 @@ pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
     apps
 }
 
+pub(crate) fn load_rss_app_ids(db: &Connection) -> Vec<i64> {
+    let Ok(mut stmt) = db.prepare("SELECT id FROM apps WHERE integration_type = 'rss'") else {
+        return Vec::new();
+    };
+    let Ok(mut rows) = stmt.query([]) else {
+        return Vec::new();
+    };
+    let mut ids = Vec::new();
+    while let Ok(Some(row)) = rows.next() {
+        if let Ok(id) = row.get::<_, i64>(0) {
+            ids.push(id);
+        }
+    }
+    ids
+}
+
 pub(crate) fn load_wol_devices_from_db(db: &Connection) -> Vec<WolDevice> {
     let mut devices = Vec::new();
     let Ok(mut stmt) = db.prepare(

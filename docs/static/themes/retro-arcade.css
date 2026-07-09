@@ -44,4 +44,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="retro-arcade"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="retro-arcade"] .metric-value { font-weight: 600; }
 [data-theme-id="retro-arcade"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="retro-arcade"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — retro-arcade */
+:root[data-theme="light"][data-theme-id="retro-arcade"] {
+    --theme-bg-fallback: #fef4f4;
+    --theme-card-r: 24;
+    --theme-card-g: 16;
+    --theme-card-b: 48;
+    --bg-card: rgba(24, 16, 48, var(--glass-opacity));
+    --accent-color: #ef4444;
+    --accent-glow: rgba(239, 68, 68, 0.2);
+    --text-primary: #371f2f;
+    --text-secondary: #5f4761;
+    --text-muted: #876f89;
+    --border-card: rgba(239, 68, 68, 0.14);
+    --border-hover: #ef4444;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="retro-arcade"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

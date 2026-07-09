@@ -103,15 +103,18 @@ async fn poll_ha_states_fallback(
 
 pub async fn start_ha_polling(state: Arc<AppState>) {
     loop {
-        tokio::time::sleep(Duration::from_secs(15)).await;
-
         let settings = state.settings_cache.read().unwrap().clone();
         let ha_url = settings.get("ha_url").cloned().unwrap_or_default();
         let ha_token = settings.get("ha_token").cloned().unwrap_or_default();
 
         if ha_url.is_empty() || ha_token.is_empty() {
+            tokio::time::sleep(Duration::from_secs(300)).await;
             continue;
         }
+
+        let interval =
+            crate::settings::setting_u64_bounded(&settings, "ha_poll_interval_secs", 15, 10, 300);
+        tokio::time::sleep(Duration::from_secs(interval)).await;
 
         let accept_invalid = settings
             .get("accept_invalid_certs")

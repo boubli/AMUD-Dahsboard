@@ -42,3 +42,30 @@
     background: linear-gradient(135deg, #a88620, #c9a227) !important;
     border: 1px solid rgba(232, 201, 106, 0.4) !important;
 }
+/* AMUD light mode — luxury-gold */
+:root[data-theme="light"][data-theme-id="luxury-gold"] {
+    --theme-bg-fallback: #fcf9f2;
+    --theme-card-r: 18;
+    --theme-card-g: 16;
+    --theme-card-b: 12;
+    --bg-card: rgba(18, 16, 12, var(--glass-opacity));
+    --accent-color: #c9a227;
+    --accent-glow: rgba(201, 162, 39, 0.2);
+    --text-primary: #303029;
+    --text-secondary: #58585b;
+    --text-muted: #808083;
+    --border-card: rgba(201, 162, 39, 0.14);
+    --border-hover: #c9a227;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="luxury-gold"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

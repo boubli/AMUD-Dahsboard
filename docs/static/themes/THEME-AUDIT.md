@@ -15,6 +15,21 @@ Every theme CSS must set in `:root`:
 
 User sliders are enforced in `theme-guards.css` (`backdrop-filter`, `border-radius`, card `background`).
 
+## Light mode contract (v1.7.7+)
+
+Per-theme light palettes live on `:root[data-theme="light"][data-theme-id="…"]` (not one global gray stack in `style.css`).
+
+| Variable | Purpose |
+|----------|---------|
+| `--theme-bg-fallback` | Light page background |
+| `--theme-card-r/g/b` | Glass card tint (with user opacity slider) |
+| `--accent-color` / `--accent-glow` | Accent tuned for light backgrounds |
+| `--text-primary` / `--text-secondary` / `--text-muted` | Readable text hierarchy |
+| `--border-card` / `--border-hover` | Borders |
+| `--success` / `--danger` (+ `*-bg`) | Status colors |
+
+Scaffold blocks: `python scripts/generate_theme_light_blocks.py` (mirrors `ui/static/themes` and `docs/static/themes`).
+
 ## Procedural themes (`usesWallpaper: false`)
 
 `brutalist-mono`, `blueprint-tech`, `vaporwave-grid`, `terminal-matrix`, `terminal-amber`, `terminal-phosphor`

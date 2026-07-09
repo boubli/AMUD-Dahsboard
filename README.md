@@ -10,13 +10,13 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.7.6
+### What's new in v1.7.7
 
-- **Memory** — agent PVE/Docker client pooling + mimalloc; server Tokio 2 workers, telemetry buffer reuse, bounded webhook cooldowns
-- **Settings** — Logo & wallpaper under Branding; Appearance layout fix; `{{app_logo}}` placeholder fix
-- **v1.7.5** — container RAM as MB/GB; Weather under Appearance; web search engines; server idle telemetry skip
-- **v1.7.4** — Integration picker; Ollama + Open WebUI
-- **v1.7.3** — Integration dropdown CSP fix; Unraid `su-exec: setgroups` follow-up ([#16](https://github.com/boubli/AMUD-Dashboard/issues/16))
+- **Performance** — configurable poll intervals; idle poller gating; integration cache hot-reload; agent selective sysinfo, Docker/LXC caches, GPU backoff
+- **Feeds toggle** — disable background RSS polling and hide the Feeds page (sources stay saved in the database)
+- **Light mode** — per-theme light palettes for all bundled themes; settings live preview reads theme CSS variables
+- **v1.7.6** — agent PVE/Docker client pooling + mimalloc; server Tokio 2 workers, telemetry buffer reuse
+- **v1.7.5** — container RAM as MB/GB; Weather under Appearance; web search engines
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -24,11 +24,11 @@ Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changel
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.7.6` (current latest recommended)
+- `v1.7.7` (current latest recommended)
+- `v1.7.6`
 - `v1.7.5`
 - `v1.7.4`
 - `v1.7.3`
-- `v1.7.1`
 
 **Do not use:** `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 

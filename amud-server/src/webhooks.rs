@@ -14,6 +14,7 @@ pub(crate) const WEBHOOK_EVENT_TYPES: &[&str] = &[
 ];
 
 const ALERT_COOLDOWN_SECS: u64 = 60;
+const STATUS_IDLE_BACKOFF_SECS: u64 = 300;
 const MAX_ALERT_COOLDOWN_KEYS: usize = 512;
 
 fn prune_alert_cooldowns(cooldowns: &mut HashMap<String, Instant>) {
@@ -97,10 +98,26 @@ pub(crate) fn start_status_poller(state: Arc<AppState>) {
                 }
             }))
             .await;
+            let checks_empty = checks.is_empty();
             let next: HashMap<String, AppStatus> = checks.into_iter().collect();
 
             *state.app_statuses.write().unwrap() = next;
-            tokio::time::sleep(Duration::from_secs(15)).await;
+            let interval = {
+                let settings = state.settings_cache.read().unwrap();
+                crate::settings::setting_u64_bounded(
+                    &settings,
+                    "status_poll_interval_secs",
+                    15,
+                    10,
+                    300,
+                )
+            };
+            let sleep_secs = if checks_empty {
+                STATUS_IDLE_BACKOFF_SECS
+            } else {
+                interval
+            };
+            tokio::time::sleep(Duration::from_secs(sleep_secs)).await;
         }
     });
 }
@@ -466,6 +483,7 @@ mod tests {
             telemetry_broadcast: crate::telemetry_broadcast::new_telemetry_broadcast(),
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
             http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
+            ws_limited_clients: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
         });
 
         let old_telemetry = AgentTelemetry {
@@ -537,6 +555,7 @@ mod tests {
             telemetry_broadcast: crate::telemetry_broadcast::new_telemetry_broadcast(),
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
             http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
+            ws_limited_clients: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
         });
 
         let old_telemetry = AgentTelemetry {

@@ -21,7 +21,15 @@ pub async fn feeds_page_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
-    render_page(PageMode::Feeds, &csp.0, &headers, &state).await
+    {
+        let settings = state.settings_cache.read().unwrap();
+        if !crate::settings::feeds_enabled(&settings) {
+            return Redirect::to("/").into_response();
+        }
+    }
+    render_page(PageMode::Feeds, &csp.0, &headers, &state)
+        .await
+        .into_response()
 }
 
 async fn render_page(
@@ -304,9 +312,20 @@ async fn render_page(
         PageMode::Dashboard => "DASHBOARD",
         PageMode::Feeds => "FEEDS",
     };
-    let feeds_nav = match mode {
-        PageMode::Dashboard => r#"<a href="/feeds" class="glass-panel topbar-action"><i data-lucide="rss"></i> Feeds</a>"#.to_string(),
-        PageMode::Feeds => r#"<a href="/" class="glass-panel topbar-action"><i data-lucide="arrow-left"></i> Dashboard</a>"#.to_string(),
+    let feeds_on = crate::settings::feeds_enabled(&settings);
+    let feeds_nav = if !feeds_on {
+        String::new()
+    } else {
+        match mode {
+            PageMode::Dashboard => {
+                r#"<a href="/feeds" class="glass-panel topbar-action"><i data-lucide="rss"></i> Feeds</a>"#
+                    .to_string()
+            }
+            PageMode::Feeds => {
+                r#"<a href="/" class="glass-panel topbar-action"><i data-lucide="arrow-left"></i> Dashboard</a>"#
+                    .to_string()
+            }
+        }
     };
     let main_grid_class = match mode {
         PageMode::Feeds => "feeds-grid",

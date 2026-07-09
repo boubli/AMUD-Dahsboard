@@ -44,4 +44,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="cyberpunk-neon"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="cyberpunk-neon"] .metric-value { font-weight: 600; }
 [data-theme-id="cyberpunk-neon"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="cyberpunk-neon"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — cyberpunk-neon */
+:root[data-theme="light"][data-theme-id="cyberpunk-neon"] {
+    --theme-bg-fallback: #fff2f9;
+    --theme-card-r: 18;
+    --theme-card-g: 18;
+    --theme-card-b: 26;
+    --bg-card: rgba(18, 18, 26, var(--glass-opacity));
+    --accent-color: #ff2d95;
+    --accent-glow: rgba(255, 45, 149, 0.2);
+    --text-primary: #3a1b3d;
+    --text-secondary: #62436f;
+    --text-muted: #8a6b97;
+    --border-card: rgba(255, 45, 149, 0.14);
+    --border-hover: #ff2d95;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="cyberpunk-neon"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

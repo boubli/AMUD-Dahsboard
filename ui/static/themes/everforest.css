@@ -41,4 +41,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="everforest"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="everforest"] .metric-value { font-weight: 600; }
 [data-theme-id="everforest"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="everforest"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — everforest */
+:root[data-theme="light"][data-theme-id="everforest"] {
+    --theme-bg-fallback: #fafbf7;
+    --theme-card-r: 52;
+    --theme-card-g: 63;
+    --theme-card-b: 58;
+    --bg-card: rgba(52, 63, 58, var(--glass-opacity));
+    --accent-color: #a7c080;
+    --accent-glow: rgba(167, 192, 128, 0.2);
+    --text-primary: #2a3539;
+    --text-secondary: #525d6b;
+    --text-muted: #7a8593;
+    --border-card: rgba(167, 192, 128, 0.14);
+    --border-hover: #a7c080;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="everforest"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

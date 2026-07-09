@@ -940,6 +940,66 @@
                         </div>
 
                         <div class="settings-block">
+                            <h3><i data-lucide="gauge" style="color:var(--accent-color);"></i> Performance &amp; resources</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Tune background polling and integration cache. Homelab defaults: cache TTL <strong>90</strong>s, max entries <strong>64</strong>.</p>
+                            <div class="form-group">
+                                <label for="setting-feeds-enabled">RSS / Feeds</label>
+                                <select id="setting-feeds-enabled" name="feeds_enabled" class="form-control" style="height:3rem; cursor:pointer;" @change="feedsEnabled = $event.target.value === '1'">
+                                    <option value="1" {{eq_feeds_enabled_on}}>Enabled (background RSS polling + Feeds page)</option>
+                                    <option value="0" {{eq_feeds_enabled_off}}>Disabled — stops background RSS polling and hides the Feeds page</option>
+                                </select>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Your feed sources stay saved when disabled. Re-enable to restore the Feeds page.</p>
+                            </div>
+                            <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
+                                <div class="form-group">
+                                    <label for="setting-cache-ttl">Integration cache TTL (seconds)</label>
+                                    <input type="number" id="setting-cache-ttl" name="integration_cache_ttl_secs" class="form-control" value="{{integration_cache_ttl_secs}}" min="5" max="600">
+                                </div>
+                                <div class="form-group">
+                                    <label for="setting-cache-max">Integration cache max entries</label>
+                                    <input type="number" id="setting-cache-max" name="integration_cache_max_entries" class="form-control" value="{{integration_cache_max_entries}}" min="16" max="512">
+                                </div>
+                            </div>
+                            <details style="margin-top:1.25rem;">
+                                <summary style="cursor:pointer; font-weight:600; color:var(--text-secondary);">Advanced performance</summary>
+                                <div style="margin-top:1rem; display:grid; grid-template-columns:repeat(auto-fill, minmax(12rem, 1fr)); gap:1rem;">
+                                    <div class="form-group">
+                                        <label for="setting-agent-telemetry-interval">Agent telemetry (s)</label>
+                                        <input type="number" id="setting-agent-telemetry-interval" name="agent_telemetry_interval_secs" class="form-control" value="{{agent_telemetry_interval_secs}}" min="3" max="60">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="setting-agent-lxc-interval">Agent LXC poll (s)</label>
+                                        <input type="number" id="setting-agent-lxc-interval" name="agent_lxc_poll_interval_secs" class="form-control" value="{{agent_lxc_poll_interval_secs}}" min="5" max="120">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="setting-agent-docker-interval">Agent Docker poll (s)</label>
+                                        <input type="number" id="setting-agent-docker-interval" name="agent_docker_poll_interval_secs" class="form-control" value="{{agent_docker_poll_interval_secs}}" min="5" max="120">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="setting-status-poll-interval">App status poll (s)</label>
+                                        <input type="number" id="setting-status-poll-interval" name="status_poll_interval_secs" class="form-control" value="{{status_poll_interval_secs}}" min="10" max="300">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="setting-media-poll-interval">Media poll (s)</label>
+                                        <input type="number" id="setting-media-poll-interval" name="media_poll_interval_secs" class="form-control" value="{{media_poll_interval_secs}}" min="3" max="120">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="setting-ha-poll-interval">Home Assistant poll (s)</label>
+                                        <input type="number" id="setting-ha-poll-interval" name="ha_poll_interval_secs" class="form-control" value="{{ha_poll_interval_secs}}" min="10" max="300">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="setting-telemetry-broadcast-interval">WebSocket telemetry (s)</label>
+                                        <input type="number" id="setting-telemetry-broadcast-interval" name="telemetry_broadcast_interval_secs" class="form-control" value="{{telemetry_broadcast_interval_secs}}" min="3" max="60">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="setting-coordinator-interval">Integration coordinator (s)</label>
+                                        <input type="number" id="setting-coordinator-interval" name="integration_coordinator_interval_secs" class="form-control" value="{{integration_coordinator_interval_secs}}" min="15" max="600">
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
+                        <div class="settings-block">
                             <h3><i data-lucide="bell" style="color:var(--accent-color);"></i> Webhook delivery</h3>
                             <div class="form-group">
                                 <label for="setting-webhooks-private">Allow webhooks to private LAN IPs</label>
@@ -1070,6 +1130,10 @@
                     <button type="button" class="btn btn-primary" @click="openAddRssModal()"><i data-lucide="plus"></i> New RSS Feed</button>
                 </div>
                 <p class="settings-page-subtitle">Manage feed categories and news sources. Headlines appear on your <a href="/feeds" style="color:var(--accent-color);">Feeds</a> page.</p>
+
+                <div class="settings-block" x-show="!feedsEnabled" style="border:1px solid var(--border-color); background:rgba(255,180,0,0.08); padding:1rem 1.25rem; margin-bottom:1rem;">
+                    <p style="margin:0; font-size:0.9rem;"><strong>Feeds are disabled.</strong> Background RSS polling is off and the Feeds page is hidden. Enable under <button type="button" class="btn btn-secondary" style="font-size:0.78rem; padding:0.2rem 0.5rem; vertical-align:baseline;" @click="activeTab = 'integrations'">Integrations → Performance</button> or keep managing sources here for when you re-enable.</p>
+                </div>
 
                 <div class="feed-categories-block settings-block" style="padding:0;">
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 1rem 0.5rem;">
@@ -1804,6 +1868,7 @@
         function settingsState() {
             return {
                 proxmoxEnabled: {{proxmox_enabled}},
+                feedsEnabled: {{feeds_enabled}},
                 settingsMenuOpen: false,
                 activeTab: localStorage.getItem('amud_settings_tab') || 'branding',
                 unsavedChanges: false,
@@ -2334,8 +2399,32 @@
                 return fromRoot || '#cf6427';
             }
 
+            function readThemeCssColors(themeMode) {
+                const root = document.documentElement;
+                const prev = root.getAttribute('data-theme');
+                root.setAttribute('data-theme', themeMode);
+                const cs = getComputedStyle(root);
+                const pick = (name, fallback) => {
+                    const v = cs.getPropertyValue(name).trim();
+                    return v || fallback;
+                };
+                const colors = {
+                    textPrimary: pick('--text-primary', themeMode === 'light' ? '#1e293b' : '#ffffff'),
+                    textSecondary: pick('--text-secondary', themeMode === 'light' ? '#475569' : '#94a3b8'),
+                    borderCard: pick('--border-card', themeMode === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'),
+                    cardR: pick('--theme-card-r', themeMode === 'light' ? '255' : '15'),
+                    cardG: pick('--theme-card-g', themeMode === 'light' ? '255' : '20'),
+                    cardB: pick('--theme-card-b', themeMode === 'light' ? '255' : '25'),
+                    bgFallback: pick('--theme-bg-fallback', themeMode === 'light' ? '#f8fafc' : '#0f1419'),
+                };
+                if (prev) root.setAttribute('data-theme', prev);
+                else root.removeAttribute('data-theme');
+                return colors;
+            }
+
             function renderPreview(themeMode) {
                 const accent = readAccentColor();
+                const themeColors = readThemeCssColors(themeMode);
                 const blur = blurInput ? blurInput.value : '16';
                 const opacity = opacityInput ? opacityInput.value : '0.45';
                 const overlayStrength = overlayInput ? overlayInput.value : '0.85';
@@ -2345,12 +2434,10 @@
                 const accentGlow = accentGlowFromHex(accent);
                 const safeUrl = safeWallpaperUrl(wallpaper);
                 const wallpaperStyle = safeUrl ? 'url("' + safeUrl + '")' : 'none';
-                const cardBg = themeMode === 'light'
-                    ? 'rgba(255, 255, 255, ' + opacity + ')'
-                    : 'rgba(15, 20, 25, ' + opacity + ')';
-                const textPrimary = themeMode === 'light' ? '#1e293b' : '#ffffff';
-                const textSecondary = themeMode === 'light' ? '#475569' : '#94a3b8';
-                const borderColor = themeMode === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+                const cardBg = 'rgba(' + themeColors.cardR + ', ' + themeColors.cardG + ', ' + themeColors.cardB + ', ' + opacity + ')';
+                const textPrimary = themeColors.textPrimary;
+                const textSecondary = themeColors.textSecondary;
+                const borderColor = themeColors.borderCard;
                 const cols = Math.min(5, Math.max(2, parseInt(gridColumns, 10) || 3));
 
                 scene.style.setProperty('--preview-accent', accent);

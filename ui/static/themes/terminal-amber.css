@@ -44,4 +44,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="terminal-amber"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="terminal-amber"] .metric-value { font-weight: 600; }
 [data-theme-id="terminal-amber"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="terminal-amber"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — terminal-amber */
+:root[data-theme="light"][data-theme-id="terminal-amber"] {
+    --theme-bg-fallback: #fffaf0;
+    --theme-card-r: 24;
+    --theme-card-g: 16;
+    --theme-card-b: 4;
+    --bg-card: rgba(24, 16, 4, var(--glass-opacity));
+    --accent-color: #ffb000;
+    --accent-glow: rgba(255, 176, 0, 0.2);
+    --text-primary: #3a3322;
+    --text-secondary: #625b54;
+    --text-muted: #8a837c;
+    --border-card: rgba(255, 176, 0, 0.14);
+    --border-hover: #ffb000;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="terminal-amber"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

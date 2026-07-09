@@ -106,9 +106,84 @@ struct TelemetryConfig {
     node_tag: String,
 }
 
+#[derive(Clone)]
+struct AgentPollConfig {
+    enable_proxmox: bool,
+    telemetry_interval_secs: u64,
+    lxc_poll_interval_secs: u64,
+    docker_poll_interval_secs: u64,
+}
+
+impl Default for AgentPollConfig {
+    fn default() -> Self {
+        Self {
+            enable_proxmox: true,
+            telemetry_interval_secs: 5,
+            lxc_poll_interval_secs: 10,
+            docker_poll_interval_secs: 10,
+        }
+    }
+}
+
 fn telemetry_config() -> &'static RwLock<TelemetryConfig> {
     static CONFIG: OnceLock<RwLock<TelemetryConfig>> = OnceLock::new();
     CONFIG.get_or_init(|| RwLock::new(TelemetryConfig::default()))
+}
+
+fn agent_poll_config() -> &'static RwLock<AgentPollConfig> {
+    static CONFIG: OnceLock<RwLock<AgentPollConfig>> = OnceLock::new();
+    CONFIG.get_or_init(|| RwLock::new(AgentPollConfig::default()))
+}
+
+fn parse_config_u64(value: Option<&serde_json::Value>, default: u64, min: u64, max: u64) -> u64 {
+    let v = value
+        .and_then(|v| {
+            v.as_u64()
+                .or_else(|| v.as_str().and_then(|s| s.parse().ok()))
+        })
+        .unwrap_or(default);
+    v.clamp(min, max)
+}
+
+struct GpuCache {
+    probed: bool,
+    available: bool,
+    last_read: Instant,
+    snapshot: GpuSnapshot,
+}
+
+impl Default for GpuCache {
+    fn default() -> Self {
+        Self {
+            probed: false,
+            available: false,
+            last_read: Instant::now()
+                .checked_sub(Duration::from_secs(60))
+                .unwrap_or_else(Instant::now),
+            snapshot: GpuSnapshot::default(),
+        }
+    }
+}
+
+fn gpu_snapshot_cached(cache: &mut GpuCache) -> GpuSnapshot {
+    if cache.probed && !cache.available {
+        return GpuSnapshot::default();
+    }
+    if cache.probed && cache.available && cache.last_read.elapsed() < Duration::from_secs(5) {
+        return cache.snapshot.clone();
+    }
+    let snap = read_gpu_snapshot();
+    if !cache.probed {
+        cache.probed = true;
+        cache.available = !snap.name.is_empty();
+    }
+    if snap.name.is_empty() {
+        cache.available = false;
+        return GpuSnapshot::default();
+    }
+    cache.snapshot = snap.clone();
+    cache.last_read = Instant::now();
+    snap
 }
 
 static CONFIG_READY: AtomicBool = AtomicBool::new(false);
@@ -192,6 +267,20 @@ fn apply_telemetry_config(config: &serde_json::Value) {
             .filter(|s| !s.trim().is_empty())
             .unwrap_or("Local")
             .to_string();
+    }
+    {
+        let mut pc = agent_poll_config().write().unwrap();
+        pc.enable_proxmox = config
+            .get("enable_proxmox")
+            .and_then(|v| v.as_str())
+            .map(|s| s == "1")
+            .unwrap_or(true);
+        pc.telemetry_interval_secs =
+            parse_config_u64(config.get("agent_telemetry_interval_secs"), 5, 3, 60);
+        pc.lxc_poll_interval_secs =
+            parse_config_u64(config.get("agent_lxc_poll_interval_secs"), 10, 5, 120);
+        pc.docker_poll_interval_secs =
+            parse_config_u64(config.get("agent_docker_poll_interval_secs"), 10, 5, 120);
     }
     CONFIG_READY.store(true, Ordering::Release);
     reset_network_baseline();
@@ -587,6 +676,9 @@ fn perform_pve_test(token: &str) -> PveTestResult {
 // Reads PVE_API_TOKEN and queries the local PVE API. Returns an empty vec on any
 // failure so a missing token or unreachable node never crashes the telemetry loop.
 fn fetch_lxc_containers() -> Vec<LxcContainer> {
+    if !agent_poll_config().read().unwrap().enable_proxmox {
+        return Vec::new();
+    }
     let token = get_pve_api_token();
     if token.is_empty() {
         eprintln!("[LXC] PVE_API_TOKEN not set or empty, skipping LXC fetch.");
@@ -1015,13 +1107,20 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         println!("AMUD-Agent command reader thread exiting.");
     });
 
-    // Proxmox LXC data is polled on its own slower 10s cadence to minimize overhead.
+    // Proxmox LXC data is polled on its own slower cadence to minimize overhead.
     // We cache the last result and reuse it between fetches.
     let mut cached_lxc: Arc<Vec<LxcContainer>> = Arc::new(Vec::new());
     let mut last_lxc_fetch = Instant::now()
         .checked_sub(Duration::from_secs(10))
         .unwrap_or_else(Instant::now);
+    let mut cached_docker: Arc<Vec<LxcContainer>> = Arc::new(Vec::new());
+    let mut last_docker_fetch = Instant::now()
+        .checked_sub(Duration::from_secs(10))
+        .unwrap_or_else(Instant::now);
     let mut telemetry_buf: Vec<u8> = Vec::with_capacity(4096);
+    let mut gpu_cache = GpuCache::default();
+    let mut components = sysinfo::Components::new_with_refreshed_list();
+    let mut disks = sysinfo::Disks::new_with_refreshed_list();
     CONFIG_READY.store(false, Ordering::Release);
     reset_network_baseline();
 
@@ -1037,7 +1136,9 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
     }
 
     loop {
-        sys.refresh_all();
+        let poll_cfg = agent_poll_config().read().unwrap().clone();
+        sys.refresh_cpu();
+        sys.refresh_memory();
 
         let cpus = sys.cpus();
         let cpu_usage = if !cpus.is_empty() {
@@ -1052,7 +1153,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             .filter(|name| !name.is_empty())
             .unwrap_or_default();
         let cpu_cores = cpus.len() as u32;
-        let gpu = read_gpu_snapshot();
+        let gpu = gpu_snapshot_cached(&mut gpu_cache);
 
         let total_mem = sys.total_memory();
         let used_mem = sys.used_memory();
@@ -1064,7 +1165,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let ram_total_gb = (total_mem as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
         let ram_used_gb = (used_mem as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
-        let components = sysinfo::Components::new_with_refreshed_list();
+        components.refresh();
         let mut cpu_temp = 0.0;
         for c in &components {
             let label = c.label().to_lowercase();
@@ -1077,7 +1178,8 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             cpu_temp = components[0].temperature() as f64;
         }
 
-        let disks = sysinfo::Disks::new_with_refreshed_list();
+        disks.refresh_list();
+        disks.refresh();
         let visible_mounts = list_visible_mounts(&disks);
         let visible_mount_refs: Vec<&str> = visible_mounts.iter().map(String::as_str).collect();
         let disk_cfg = telemetry_config().read().unwrap().clone();
@@ -1103,12 +1205,18 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let disk_total_gb = (total_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
         let disk_used_gb = (used_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
-        if last_lxc_fetch.elapsed() >= Duration::from_secs(10) {
+        if last_lxc_fetch.elapsed() >= Duration::from_secs(poll_cfg.lxc_poll_interval_secs) {
             cached_lxc = Arc::new(fetch_lxc_containers());
             last_lxc_fetch = Instant::now();
         }
-        let mut lxc_containers = (*cached_lxc).clone();
-        lxc_containers.extend(fetch_docker_containers());
+        if last_docker_fetch.elapsed() >= Duration::from_secs(poll_cfg.docker_poll_interval_secs) {
+            cached_docker = Arc::new(fetch_docker_containers());
+            last_docker_fetch = Instant::now();
+        }
+        let mut lxc_containers =
+            Vec::with_capacity(cached_lxc.len().saturating_add(cached_docker.len()));
+        lxc_containers.extend(cached_lxc.iter().cloned());
+        lxc_containers.extend(cached_docker.iter().cloned());
 
         let proc_content = read_proc_net_dev_content();
         let net_cfg = telemetry_config().read().unwrap().clone();
@@ -1204,7 +1312,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         }
         stream.flush()?;
 
-        sleep(Duration::from_secs(5));
+        sleep(Duration::from_secs(poll_cfg.telemetry_interval_secs));
     }
 }
 
@@ -1746,5 +1854,18 @@ mod tests {
         };
         assert!(configured_mounts_satisfied_paths(&["/mnt/user"], &cfg));
         assert!(!configured_mounts_satisfied_paths(&["/mnt/cache"], &cfg));
+    }
+
+    #[test]
+    fn parse_config_u64_clamps_and_parses_strings() {
+        assert_eq!(
+            parse_config_u64(Some(&serde_json::json!(999)), 5, 3, 60),
+            60
+        );
+        assert_eq!(
+            parse_config_u64(Some(&serde_json::json!("12")), 5, 3, 60),
+            12
+        );
+        assert_eq!(parse_config_u64(None, 5, 3, 60), 5);
     }
 }

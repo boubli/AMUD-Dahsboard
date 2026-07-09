@@ -42,4 +42,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="one-dark"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="one-dark"] .metric-value { font-weight: 600; }
 [data-theme-id="one-dark"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="one-dark"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — one-dark */
+:root[data-theme="light"][data-theme-id="one-dark"] {
+    --theme-bg-fallback: #f6fafe;
+    --theme-card-r: 40;
+    --theme-card-g: 44;
+    --theme-card-b: 52;
+    --bg-card: rgba(40, 44, 52, var(--glass-opacity));
+    --accent-color: #61afef;
+    --accent-glow: rgba(97, 175, 239, 0.2);
+    --text-primary: #1e324d;
+    --text-secondary: #465a7f;
+    --text-muted: #6e82a7;
+    --border-card: rgba(97, 175, 239, 0.14);
+    --border-hover: #61afef;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="one-dark"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

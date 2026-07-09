@@ -1,4 +1,12 @@
 /* Shared AMUD theme chrome — imported by generated per-theme CSS */
+
+/*
+ * Light mode contract (set on :root[data-theme="light"][data-theme-id="…"]):
+ * --theme-bg-fallback, --theme-card-r/g/b, --bg-card, --accent-color, --accent-glow,
+ * --text-primary, --text-secondary, --text-muted, --border-card, --border-hover,
+ * --success, --success-bg, --danger, --danger-bg
+ * Scaffold with: python scripts/generate_theme_light_blocks.py
+ */
 .topbar { transition: background 0.2s ease, border-color 0.2s ease; }
 .telemetry-bar-container.glass-panel { margin-bottom: 0.75rem; }
 .filter-tab.active { border-color: var(--accent-color); color: var(--accent-color); }

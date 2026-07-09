@@ -226,6 +226,29 @@ pub(crate) fn start_media_poller(state: Arc<crate::models::AppState>) {
             .unwrap_or_default();
             let has_jellyfin = apps.iter().any(is_jellyfin_app);
             let has_plex = apps.iter().any(is_plex_app);
+            let jellyfin_configured = settings
+                .get("jellyfin_url")
+                .map(|s| !s.trim().is_empty())
+                .unwrap_or(false)
+                && settings
+                    .get("jellyfin_api_key")
+                    .map(|s| !s.trim().is_empty())
+                    .unwrap_or(false);
+            let plex_configured = settings
+                .get("plex_url")
+                .map(|s| !s.trim().is_empty())
+                .unwrap_or(false)
+                && settings
+                    .get("plex_token")
+                    .map(|s| !s.trim().is_empty())
+                    .unwrap_or(false);
+            let media_active =
+                (has_jellyfin && jellyfin_configured) || (has_plex && plex_configured);
+
+            if !media_active {
+                tokio::time::sleep(Duration::from_secs(300)).await;
+                continue;
+            }
 
             let jellyfin_fut = async {
                 if has_jellyfin {
@@ -278,7 +301,14 @@ pub(crate) fn start_media_poller(state: Arc<crate::models::AppState>) {
                 }
             }
 
-            tokio::time::sleep(Duration::from_secs(5)).await;
+            tokio::time::sleep(Duration::from_secs(crate::settings::setting_u64_bounded(
+                &settings,
+                "media_poll_interval_secs",
+                5,
+                3,
+                120,
+            )))
+            .await;
         }
     });
 }

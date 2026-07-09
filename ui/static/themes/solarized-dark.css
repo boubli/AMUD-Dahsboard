@@ -42,4 +42,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="solarized-dark"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="solarized-dark"] .metric-value { font-weight: 600; }
 [data-theme-id="solarized-dark"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="solarized-dark"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — solarized-dark */
+:root[data-theme="light"][data-theme-id="solarized-dark"] {
+    --theme-bg-fallback: #f2f8fc;
+    --theme-card-r: 7;
+    --theme-card-g: 54;
+    --theme-card-b: 66;
+    --bg-card: rgba(7, 54, 66, var(--glass-opacity));
+    --accent-color: #268bd2;
+    --accent-glow: rgba(38, 139, 210, 0.2);
+    --text-primary: #132c48;
+    --text-secondary: #3b547a;
+    --text-muted: #637ca2;
+    --border-card: rgba(38, 139, 210, 0.14);
+    --border-hover: #268bd2;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="solarized-dark"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

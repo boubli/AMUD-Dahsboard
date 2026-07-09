@@ -480,6 +480,7 @@ pub async fn run() {
         telemetry_broadcast: telemetry_broadcast.clone(),
         integration_cache: integration_cache.clone(),
         http_clients: http_clients.clone(),
+        ws_limited_clients: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
     });
 
     start_telemetry_broadcaster(state.clone());

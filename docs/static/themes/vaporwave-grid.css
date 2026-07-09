@@ -44,4 +44,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="vaporwave-grid"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="vaporwave-grid"] .metric-value { font-weight: 600; }
 [data-theme-id="vaporwave-grid"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="vaporwave-grid"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — vaporwave-grid */
+:root[data-theme="light"][data-theme-id="vaporwave-grid"] {
+    --theme-bg-fallback: #fff6fc;
+    --theme-card-r: 26;
+    --theme-card-g: 10;
+    --theme-card-b: 46;
+    --bg-card: rgba(26, 10, 46, var(--glass-opacity));
+    --accent-color: #ff71ce;
+    --accent-glow: rgba(255, 113, 206, 0.2);
+    --text-primary: #3a2748;
+    --text-secondary: #624f7a;
+    --text-muted: #8a77a2;
+    --border-card: rgba(255, 113, 206, 0.14);
+    --border-hover: #ff71ce;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="vaporwave-grid"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

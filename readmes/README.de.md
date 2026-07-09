@@ -10,19 +10,18 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme-Galerie](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Dokumentation](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Was ist neu in v1.7.6
+### Was ist neu in v1.7.7
 
-- **Speicher** — PVE/Docker-Client-Pooling im Agent + mimalloc; Server mit 2 Tokio-Workern, wiederverwendete Telemetrie-Buffer, begrenzte Webhook-Cooldowns
-- **Einstellungen** — Logo & Hintergrund unter Branding; Appearance-Layout-Fix; `{{app_logo}}`-Platzhalter behoben
-- **v1.7.5** — Container-RAM in MB/GB; Wetter unter Darstellung; Websuche; weniger Leerlauf-RAM auf dem Server
-- **v1.7.4** — Integrations-Auswahl; Ollama + Open WebUI
-- **v1.7.3** — Integrations-Dropdown (CSP-Nonce); Unraid-`su-exec: setgroups`-Follow-up
+- **Leistung** — konfigurierbare Poll-Intervalle; Agent mit selektivem Sysinfo und Docker/LXC-Caches
+- **Feeds** — Hintergrund-RSS-Polling abschalten und Feeds-Seite ausblenden (Quellen bleiben gespeichert)
+- **Hellmodus** — Paletten pro Theme; Einstellungs-Vorschau liest Theme-CSS-Variablen
+- **v1.7.6** — Speicheroptimierung (PVE/Docker-Pooling, mimalloc, Tokio)
 
 Vollständiger Verlauf: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Release-Status
 
-Aktuell empfohlen: **v1.7.6**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
+Aktuell empfohlen: **v1.7.7**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

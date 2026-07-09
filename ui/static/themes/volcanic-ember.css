@@ -41,4 +41,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="volcanic-ember"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="volcanic-ember"] .metric-value { font-weight: 600; }
 [data-theme-id="volcanic-ember"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="volcanic-ember"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — volcanic-ember */
+:root[data-theme="light"][data-theme-id="volcanic-ember"] {
+    --theme-bg-fallback: #fff7f1;
+    --theme-card-r: 40;
+    --theme-card-g: 16;
+    --theme-card-b: 12;
+    --bg-card: rgba(40, 16, 12, var(--glass-opacity));
+    --accent-color: #f97316;
+    --accent-glow: rgba(249, 115, 22, 0.2);
+    --text-primary: #392826;
+    --text-secondary: #615058;
+    --text-muted: #897880;
+    --border-card: rgba(249, 115, 22, 0.14);
+    --border-hover: #f97316;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="volcanic-ember"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

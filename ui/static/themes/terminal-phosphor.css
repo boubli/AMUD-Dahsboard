@@ -45,4 +45,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="terminal-phosphor"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="terminal-phosphor"] .metric-value { font-weight: 600; }
 [data-theme-id="terminal-phosphor"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="terminal-phosphor"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — terminal-phosphor */
+:root[data-theme="light"][data-theme-id="terminal-phosphor"] {
+    --theme-bg-fallback: #f3fff6;
+    --theme-card-r: 4;
+    --theme-card-g: 18;
+    --theme-card-b: 8;
+    --bg-card: rgba(4, 18, 8, var(--glass-opacity));
+    --accent-color: #28c750;
+    --accent-glow: rgba(51, 255, 102, 0.2);
+    --text-primary: #154135;
+    --text-secondary: #3d6967;
+    --text-muted: #65918f;
+    --border-card: rgba(51, 255, 102, 0.14);
+    --border-hover: #28c750;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="terminal-phosphor"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

@@ -10,19 +10,18 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.6 の新機能
+### v1.7.7 の新機能
 
-- **メモリ** — エージェントの PVE/Docker クライアントプール + mimalloc；サーバーは Tokio 2 ワーカー、テレメトリバッファ再利用、Webhook クールダウン上限
-- **設定** — ロゴと壁紙を Branding に集約；外観レイアウト修正；`{{app_logo}}` プレースホルダー修正
-- **v1.7.5** — コンテナ RAM を MB/GB 表示；天気を外観へ；ウェブ検索；サーバーアイドル時の RAM 削減
-- **v1.7.4** — 統合ピッカー；Ollama + Open WebUI
-- **v1.7.3** — 統合ドロップダウン（CSP nonce）；Unraid `su-exec: setgroups` フォローアップ
+- **パフォーマンス** — 設定可能なポーリング間隔；エージェントの選択的 sysinfo と Docker/LXC キャッシュ
+- **Feeds** — バックグラウンド RSS ポーリングを無効化し Feeds ページを非表示（ソースは DB に保持）
+- **ライトモード** — テーマごとのパレット；設定プレビューがテーマ CSS 変数を参照
+- **v1.7.6** — メモリ最適化（PVE/Docker プール、mimalloc、Tokio）
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### リリース状況
 
-推奨バージョン: **v1.7.6**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.7.7**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

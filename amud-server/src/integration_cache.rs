@@ -27,23 +27,68 @@ struct CacheInner {
 
 pub struct IntegrationCache {
     inner: RwLock<CacheInner>,
+    limits: RwLock<CacheLimits>,
+    flights: AsyncMutex<HashMap<i64, Arc<Notify>>>,
+}
+
+#[derive(Clone)]
+struct CacheLimits {
     max_entries: usize,
     default_ttl: Duration,
-    flights: AsyncMutex<HashMap<i64, Arc<Notify>>>,
+}
+
+impl Default for CacheLimits {
+    fn default() -> Self {
+        Self {
+            max_entries: 256,
+            default_ttl: Duration::from_secs(45),
+        }
+    }
 }
 
 impl IntegrationCache {
     pub fn new(max_entries: usize, default_ttl_secs: u64) -> Self {
         Self {
             inner: RwLock::new(CacheInner::default()),
-            max_entries: max_entries.max(1),
-            default_ttl: Duration::from_secs(default_ttl_secs.max(5)),
+            limits: RwLock::new(CacheLimits {
+                max_entries: max_entries.max(1),
+                default_ttl: Duration::from_secs(default_ttl_secs.max(5)),
+            }),
             flights: AsyncMutex::new(HashMap::new()),
         }
     }
 
+    pub fn set_limits(&self, max_entries: usize, default_ttl_secs: u64) {
+        let mut limits = self.limits.write().unwrap();
+        limits.max_entries = max_entries.max(1);
+        limits.default_ttl = Duration::from_secs(default_ttl_secs.max(5));
+        let max = limits.max_entries;
+        drop(limits);
+        let mut inner = self.inner.write().unwrap();
+        while inner.entries.len() > max {
+            if let Some(oldest) = inner.access_order.first().copied() {
+                inner.access_order.remove(0);
+                inner.entries.remove(&oldest);
+            } else {
+                break;
+            }
+        }
+    }
+
+    pub fn invalidate_many(&self, app_ids: &[i64]) {
+        let mut inner = self.inner.write().unwrap();
+        for id in app_ids {
+            inner.entries.remove(id);
+            inner.access_order.retain(|x| x != id);
+        }
+    }
+
+    fn limits(&self) -> CacheLimits {
+        self.limits.read().unwrap().clone()
+    }
+
     pub fn default_ttl(&self) -> Duration {
-        self.default_ttl
+        self.limits().default_ttl
     }
 
     pub fn get(&self, app_id: i64) -> Option<Value> {
@@ -67,7 +112,7 @@ impl IntegrationCache {
                 ttl,
             },
         );
-        while inner.entries.len() > self.max_entries {
+        while inner.entries.len() > self.limits().max_entries {
             if let Some(oldest) = inner.access_order.first().copied() {
                 inner.access_order.remove(0);
                 inner.entries.remove(&oldest);
@@ -172,5 +217,16 @@ mod tests {
         assert!(cache.get(1).is_none());
         assert!(cache.get(2).is_some());
         assert!(cache.get(3).is_some());
+    }
+
+    #[test]
+    fn set_limits_shrinks_entries() {
+        let cache = IntegrationCache::new(8, 60);
+        for id in 1..=5 {
+            cache.insert(id, json!(id), Duration::from_secs(60));
+        }
+        cache.set_limits(2, 90);
+        assert_eq!(cache.len(), 2);
+        assert_eq!(cache.default_ttl(), Duration::from_secs(90));
     }
 }

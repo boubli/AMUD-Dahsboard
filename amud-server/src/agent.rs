@@ -272,14 +272,22 @@ pub(crate) fn agent_config_payload(
         .or_else(|| settings.get("pve_api_token").map(String::as_str))
         .unwrap_or("");
     let configured = !token.is_empty();
+    let enable_proxmox = settings
+        .get("enable_proxmox")
+        .map(|s| s.as_str())
+        .unwrap_or("1");
     serde_json::json!({
         "config": {
             "pve_api_token_configured": configured,
             "pve_api_token": token,
+            "enable_proxmox": enable_proxmox,
             "telemetry_external_ifaces": settings.get("telemetry_external_ifaces").cloned().unwrap_or_default(),
             "telemetry_internal_ifaces": settings.get("telemetry_internal_ifaces").cloned().unwrap_or_default(),
             "telemetry_disk_mounts": settings.get("telemetry_disk_mounts").cloned().unwrap_or_default(),
             "agent_node_tag": settings.get("agent_node_tag").cloned().unwrap_or_else(|| "Local".into()),
+            "agent_telemetry_interval_secs": settings.get("agent_telemetry_interval_secs").cloned().unwrap_or_else(|| "5".into()),
+            "agent_lxc_poll_interval_secs": settings.get("agent_lxc_poll_interval_secs").cloned().unwrap_or_else(|| "10".into()),
+            "agent_docker_poll_interval_secs": settings.get("agent_docker_poll_interval_secs").cloned().unwrap_or_else(|| "10".into()),
         }
     })
 }

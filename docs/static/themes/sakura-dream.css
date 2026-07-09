@@ -40,4 +40,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="sakura-dream"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="sakura-dream"] .metric-value { font-weight: 600; }
 [data-theme-id="sakura-dream"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="sakura-dream"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — sakura-dream */
+:root[data-theme="light"][data-theme-id="sakura-dream"] {
+    --theme-bg-fallback: #fffafc;
+    --theme-card-r: 48;
+    --theme-card-g: 32;
+    --theme-card-b: 44;
+    --bg-card: rgba(48, 32, 44, var(--glass-opacity));
+    --accent-color: #f9a8d4;
+    --accent-glow: rgba(249, 168, 212, 0.2);
+    --text-primary: #393149;
+    --text-secondary: #61597b;
+    --text-muted: #8981a3;
+    --border-card: rgba(249, 168, 212, 0.14);
+    --border-hover: #f9a8d4;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="sakura-dream"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+

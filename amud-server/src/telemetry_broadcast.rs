@@ -81,6 +81,14 @@ impl WsTelemetryBundle {
     }
 
     pub(crate) fn from_state(state: &AppState) -> Self {
+        let build_guest = state
+            .ws_limited_clients
+            .load(std::sync::atomic::Ordering::Relaxed)
+            > 0;
+        Self::from_state_inner(state, build_guest)
+    }
+
+    fn from_state_inner(state: &AppState, build_guest: bool) -> Self {
         let system = read_rwlock(&state.latest_telemetry);
         let streams = read_rwlock(&state.media_streams);
         let app_statuses = read_rwlock(&state.app_statuses);
@@ -119,6 +127,15 @@ impl WsTelemetryBundle {
             agent_connected,
             smart_home: Some(smart_home),
         };
+
+        if !build_guest {
+            let mut buf = String::with_capacity(8192);
+            return Self {
+                full: Self::encode_payload(&full, &mut buf),
+                guest_public: Arc::from("{}"),
+                guest_redacted: Arc::from("{}"),
+            };
+        }
 
         let guest_public = FullTelemetry {
             system: guest_system,
@@ -170,9 +187,18 @@ pub(crate) fn new_telemetry_broadcast() -> watch::Sender<Arc<WsTelemetryBundle>>
 
 pub(crate) fn start_telemetry_broadcaster(state: Arc<AppState>) {
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_secs(3));
         loop {
-            interval.tick().await;
+            let interval_secs = {
+                let settings = state.settings_cache.read().unwrap();
+                crate::settings::setting_u64_bounded(
+                    &settings,
+                    "telemetry_broadcast_interval_secs",
+                    5,
+                    3,
+                    60,
+                )
+            };
+            tokio::time::sleep(Duration::from_secs(interval_secs)).await;
             if state.telemetry_broadcast.receiver_count() == 0 {
                 continue;
             }
@@ -229,6 +255,7 @@ mod tests {
             telemetry_broadcast: new_telemetry_broadcast(),
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
             http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
+            ws_limited_clients: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
         }
     }
 
@@ -258,7 +285,11 @@ mod tests {
             },
         );
 
-        let bundle = WsTelemetryBundle::from_state(&test_state(statuses));
+        let state = test_state(statuses);
+        state
+            .ws_limited_clients
+            .store(1, std::sync::atomic::Ordering::Relaxed);
+        let bundle = WsTelemetryBundle::from_state(&state);
         let guest: serde_json::Value =
             serde_json::from_str(&bundle.guest_redacted).expect("telemetry json");
 
@@ -281,7 +312,11 @@ mod tests {
 
     #[test]
     fn guest_public_keeps_basic_system_metrics_and_sanitized_containers() {
-        let bundle = WsTelemetryBundle::from_state(&test_state(HashMap::new()));
+        let state = test_state(HashMap::new());
+        state
+            .ws_limited_clients
+            .store(1, std::sync::atomic::Ordering::Relaxed);
+        let bundle = WsTelemetryBundle::from_state(&state);
         let guest: serde_json::Value =
             serde_json::from_str(&bundle.guest_public).expect("telemetry json");
 

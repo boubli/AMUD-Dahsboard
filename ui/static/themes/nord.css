@@ -42,4 +42,30 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 [data-theme-id="nord"] .app-card:hover { border-color: var(--border-hover); }
 [data-theme-id="nord"] .metric-value { font-weight: 600; }
 [data-theme-id="nord"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
-:root[data-theme="light"] [data-theme-id="nord"] .glass-panel { filter: brightness(1.05); }
+/* AMUD light mode — nord */
+:root[data-theme="light"][data-theme-id="nord"] {
+    --theme-bg-fallback: #f8fbfc;
+    --theme-card-r: 46;
+    --theme-card-g: 52;
+    --theme-card-b: 64;
+    --bg-card: rgba(46, 52, 64, var(--glass-opacity));
+    --accent-color: #88c0d0;
+    --accent-glow: rgba(136, 192, 208, 0.2);
+    --text-primary: #253548;
+    --text-secondary: #4d5d7a;
+    --text-muted: #7585a2;
+    --border-card: rgba(136, 192, 208, 0.14);
+    --border-hover: #88c0d0;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="nord"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */
+
