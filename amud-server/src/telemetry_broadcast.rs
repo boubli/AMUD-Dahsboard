@@ -49,23 +49,34 @@ fn sanitize_containers_for_guest(containers: &[LxcContainer]) -> Vec<LxcContaine
 impl Default for WsTelemetryBundle {
     fn default() -> Self {
         let empty = empty_full_telemetry();
-        Self::from_payloads(&empty, &empty, &empty)
+        let mut buf = String::new();
+        Self::from_payloads(&empty, &empty, &empty, &mut buf)
     }
 }
 
 impl WsTelemetryBundle {
+    fn encode_payload(payload: &FullTelemetry, buf: &mut String) -> Arc<str> {
+        buf.clear();
+        // SAFETY: serde_json writes valid UTF-8 JSON into the string buffer.
+        let bytes = unsafe { buf.as_mut_vec() };
+        bytes.clear();
+        if serde_json::to_writer(bytes, payload).is_err() {
+            buf.clear();
+            buf.push_str("{}");
+        }
+        Arc::from(buf.as_str())
+    }
+
     fn from_payloads(
         full: &FullTelemetry,
         guest_public: &FullTelemetry,
         guest_redacted: &FullTelemetry,
+        buf: &mut String,
     ) -> Self {
-        fn encode(payload: &FullTelemetry) -> Arc<str> {
-            Arc::from(serde_json::to_string(payload).unwrap_or_else(|_| "{}".to_string()))
-        }
         Self {
-            full: encode(full),
-            guest_public: encode(guest_public),
-            guest_redacted: encode(guest_redacted),
+            full: Self::encode_payload(full, buf),
+            guest_public: Self::encode_payload(guest_public, buf),
+            guest_redacted: Self::encode_payload(guest_redacted, buf),
         }
     }
 
@@ -96,8 +107,9 @@ impl WsTelemetryBundle {
             })
             .collect();
 
+        let guest_containers = sanitize_containers_for_guest(&system.lxc_containers);
         let mut guest_system = system.clone();
-        guest_system.lxc_containers = sanitize_containers_for_guest(&system.lxc_containers);
+        guest_system.lxc_containers = guest_containers.clone();
 
         let full = FullTelemetry {
             system,
@@ -109,7 +121,7 @@ impl WsTelemetryBundle {
         };
 
         let guest_public = FullTelemetry {
-            system: guest_system.clone(),
+            system: guest_system,
             network,
             streams: HashMap::new(),
             app_statuses: guest_app_statuses.clone(),
@@ -119,7 +131,7 @@ impl WsTelemetryBundle {
 
         let guest_redacted = FullTelemetry {
             system: AgentTelemetry {
-                lxc_containers: guest_system.lxc_containers,
+                lxc_containers: guest_containers,
                 ..Default::default()
             },
             network: NetworkTelemetry::default(),
@@ -129,7 +141,8 @@ impl WsTelemetryBundle {
             smart_home: None,
         };
 
-        Self::from_payloads(&full, &guest_public, &guest_redacted)
+        let mut buf = String::with_capacity(8192);
+        Self::from_payloads(&full, &guest_public, &guest_redacted, &mut buf)
     }
 }
 

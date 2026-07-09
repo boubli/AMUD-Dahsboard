@@ -179,7 +179,7 @@
         }
 
         .settings-content-wrapper {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
@@ -561,12 +561,48 @@
                                 <input type="text" id="setting-tagline" name="tagline" class="form-control" value="{{tagline}}" placeholder="Homelab Operations Cockpit">
                             </div>
                         </div>
+
+                        <div class="branding-visual-grid">
+                            <div class="settings-block" style="margin:0;">
+                                <h3><i data-lucide="image" style="color:var(--accent-color);"></i> Logo</h3>
+                                <div class="form-group" style="margin:0;">
+                                    <label for="setting-app-logo">Dashboard Logo (URL or Upload)</label>
+                                    <input type="text" id="setting-app-logo" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
+                                    <p class="form-help">Favicon, Apple touch icon, and PWA install icon.</p>
+                                    <div class="upload-zone upload-zone--compact" @click="$refs.logoFileInput.click()">
+                                        <label for="setting-logo-file" class="visually-hidden">Upload logo image</label>
+                                        <input type="file" id="setting-logo-file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
+                                        <i data-lucide="upload-cloud"></i>
+                                        <span>Select logo image</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-block" style="margin:0;">
+                                <h3><i data-lucide="image" style="color:var(--accent-color);"></i> Wallpaper</h3>
+                                <div class="form-group" style="margin:0;">
+                                    <label for="setting-custom-bg-url">Background image (URL or Upload)</label>
+                                    <input type="text" id="setting-custom-bg-url" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="/static/wallpaper.png">
+                                    <div class="upload-zone upload-zone--compact" @click="$refs.bgFileInput.click()">
+                                        <label for="setting-bg-file" class="visually-hidden">Upload wallpaper image</label>
+                                        <input type="file" id="setting-bg-file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
+                                        <i data-lucide="upload-cloud"></i>
+                                        <span>Select wallpaper image</span>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-top:1rem; margin-bottom:0;">
+                                    <label for="setting-wallpaper-overlay">Wallpaper overlay strength</label>
+                                    <input type="range" id="setting-wallpaper-overlay" name="wallpaper_overlay_strength" min="0" max="1" step="0.05" value="{{wallpaper_overlay_strength}}" class="form-control" style="accent-color:var(--accent-color);">
+                                    <p class="form-help">Tint over your wallpaper. Use 0 for a clear background. Procedural themes ignore custom wallpaper URLs.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- TAB: APPEARANCE -->
                     <div id="appearance-settings-panel" x-show="activeTab === 'appearance'" x-transition.opacity style="display:none;">
                         <h1 class="settings-page-title">Appearance</h1>
-                        <p class="settings-page-subtitle">Use quick controls for branding and layout, or paste CSS from the Theme Gallery for a full visual overhaul.</p>
+                        <p class="settings-page-subtitle">Colors, glass effects, layout density, bundled themes, and custom CSS. Branding (name, logo, wallpaper) lives in the Branding tab.</p>
 
                         <div class="appearance-layout">
                             <section class="settings-block appearance-preview-section">
@@ -625,60 +661,35 @@
                             </section>
 
                             <div class="appearance-settings-grid">
-                                <div class="settings-block" style="margin:0;">
-                                    <h3><i data-lucide="image" style="color:var(--accent-color);"></i> Wallpaper & Logos</h3>
-                                    <div class="form-group">
-                                        <label for="setting-custom-bg-url">Wallpaper Background (URL or Upload)</label>
-                                        <input type="text" id="setting-custom-bg-url" name="custom_bg_url" x-ref="bgInputText" class="form-control" value="{{custom_bg_url}}" placeholder="/static/wallpaper.png">
-                                        <div class="upload-zone" @click="$refs.bgFileInput.click()" style="margin-top:0.5rem;">
-                                            <label for="setting-bg-file" class="visually-hidden">Upload wallpaper image</label>
-                                            <input type="file" id="setting-bg-file" x-ref="bgFileInput" style="display:none;" @change="handleFileUpload($event, 'bg')">
-                                            <i data-lucide="upload-cloud"></i>
-                                            <span>Select wallpaper image</span>
-                                        </div>
-                                    </div>
-                                    <div class="form-group" style="margin-top:1.5rem;">
-                                        <label for="setting-app-logo">Dashboard Logo (URL or Upload)</label>
-                                        <input type="text" id="setting-app-logo" name="app_logo" x-ref="logoInputText" class="form-control" value="{{app_logo}}" placeholder="/static/logo.svg">
-                                        <p class="form-help" style="margin-top:0.35rem;">Also used for browser favicon, Apple touch icon, and PWA install icon.</p>
-                                        <div class="upload-zone" @click="$refs.logoFileInput.click()" style="margin-top:0.5rem;">
-                                            <label for="setting-logo-file" class="visually-hidden">Upload logo image</label>
-                                            <input type="file" id="setting-logo-file" x-ref="logoFileInput" style="display:none;" @change="handleFileUpload($event, 'logo')">
-                                            <i data-lucide="upload-cloud"></i>
-                                            <span>Select logo image</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="settings-block" style="margin:0;">
+                                <div class="settings-block settings-block--pair" style="margin:0;">
                                     <h3><i data-lucide="palette" style="color:var(--accent-color);"></i> Quick Colors</h3>
-                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                        <div class="form-group">
+                                    <div class="appearance-pair-row">
+                                        <div class="form-group" style="margin:0;">
                                             <label for="setting-accent-color">Accent Color</label>
                                             <input type="color" id="setting-accent-color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
                                         </div>
-                                        <div class="form-group">
+                                        <div class="form-group" style="margin:0;">
                                             <label for="theme-mode-select">Theme Mode</label>
                                             <select name="theme_mode" id="theme-mode-select" class="form-control" style="height:3rem; cursor:pointer;">
                                                 <option value="dark" {{eq_theme_dark}}>Dark Mode</option>
                                                 <option value="light" {{eq_theme_light}}>Light Mode</option>
                                             </select>
-                                            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Used when the scheduler is off, or as fallback when sunrise times cannot be resolved.</p>
+                                            <p class="form-help">Fallback when the scheduler is off or sunrise times are unavailable.</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="settings-block" style="margin:0;">
+                                <div class="settings-block settings-block--pair" style="margin:0;">
                                     <h3><i data-lucide="sun-moon" style="color:var(--accent-color);"></i> Theme Scheduler</h3>
-                                    <div class="form-group">
+                                    <div class="form-group" style="margin:0;">
                                         <label for="theme-scheduler-select">Automatic light / dark</label>
                                         <select name="theme_scheduler" id="theme-scheduler-select" class="form-control" style="height:3rem; cursor:pointer;">
                                             <option value="off" {{eq_theme_scheduler_off}}>Off — use fixed theme mode</option>
-                                            <option value="sunrise_sunset" {{eq_theme_scheduler_sunrise}}>Sunrise / sunset (coordinates below)</option>
+                                            <option value="sunrise_sunset" {{eq_theme_scheduler_sunrise}}>Sunrise / sunset (weather coordinates)</option>
                                             <option value="manual" {{eq_theme_scheduler_manual}}>Manual schedule</option>
                                         </select>
                                     </div>
-                                    <div id="theme-scheduler-manual-fields" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                                    <div id="theme-scheduler-manual-fields" class="appearance-pair-row" style="margin-top: 1rem;">
                                         <div class="form-group" style="margin:0;">
                                             <label for="theme-light-at">Switch to light at</label>
                                             <input type="time" id="theme-light-at" name="theme_light_at" class="form-control" value="{{theme_light_at}}" style="height:3rem;">
@@ -688,13 +699,13 @@
                                             <input type="time" id="theme-dark-at" name="theme_dark_at" class="form-control" value="{{theme_dark_at}}" style="height:3rem;">
                                         </div>
                                     </div>
-                                    <p id="theme-scheduler-hint" style="font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">Sunrise/sunset mode uses the latitude and longitude from Geolocation below.</p>
+                                    <p id="theme-scheduler-hint" class="form-help" style="margin-top:0.75rem; margin-bottom:0;">Sunrise/sunset uses latitude and longitude from the Weather section below.</p>
                                 </div>
 
-                                <div class="settings-block" style="margin:0;">
+                                <div class="settings-block settings-block--full" style="margin:0;">
                                     <h3><i data-lucide="cloud-sun" style="color:var(--accent-color);"></i> Weather</h3>
-                                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Configure location and units for the dashboard weather widget. Leave coordinates blank to auto-detect via IP geolocation.</p>
-                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <p class="form-help" style="margin-bottom:1rem;">Location and units for the dashboard weather widget. Leave coordinates blank for IP geolocation.</p>
+                                    <div class="appearance-pair-row appearance-pair-row--triple">
                                         <div class="form-group" style="margin:0;">
                                             <label for="setting-weather-latitude">Latitude</label>
                                             <input type="text" id="setting-weather-latitude" name="weather_latitude" class="form-control" value="{{weather_latitude}}" placeholder="e.g. 33.5731">
@@ -703,56 +714,55 @@
                                             <label for="setting-weather-longitude">Longitude</label>
                                             <input type="text" id="setting-weather-longitude" name="weather_longitude" class="form-control" value="{{weather_longitude}}" placeholder="e.g. -7.5898">
                                         </div>
-                                    </div>
-                                    <div class="form-group" style="margin-top:1rem; margin-bottom:0;">
-                                        <label for="setting-weather-temp-unit">Temperature unit</label>
-                                        <select id="setting-weather-temp-unit" name="weather_temp_unit" class="form-control" style="height:3rem; cursor:pointer;">
-                                            <option value="celsius" {{eq_weather_temp_celsius}}>Celsius (°C)</option>
-                                            <option value="fahrenheit" {{eq_weather_temp_fahrenheit}}>Fahrenheit (°F)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="settings-block" style="margin:0;">
-                                    <h3><i data-lucide="sliders" style="color:var(--accent-color);"></i> Glass & Layout Parameters</h3>
-                                    <div class="form-group">
-                                        <label for="setting-bento-radius">Corner Bento Radius (px)</label>
-                                        <input type="range" id="setting-bento-radius" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
-                                    </div>
-                                    <div class="form-group" style="margin-top:1.5rem;">
-                                        <label for="setting-grid-columns">Dashboard App Columns</label>
-                                        <select id="setting-grid-columns" name="grid_columns" class="form-control">
-                                            <option value="2" {{eq_grid_2}}>2 columns</option>
-                                            <option value="3" {{eq_grid_3}}>3 columns</option>
-                                            <option value="4" {{eq_grid_4}}>4 columns</option>
-                                            <option value="5" {{eq_grid_5}}>5 columns</option>
-                                        </select>
-                                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Controls the main app card grid on desktop screens.</p>
-                                    </div>
-                                    <div class="form-group" style="margin-top:1.5rem;">
-                                        <label for="setting-dashboard-layout">Category navigation</label>
-                                        <select id="setting-dashboard-layout" name="dashboard_layout" class="form-control">
-                                            <option value="tabs" {{eq_dashboard_layout_tabs}}>Horizontal tabs</option>
-                                            <option value="sections" {{eq_dashboard_layout_sections}}>Collapsible sections</option>
-                                        </select>
-                                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">How categories are shown on the main dashboard.</p>
-                                    </div>
-                                    <div class="form-group" style="margin-top:1.5rem;">
-                                        <label for="setting-wallpaper-overlay">Wallpaper overlay strength</label>
-                                        <input type="range" id="setting-wallpaper-overlay" name="wallpaper_overlay_strength" min="0" max="1" step="0.05" value="{{wallpaper_overlay_strength}}" class="form-control" style="accent-color:var(--accent-color);">
-                                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Tint over your wallpaper. Set to 0 for a clear background (default AMUD look). Procedural themes ignore custom wallpaper URLs.</p>
-                                    </div>
-                                    <div class="form-group" style="margin-top:1.5rem;">
-                                        <label for="setting-glass-opacity">Glass Panel Opacity</label>
-                                        <input type="range" id="setting-glass-opacity" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
-                                    </div>
-                                    <div class="form-group" style="margin-top:1.5rem;">
-                                        <label for="setting-glass-blur">Glass Blur Strength (px)</label>
-                                        <input type="range" id="setting-glass-blur" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-weather-temp-unit">Temperature unit</label>
+                                            <select id="setting-weather-temp-unit" name="weather_temp_unit" class="form-control" style="height:3rem; cursor:pointer;">
+                                                <option value="celsius" {{eq_weather_temp_celsius}}>Celsius (°C)</option>
+                                                <option value="fahrenheit" {{eq_weather_temp_fahrenheit}}>Fahrenheit (°F)</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="settings-block" style="margin:0; grid-column: 1 / -1;">
+                                <div class="settings-block settings-block--full" style="margin:0;">
+                                    <h3><i data-lucide="sliders" style="color:var(--accent-color);"></i> Glass &amp; Layout</h3>
+                                    <div class="appearance-pair-row appearance-pair-row--triple">
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-bento-radius">Corner radius (px)</label>
+                                            <input type="range" id="setting-bento-radius" name="bento_radius" min="8" max="32" value="{{bento_radius}}" class="form-control" style="accent-color:var(--accent-color);">
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-glass-opacity">Glass opacity</label>
+                                            <input type="range" id="setting-glass-opacity" name="glass_opacity" min="0.1" max="0.95" step="0.05" value="{{glass_opacity}}" class="form-control" style="accent-color:var(--accent-color);">
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-glass-blur">Glass blur (px)</label>
+                                            <input type="range" id="setting-glass-blur" name="glass_blur_intensity" min="0" max="32" value="{{glass_blur_intensity}}" class="form-control" style="accent-color:var(--accent-color);">
+                                        </div>
+                                    </div>
+                                    <div class="appearance-pair-row" style="margin-top:1rem;">
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-grid-columns">Dashboard app columns</label>
+                                            <select id="setting-grid-columns" name="grid_columns" class="form-control">
+                                                <option value="2" {{eq_grid_2}}>2 columns</option>
+                                                <option value="3" {{eq_grid_3}}>3 columns</option>
+                                                <option value="4" {{eq_grid_4}}>4 columns</option>
+                                                <option value="5" {{eq_grid_5}}>5 columns</option>
+                                            </select>
+                                            <p class="form-help">Main app card grid on desktop.</p>
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-dashboard-layout">Category navigation</label>
+                                            <select id="setting-dashboard-layout" name="dashboard_layout" class="form-control">
+                                                <option value="tabs" {{eq_dashboard_layout_tabs}}>Horizontal tabs</option>
+                                                <option value="sections" {{eq_dashboard_layout_sections}}>Collapsible sections</option>
+                                            </select>
+                                            <p class="form-help">How categories appear on the dashboard.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-block settings-block--full" style="margin:0;">
                                     <h3><i data-lucide="layout-grid" style="color:var(--accent-color);"></i> Theme Gallery</h3>
                                     <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
                                         Click a theme to preview CSS and matching wallpaper instantly.
@@ -775,7 +785,7 @@
                                     </div>
                                 </div>
 
-                                <div class="settings-block" style="margin:0; grid-column: 1 / -1;">
+                                <div class="settings-block settings-block--full" style="margin:0;">
                                     <h3><i data-lucide="code" style="color:var(--accent-color);"></i> Custom CSS</h3>
                                     <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
                                         Advanced overrides — edit CSS directly or paste from the gallery. Theme picker above loads bundled CSS here.

@@ -16,7 +16,6 @@ pub use tier2::*;
 
 use reqwest::Client;
 use serde_json::Value;
-use std::time::Duration;
 
 pub(crate) fn parse_pipe_credential(raw: &str) -> Option<(&str, &str)> {
     let trimmed = raw.trim();
@@ -129,13 +128,8 @@ pub(crate) async fn post_json(
     }
 }
 
-pub fn build_homelab_client(accept_invalid_certs: bool) -> Client {
-    Client::builder()
-        .timeout(Duration::from_secs(8))
-        .danger_accept_invalid_certs(accept_invalid_certs)
-        .cookie_store(true)
-        .build()
-        .unwrap_or_else(|_| Client::new())
+pub fn build_homelab_client(clients: &crate::http_client::SharedHttpClients) -> Client {
+    clients.homelab.clone()
 }
 
 #[cfg(test)]

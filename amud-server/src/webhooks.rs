@@ -13,6 +13,24 @@ pub(crate) const WEBHOOK_EVENT_TYPES: &[&str] = &[
     "agent_disconnected",
 ];
 
+const ALERT_COOLDOWN_SECS: u64 = 60;
+const MAX_ALERT_COOLDOWN_KEYS: usize = 512;
+
+fn prune_alert_cooldowns(cooldowns: &mut HashMap<String, Instant>) {
+    let window = Duration::from_secs(ALERT_COOLDOWN_SECS);
+    cooldowns.retain(|_, last| last.elapsed() < window);
+    if cooldowns.len() <= MAX_ALERT_COOLDOWN_KEYS {
+        return;
+    }
+    let mut entries: Vec<(String, Instant)> =
+        cooldowns.iter().map(|(k, v)| (k.clone(), *v)).collect();
+    entries.sort_by_key(|(_, instant)| *instant);
+    let drop_count = entries.len().saturating_sub(MAX_ALERT_COOLDOWN_KEYS);
+    for (key, _) in entries.into_iter().take(drop_count) {
+        cooldowns.remove(&key);
+    }
+}
+
 pub(crate) fn normalize_webhook_event_types(raw: &str) -> Option<String> {
     let events: Vec<&str> = raw
         .split(',')
@@ -89,6 +107,7 @@ pub(crate) fn start_status_poller(state: Arc<AppState>) {
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn send_webhook_notification(
+    client: &reqwest::Client,
     url: String,
     name: String,
     event_type: &str,
@@ -96,7 +115,6 @@ pub(crate) async fn send_webhook_notification(
     vmid: i64,
     status: &str,
     provider: &str,
-    accept_invalid_certs: bool,
     allow_private_ips: bool,
 ) -> bool {
     if !url_allowed_for_webhook(&url, allow_private_ips) {
@@ -104,12 +122,6 @@ pub(crate) async fn send_webhook_notification(
         return false;
     }
 
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(10))
-        .redirect(reqwest::redirect::Policy::none())
-        .danger_accept_invalid_certs(accept_invalid_certs)
-        .build()
-        .unwrap_or_else(|_| reqwest::Client::new());
     let is_discord = url.contains("discord.com/api/webhooks/");
     let is_telegram = url.contains("api.telegram.org/bot");
 
@@ -285,12 +297,13 @@ pub(crate) fn check_container_alerts(
             {
                 let mut cooldowns = state.alert_cooldowns.lock().unwrap();
                 if let Some(&last_alert) = cooldowns.get(&cooldown_key) {
-                    if last_alert.elapsed() < Duration::from_secs(60) {
+                    if last_alert.elapsed() < Duration::from_secs(ALERT_COOLDOWN_SECS) {
                         println!("Alert for {} is suppressed due to cooldown", cooldown_key);
                         continue;
                     }
                 }
-                cooldowns.insert(cooldown_key.clone(), std::time::Instant::now());
+                cooldowns.insert(cooldown_key.clone(), Instant::now());
+                prune_alert_cooldowns(&mut cooldowns);
             }
 
             alert_jobs.push((
@@ -319,11 +332,12 @@ pub(crate) fn check_container_alerts(
             {
                 let mut cooldowns = state.alert_cooldowns.lock().unwrap();
                 if let Some(&last_alert) = cooldowns.get(&cooldown_key) {
-                    if last_alert.elapsed() < Duration::from_secs(60) {
+                    if last_alert.elapsed() < Duration::from_secs(ALERT_COOLDOWN_SECS) {
                         continue;
                     }
                 }
-                cooldowns.insert(cooldown_key, std::time::Instant::now());
+                cooldowns.insert(cooldown_key, Instant::now());
+                prune_alert_cooldowns(&mut cooldowns);
             }
             alert_jobs.push((
                 "container_stopped".to_string(),
@@ -357,6 +371,8 @@ pub(crate) fn check_container_alerts(
                 .unwrap_or(false)
         };
         let webhooks = crate::db::with_db(state.db.clone(), crate::db::load_active_webhooks).await;
+        let http_client =
+            crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
         for (event_type, container_name, vmid, status_str, provider_str, _) in alert_jobs {
             for wh in &webhooks {
                 let subscribed = wh.event_types.split(',').any(|e| e.trim() == event_type);
@@ -369,8 +385,10 @@ pub(crate) fn check_container_alerts(
                 let container_name = container_name.clone();
                 let status_str = status_str.clone();
                 let provider_str = provider_str.clone();
+                let client = http_client.clone();
                 tokio::spawn(async move {
                     send_webhook_notification(
+                        &client,
                         url,
                         name,
                         &event,
@@ -378,7 +396,6 @@ pub(crate) fn check_container_alerts(
                         vmid,
                         &status_str,
                         &provider_str,
-                        accept_invalid,
                         allow_private,
                     )
                     .await;

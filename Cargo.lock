@@ -43,6 +43,7 @@ dependencies = [
  "hyper-rustls",
  "hyper-util",
  "hyperlocal",
+ "mimalloc",
  "rustls",
  "serde",
  "serde_json",

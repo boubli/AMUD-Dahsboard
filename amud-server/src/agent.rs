@@ -77,13 +77,17 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
                 load_active_webhooks_for_event(db, &event_filter)
             })
             .await;
+            let http_client =
+                crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
             for wh in webhooks {
                 let url = wh.url;
                 let name = wh.name;
                 let event = event.clone();
                 let status_str = status_str.clone();
+                let client = http_client.clone();
                 tokio::spawn(async move {
                     send_webhook_notification(
+                        &client,
                         url,
                         name,
                         &event,
@@ -91,7 +95,6 @@ pub(crate) fn handle_agent_connection_change(state: &Arc<AppState>, connected: b
                         0,
                         &status_str,
                         "System",
-                        accept_invalid,
                         allow_private,
                     )
                     .await;

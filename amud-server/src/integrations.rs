@@ -379,19 +379,9 @@ async fn fetch_whisparr_arr(client: &reqwest::Client, base_url: &str, key: &str)
     }))
 }
 
-use std::time::Duration;
-
 const RSS_MAX_RESPONSE_BYTES: usize = 2 * 1024 * 1024;
 const RSS_MAX_ENTRIES: usize = 3;
 const RSS_MAX_TITLE_LEN: usize = 200;
-
-fn build_client(accept_invalid_certs: bool) -> reqwest::Client {
-    reqwest::Client::builder()
-        .timeout(Duration::from_secs(5))
-        .danger_accept_invalid_certs(accept_invalid_certs)
-        .build()
-        .unwrap_or_else(|_| reqwest::Client::new())
-}
 
 fn truncate_title(title: &str) -> String {
     if title.chars().count() <= RSS_MAX_TITLE_LEN {
@@ -654,7 +644,7 @@ pub async fn fetch_integration_data_uncached(
             return fetch_peanut(&client, base_url, &app.api_key).await;
         }
         "qbittorrent" => {
-            return fetch_qbittorrent(accept_invalid_certs, base_url, &app.api_key).await;
+            return fetch_qbittorrent(clients, base_url, &app.api_key).await;
         }
         "bazarr" => {
             return fetch_bazarr(&client, base_url, &app.api_key).await;
@@ -662,7 +652,7 @@ pub async fn fetch_integration_data_uncached(
         "sabnzbd" => return fetch_sabnzbd(&client, base_url, &app.api_key).await,
         "nzbget" => return fetch_nzbget(&client, base_url, &app.api_key).await,
         "transmission" => {
-            return fetch_transmission(accept_invalid_certs, base_url, &app.api_key).await;
+            return fetch_transmission(clients, accept_invalid_certs, base_url, &app.api_key).await;
         }
         "jackett" => return fetch_jackett(&client, base_url, &app.api_key).await,
         "tautulli" => return fetch_tautulli(&client, base_url, &app.api_key).await,
@@ -1282,17 +1272,12 @@ pub(crate) fn bazarr_wanted_count(json: &Value) -> u64 {
 }
 
 async fn fetch_qbittorrent(
-    accept_invalid_certs: bool,
+    clients: &crate::http_client::SharedHttpClients,
     base_url: &str,
     creds_raw: &str,
 ) -> Option<Value> {
     let (username, password) = parse_qbittorrent_creds(creds_raw)?;
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(5))
-        .cookie_store(true)
-        .danger_accept_invalid_certs(accept_invalid_certs)
-        .build()
-        .ok()?;
+    let client = clients.homelab.clone();
     let login_url = format!("{}/api/v2/auth/login", base_url.trim_end_matches('/'));
     let login = client
         .post(&login_url)
@@ -1731,16 +1716,13 @@ pub(crate) fn count_transmission_torrents(args: &Value) -> (u64, u64, u64, u64) 
 }
 
 async fn fetch_transmission(
+    clients: &crate::http_client::SharedHttpClients,
     accept_invalid_certs: bool,
     base_url: &str,
     creds_raw: &str,
 ) -> Option<Value> {
     let auth = parse_user_pass_creds(creds_raw);
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(5))
-        .danger_accept_invalid_certs(accept_invalid_certs)
-        .build()
-        .ok()?;
+    let client = crate::http_client::select_http_client(clients, accept_invalid_certs).clone();
     let auth_pair = auth.as_ref().map(|(u, p)| (u.as_str(), p.as_str()));
     let session_body = json!({ "method": "session-get", "arguments": {} });
     let (session_json, sid) =
@@ -2148,12 +2130,13 @@ pub async fn execute_integration_action(
     app: &App,
     action: &str,
     accept_invalid_certs: bool,
+    clients: &crate::http_client::SharedHttpClients,
 ) -> Option<Value> {
     if app.integration_type.is_empty() || app.api_key.is_empty() {
         return None;
     }
 
-    let client = build_client(accept_invalid_certs);
+    let client = crate::http_client::select_http_client(clients, accept_invalid_certs).clone();
     let base_url = app.url.trim_end_matches('/');
 
     match app.integration_type.as_str() {

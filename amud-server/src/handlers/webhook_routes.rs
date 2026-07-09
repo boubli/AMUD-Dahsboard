@@ -436,6 +436,7 @@ pub async fn test_webhook_handler(
                 .unwrap_or(false)
         };
         let delivered = send_webhook_notification(
+            crate::http_client::select_http_client(&state.http_clients, accept_invalid),
             url,
             name,
             "test",
@@ -443,7 +444,6 @@ pub async fn test_webhook_handler(
             999,
             "running",
             "Docker",
-            accept_invalid,
             allow_private,
         )
         .await;

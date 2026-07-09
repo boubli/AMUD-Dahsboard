@@ -656,8 +656,13 @@ pub async fn integration_action_handler(
     .await;
 
     if let Some(app) = app {
-        if let Some(data) =
-            crate::integrations::execute_integration_action(&app, &action, accept_invalid).await
+        if let Some(data) = crate::integrations::execute_integration_action(
+            &app,
+            &action,
+            accept_invalid,
+            &state.http_clients,
+        )
+        .await
         {
             return Response::builder()
                 .status(StatusCode::OK)

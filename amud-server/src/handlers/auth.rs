@@ -222,7 +222,7 @@ async fn handle_ws_session(
     let first_frame =
         crate::telemetry_broadcast::ws_frame_from_bundle(&live_bundle, limited_telemetry, public);
     if socket
-        .send(WsMessage::Text(first_frame.to_string()))
+        .send(WsMessage::Text(first_frame.as_ref().into()))
         .await
         .is_err()
     {
@@ -244,7 +244,7 @@ async fn handle_ws_session(
             crate::telemetry_broadcast::ws_frame_from_bundle(&bundle, limited_telemetry, public);
 
         if socket
-            .send(WsMessage::Text(frame.to_string()))
+            .send(WsMessage::Text(frame.as_ref().into()))
             .await
             .is_err()
         {

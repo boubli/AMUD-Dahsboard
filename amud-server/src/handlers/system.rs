@@ -78,12 +78,7 @@ pub(crate) fn semver_newer(current: &str, latest: &str) -> bool {
     false
 }
 
-async fn fetch_latest_release() -> Result<CachedRelease, String> {
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(10))
-        .build()
-        .map_err(|e| e.to_string())?;
-
+async fn fetch_latest_release(client: &reqwest::Client) -> Result<CachedRelease, String> {
     let resp = client
         .get("https://api.github.com/repos/boubli/AMUD-Dashboard/releases/latest")
         .header("User-Agent", "AMUD-Dashboard")
@@ -166,7 +161,7 @@ pub async fn system_version_handler(
     };
 
     if need_fetch {
-        match fetch_latest_release().await {
+        match fetch_latest_release(&state.http_clients.strict).await {
             Ok(new_release) => {
                 let mut cache = RELEASE_CACHE.write().unwrap();
                 *cache = Some(new_release);

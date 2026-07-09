@@ -79,9 +79,13 @@ pub async fn oidc_callback_handler(
         Err(_) => return Redirect::to("/login?error=1").into_response(),
     };
 
+    let http = state.http_clients.strict.clone();
     let token = match client
         .exchange_code(code)
-        .request_async(oauth_http_client)
+        .request_async(move |request| {
+            let http = http.clone();
+            async move { oauth_http_client(&http, request).await }
+        })
         .await
     {
         Ok(t) => t,
@@ -91,7 +95,9 @@ pub async fn oidc_callback_handler(
     let access = token.access_token().secret();
     let issuer = settings.get("oidc_issuer").cloned().unwrap_or_default();
     let userinfo_url = format!("{}/userinfo", issuer.trim_end_matches('/'));
-    let userinfo_resp = reqwest::Client::new()
+    let userinfo_resp = state
+        .http_clients
+        .strict
         .get(&userinfo_url)
         .bearer_auth(access)
         .send()
@@ -178,11 +184,10 @@ pub async fn oidc_callback_handler(
     response
 }
 
-async fn oauth_http_client(request: HttpRequest) -> Result<HttpResponse, OidcHttpError> {
-    let client = reqwest::Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .build()
-        .map_err(|e| OidcHttpError(e.to_string()))?;
+async fn oauth_http_client(
+    client: &reqwest::Client,
+    request: HttpRequest,
+) -> Result<HttpResponse, OidcHttpError> {
     let method = match request.method {
         req if req == oauth2::http::Method::GET => reqwest::Method::GET,
         req if req == oauth2::http::Method::POST => reqwest::Method::POST,

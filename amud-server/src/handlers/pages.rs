@@ -94,6 +94,7 @@ pub async fn settings_page_handler(
         .replace("{{custom_bg_url}}", custom_bg_url);
 
     result = apply_app_logo_template(result, app_logo, app_name);
+    result = result.replace("{{app_logo}}", &escape_html(app_logo));
 
     let result = result
         .replace("{{accent_color}}", accent_color)

@@ -1,3 +1,8 @@
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
+mod http_clients;
+
 use amud_protocol::{
     agent_auth_proof, AgentTelemetry, AuthProofMessage, ChallengeMessage, ConfigRequest,
     DiskMountTelemetry, LxcContainer, NetworkTelemetry,
@@ -481,50 +486,6 @@ fn establish_connection() -> Result<StreamType, std::io::Error> {
     std::net::TcpStream::connect(addr)
 }
 
-// Trust-all certificate verifier. Proxmox ships a self-signed cert on :8006 and
-// the agent only ever talks to the loopback node, so standard chain validation
-// cannot succeed and MITM on 127.0.0.1 is not a meaningful threat. This disables
-// verification deliberately and MUST NOT be reused for remote/non-loopback hosts.
-#[derive(Debug)]
-struct NoVerifier;
-
-impl rustls::client::danger::ServerCertVerifier for NoVerifier {
-    fn verify_server_cert(
-        &self,
-        _end_entity: &rustls::pki_types::CertificateDer<'_>,
-        _intermediates: &[rustls::pki_types::CertificateDer<'_>],
-        _server_name: &rustls::pki_types::ServerName<'_>,
-        _ocsp_response: &[u8],
-        _now: rustls::pki_types::UnixTime,
-    ) -> Result<rustls::client::danger::ServerCertVerified, rustls::Error> {
-        Ok(rustls::client::danger::ServerCertVerified::assertion())
-    }
-
-    fn verify_tls12_signature(
-        &self,
-        _message: &[u8],
-        _cert: &rustls::pki_types::CertificateDer<'_>,
-        _dss: &rustls::DigitallySignedStruct,
-    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
-        Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
-    }
-
-    fn verify_tls13_signature(
-        &self,
-        _message: &[u8],
-        _cert: &rustls::pki_types::CertificateDer<'_>,
-        _dss: &rustls::DigitallySignedStruct,
-    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
-        Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
-    }
-
-    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
-        rustls::crypto::ring::default_provider()
-            .signature_verification_algorithms
-            .supported_schemes()
-    }
-}
-
 static AGENT_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
 
 fn agent_runtime() -> &'static tokio::runtime::Runtime {
@@ -646,31 +607,8 @@ fn fetch_lxc_containers_with_token(token: &str) -> Result<Vec<LxcContainer>, Str
         with_http_timeout(async move {
             use http_body_util::{BodyExt, Empty};
             use hyper::body::Bytes;
-            use hyper_util::client::legacy::Client;
-            use hyper_util::rt::TokioExecutor;
 
-            let tls = rustls::ClientConfig::builder_with_provider(Arc::new(
-                rustls::crypto::ring::default_provider(),
-            ))
-            .with_safe_default_protocol_versions();
-            let tls = match tls {
-                Ok(b) => b
-                    .dangerous()
-                    .with_custom_certificate_verifier(Arc::new(NoVerifier))
-                    .with_no_client_auth(),
-                Err(e) => {
-                    return Err(format!("Failed to build TLS config: {}", e));
-                }
-            };
-
-            let https = hyper_rustls::HttpsConnectorBuilder::new()
-                .with_tls_config(tls)
-                .https_or_http()
-                .enable_http1()
-                .build();
-
-            let client: Client<_, Empty<Bytes>> =
-                Client::builder(TokioExecutor::new()).build(https);
+            let client = http_clients::pve_https_client();
 
             let node_name = pve_node_name();
 
@@ -852,10 +790,9 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
     rt.block_on(async move {
         use http_body_util::{BodyExt, Empty};
         use hyper::body::Bytes;
-        use hyper_util::client::legacy::Client;
-        use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
+        use hyperlocal::{UnixConnector, Uri as UnixUri};
 
-        let client: Client<UnixConnector, Empty<Bytes>> = Client::unix();
+        let client = http_clients::docker_unix_client();
 
         let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", "/containers/json").into();
         let req = match hyper::Request::builder()
@@ -1079,10 +1016,11 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
     // Proxmox LXC data is polled on its own slower 10s cadence to minimize overhead.
     // We cache the last result and reuse it between fetches.
-    let mut cached_lxc: Vec<LxcContainer> = Vec::new();
+    let mut cached_lxc: Arc<Vec<LxcContainer>> = Arc::new(Vec::new());
     let mut last_lxc_fetch = Instant::now()
         .checked_sub(Duration::from_secs(10))
         .unwrap_or_else(Instant::now);
+    let mut telemetry_buf: Vec<u8> = Vec::with_capacity(4096);
     CONFIG_READY.store(false, Ordering::Release);
     reset_network_baseline();
 
@@ -1165,11 +1103,10 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let disk_used_gb = (used_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
         if last_lxc_fetch.elapsed() >= Duration::from_secs(10) {
-            cached_lxc = fetch_lxc_containers();
+            cached_lxc = Arc::new(fetch_lxc_containers());
             last_lxc_fetch = Instant::now();
         }
-        let mut lxc_containers = cached_lxc.clone();
-
+        let mut lxc_containers = (*cached_lxc).clone();
         lxc_containers.extend(fetch_docker_containers());
 
         let proc_content = read_proc_net_dev_content();
@@ -1259,10 +1196,11 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             node_tag: agent_node_tag(),
         };
 
-        let mut serialized = serde_json::to_vec(&telemetry).unwrap_or_default();
-        serialized.push(b'\n');
-
-        stream.write_all(&serialized)?;
+        telemetry_buf.clear();
+        if serde_json::to_writer(&mut telemetry_buf, &telemetry).is_ok() {
+            telemetry_buf.push(b'\n');
+            stream.write_all(&telemetry_buf)?;
+        }
         stream.flush()?;
 
         sleep(Duration::from_secs(5));
@@ -1301,10 +1239,9 @@ fn discover_docker_apps() -> Vec<serde_json::Value> {
     rt.block_on(async {
         use http_body_util::{BodyExt, Empty};
         use hyper::body::Bytes;
-        use hyper_util::client::legacy::Client;
-        use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
+        use hyperlocal::Uri as UnixUri;
 
-        let client: Client<UnixConnector, Empty<Bytes>> = Client::unix();
+        let client = http_clients::docker_unix_client();
         let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", "/containers/json").into();
         let req = hyper::Request::builder()
             .method("GET")
@@ -1504,31 +1441,8 @@ fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
         match tokio::time::timeout(HTTP_TIMEOUT, async move {
             use http_body_util::Empty;
             use hyper::body::Bytes;
-            use hyper_util::client::legacy::Client;
-            use hyper_util::rt::TokioExecutor;
 
-            let tls = rustls::ClientConfig::builder_with_provider(Arc::new(
-                rustls::crypto::ring::default_provider(),
-            ))
-            .with_safe_default_protocol_versions();
-            let tls = match tls {
-                Ok(b) => b
-                    .dangerous()
-                    .with_custom_certificate_verifier(Arc::new(NoVerifier))
-                    .with_no_client_auth(),
-                Err(e) => {
-                    return (false, Some(format!("Failed to build TLS config: {}", e)));
-                }
-            };
-
-            let https = hyper_rustls::HttpsConnectorBuilder::new()
-                .with_tls_config(tls)
-                .https_or_http()
-                .enable_http1()
-                .build();
-
-            let client: Client<_, Empty<Bytes>> =
-                Client::builder(TokioExecutor::new()).build(https);
+            let client = http_clients::pve_https_client();
 
             let node_name = pve_node_name();
 
@@ -1602,10 +1516,9 @@ fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<St
         match tokio::time::timeout(HTTP_TIMEOUT, async move {
             use http_body_util::Empty;
             use hyper::body::Bytes;
-            use hyper_util::client::legacy::Client;
-            use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
+            use hyperlocal::Uri as UnixUri;
 
-            let client: Client<UnixConnector, Empty<Bytes>> = Client::unix();
+            let client = http_clients::docker_unix_client();
             let api_path = format!("/containers/{}/{}", c_name, action_str);
             let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", &api_path).into();
 
