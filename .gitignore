@@ -100,3 +100,14 @@ Desktop.ini
 
 # Uploads dir
 uploads/
+
+# User local-only workspace inside repo
+amud local dev/
+
+# Strict local-dev cleanup policy (keep out of GitHub)
+scripts/
+docs/scripts/
+**/tests/
+*_test.*
+*.test.*
+test_*.*
