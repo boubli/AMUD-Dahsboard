@@ -10,19 +10,19 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.4 の新機能
+### v1.7.6 の新機能
 
-- **統合ピッカー** — ロゴ付きカスタムリスト；Windows の白い optgroup バーを修正
-- **Ollama + Open WebUI** — 新しい AI & LLM 統合（モデル数、ヘルス）
+- **メモリ** — エージェントの PVE/Docker クライアントプール + mimalloc；サーバーは Tokio 2 ワーカー、テレメトリバッファ再利用、Webhook クールダウン上限
+- **設定** — ロゴと壁紙を Branding に集約；外観レイアウト修正；`{{app_logo}}` プレースホルダー修正
+- **v1.7.5** — コンテナ RAM を MB/GB 表示；天気を外観へ；ウェブ検索；サーバーアイドル時の RAM 削減
+- **v1.7.4** — 統合ピッカー；Ollama + Open WebUI
 - **v1.7.3** — 統合ドロップダウン（CSP nonce）；Unraid `su-exec: setgroups` フォローアップ
-- **v1.7.2** — Unraid 初回起動の権限（PUID 99 appdata）
-- **v1.7.1** — モバイル PWA 修正（設定メニュー、デスクトップゲストレイアウト）
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### リリース状況
 
-推奨バージョン: **v1.7.4**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.7.6**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

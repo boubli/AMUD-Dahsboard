@@ -10,19 +10,19 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.4 新特性
+### v1.7.6 新特性
 
-- **集成选择器** — 带品牌图标的自定义列表；修复 Windows 下白色 optgroup 条
-- **Ollama + Open WebUI** — 新增 AI & LLM 集成（模型数、健康状态）
+- **内存** — Agent 端 PVE/Docker 客户端池化 + mimalloc；Server 默认 2 个 Tokio worker、复用遥测 JSON 缓冲区、Webhook 冷却上限
+- **设置** — Logo 与壁纸归入 Branding；外观布局修复；`{{app_logo}}` 占位符修复
+- **v1.7.5** — 容器 RAM 显示 MB/GB；天气移至外观；网页搜索；服务器空闲时更少内存占用
+- **v1.7.4** — 集成选择器；Ollama + Open WebUI
 - **v1.7.3** — 集成下拉框（CSP nonce）；Unraid `su-exec: setgroups` 后续修复
-- **v1.7.2** — Unraid 首次启动权限（PUID 99 appdata）
-- **v1.7.1** — 移动端 PWA 修复（设置菜单、桌面访客卡片布局）
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 版本状态
 
-当前推荐：**v1.7.4**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**v1.7.6**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

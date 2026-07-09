@@ -10,19 +10,19 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### الجديد في v1.7.4
+### الجديد في v1.7.6
 
-- **منتقي التكامل** — قائمة مخصصة مع شعارات؛ يصلح أشرطة optgroup البيضاء على Windows
-- **Ollama + Open WebUI** — تكاملات AI & LLM جديدة (عدد النماذج، الحالة)
-- **v1.7.3** — قائمة التكامل (nonce CSP)؛ متابعة Unraid `su-exec: setgroups`
-- **v1.7.2** — صلاحيات Unraid عند أول تشغيل (PUID 99 appdata)
-- **v1.7.1** — إصلاحات PWA للجوال (قائمة الإعدادات، تخطيط الضيف على سطح المكتب)
+- **الذاكرة** — تجميع عملاء PVE/Docker في الوكيل + mimalloc؛ خادم بـ 2 workers Tokio، إعادة استخدام مخازن التيليمتري، حد لتبريد webhook
+- **الإعدادات** — الشعار والخلفية تحت Branding؛ إصلاح تخطيط المظهر؛ إصلاح placeholder `{{app_logo}}`
+- **v1.7.5** — RAM الحاويات بـ MB/GB؛ الطقس تحت المظهر؛ بحث ويب؛ ذاكرة أقل عند الخمول على الخادم
+- **v1.7.4** — منتقي التكامل؛ Ollama + Open WebUI
+- **v1.7.3** — قائمة التكامل (nonce CSP)； متابعة Unraid `su-exec: setgroups`
 
 السجل الكامل: **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### حالة الإصدار
 
-الإصدار الموصى به: **v1.7.4**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
+الإصدار الموصى به: **v1.7.6**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

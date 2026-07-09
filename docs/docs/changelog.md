@@ -11,6 +11,21 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.7.6 — Codebase-wide memory optimization
+
+**2026-07-09** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.6)
+
+### Improved
+- **Agent** — PVE/Docker hyper client pooling, mimalloc, Arc LXC cache, telemetry buffer reuse
+- **Server** — Tokio 2 workers (`AMUD_TOKIO_WORKERS`), telemetry JSON buffer reuse, bounded webhook cooldowns, shared HTTP clients for on-demand paths
+- **Settings** — Branding tab (logo + wallpaper); Appearance layout fix; logo placeholder fix
+- PWA cache v33
+
+### Dev
+- Pre-push hook runs `scripts/ci-check` (mirrors CI fmt/clippy/test)
+
+---
+
 ## v1.7.5 — Dashboard polish + idle server memory
 
 **2026-07-09** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.5)

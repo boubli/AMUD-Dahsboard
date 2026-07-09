@@ -10,19 +10,19 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galeria de Temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentação](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novidades na v1.7.4
+### Novidades na v1.7.6
 
-- **Seletor de integração** — lista personalizada com logos; corrige barras brancas de optgroup no Windows
-- **Ollama + Open WebUI** — novas integrações AI & LLM (modelos, estado)
+- **Memória** — pooling de clientes PVE/Docker no agente + mimalloc; servidor com 2 workers Tokio, buffers de telemetria reutilizados, cooldowns de webhook limitados
+- **Definições** — Logo e papel de parede em Branding; correção de layout em Aparência; placeholder `{{app_logo}}` corrigido
+- **v1.7.5** — RAM de contentores em MB/GB; Clima em Aparência; pesquisa web; menos RAM ociosa no servidor
+- **v1.7.4** — seletor de integração; Ollama + Open WebUI
 - **v1.7.3** — menu Integração (nonce CSP); follow-up Unraid `su-exec: setgroups`
-- **v1.7.2** — permissões Unraid na primeira inicialização (PUID 99 appdata)
-- **v1.7.1** — correções PWA móvel (menu Definições, layout convidado no desktop)
 
 Histórico completo: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Estado da versão
 
-Recomendado: **v1.7.4**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
+Recomendado: **v1.7.6**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

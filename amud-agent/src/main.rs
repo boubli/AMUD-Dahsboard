@@ -925,7 +925,7 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
                         .unwrap_or_default()
                         .replace('/', "");
                     let (cpu, mem, maxmem) = if d.state == "running" {
-                        docker_stats(&client, &d.id).await
+                        docker_stats(client, &d.id).await
                     } else {
                         (Some(0.0), None, None)
                     };
