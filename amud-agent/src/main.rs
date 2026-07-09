@@ -790,6 +790,7 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
     rt.block_on(async move {
         use http_body_util::{BodyExt, Empty};
         use hyper::body::Bytes;
+        use hyper_util::client::legacy::Client;
         use hyperlocal::{UnixConnector, Uri as UnixUri};
 
         let client = http_clients::docker_unix_client();

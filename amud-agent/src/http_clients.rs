@@ -76,6 +76,9 @@ pub(crate) fn pve_https_client() -> &'static PveHttpsClient {
 }
 
 #[cfg(unix)]
+use hyperlocal::UnixClientExt;
+
+#[cfg(unix)]
 type DockerUnixClient = Client<hyperlocal::UnixConnector, Empty<Bytes>>;
 
 #[cfg(unix)]
