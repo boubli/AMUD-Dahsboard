@@ -1,6 +1,6 @@
 # AMUD Dashboard — Docs site
 
-Built with [Docusaurus](https://docusaurus.io/). Published manually or via maintainer tooling — see `maintainer-local.example/README.md`.
+Built with [Docusaurus](https://docusaurus.io/). Published via GitHub Actions on release tags.
 
 **Live site:** https://boubli.github.io/AMUD-Dashboard/
 

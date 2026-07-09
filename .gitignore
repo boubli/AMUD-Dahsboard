@@ -20,10 +20,9 @@ backend/venv/
 backend/env/
 backend/.env
 
-# Maintainer-only tooling — NEVER push (theme gen, tests, Sonar, hooks)
-# Setup: cp -r maintainer-local.example maintainer-local
+# Maintainer-only tooling (local — never push)
 maintainer-local/
-maintainer-local.example/scripts/__pycache__/
+maintainer-local.example/
 
 # Security/Data
 backend/uploads/*
@@ -38,7 +37,7 @@ scratch/
 test_reports/
 memory/
 
-# Local-only Rust integration tests (copy into maintainer-local/ if needed)
+# Local-only Rust integration tests (not run in CI)
 amud-server/tests/
 
 # Local dev canvases / experiments

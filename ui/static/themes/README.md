@@ -16,4 +16,4 @@ Theme **CSS**, **icons**, **wallpapers**, and **gallery previews** ship inside `
 
 **Frozen themes:** `default` (AMUD Default) and `luxury-gold` keep Lucide icons and existing CSS.
 
-Theme assets are **pre-built in each release**. Maintainers: see [`maintainer-local.example/README.md`](../../../maintainer-local.example/README.md).
+Theme assets are **pre-built in each release** and ship in `ui.tar.gz`.

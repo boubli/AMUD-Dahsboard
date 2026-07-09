@@ -87,12 +87,6 @@ Pre-commit runs `cargo fmt --all` and re-stages any `.rs` files it touched.
 
 ---
 
-## Maintainers (local only)
-
-Theme generators, Rust pre-push checks, and Sonar config live in **`maintainer-local.example/`**. Copy to gitignored `maintainer-local/` — see [`maintainer-local.example/README.md`](maintainer-local.example/README.md). The public GitHub repo ships pre-built assets in `ui/static/themes/` only.
-
----
-
 ## 📊 Testing Metrics Locally
 
 If you run the agent on your local machine, it will capture your host's CPU, RAM, and disk metrics. However, it will skip Proxmox VE (`pve`) or Docker container telemetry if they are not running or configured on your development machine.

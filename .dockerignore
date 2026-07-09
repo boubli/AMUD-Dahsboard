@@ -24,6 +24,8 @@ SECURITY.md
 # Scripts and external configs
 scripts/
 scratch/
+maintainer-local/
+maintainer-local.example/
 templates/
 setup-amud.sh
 setup-hydrivax.sh
