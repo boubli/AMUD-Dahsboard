@@ -3,5 +3,4 @@ amud local dev/
 .githooks/
 
 .github/release-notes/
-readmes/
 docs/.gitignore
