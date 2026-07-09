@@ -1,0 +1,54 @@
+title: "Feature request"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your idea.
+        Please provide enough detail so maintainers can evaluate scope and impact.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem are you trying to solve?
+      placeholder: "I want to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the feature you want.
+      placeholder: "Add support for..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds or alternatives have you tried?
+      placeholder: "I currently use..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Use cases
+      description: Share concrete scenarios where this helps.
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra-context
+    attributes:
+      label: Additional context
+      description: Links, screenshots, references, or implementation notes.
+    validations:
+      required: false
