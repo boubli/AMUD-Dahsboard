@@ -4,8 +4,8 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 mod http_clients;
 
 use amud_protocol::{
-    agent_auth_proof, AuthProofMessage, ChallengeMessage, ConfigRequest,
-    DiskMountTelemetry, LxcContainer, NetworkTelemetry,
+    agent_auth_proof, AuthProofMessage, ChallengeMessage, ConfigRequest, DiskMountTelemetry,
+    LxcContainer, NetworkTelemetry,
 };
 use serde::Serialize;
 use std::io::Write;
@@ -1318,7 +1318,8 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
                 last_lxc_fetch = Instant::now();
                 containers_refreshed = true;
             }
-            if last_docker_fetch.elapsed() >= Duration::from_secs(poll_cfg.docker_poll_interval_secs)
+            if last_docker_fetch.elapsed()
+                >= Duration::from_secs(poll_cfg.docker_poll_interval_secs)
             {
                 cached_docker = Arc::new(filter_containers_by_linked(
                     fetch_docker_containers(),
@@ -1412,11 +1413,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             gpu_mem_usage: gpu.mem_usage,
             gpu_mem_used_mb: gpu.mem_used_mb,
             gpu_mem_total_mb: gpu.mem_total_mb,
-            lxc_containers: if idle {
-                &[]
-            } else {
-                cached_merged.as_slice()
-            },
+            lxc_containers: if idle { &[] } else { cached_merged.as_slice() },
             network: Some(network),
             disk_mapping_fallback,
             network_mapping_fallback,
