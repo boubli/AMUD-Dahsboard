@@ -11,6 +11,26 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.0 — Smart idle, lower RAM, multi-node
+
+**2026-07-10** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.0)
+
+### Added
+- **Idle/active runtime** — background pollers pause when the GUI is closed
+- **Performance presets** — Light / Balanced / Active / Custom
+- **Multi-node** — node tags on apps and agents
+- **Batch integrations API**, expanded **API token scopes**, **backup reminders**, **idle host alerts**
+- **Integration wizard** test endpoint and Custom API templates
+- **Paginated apps API** for large homelabs
+
+### Improved
+- **Agent RAM diet** — idle skips unlinked containers, faster Docker polling
+- **Dashboard** — viewport focus on 50 visible cards
+- **PWA** offline status cache (v36)
+- **Docs** i18n scaffolding (en, de, fr, es)
+
+---
+
 ## v1.7.7 — Optimize, light mode, feeds toggle
 
 **2026-07-09** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.7)

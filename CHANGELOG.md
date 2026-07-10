@@ -8,6 +8,29 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.8.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.0) — 2026-07-10
+
+Smart idle runtime, performance presets, multi-node support, and a big RAM efficiency push.
+
+### Added
+- **GUI-aware idle/active runtime** — pollers and caches pause when nobody is in the dashboard
+- **Performance presets** — Light / Balanced / Active / Custom in Settings
+- **Multi-node** — `agent_node_tag` and per-card `node_tag` for multi-host homelabs
+- **Batch integrations API** — up to 50 apps per request
+- **API token scopes** — selectable scopes in Settings (telemetry, webhooks, integrations, …)
+- **Backup reminders** — overdue export banner and reminder interval
+- **Idle host alerts** — CPU / RAM / disk webhook thresholds in deep idle
+- **Integration wizard** — test endpoint + Custom API templates
+- **Paginated apps API** — `GET /api/apps?page=` for large libraries
+
+### Improved
+- **Agent** — idle skips unlinked containers, Arc cache reuse, concurrent Docker stats
+- **Server** — viewport-capped dashboard (50 cards), stale node eviction, streaming backup export
+- **PWA** — offline status cache in localStorage; service worker v36
+- **Docs** — i18n locale scaffolding (en, de, fr, es)
+
+---
+
 ## [v1.7.7](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.7.7) — 2026-07-09
 
 Optimize without feature loss, per-theme light mode, and RSS feeds toggle.
