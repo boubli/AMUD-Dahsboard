@@ -3,6 +3,25 @@ use crate::db::hash_api_token;
 use rusqlite::Connection;
 use std::sync::Mutex;
 
+pub(crate) const API_TOKEN_SCOPES: &[&str] = &[
+    "read:apps",
+    "read:status",
+    "read:telemetry",
+    "read:integrations",
+    "read:feeds",
+    "read:webhooks",
+    "write:webhooks",
+];
+
+fn sanitize_token_scopes(raw: &str) -> String {
+    let allowed: std::collections::HashSet<&str> = API_TOKEN_SCOPES.iter().copied().collect();
+    raw.split(',')
+        .map(|s| s.trim())
+        .filter(|s| allowed.contains(s))
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
 pub(crate) fn api_token_authorized(
     headers: &HeaderMap,
     state: &Arc<AppState>,
@@ -89,10 +108,14 @@ pub async fn create_api_token_handler(
         return csrf_forbidden_response();
     }
     let name = form.get("name").cloned().unwrap_or_default();
-    let scopes = form
-        .get("scopes")
-        .cloned()
-        .unwrap_or_else(|| "read:apps,read:status".to_string());
+    let scopes = sanitize_token_scopes(
+        form.get("scopes")
+            .map(String::as_str)
+            .unwrap_or("read:apps,read:status"),
+    );
+    if scopes.is_empty() {
+        return Redirect::to("/admin/settings?tab=security").into_response();
+    }
     if name.is_empty() {
         return Redirect::to("/admin/settings?tab=security").into_response();
     }

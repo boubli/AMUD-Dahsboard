@@ -39,7 +39,18 @@
     <img src="/static/AMUD-logo.png" alt="AMUD">
     <h1>You are offline</h1>
     <p>AMUD could not reach the server. Cached assets may still work after you reconnect.</p>
+    <p id="offline-status-hint" style="font-size:0.85rem;color:#9aa3b2;margin-top:0.75rem;"></p>
     <button type="button" onclick="location.reload()">Try again</button>
   </main>
+  <script>
+    try {
+      const raw = localStorage.getItem('amud-offline-status');
+      if (raw) {
+        const n = Object.keys(JSON.parse(raw)).length;
+        document.getElementById('offline-status-hint').textContent =
+          n ? `Last known status for ${n} app(s) cached on this device.` : '';
+      }
+    } catch (_) {}
+  </script>
 </body>
 </html>

@@ -103,6 +103,11 @@ async fn poll_ha_states_fallback(
 
 pub async fn start_ha_polling(state: Arc<AppState>) {
     loop {
+        if !crate::activity::is_active(&state) {
+            tokio::time::sleep(Duration::from_secs(30)).await;
+            continue;
+        }
+
         let settings = state.settings_cache.read().unwrap().clone();
         let ha_url = settings.get("ha_url").cloned().unwrap_or_default();
         let ha_token = settings.get("ha_token").cloned().unwrap_or_default();

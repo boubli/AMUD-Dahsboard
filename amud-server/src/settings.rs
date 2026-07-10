@@ -58,6 +58,12 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("ldap_user_filter", "(uid={username})");
     s.insert("oidc_admin_group", "");
     s.insert("agent_node_tag", "Local");
+    s.insert("performance_preset", "light");
+    s.insert("idle_grace_secs", "45");
+    s.insert("alert_cpu_threshold", "90");
+    s.insert("alert_ram_threshold", "90");
+    s.insert("alert_disk_threshold", "95");
+    s.insert("backup_reminder_days", "30");
 
     s
 }
@@ -115,6 +121,12 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "ldap_user_filter",
     "oidc_admin_group",
     "agent_node_tag",
+    "performance_preset",
+    "idle_grace_secs",
+    "alert_cpu_threshold",
+    "alert_ram_threshold",
+    "alert_disk_threshold",
+    "backup_reminder_days",
 ];
 
 pub(crate) const AGENT_CONFIG_SETTING_KEYS: &[&str] = &[
@@ -614,6 +626,62 @@ pub(crate) fn apply_integration_cache_limits(
     let max = setting_u64_bounded(settings, "integration_cache_max_entries", 256, 16, 512) as usize;
     let ttl = setting_u64_bounded(settings, "integration_cache_ttl_secs", 45, 5, 600);
     cache.set_limits(max, ttl);
+}
+
+pub(crate) fn apply_performance_preset(db: &rusqlite::Connection, preset: &str) {
+    let (coord, status, cache_max, cache_ttl, tel_bcast, media, ha, agent_tel) = match preset {
+        "balanced" => (45, 15, 48, 45, 5, 5, 15, 5),
+        "active" => (20, 10, 48, 30, 3, 3, 10, 3),
+        "custom" => return,
+        _ => (90, 30, 32, 60, 10, 10, 30, 10),
+    };
+    for (key, val) in [
+        ("integration_coordinator_interval_secs", coord),
+        ("status_poll_interval_secs", status),
+        ("integration_cache_max_entries", cache_max),
+        ("integration_cache_ttl_secs", cache_ttl),
+        ("telemetry_broadcast_interval_secs", tel_bcast),
+        ("media_poll_interval_secs", media),
+        ("ha_poll_interval_secs", ha),
+        ("agent_telemetry_interval_secs", agent_tel),
+    ] {
+        let _ = db.execute(
+            "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            rusqlite::params![key, val.to_string()],
+        );
+    }
+}
+
+pub(crate) fn sanitize_performance_preset(value: &str) -> String {
+    match value.trim().to_lowercase().as_str() {
+        "balanced" => "balanced".into(),
+        "active" => "active".into(),
+        "custom" => "custom".into(),
+        _ => "light".into(),
+    }
+}
+
+pub(crate) fn backup_export_overdue(settings: &HashMap<String, String>) -> bool {
+    let reminder_days = settings
+        .get("backup_reminder_days")
+        .and_then(|s| s.parse::<i64>().ok())
+        .unwrap_or(30);
+    if reminder_days <= 0 {
+        return false;
+    }
+    let last = settings
+        .get("last_backup_export_at")
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    if last.is_empty() || last.eq_ignore_ascii_case("never") {
+        return true;
+    }
+    chrono::DateTime::parse_from_rfc3339(last)
+        .ok()
+        .map(|dt| {
+            (chrono::Utc::now() - dt.with_timezone(&chrono::Utc)).num_days() >= reminder_days
+        })
+        .unwrap_or(true)
 }
 
 #[cfg(test)]

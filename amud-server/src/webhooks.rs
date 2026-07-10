@@ -1,4 +1,4 @@
-use crate::db::load_app_name_urls;
+use crate::db::load_app_name_urls_for_ids;
 use crate::models::{AgentTelemetry, AppState, AppStatus, LxcContainer};
 use crate::security::{url_allowed_for_health_check, url_allowed_for_webhook};
 use futures_util::future::join_all;
@@ -11,6 +11,11 @@ pub(crate) const WEBHOOK_EVENT_TYPES: &[&str] = &[
     "container_stopped",
     "agent_connected",
     "agent_disconnected",
+    "host_cpu_high",
+    "host_ram_high",
+    "host_disk_high",
+    "app_offline",
+    "backup_overdue",
 ];
 
 const ALERT_COOLDOWN_SECS: u64 = 60;
@@ -52,6 +57,16 @@ pub(crate) fn normalize_webhook_event_types(raw: &str) -> Option<String> {
 pub(crate) fn start_status_poller(state: Arc<AppState>) {
     tokio::spawn(async move {
         loop {
+            if !crate::activity::is_active(&state) {
+                tokio::time::sleep(Duration::from_secs(30)).await;
+                continue;
+            }
+
+            let visible = crate::activity::visible_app_ids(&state);
+            if visible.is_empty() {
+                tokio::time::sleep(Duration::from_secs(15)).await;
+                continue;
+            }
             let accept_invalid = {
                 let cache = state.settings_cache.read().unwrap();
                 cache
@@ -62,9 +77,10 @@ pub(crate) fn start_status_poller(state: Arc<AppState>) {
             let client =
                 crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
             let db_for_blocking = state.db.clone();
+            let ids = visible.clone();
             let apps = tokio::task::spawn_blocking(move || {
                 let db = db_for_blocking.lock().unwrap();
-                load_app_name_urls(&db)
+                load_app_name_urls_for_ids(&db, &ids)
             })
             .await
             .unwrap_or_default();
@@ -99,9 +115,19 @@ pub(crate) fn start_status_poller(state: Arc<AppState>) {
             }))
             .await;
             let checks_empty = checks.is_empty();
-            let next: HashMap<String, AppStatus> = checks.into_iter().collect();
-
-            *state.app_statuses.write().unwrap() = next;
+            if !checks_empty {
+                let mut statuses = state.app_statuses.write().unwrap();
+                for (name, status) in checks {
+                    statuses.insert(name, status);
+                }
+                while statuses.len() > crate::activity::MAX_VISIBLE_APPS {
+                    if let Some(key) = statuses.keys().next().cloned() {
+                        statuses.remove(&key);
+                    } else {
+                        break;
+                    }
+                }
+            }
             let interval = {
                 let settings = state.settings_cache.read().unwrap();
                 crate::settings::setting_u64_bounded(
@@ -120,6 +146,78 @@ pub(crate) fn start_status_poller(state: Arc<AppState>) {
             tokio::time::sleep(Duration::from_secs(sleep_secs)).await;
         }
     });
+}
+
+/// Slow alert evaluation while server is in deep idle (CPU/RAM/disk thresholds).
+pub(crate) async fn evaluate_idle_alerts(state: &Arc<AppState>) {
+    let settings = state.settings_cache.read().unwrap().clone();
+    let cpu_threshold: f64 = settings
+        .get("alert_cpu_threshold")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(90.0);
+    let ram_threshold: f64 = settings
+        .get("alert_ram_threshold")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(90.0);
+    let disk_threshold: f64 = settings
+        .get("alert_disk_threshold")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(95.0);
+
+    let telemetry = state.latest_telemetry.read().unwrap().clone();
+    let mut events: Vec<&str> = Vec::new();
+    if telemetry.cpu_usage as f64 >= cpu_threshold {
+        events.push("host_cpu_high");
+    }
+    if telemetry.ram_usage as f64 >= ram_threshold {
+        events.push("host_ram_high");
+    }
+    if telemetry.disk_usage as f64 >= disk_threshold {
+        events.push("host_disk_high");
+    }
+
+    if events.is_empty() {
+        return;
+    }
+
+    let accept_invalid = settings
+        .get("accept_invalid_certs")
+        .map(|s| s == "1")
+        .unwrap_or(false);
+    let allow_private = settings
+        .get("webhooks_allow_private_ips")
+        .map(|s| s == "1")
+        .unwrap_or(false);
+    let client =
+        crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
+
+    for event_type in events {
+        let event = event_type.to_string();
+        let webhooks = crate::db::with_db(state.db.clone(), move |db| {
+            crate::db::load_active_webhooks_for_event(db, &event)
+        })
+        .await;
+        for wh in webhooks {
+            let url = wh.url;
+            let name = wh.name;
+            let event = event_type.to_string();
+            let client = client.clone();
+            tokio::spawn(async move {
+                send_webhook_notification(
+                    &client,
+                    url,
+                    name,
+                    &event,
+                    "AMUD Host",
+                    0,
+                    "threshold",
+                    "System",
+                    allow_private,
+                )
+                .await;
+            });
+        }
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -484,6 +582,12 @@ mod tests {
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
             http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
             ws_limited_clients: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            activity_mode: Arc::new(std::sync::atomic::AtomicU8::new(0)),
+            active_ws_count: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            active_gui_sessions: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            visible_app_ids: Arc::new(RwLock::new(Vec::new())),
+            last_activity_at: Arc::new(std::sync::Mutex::new(std::time::Instant::now())),
+            node_last_seen: Arc::new(RwLock::new(HashMap::new())),
         });
 
         let old_telemetry = AgentTelemetry {
@@ -556,6 +660,12 @@ mod tests {
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
             http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
             ws_limited_clients: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            activity_mode: Arc::new(std::sync::atomic::AtomicU8::new(0)),
+            active_ws_count: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            active_gui_sessions: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            visible_app_ids: Arc::new(RwLock::new(Vec::new())),
+            last_activity_at: Arc::new(std::sync::Mutex::new(std::time::Instant::now())),
+            node_last_seen: Arc::new(RwLock::new(HashMap::new())),
         });
 
         let old_telemetry = AgentTelemetry {

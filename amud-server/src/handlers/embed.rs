@@ -22,9 +22,7 @@ pub async fn embed_app_handler(
         return Redirect::to("/").into_response();
     }
 
-    let app = with_db(state.db.clone(), move |db| {
-        load_apps_from_db(db).into_iter().find(|a| a.id == app_id)
-    })
+    let app = with_db(state.db.clone(), move |db| crate::db::load_app_by_id(db, app_id))
     .await;
 
     let Some(app) = app else {

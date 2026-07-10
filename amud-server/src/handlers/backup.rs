@@ -1,4 +1,6 @@
 use super::imports::*;
+use axum::body::Body;
+use tokio_util::io::ReaderStream;
 use rusqlite::Connection;
 use std::sync::Mutex;
 
@@ -103,7 +105,16 @@ pub async fn export_backup_handler(
     .await;
     wal_checkpoint(state.db.clone()).await;
     let path = db_path();
-    let data = std::fs::read(&path).unwrap_or_default();
+    let file = match tokio::fs::File::open(&path).await {
+        Ok(f) => f,
+        Err(_) => {
+            return Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from("backup unavailable"))
+                .unwrap();
+        }
+    };
+    let stream = ReaderStream::new(file);
     Response::builder()
         .status(StatusCode::OK)
         .header(header::CONTENT_TYPE, "application/octet-stream")
@@ -111,7 +122,7 @@ pub async fn export_backup_handler(
             header::CONTENT_DISPOSITION,
             "attachment; filename=\"amud.db\"",
         )
-        .body(Body::from(data))
+        .body(Body::from_stream(stream))
         .unwrap()
 }
 

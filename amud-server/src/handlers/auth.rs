@@ -11,6 +11,16 @@ impl Drop for WsLimitedGuard {
     }
 }
 
+struct WsActivityGuard {
+    state: Arc<AppState>,
+}
+
+impl Drop for WsActivityGuard {
+    fn drop(&mut self) {
+        crate::activity::signal_ws_disconnected(&self.state);
+    }
+}
+
 pub async fn login_page(
     Extension(csp): Extension<CspNonce>,
     State(state): State<Arc<AppState>>,
@@ -221,6 +231,11 @@ async fn handle_ws_session(
     limited_telemetry: bool,
     _public_at_connect: bool,
 ) {
+    crate::activity::signal_ws_connected(&state);
+    let _ws_guard = WsActivityGuard {
+        state: state.clone(),
+    };
+
     let _limited_guard = if limited_telemetry {
         state.ws_limited_clients.fetch_add(1, Ordering::Relaxed);
         Some(WsLimitedGuard {

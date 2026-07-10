@@ -20,6 +20,7 @@
     <!-- Lucide Vector Icons -->
     <script src="/static/vendor/lucide.min.js"></script>
     <script src="/static/admin.js"></script>
+    <script src="/static/integration-wizard.js?v={{app_version}}"></script>
     <script id="amud-theme-config" type="application/json">{{theme_scheduler_config}}</script>
     <script src="/static/theme-scheduler.js?v={{app_version}}"></script>
     <script src="/static/theme-engine.js?v={{app_version}}"></script>
@@ -941,7 +942,42 @@
 
                         <div class="settings-block">
                             <h3><i data-lucide="gauge" style="color:var(--accent-color);"></i> Performance &amp; resources</h3>
-                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Tune background polling and integration cache. Homelab defaults: cache TTL <strong>90</strong>s, max entries <strong>64</strong>.</p>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Deep idle ~35&nbsp;MB · Active ~42&nbsp;MB with 50 cards (Light preset). Pollers stop when nobody is in the GUI.</p>
+                            <div class="form-group">
+                                <label>Performance preset</label>
+                                <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.35rem;">
+                                    <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer;"><input type="radio" name="performance_preset" value="light" {{eq_performance_preset_light}}> Light</label>
+                                    <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer;"><input type="radio" name="performance_preset" value="balanced" {{eq_performance_preset_balanced}}> Balanced</label>
+                                    <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer;"><input type="radio" name="performance_preset" value="active" {{eq_performance_preset_active}}> Active</label>
+                                    <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer;"><input type="radio" name="performance_preset" value="custom" {{eq_performance_preset_custom}}> Custom</label>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:1rem;">
+                                <label for="setting-idle-grace">Idle grace (seconds before deep sleep)</label>
+                                <input type="number" id="setting-idle-grace" name="idle_grace_secs" class="form-control" value="{{idle_grace_secs}}" min="15" max="300">
+                            </div>
+                            <div class="form-group">
+                                <label for="setting-agent-node-tag">Agent node tag</label>
+                                <input type="text" id="setting-agent-node-tag" name="agent_node_tag" class="form-control" value="{{agent_node_tag}}" placeholder="Local">
+                            </div>
+                            <div class="form-group" style="margin-top:1rem;">
+                                <h4 style="font-size:0.95rem; margin-bottom:0.5rem;">Idle alert thresholds (deep idle only)</h4>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem;">Fires <code>cpu_high</code> / <code>ram_high</code> / <code>disk_high</code> webhooks when nobody is in the GUI.</p>
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.75rem;">
+                                    <div>
+                                        <label for="setting-alert-cpu">CPU %</label>
+                                        <input type="number" id="setting-alert-cpu" name="alert_cpu_threshold" class="form-control" value="{{alert_cpu_threshold}}" min="50" max="100">
+                                    </div>
+                                    <div>
+                                        <label for="setting-alert-ram">RAM %</label>
+                                        <input type="number" id="setting-alert-ram" name="alert_ram_threshold" class="form-control" value="{{alert_ram_threshold}}" min="50" max="100">
+                                    </div>
+                                    <div>
+                                        <label for="setting-alert-disk">Disk %</label>
+                                        <input type="number" id="setting-alert-disk" name="alert_disk_threshold" class="form-control" value="{{alert_disk_threshold}}" min="50" max="100">
+                                    </div>
+                                </div>
+                            </div>
                             <div class="form-group">
                                 <label for="setting-feeds-enabled">RSS / Feeds</label>
                                 <select id="setting-feeds-enabled" name="feeds_enabled" class="form-control" style="height:3rem; cursor:pointer;" @change="feedsEnabled = $event.target.value === '1'">
@@ -1391,7 +1427,16 @@
 
                 <div class="settings-block" style="margin-top:1.5rem;">
                     <h3><i data-lucide="ticket" style="color:var(--accent-color);"></i> API tokens</h3>
-                    <p style="font-size:0.85rem; color:var(--text-muted);">Create scoped read-only tokens for external scripts.</p>
+                    <p style="font-size:0.85rem; color:var(--text-muted);">Create scoped tokens for external scripts.</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem 1rem; margin:0.75rem 0; font-size:0.85rem;">
+                        <label><input type="checkbox" class="api-scope-cb" value="read:apps" checked> read:apps</label>
+                        <label><input type="checkbox" class="api-scope-cb" value="read:status" checked> read:status</label>
+                        <label><input type="checkbox" class="api-scope-cb" value="read:telemetry"> read:telemetry</label>
+                        <label><input type="checkbox" class="api-scope-cb" value="read:integrations"> read:integrations</label>
+                        <label><input type="checkbox" class="api-scope-cb" value="read:feeds"> read:feeds</label>
+                        <label><input type="checkbox" class="api-scope-cb" value="read:webhooks"> read:webhooks</label>
+                        <label><input type="checkbox" class="api-scope-cb" value="write:webhooks"> write:webhooks</label>
+                    </div>
                     <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem;">
                         <label for="new-api-token-name" class="visually-hidden">Token name</label>
                         <input type="text" id="new-api-token-name" class="form-control" placeholder="Token name" style="flex:1; min-width:160px;">
@@ -1643,9 +1688,14 @@
                 <p class="settings-page-subtitle">Export or restore your entire AMUD database (apps, categories, settings, users).</p>
                 
                 <div class="settings-block">
+                    {{backup_overdue_banner}}
                     <h3><i data-lucide="download" style="color:var(--accent-color);"></i> Export Database</h3>
                     <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Download a full backup of your current configuration. Also back up <code>.amud-secrets-key</code> alongside <code>amud.db</code> when using encrypted integration tokens.</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Last export: <strong>{{last_backup_export_at}}</strong></p>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">Last export: <strong>{{last_backup_export_at}}</strong></p>
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label for="setting-backup-reminder-days">Remind me if no export in (days, 0 = off)</label>
+                        <input type="number" id="setting-backup-reminder-days" name="backup_reminder_days" class="form-control" value="{{backup_reminder_days}}" min="0" max="365" style="max-width:8rem;">
+                    </div>
                     <form action="/admin/backup/export" method="POST" style="margin:0;">
                         <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                         <button type="submit" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; width:fit-content;"><i data-lucide="download-cloud"></i> Download amud.db</button>
@@ -3405,7 +3455,8 @@
             if (!nameEl || !out) return;
             const formData = new URLSearchParams();
             formData.append('name', nameEl.value.trim());
-            formData.append('scopes', 'read:apps,read:status');
+            const scopes = Array.from(document.querySelectorAll('.api-scope-cb:checked')).map(el => el.value).join(',');
+            formData.append('scopes', scopes || 'read:apps,read:status');
             formData.append('csrf_token', amudCsrfToken());
             try {
                 const res = await fetch('/api/tokens/create', { method: 'POST', body: formData, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });

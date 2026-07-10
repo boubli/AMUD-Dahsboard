@@ -9,6 +9,7 @@ pub async fn settings_page_handler(
         Ok(s) => s,
         Err(_resp) => return Redirect::to("/login").into_response(),
     };
+    crate::activity::signal_gui_session_start(&state);
 
     let settings = state.settings_cache.read().unwrap().clone();
     let branding = branding_from_settings(&settings);
@@ -101,7 +102,7 @@ pub async fn settings_page_handler(
     result = apply_app_logo_template(result, app_logo, app_name);
     result = result.replace("{{app_logo}}", &escape_html(app_logo));
 
-    let result = result
+    result = result
         .replace("{{accent_color}}", accent_color)
         .replace("{{glass_blur_intensity}}", glass_blur)
         .replace("{{glass_opacity}}", glass_opacity)
@@ -191,7 +192,28 @@ pub async fn settings_page_handler(
         .get("last_backup_export_at")
         .cloned()
         .unwrap_or_else(|| "Never".to_string());
-    let result = result
+    let backup_overdue_banner = if crate::settings::backup_export_overdue(&settings) {
+        r#"<div class="backup-reminder-banner" style="margin-bottom:1rem;padding:0.75rem 1rem;border-radius:8px;background:rgba(255,180,0,0.12);border:1px solid rgba(255,180,0,0.35);font-size:0.85rem;"><strong>Backup reminder:</strong> No recent database export. Download a backup below and store <code>amud.db</code> with <code>.amud-secrets-key</code> safely.</div>"#.to_string()
+    } else {
+        String::new()
+    };
+    let alert_cpu_threshold = settings
+        .get("alert_cpu_threshold")
+        .map(|s| s.as_str())
+        .unwrap_or("90");
+    let alert_ram_threshold = settings
+        .get("alert_ram_threshold")
+        .map(|s| s.as_str())
+        .unwrap_or("90");
+    let alert_disk_threshold = settings
+        .get("alert_disk_threshold")
+        .map(|s| s.as_str())
+        .unwrap_or("95");
+    let backup_reminder_days = settings
+        .get("backup_reminder_days")
+        .map(|s| s.as_str())
+        .unwrap_or("30");
+    result = result
         .replace(
             "{{eq_telemetry_on}}",
             if telemetry_public == "1" {
@@ -268,6 +290,23 @@ pub async fn settings_page_handler(
         .replace(
             "{{last_backup_export_at}}",
             &escape_html(&last_backup_export_at),
+        )
+        .replace("{{backup_overdue_banner}}", &backup_overdue_banner)
+        .replace(
+            "{{alert_cpu_threshold}}",
+            &escape_html(alert_cpu_threshold),
+        )
+        .replace(
+            "{{alert_ram_threshold}}",
+            &escape_html(alert_ram_threshold),
+        )
+        .replace(
+            "{{alert_disk_threshold}}",
+            &escape_html(alert_disk_threshold),
+        )
+        .replace(
+            "{{backup_reminder_days}}",
+            &escape_html(backup_reminder_days),
         )
         .replace(
             "{{telemetry_external_ifaces}}",
@@ -398,6 +437,62 @@ pub async fn settings_page_handler(
             "{{eq_feeds_enabled_off}}",
             if !crate::settings::feeds_enabled(&settings) {
                 "selected"
+            } else {
+                ""
+            },
+        );
+
+    let perf_preset = settings
+        .get("performance_preset")
+        .map(|s| s.as_str())
+        .unwrap_or("light");
+    result = result
+        .replace(
+            "{{idle_grace_secs}}",
+            &escape_html(
+                settings
+                    .get("idle_grace_secs")
+                    .map(String::as_str)
+                    .unwrap_or("45"),
+            ),
+        )
+        .replace(
+            "{{agent_node_tag}}",
+            &escape_html(
+                settings
+                    .get("agent_node_tag")
+                    .map(String::as_str)
+                    .unwrap_or("Local"),
+            ),
+        )
+        .replace(
+            "{{eq_performance_preset_light}}",
+            if perf_preset == "light" {
+                "checked"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_performance_preset_balanced}}",
+            if perf_preset == "balanced" {
+                "checked"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_performance_preset_active}}",
+            if perf_preset == "active" {
+                "checked"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_performance_preset_custom}}",
+            if perf_preset == "custom" {
+                "checked"
             } else {
                 ""
             },

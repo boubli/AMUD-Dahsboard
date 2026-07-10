@@ -1,7 +1,7 @@
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, AtomicUsize};
+use std::sync::atomic::{AtomicU64, AtomicU8, AtomicUsize};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Instant;
 
@@ -94,6 +94,8 @@ pub struct FullTelemetry {
     pub(crate) agent_connected: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) smart_home: Option<crate::smart_home::SmartHomeTelemetry>,
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    pub(crate) nodes: HashMap<String, AgentTelemetry>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -176,4 +178,12 @@ pub struct AppState {
     pub http_clients: Arc<crate::http_client::SharedHttpClients>,
     /// Active WebSocket sessions with guest/limited telemetry (for broadcast slimming).
     pub ws_limited_clients: Arc<AtomicUsize>,
+    /// GUI activity mode: 0=deep idle, 1=grace, 2=active.
+    pub activity_mode: Arc<AtomicU8>,
+    pub active_ws_count: Arc<AtomicUsize>,
+    pub active_gui_sessions: Arc<AtomicUsize>,
+    pub visible_app_ids: Arc<RwLock<Vec<i64>>>,
+    pub last_activity_at: Arc<Mutex<Instant>>,
+    /// Last telemetry epoch per node tag (multi-node stale eviction).
+    pub node_last_seen: Arc<RwLock<HashMap<String, u64>>>,
 }

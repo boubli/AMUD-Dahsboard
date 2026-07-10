@@ -47,6 +47,174 @@ pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
     apps
 }
 
+fn row_to_app(row: &rusqlite::Row<'_>) -> rusqlite::Result<App> {
+    Ok(App {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        url: row.get(2)?,
+        icon: row.get(3).unwrap_or_else(|_| "".to_string()),
+        description: row.get(4).unwrap_or_else(|_| "".to_string()),
+        category: row.get(5)?,
+        node_tag: row.get(6)?,
+        mac_address: row.get(7).unwrap_or_else(|_| "".to_string()),
+        integration_type: row.get(8).unwrap_or_else(|_| "".to_string()),
+        api_key: {
+            let raw_key = row.get::<_, String>(9).unwrap_or_default();
+            crate::secrets::decrypt_value(&raw_key).unwrap_or(raw_key)
+        },
+        sort_order: row.get(10).unwrap_or(0),
+        card_span: row.get(11).unwrap_or_else(|_| "1x1".to_string()),
+        show_container_metrics: row.get::<_, i64>(12).unwrap_or(1) != 0,
+        guest_visible: row.get::<_, i64>(13).unwrap_or(1) != 0,
+        embed_mode: row.get(14).unwrap_or_else(|_| "link".to_string()),
+    })
+}
+
+const APP_SELECT: &str = "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode FROM apps";
+
+pub(crate) fn load_app_by_id(db: &Connection, id: i64) -> Option<App> {
+    db.query_row(&format!("{APP_SELECT} WHERE id = ?"), [id], row_to_app)
+        .ok()
+}
+
+pub(crate) fn load_apps_by_ids(db: &Connection, ids: &[i64]) -> Vec<App> {
+    if ids.is_empty() {
+        return Vec::new();
+    }
+    let placeholders: String = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+    let sql = format!("{APP_SELECT} WHERE id IN ({placeholders}) ORDER BY sort_order ASC, id ASC");
+    let mut apps = Vec::new();
+    let Ok(mut stmt) = db.prepare(&sql) else {
+        return apps;
+    };
+    let params: Vec<rusqlite::types::Value> = ids
+        .iter()
+        .map(|id| rusqlite::types::Value::Integer(*id))
+        .collect();
+    let Ok(mut rows) = stmt.query(rusqlite::params_from_iter(params)) else {
+        return apps;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if let Ok(app) = row_to_app(&row) {
+            apps.push(app);
+        }
+    }
+    apps
+}
+
+pub(crate) fn load_apps_page(db: &Connection, offset: i64, limit: i64) -> Vec<App> {
+    let mut apps = Vec::new();
+    let Ok(mut stmt) = db.prepare(&format!(
+        "{APP_SELECT} ORDER BY sort_order ASC, id ASC LIMIT ? OFFSET ?"
+    )) else {
+        return apps;
+    };
+    let Ok(mut rows) = stmt.query([limit, offset]) else {
+        return apps;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if let Ok(app) = row_to_app(&row) {
+            apps.push(app);
+        }
+    }
+    apps
+}
+
+pub(crate) fn count_apps(db: &Connection) -> i64 {
+    db.query_row("SELECT COUNT(*) FROM apps", [], |row| row.get(0))
+        .unwrap_or(0)
+}
+
+pub(crate) fn has_integration_type(db: &Connection, integration_type: &str) -> bool {
+    db.query_row(
+        "SELECT 1 FROM apps WHERE integration_type = ? LIMIT 1",
+        [integration_type],
+        |_| Ok(()),
+    )
+    .is_ok()
+}
+
+pub(crate) fn count_integrated_apps(db: &Connection) -> i64 {
+    db.query_row(
+        "SELECT COUNT(*) FROM apps WHERE integration_type IS NOT NULL AND integration_type != '' AND api_key IS NOT NULL AND api_key != ''",
+        [],
+        |row| row.get(0),
+    )
+    .unwrap_or(0)
+}
+
+pub(crate) fn load_linked_container_names(db: &Connection, node_tag: &str) -> Vec<String> {
+    let mut names = Vec::new();
+    let Ok(mut stmt) = db.prepare(
+        "SELECT name FROM apps WHERE node_tag = ? AND name != '' ORDER BY sort_order ASC",
+    ) else {
+        return names;
+    };
+    let Ok(mut rows) = stmt.query([node_tag]) else {
+        return names;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if let Ok(name) = row.get::<_, String>(0) {
+            names.push(name);
+        }
+    }
+    names
+}
+
+pub(crate) fn load_dashboard_apps_page(db: &Connection, offset: i64, limit: i64) -> Vec<App> {
+    let mut apps = Vec::new();
+    let Ok(mut stmt) = db.prepare(&format!(
+        "{APP_SELECT} WHERE integration_type IS NULL OR integration_type != 'rss' ORDER BY sort_order ASC, id ASC LIMIT ? OFFSET ?"
+    )) else {
+        return apps;
+    };
+    let Ok(mut rows) = stmt.query([limit, offset]) else {
+        return apps;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if let Ok(app) = row_to_app(&row) {
+            apps.push(app);
+        }
+    }
+    apps
+}
+
+pub(crate) fn count_dashboard_apps(db: &Connection) -> i64 {
+    db.query_row(
+        "SELECT COUNT(*) FROM apps WHERE integration_type IS NULL OR integration_type != 'rss'",
+        [],
+        |row| row.get(0),
+    )
+    .unwrap_or(0)
+}
+
+pub(crate) fn load_rss_apps_page(db: &Connection, offset: i64, limit: i64) -> Vec<App> {
+    let mut apps = Vec::new();
+    let Ok(mut stmt) = db.prepare(&format!(
+        "{APP_SELECT} WHERE integration_type = 'rss' ORDER BY sort_order ASC, id ASC LIMIT ? OFFSET ?"
+    )) else {
+        return apps;
+    };
+    let Ok(mut rows) = stmt.query([limit, offset]) else {
+        return apps;
+    };
+    while let Ok(Some(row)) = rows.next() {
+        if let Ok(app) = row_to_app(&row) {
+            apps.push(app);
+        }
+    }
+    apps
+}
+
+pub(crate) fn count_rss_apps(db: &Connection) -> i64 {
+    db.query_row(
+        "SELECT COUNT(*) FROM apps WHERE integration_type = 'rss'",
+        [],
+        |row| row.get(0),
+    )
+    .unwrap_or(0)
+}
+
 pub(crate) fn load_rss_app_ids(db: &Connection) -> Vec<i64> {
     let Ok(mut stmt) = db.prepare("SELECT id FROM apps WHERE integration_type = 'rss'") else {
         return Vec::new();
@@ -214,6 +382,36 @@ pub(crate) fn load_categories(db: &Connection) -> Vec<(i64, String)> {
         }
     }
     categories
+}
+
+pub(crate) fn load_app_name_urls_for_ids(
+    db: &Connection,
+    ids: &[i64],
+) -> Vec<(String, String)> {
+    if ids.is_empty() {
+        return Vec::new();
+    }
+    let placeholders: String = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+    let sql = format!(
+        "SELECT name, url FROM apps WHERE id IN ({placeholders}) AND (integration_type IS NULL OR integration_type != 'rss')"
+    );
+    let mut apps = Vec::new();
+    let Ok(mut stmt) = db.prepare(&sql) else {
+        return apps;
+    };
+    let params: Vec<rusqlite::types::Value> = ids
+        .iter()
+        .map(|id| rusqlite::types::Value::Integer(*id))
+        .collect();
+    let Ok(rows) = stmt.query_map(rusqlite::params_from_iter(params), |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+    }) else {
+        return apps;
+    };
+    for app in rows.flatten() {
+        apps.push(app);
+    }
+    apps
 }
 
 pub(crate) fn load_app_name_urls(db: &Connection) -> Vec<(String, String)> {

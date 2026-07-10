@@ -39,6 +39,9 @@ async fn render_page(
     state: &Arc<AppState>,
 ) -> Html<String> {
     let session = get_session(headers, &state.sessions);
+    if session.is_some() {
+        crate::activity::signal_gui_session_start(state);
+    }
     let share_session = share_session_from_headers(headers, state);
 
     let settings = state.settings_cache.read().unwrap().clone();
@@ -103,26 +106,26 @@ async fn render_page(
     let csrf_token = csrf_token_for_session(headers, &state.sessions);
     let csrf_attr = escape_html(&csrf_token);
 
-    let (db_categories, all_apps, wol_devices) = with_db(state.db.clone(), move |db| {
+    let (db_categories, all_apps, total_apps, wol_devices) = with_db(state.db.clone(), move |db| {
         let wol = match mode {
             PageMode::Dashboard => load_wol_devices_from_db(db),
             PageMode::Feeds => vec![],
         };
-        (load_categories(db), load_apps_from_db(db), wol)
+        let (apps, total) = match mode {
+            PageMode::Dashboard => (
+                crate::db::load_dashboard_apps_page(db, 0, 50),
+                crate::db::count_dashboard_apps(db),
+            ),
+            PageMode::Feeds => (
+                crate::db::load_rss_apps_page(db, 0, 50),
+                crate::db::count_rss_apps(db),
+            ),
+        };
+        (load_categories(db), apps, total, wol)
     })
     .await;
 
-    // Filter apps based on page mode: dashboard hides RSS, feeds shows only RSS
-    let mut apps: Vec<App> = match mode {
-        PageMode::Dashboard => all_apps
-            .into_iter()
-            .filter(|a| a.integration_type != "rss")
-            .collect(),
-        PageMode::Feeds => all_apps
-            .into_iter()
-            .filter(|a| a.integration_type == "rss")
-            .collect(),
-    };
+    let mut apps: Vec<App> = all_apps;
 
     let is_guest = !is_admin && is_guest_session(&session);
     if is_guest {
@@ -377,6 +380,7 @@ async fn render_page(
             "{{hide_telemetry}}",
             if hide_telemetry { "true" } else { "false" },
         )
+        .replace("{{total_apps}}", &total_apps.to_string())
         .replace("{{custom_css}}", custom_css)
         .replace("{{app_names_json}}", &app_names_json)
         .replace("{{is_admin}}", if is_admin { "true" } else { "false" })
@@ -1486,7 +1490,7 @@ fn render_apps_grid(
 
         let card = format!(
             r#"
-            <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" {}>
+            <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-node-tag="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" {}>
                 <div class="app-card-header">
                     <a href="{}"{}{} class="app-card-identity app-card-open" style="text-decoration:none; color:inherit;">
                         <div class="app-card-icon">
@@ -1510,6 +1514,7 @@ fn render_apps_grid(
             escape_html(&name_lower),
             app.id,
             escape_html(&cat_slug),
+            escape_html(&app.node_tag),
             escape_html(&container_aliases),
             if is_host_agent_app { "true" } else { "false" },
             if app.show_container_metrics {

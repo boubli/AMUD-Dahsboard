@@ -30,6 +30,7 @@ pub async fn settings_handler(
     let new_token = with_db(state.db.clone(), move |db| {
         let mut new_token = None;
         let mut changed_keys = 0usize;
+        let mut preset_to_apply: Option<String> = None;
         for (key, val) in form {
             if key == "csrf_token"
                 || key == "new_password"
@@ -92,6 +93,17 @@ pub async fn settings_handler(
                 sanitize_interval_setting(&val, 5, 3, 60)
             } else if key == "integration_coordinator_interval_secs" {
                 sanitize_interval_setting(&val, 45, 15, 600)
+            } else if key == "performance_preset" {
+                sanitize_performance_preset(&val)
+            } else if key == "idle_grace_secs" {
+                sanitize_interval_setting(&val, 45, 15, 300)
+            } else if key == "backup_reminder_days" {
+                sanitize_interval_setting(&val, 30, 7, 365)
+            } else if key == "alert_cpu_threshold"
+                || key == "alert_ram_threshold"
+                || key == "alert_disk_threshold"
+            {
+                sanitize_interval_setting(&val, 90, 50, 100)
             } else if key == "telemetry_external_ifaces" || key == "telemetry_internal_ifaces" {
                 sanitize_iface_list(&val)
             } else if key == "telemetry_disk_mounts" {
@@ -111,8 +123,14 @@ pub async fn settings_handler(
             if key == "pve_api_token" {
                 new_token = Some(value.clone());
             }
+            if key == "performance_preset" && value != "custom" {
+                preset_to_apply = Some(value.clone());
+            }
             crate::db::upsert_setting(db, &key, &value);
             changed_keys += 1;
+        }
+        if let Some(preset) = preset_to_apply {
+            apply_performance_preset(db, &preset);
         }
         refresh_settings_cache(db, &settings_cache);
         if changed_keys > 0 {
@@ -193,10 +211,7 @@ pub async fn test_proxmox_handler(
             );
         })
         .await;
-        let config_payload = {
-            let cache = state.settings_cache.read().unwrap();
-            agent_config_payload(&cache, Some(form_token.trim()))
-        };
+        let config_payload = crate::agent::agent_config_for_state(&state, Some(form_token.trim()));
         if let Ok(mut serialized) = serde_json::to_vec(&config_payload) {
             serialized.push(b'\n');
             if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {

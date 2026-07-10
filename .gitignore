@@ -1,6 +1,24 @@
-# Local-only workspace
 amud local dev/
+
+target/
+
+.cargo/
+
+data/
+amud-server/data/
+uploads/
+*.db
+*.db-shm
+*.db-wal
+.amud-secrets-key
+
+.cursor/
 .githooks/
 
+docs/build/
+docs/.docusaurus/
+docs/node_modules/
+
 .github/release-notes/
+
 docs/.gitignore

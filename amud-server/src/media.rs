@@ -205,6 +205,11 @@ pub(crate) async fn poll_plex(
 pub(crate) fn start_media_poller(state: Arc<crate::models::AppState>) {
     tokio::spawn(async move {
         loop {
+            if !crate::activity::is_active(&state) {
+                tokio::time::sleep(Duration::from_secs(30)).await;
+                continue;
+            }
+
             let cached = state.settings_cache.read().unwrap().clone();
             let settings = if cached.is_empty() {
                 load_settings_snapshot(&state.db)
@@ -218,14 +223,17 @@ pub(crate) fn start_media_poller(state: Arc<crate::models::AppState>) {
             let client =
                 crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
             let db_for_blocking = state.db.clone();
-            let apps = tokio::task::spawn_blocking(move || {
+            let apps_check = tokio::task::spawn_blocking(move || {
                 let db = db_for_blocking.lock().unwrap();
-                load_apps_from_db(&db)
+                (
+                    crate::db::has_integration_type(&db, "jellyfin")
+                        || crate::db::has_integration_type(&db, "emby"),
+                    crate::db::has_integration_type(&db, "plex"),
+                )
             })
             .await
-            .unwrap_or_default();
-            let has_jellyfin = apps.iter().any(is_jellyfin_app);
-            let has_plex = apps.iter().any(is_plex_app);
+            .unwrap_or((false, false));
+            let (has_jellyfin, has_plex) = apps_check;
             let jellyfin_configured = settings
                 .get("jellyfin_url")
                 .map(|s| !s.trim().is_empty())

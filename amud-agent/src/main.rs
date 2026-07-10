@@ -4,7 +4,7 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 mod http_clients;
 
 use amud_protocol::{
-    agent_auth_proof, AgentTelemetry, AuthProofMessage, ChallengeMessage, ConfigRequest,
+    agent_auth_proof, AuthProofMessage, ChallengeMessage, ConfigRequest,
     DiskMountTelemetry, LxcContainer, NetworkTelemetry,
 };
 use serde::Serialize;
@@ -109,15 +109,51 @@ struct TelemetryConfig {
 #[derive(Clone)]
 struct AgentPollConfig {
     enable_proxmox: bool,
+    activity_mode: String,
+    linked_container_names: Vec<String>,
     telemetry_interval_secs: u64,
     lxc_poll_interval_secs: u64,
     docker_poll_interval_secs: u64,
+}
+
+fn is_idle_mode(mode: &str) -> bool {
+    mode == "idle"
+}
+
+fn filter_containers_by_linked(
+    containers: Vec<LxcContainer>,
+    linked: &[String],
+) -> Vec<LxcContainer> {
+    if linked.is_empty() {
+        return containers;
+    }
+    let linked_lower: std::collections::HashSet<String> = linked
+        .iter()
+        .map(|s| s.trim().to_ascii_lowercase())
+        .filter(|s| !s.is_empty())
+        .collect();
+    containers
+        .into_iter()
+        .filter(|c| linked_lower.contains(&c.name.to_ascii_lowercase()))
+        .collect()
+}
+
+fn merge_container_caches(
+    lxc: &Arc<Vec<LxcContainer>>,
+    docker: &Arc<Vec<LxcContainer>>,
+) -> Arc<Vec<LxcContainer>> {
+    let mut merged = Vec::with_capacity(lxc.len().saturating_add(docker.len()));
+    merged.extend(lxc.iter().cloned());
+    merged.extend(docker.iter().cloned());
+    Arc::new(merged)
 }
 
 impl Default for AgentPollConfig {
     fn default() -> Self {
         Self {
             enable_proxmox: true,
+            activity_mode: "active".to_string(),
+            linked_container_names: Vec::new(),
             telemetry_interval_secs: 5,
             lxc_poll_interval_secs: 10,
             docker_poll_interval_secs: 10,
@@ -275,6 +311,21 @@ fn apply_telemetry_config(config: &serde_json::Value) {
             .and_then(|v| v.as_str())
             .map(|s| s == "1")
             .unwrap_or(true);
+        pc.activity_mode = config
+            .get("activity_mode")
+            .and_then(|v| v.as_str())
+            .unwrap_or("active")
+            .to_string();
+        pc.linked_container_names = config
+            .get("linked_container_names")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(str::trim).filter(|s| !s.is_empty()))
+                    .map(str::to_string)
+                    .collect()
+            })
+            .unwrap_or_default();
         pc.telemetry_interval_secs =
             parse_config_u64(config.get("agent_telemetry_interval_secs"), 5, 3, 60);
         pc.lxc_poll_interval_secs =
@@ -1008,31 +1059,50 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
 
         match serde_json::from_slice::<Vec<DockerContainer>>(&body) {
             Ok(dockers) => {
-                let mut out = Vec::new();
+                use std::sync::Arc as StdArc;
+                use tokio::sync::Semaphore;
+                use tokio::task::JoinSet;
+
+                const DOCKER_STATS_CONCURRENCY: usize = 32;
+                let sem = StdArc::new(Semaphore::new(DOCKER_STATS_CONCURRENCY));
+                let mut set = JoinSet::new();
                 for (i, d) in dockers.into_iter().enumerate() {
+                    let sem = sem.clone();
+                    let id = d.id;
+                    let state = d.state;
                     let name = d
                         .names
                         .into_iter()
                         .next()
                         .unwrap_or_default()
                         .replace('/', "");
-                    let (cpu, mem, maxmem) = if d.state == "running" {
-                        docker_stats(client, &d.id).await
-                    } else {
-                        (Some(0.0), None, None)
-                    };
-                    out.push(LxcContainer {
-                        vmid: -1000 - i as i64,
-                        status: d.state,
-                        name,
-                        cpu,
-                        maxmem,
-                        mem,
-                        maxdisk: None,
-                        disk: None,
-                        uptime: None,
+                    set.spawn(async move {
+                        let _permit = sem.acquire().await.ok()?;
+                        let stats = if state == "running" {
+                            docker_stats(client, &id).await
+                        } else {
+                            (Some(0.0), None, None)
+                        };
+                        Some(LxcContainer {
+                            vmid: -1000 - i as i64,
+                            status: state,
+                            name,
+                            cpu: stats.0,
+                            maxmem: stats.2,
+                            mem: stats.1,
+                            maxdisk: None,
+                            disk: None,
+                            uptime: None,
+                        })
                     });
                 }
+                let mut out = Vec::new();
+                while let Some(joined) = set.join_next().await {
+                    if let Ok(Some(container)) = joined {
+                        out.push(container);
+                    }
+                }
+                out.sort_by_key(|c| c.vmid);
                 out
             }
             Err(_) => Vec::new(),
@@ -1045,8 +1115,39 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
     Vec::new()
 }
 
+#[derive(Serialize)]
+struct AgentTelemetryTick<'a> {
+    cpu_usage: i32,
+    ram_usage: i32,
+    ram_used_gb: f64,
+    ram_total_gb: f64,
+    cpu_temp: f64,
+    disk_usage: i32,
+    disk_used_gb: f64,
+    disk_total_gb: f64,
+    cpu_model: String,
+    cpu_cores: u32,
+    gpu_name: String,
+    gpu_usage: i32,
+    gpu_mem_usage: i32,
+    gpu_mem_used_mb: f64,
+    gpu_mem_total_mb: f64,
+    #[serde(skip_serializing_if = "slice_is_empty")]
+    lxc_containers: &'a [LxcContainer],
+    network: Option<NetworkTelemetry>,
+    disk_mapping_fallback: bool,
+    network_mapping_fallback: bool,
+    telemetry_scope: String,
+    disk_volumes: &'a [DiskMountTelemetry],
+    node_tag: String,
+}
+
+fn slice_is_empty<T>(slice: &&[T]) -> bool {
+    slice.is_empty()
+}
+
 fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
-    let mut sys = System::new_all();
+    let mut sys = System::new();
 
     let agent_secret = std::env::var("AMUD_AGENT_SECRET").unwrap_or_default();
     if agent_secret.is_empty() {
@@ -1117,6 +1218,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
     let mut last_docker_fetch = Instant::now()
         .checked_sub(Duration::from_secs(10))
         .unwrap_or_else(Instant::now);
+    let mut cached_merged: Arc<Vec<LxcContainer>> = Arc::new(Vec::new());
     let mut telemetry_buf: Vec<u8> = Vec::with_capacity(4096);
     let mut gpu_cache = GpuCache::default();
     let mut components = sysinfo::Components::new_with_refreshed_list();
@@ -1137,6 +1239,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
 
     loop {
         let poll_cfg = agent_poll_config().read().unwrap().clone();
+        let idle = is_idle_mode(&poll_cfg.activity_mode);
         sys.refresh_cpu();
         sys.refresh_memory();
 
@@ -1205,18 +1308,33 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         let disk_total_gb = (total_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
         let disk_used_gb = (used_disk as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
-        if last_lxc_fetch.elapsed() >= Duration::from_secs(poll_cfg.lxc_poll_interval_secs) {
-            cached_lxc = Arc::new(fetch_lxc_containers());
-            last_lxc_fetch = Instant::now();
+        if !idle {
+            let mut containers_refreshed = false;
+            if last_lxc_fetch.elapsed() >= Duration::from_secs(poll_cfg.lxc_poll_interval_secs) {
+                cached_lxc = Arc::new(filter_containers_by_linked(
+                    fetch_lxc_containers(),
+                    &poll_cfg.linked_container_names,
+                ));
+                last_lxc_fetch = Instant::now();
+                containers_refreshed = true;
+            }
+            if last_docker_fetch.elapsed() >= Duration::from_secs(poll_cfg.docker_poll_interval_secs)
+            {
+                cached_docker = Arc::new(filter_containers_by_linked(
+                    fetch_docker_containers(),
+                    &poll_cfg.linked_container_names,
+                ));
+                last_docker_fetch = Instant::now();
+                containers_refreshed = true;
+            }
+            if containers_refreshed {
+                cached_merged = merge_container_caches(&cached_lxc, &cached_docker);
+            }
+        } else if !cached_merged.is_empty() {
+            cached_lxc = Arc::new(Vec::new());
+            cached_docker = Arc::new(Vec::new());
+            cached_merged = Arc::new(Vec::new());
         }
-        if last_docker_fetch.elapsed() >= Duration::from_secs(poll_cfg.docker_poll_interval_secs) {
-            cached_docker = Arc::new(fetch_docker_containers());
-            last_docker_fetch = Instant::now();
-        }
-        let mut lxc_containers =
-            Vec::with_capacity(cached_lxc.len().saturating_add(cached_docker.len()));
-        lxc_containers.extend(cached_lxc.iter().cloned());
-        lxc_containers.extend(cached_docker.iter().cloned());
 
         let proc_content = read_proc_net_dev_content();
         let net_cfg = telemetry_config().read().unwrap().clone();
@@ -1278,7 +1396,7 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             network
         };
 
-        let telemetry = AgentTelemetry {
+        let telemetry = AgentTelemetryTick {
             cpu_usage,
             ram_usage,
             ram_used_gb,
@@ -1294,14 +1412,16 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
             gpu_mem_usage: gpu.mem_usage,
             gpu_mem_used_mb: gpu.mem_used_mb,
             gpu_mem_total_mb: gpu.mem_total_mb,
-            lxc_containers,
+            lxc_containers: if idle {
+                &[]
+            } else {
+                cached_merged.as_slice()
+            },
             network: Some(network),
             disk_mapping_fallback,
             network_mapping_fallback,
             telemetry_scope,
-            visible_ifaces,
-            visible_mounts,
-            disk_volumes,
+            disk_volumes: &disk_volumes,
             node_tag: agent_node_tag(),
         };
 

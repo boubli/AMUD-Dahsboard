@@ -1,3 +1,5 @@
+mod integrations_api;
+mod activity;
 mod admin;
 mod api_tokens;
 mod apps;
@@ -21,6 +23,8 @@ mod users;
 mod webhook_routes;
 mod widgets;
 
+pub use integrations_api::*;
+pub use activity::*;
 pub use admin::*;
 pub use api_tokens::*;
 pub use apps::*;

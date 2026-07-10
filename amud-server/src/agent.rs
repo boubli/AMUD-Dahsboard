@@ -9,6 +9,7 @@ use serde::Deserialize;
 use std::os::unix::fs::PermissionsExt;
 #[cfg(unix)]
 use std::path::Path as FilePath;
+use std::collections::HashMap;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::Instant;
@@ -18,21 +19,58 @@ use tokio::net::TcpListener as TokioTcpListener;
 #[cfg(unix)]
 use tokio::net::UnixListener as TokioUnixListener;
 
+const NODE_STALE_SECS: u64 = 300;
+
+fn evict_stale_nodes(state: &AppState, now: u64) {
+    let stale: Vec<String> = state
+        .node_last_seen
+        .read()
+        .unwrap()
+        .iter()
+        .filter(|(_, &seen)| now.saturating_sub(seen) > NODE_STALE_SECS)
+        .map(|(tag, _)| tag.clone())
+        .collect();
+    if stale.is_empty() {
+        return;
+    }
+    let mut nodes = state.telemetry_by_node.write().unwrap();
+    let mut seen = state.node_last_seen.write().unwrap();
+    for tag in stale {
+        nodes.remove(&tag);
+        seen.remove(&tag);
+    }
+}
+
 pub(crate) fn handle_new_telemetry(state: &Arc<AppState>, mut metrics: AgentTelemetry) {
     if metrics.node_tag.trim().is_empty() {
         metrics.node_tag = "Local".to_string();
     }
     let node = metrics.node_tag.clone();
+    let now = crate::auth::now_epoch_secs();
     state
-        .telemetry_by_node
+        .node_last_seen
         .write()
         .unwrap()
-        .insert(node.clone(), metrics.clone());
+        .insert(node.clone(), now);
+    evict_stale_nodes(state, now);
     let old_metrics = {
         let lock = state.latest_telemetry.read().unwrap();
         lock.clone()
     };
     check_container_alerts(&old_metrics, &metrics, state);
+
+    if crate::activity::is_deep_idle(state) {
+        metrics.lxc_containers.clear();
+        metrics.visible_mounts.clear();
+        metrics.visible_ifaces.clear();
+        metrics.disk_volumes.clear();
+    }
+
+    state
+        .telemetry_by_node
+        .write()
+        .unwrap()
+        .insert(node.clone(), metrics.clone());
     if node == "Local" || state.telemetry_by_node.read().unwrap().len() <= 1 {
         *state.latest_telemetry.write().unwrap() = metrics;
     }
@@ -265,6 +303,8 @@ async fn run_uds_listener(path: &str, state: Arc<AppState>) {
 pub(crate) fn agent_config_payload(
     settings: &std::collections::HashMap<String, String>,
     pve_token_override: Option<&str>,
+    activity_mode: &str,
+    linked_container_names: &[String],
 ) -> serde_json::Value {
     let token = pve_token_override
         .map(str::trim)
@@ -276,32 +316,72 @@ pub(crate) fn agent_config_payload(
         .get("enable_proxmox")
         .map(|s| s.as_str())
         .unwrap_or("1");
+
+    let (tel_interval, lxc_interval, docker_interval) = if activity_mode == "active" {
+        (
+            settings
+                .get("agent_telemetry_interval_secs")
+                .cloned()
+                .unwrap_or_else(|| "5".into()),
+            settings
+                .get("agent_lxc_poll_interval_secs")
+                .cloned()
+                .unwrap_or_else(|| "10".into()),
+            settings
+                .get("agent_docker_poll_interval_secs")
+                .cloned()
+                .unwrap_or_else(|| "10".into()),
+        )
+    } else {
+        ("60".into(), "300".into(), "300".into())
+    };
+
     serde_json::json!({
         "config": {
             "pve_api_token_configured": configured,
             "pve_api_token": token,
             "enable_proxmox": enable_proxmox,
+            "activity_mode": activity_mode,
+            "linked_container_names": linked_container_names,
             "telemetry_external_ifaces": settings.get("telemetry_external_ifaces").cloned().unwrap_or_default(),
             "telemetry_internal_ifaces": settings.get("telemetry_internal_ifaces").cloned().unwrap_or_default(),
             "telemetry_disk_mounts": settings.get("telemetry_disk_mounts").cloned().unwrap_or_default(),
             "agent_node_tag": settings.get("agent_node_tag").cloned().unwrap_or_else(|| "Local".into()),
-            "agent_telemetry_interval_secs": settings.get("agent_telemetry_interval_secs").cloned().unwrap_or_else(|| "5".into()),
-            "agent_lxc_poll_interval_secs": settings.get("agent_lxc_poll_interval_secs").cloned().unwrap_or_else(|| "10".into()),
-            "agent_docker_poll_interval_secs": settings.get("agent_docker_poll_interval_secs").cloned().unwrap_or_else(|| "10".into()),
+            "agent_telemetry_interval_secs": tel_interval,
+            "agent_lxc_poll_interval_secs": lxc_interval,
+            "agent_docker_poll_interval_secs": docker_interval,
         }
     })
+}
+
+pub(crate) fn agent_config_for_state(
+    state: &AppState,
+    pve_token_override: Option<&str>,
+) -> serde_json::Value {
+    let cache = state.settings_cache.read().unwrap();
+    let mode = crate::activity::activity_mode_name(
+        state.activity_mode.load(std::sync::atomic::Ordering::Relaxed),
+    );
+    let node_tag = cache
+        .get("agent_node_tag")
+        .map(|s| s.as_str())
+        .unwrap_or("Local");
+    let linked = {
+        let db = state.db.lock().unwrap();
+        crate::db::load_linked_container_names(&db, node_tag)
+    };
+    agent_config_payload(&cache, pve_token_override, mode, &linked)
 }
 
 #[allow(dead_code)]
 pub(crate) fn pve_config_payload(token: &str) -> serde_json::Value {
     let mut settings = std::collections::HashMap::new();
     settings.insert("pve_api_token".to_string(), token.to_string());
-    agent_config_payload(&settings, Some(token))
+    agent_config_payload(&settings, Some(token), "active", &[])
 }
 
 pub(crate) fn push_agent_config(state: &Arc<AppState>, pve_token_override: Option<&str>) {
-    let cache = state.settings_cache.read().unwrap();
-    let payload = agent_config_payload(&cache, pve_token_override);
+    let payload = agent_config_for_state(state, pve_token_override);
     if let Ok(mut serialized) = serde_json::to_vec(&payload) {
         serialized.push(b'\n');
         if let Some(tx) = &*state.agent_command_tx.lock().unwrap() {
@@ -324,10 +404,9 @@ pub(crate) fn process_agent_line(
 
     if let Ok(req) = serde_json::from_str::<amud_protocol::ConfigRequest>(line) {
         if req.request == "get_config" {
-            let cache = state.settings_cache.read().unwrap();
             let env_configured = req.pve_token_configured.unwrap_or(false);
             let token_override = if env_configured { Some("") } else { None };
-            let mut config_payload = agent_config_payload(&cache, token_override);
+            let mut config_payload = agent_config_for_state(state, token_override);
             if env_configured {
                 if let Some(config) = config_payload.get_mut("config") {
                     config["pve_api_token_configured"] = serde_json::json!(true);

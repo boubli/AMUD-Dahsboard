@@ -328,11 +328,15 @@
                 const sys = data.system;
                 updateHostTelemetry(sys);
 
-                const containers = (sys.lxc_containers && sys.lxc_containers.length > 0) ? sys.lxc_containers : [];
-                if (containers.length > 0) {
-                    updateStreamStatusBadges(containers);
-                }
                 document.querySelectorAll('.app-card').forEach(card => {
+                    const nodeTag = card.getAttribute('data-node-tag') || 'Local';
+                    const nodeTel = (data.nodes && data.nodes[nodeTag]) ? data.nodes[nodeTag] : sys;
+                    const containers = (nodeTel.lxc_containers && nodeTel.lxc_containers.length > 0)
+                        ? nodeTel.lxc_containers
+                        : ((sys.lxc_containers && sys.lxc_containers.length > 0) ? sys.lxc_containers : []);
+                    if (containers.length > 0 && nodeTag === (sys.node_tag || 'Local')) {
+                        updateStreamStatusBadges(containers);
+                    }
                     const match = findContainerByNames(containers, containerNamesForCard(card));
                     const isHostAgentApp = card.getAttribute('data-host-agent-app') === 'true';
 
@@ -413,6 +417,12 @@
 
             if (data.app_statuses) {
                 updateAppUrlStatuses(data.app_statuses);
+                try {
+                    const slim = Object.fromEntries(
+                        Object.entries(data.app_statuses).map(([k, v]) => [k, { s: v.status }])
+                    );
+                    localStorage.setItem('amud-offline-status', JSON.stringify(slim));
+                } catch (_) { /* quota */ }
             }
 
             if (data.network) {
@@ -539,19 +549,50 @@
         }
     }
 
-    function refreshIntegrationCard(card) {
-        const appId = card.getAttribute('data-integration-refresh');
-        if (!appId) return;
-        fetch(`/api/apps/${appId}/integration`)
-            .then(r => (r.ok ? r.json() : null))
-            .then(d => {
-                if (!d || !d.type) return;
-                if (typeof Alpine !== 'undefined' && typeof Alpine.$data === 'function') {
-                    const data = Alpine.$data(card);
-                    if (data) data.integrationData = d;
-                }
+    function refreshIntegrationCardsBatch(cards) {
+        const ids = cards
+            .map(card => card.getAttribute('data-integration-refresh'))
+            .filter(Boolean);
+        if (!ids.length) return;
+        fetch('/api/apps/integrations/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: ids.map(id => parseInt(id, 10)) }),
+        })
+            .then(r => {
+                if (r.status === 503) return null;
+                return r.ok ? r.json() : null;
+            })
+            .then(batch => {
+                if (!batch) return;
+                cards.forEach(card => {
+                    const appId = card.getAttribute('data-integration-refresh');
+                    const d = batch[appId];
+                    if (!d || !d.type) return;
+                    if (typeof Alpine !== 'undefined' && typeof Alpine.$data === 'function') {
+                        const data = Alpine.$data(card);
+                        if (data) data.integrationData = d;
+                    }
+                });
             })
             .catch(() => {});
+    }
+
+    function reportViewport(ids) {
+        if (!ids.length) return;
+        fetch('/api/activity/viewport', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids }),
+        }).catch(() => {});
+    }
+
+    function reportPresence(active) {
+        fetch('/api/activity/presence', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ active }),
+        }).catch(() => {});
     }
 
     function initIntegrationRefresh() {
@@ -566,17 +607,32 @@
                 if (entry.isIntersecting) visible.add(id);
                 else visible.delete(id);
             });
+            const visibleIds = Array.from(visible).map(id => parseInt(id, 10)).slice(0, 50);
+            reportViewport(visibleIds);
         }, { root: null, threshold: 0.1 });
 
         cards.forEach(card => observer.observe(card));
 
+        let batchTimer = null;
         const tick = () => {
-            cards.forEach(card => {
+            const visibleCards = cards.filter(card => {
                 const id = card.getAttribute('data-integration-refresh');
-                if (id && visible.has(id)) refreshIntegrationCard(card);
+                return id && visible.has(id);
             });
+            if (!visibleCards.length) return;
+            if (batchTimer) clearTimeout(batchTimer);
+            batchTimer = setTimeout(() => refreshIntegrationCardsBatch(visibleCards), 300);
         };
         setInterval(tick, 30000);
+        tick();
+    }
+
+    function initActivityPresence() {
+        reportPresence(true);
+        document.addEventListener('visibilitychange', () => {
+            reportPresence(!document.hidden);
+        });
+        window.addEventListener('beforeunload', () => reportPresence(false));
     }
 
     function init() {
@@ -588,6 +644,7 @@
         updateClock();
         setInterval(updateClock, 1000);
         connectWebSocket();
+        initActivityPresence();
         initIntegrationRefresh();
 
         // Make app cards clickable across their whole surface, while preserving

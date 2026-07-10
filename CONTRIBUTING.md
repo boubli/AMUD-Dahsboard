@@ -22,17 +22,21 @@ The AMUD repository is structured as a Cargo workspace with two main members:
 ### 1. Run the Backend Server
 
 To compile and start the server, run:
+
 ```bash
 cargo run -p amud-server
 ```
+
 On its first run, the server will:
-1. Create a `data/` directory.
+1. Create a `data/` directory (relative to your current working directory).
 2. Initialize an empty SQLite database (`data/amud.db`).
 3. Generate a random bootstrap password for the `admin` user and print it to the terminal. Save this password, as it is shown only once!
 
+To keep the database and build artifacts out of the repository tree, set `DB_PATH` and optionally `CARGO_TARGET_DIR` to paths on your machine before running cargo.
+
 ### 2. Run the Telemetry Agent
 
-The agent requires the same shared secret as the server to authenticate its telemetry stream. 
+The agent requires the same shared secret as the server to authenticate its telemetry stream.
 
 **On Windows (TCP Loopback):**
 By default on Windows, both the server and the agent communicate via TCP on `127.0.0.1:8050`.
@@ -69,25 +73,18 @@ AMUD uses an embedded SQLite database managed via `rusqlite`.
 
 ---
 
-## Git hooks (recommended)
+## Before you push
 
-CI runs `cargo fmt --all -- --check`. To avoid a red build because of formatting, enable the repo hook once after clone:
+CI runs `cargo fmt --all -- --check`, `cargo clippy`, and `cargo test --workspace --lib`. Run the same locally before opening a PR:
 
 ```bash
-bash scripts/setup-githooks.sh
+cargo fmt --all
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace --lib
 ```
-
-On Windows (PowerShell):
-
-```powershell
-.\scripts\setup-githooks.ps1
-```
-
-Pre-commit runs `cargo fmt --all` and re-stages any `.rs` files it touched.
 
 ---
 
 ## 📊 Testing Metrics Locally
 
 If you run the agent on your local machine, it will capture your host's CPU, RAM, and disk metrics. However, it will skip Proxmox VE (`pve`) or Docker container telemetry if they are not running or configured on your development machine.
-

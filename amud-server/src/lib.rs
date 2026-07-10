@@ -1,3 +1,4 @@
+pub mod activity;
 pub mod agent;
 pub mod apps;
 pub mod audit;
@@ -31,6 +32,41 @@ pub mod telemetry_broadcast;
 pub mod templates;
 pub mod webhooks;
 
+#[cfg(feature = "integration-tests")]
+pub mod integration_test_exports {
+    use crate::activity;
+    use crate::models::AppState;
+    use crate::settings;
+    use crate::telemetry_broadcast;
+    use rusqlite::Connection;
+    use std::sync::Arc;
+    use tokio::sync::watch;
+
+    pub use crate::activity::MODE_DEEP_IDLE;
+
+    pub fn is_active(state: &AppState) -> bool {
+        activity::is_active(state)
+    }
+
+    pub fn is_deep_idle(state: &AppState) -> bool {
+        activity::is_deep_idle(state)
+    }
+
+    pub fn signal_ws_connected(state: &Arc<AppState>) {
+        activity::signal_ws_connected(state);
+    }
+
+    pub fn apply_performance_preset(db: &Connection, preset: &str) {
+        settings::apply_performance_preset(db, preset);
+    }
+
+    pub fn new_telemetry_broadcast() -> watch::Sender<Arc<crate::telemetry_broadcast::WsTelemetryBundle>>
+    {
+        telemetry_broadcast::new_telemetry_broadcast()
+    }
+}
+
+use activity::{start_activity_supervisor, start_alert_evaluator};
 use agent::start_agent_listener;
 use auth::{
     generate_bootstrap_password, hash_password, resolve_agent_secret, security_headers,
@@ -56,8 +92,9 @@ use axum::{
 };
 use rusqlite::{params, Connection};
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU8, AtomicUsize};
 use std::sync::{Arc, Mutex, RwLock};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tokio::net::TcpListener as TokioTcpListener;
 
 fn start_action_results_cleanup(action_results: Arc<RwLock<HashMap<String, ActionResult>>>) {
@@ -481,8 +518,16 @@ pub async fn run() {
         integration_cache: integration_cache.clone(),
         http_clients: http_clients.clone(),
         ws_limited_clients: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+        activity_mode: Arc::new(AtomicU8::new(activity::MODE_DEEP_IDLE)),
+        active_ws_count: Arc::new(AtomicUsize::new(0)),
+        active_gui_sessions: Arc::new(AtomicUsize::new(0)),
+        visible_app_ids: Arc::new(RwLock::new(Vec::new())),
+        last_activity_at: Arc::new(Mutex::new(Instant::now())),
+        node_last_seen: Arc::new(RwLock::new(HashMap::new())),
     });
 
+    start_activity_supervisor(state.clone());
+    start_alert_evaluator(state.clone());
     start_telemetry_broadcaster(state.clone());
     start_agent_listener(state.clone());
     start_session_cleanup(sessions.clone());
@@ -550,6 +595,15 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/wol/add", post(add_wol_device_handler))
         .route("/api/wol/delete", post(delete_wol_device_handler))
         .route("/api/apps", get(list_apps_api_handler))
+        .route("/api/activity/viewport", post(activity_viewport_handler))
+        .route("/api/activity/presence", post(activity_presence_handler))
+        .route("/api/integrations/test", post(integration_test_handler))
+        .route(
+            "/api/integrations/custom-api/templates",
+            get(custom_api_templates_handler),
+        )
+        .route("/api/telemetry", get(api_telemetry_handler))
+        .route("/api/apps/integrations/batch", post(batch_integration_handler))
         .route("/api/apps/:id/integration", get(integration_data_handler))
         .route(
             "/api/apps/:id/integration/action",

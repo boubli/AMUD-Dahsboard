@@ -1,8 +1,17 @@
 use super::api_tokens::api_token_authorized;
 use super::imports::*;
+use axum::extract::Query;
+use axum::Json;
+
+#[derive(serde::Deserialize, Default)]
+pub struct AppsPageQuery {
+    pub page: Option<i64>,
+    pub limit: Option<i64>,
+}
 
 pub async fn list_apps_api_handler(
     headers: HeaderMap,
+    Query(query): Query<AppsPageQuery>,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     if let Some(resp) = check_api_rate_limit(&state, &headers, "api_apps", 60, 60) {
@@ -17,7 +26,16 @@ pub async fn list_apps_api_handler(
             .unwrap()
             .into_response();
     }
-    let apps = with_db(state.db.clone(), load_apps_from_db).await;
+    let page = query.page.unwrap_or(1).max(1);
+    let limit = query.limit.unwrap_or(50).clamp(1, 50);
+    let offset = (page - 1) * limit;
+    let (apps, total) = with_db(state.db.clone(), move |db| {
+        (
+            crate::db::load_dashboard_apps_page(db, offset, limit),
+            crate::db::count_dashboard_apps(db),
+        )
+    })
+    .await;
     let list: Vec<serde_json::Value> = apps
         .into_iter()
         .map(|a| {
@@ -26,12 +44,24 @@ pub async fn list_apps_api_handler(
                 "name": a.name,
                 "url": a.url,
                 "category": a.category,
+                "node_tag": a.node_tag,
                 "guest_visible": a.guest_visible,
                 "embed_mode": a.embed_mode,
+                "card_span": a.card_span,
+                "integration_type": a.integration_type,
             })
         })
         .collect();
-    api_json(StatusCode::OK, serde_json::json!({ "apps": list })).into_response()
+    api_json(
+        StatusCode::OK,
+        serde_json::json!({
+            "apps": list,
+            "page": page,
+            "limit": limit,
+            "total": total,
+        }),
+    )
+    .into_response()
 }
 
 pub async fn add_app_handler(
@@ -550,12 +580,7 @@ pub async fn integration_data_handler(
     let session = get_session(&headers, &state.sessions);
     let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
 
-    let app = with_db(state.db.clone(), move |db| {
-        let mut apps = crate::db::load_apps_from_db(db);
-        apps.retain(|a| a.id == id);
-        apps.pop()
-    })
-    .await;
+    let app = with_db(state.db.clone(), move |db| crate::db::load_app_by_id(db, id)).await;
 
     match &app {
         Some(app) => {
@@ -581,6 +606,14 @@ pub async fn integration_data_handler(
                     .unwrap();
             }
         }
+    }
+
+    if crate::activity::is_deep_idle(&state) {
+        return Response::builder()
+            .status(StatusCode::SERVICE_UNAVAILABLE)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"server_idle"}"#))
+            .unwrap();
     }
 
     let app = app.unwrap();
@@ -659,12 +692,7 @@ pub async fn integration_action_handler(
     };
 
     let action = payload.get("action").cloned().unwrap_or_default();
-    let app = with_db(state.db.clone(), move |db| {
-        let mut apps = crate::db::load_apps_from_db(db);
-        apps.retain(|a| a.id == id);
-        apps.pop()
-    })
-    .await;
+    let app = with_db(state.db.clone(), move |db| crate::db::load_app_by_id(db, id)).await;
 
     if let Some(app) = app {
         if let Some(data) = crate::integrations::execute_integration_action(
@@ -1291,6 +1319,81 @@ pub async fn delete_rss_feed_handler(
     .await;
 
     api_json(StatusCode::OK, serde_json::json!({"success": true}))
+}
+
+#[derive(serde::Deserialize)]
+pub struct BatchIntegrationBody {
+    pub ids: Vec<i64>,
+}
+
+pub async fn batch_integration_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Json(body): Json<BatchIntegrationBody>,
+) -> impl IntoResponse {
+    if let Some(resp) = check_api_rate_limit(&state, &headers, "integration_batch", 20, 60) {
+        return resp.into_response();
+    }
+    let session = get_session(&headers, &state.sessions);
+    let token_ok = api_token_authorized(&headers, &state, "read:integrations");
+    if session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) == false && !token_ok {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap()
+            .into_response();
+    }
+    if crate::activity::is_deep_idle(&state) {
+        return Response::builder()
+            .status(StatusCode::SERVICE_UNAVAILABLE)
+            .header("Content-Type", "application/json")
+            .body(Body::from(r#"{"error":"server_idle"}"#))
+            .unwrap()
+            .into_response();
+    }
+
+    let ids: Vec<i64> = body.ids.into_iter().take(50).collect();
+    let accept_invalid = {
+        let cache = state.settings_cache.read().unwrap();
+        cache
+            .get("accept_invalid_certs")
+            .map(|s| s == "1")
+            .unwrap_or(false)
+    };
+
+    let apps = with_db(state.db.clone(), move |db| crate::db::load_apps_by_ids(db, &ids)).await;
+    let cache = state.integration_cache.clone();
+    let clients = state.http_clients.clone();
+    let mut results = serde_json::Map::new();
+
+    for app in apps {
+        if app.integration_type.is_empty() {
+            continue;
+        }
+        let ttl = crate::integration_registry::ttl_for_type(&app.integration_type);
+        let app_id = app.id;
+        let app_clone = app.clone();
+        if let Some(data) = cache
+            .get_or_fetch(app_id, ttl, || {
+                let a = app_clone.clone();
+                let c = clients.clone();
+                async move {
+                    crate::integrations::fetch_integration_data_uncached(&a, accept_invalid, &c)
+                        .await
+                }
+            })
+            .await
+        {
+            results.insert(app_id.to_string(), data);
+        }
+    }
+
+    api_json(
+        StatusCode::OK,
+        serde_json::Value::Object(results),
+    )
+    .into_response()
 }
 
 #[cfg(test)]

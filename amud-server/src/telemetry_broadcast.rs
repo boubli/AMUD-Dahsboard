@@ -20,6 +20,7 @@ fn empty_full_telemetry() -> FullTelemetry {
         app_statuses: HashMap::new(),
         agent_connected: false,
         smart_home: None,
+        nodes: HashMap::new(),
     }
 }
 
@@ -96,6 +97,7 @@ impl WsTelemetryBundle {
         let smart_home = read_rwlock(&state.smart_home_telemetry);
 
         let network = system.network.clone().unwrap_or_default();
+        let nodes = read_rwlock(&state.telemetry_by_node);
 
         let guest_app_statuses: HashMap<String, AppStatus> = app_statuses
             .iter()
@@ -126,6 +128,7 @@ impl WsTelemetryBundle {
             app_statuses,
             agent_connected,
             smart_home: Some(smart_home),
+            nodes,
         };
 
         if !build_guest {
@@ -144,6 +147,7 @@ impl WsTelemetryBundle {
             app_statuses: guest_app_statuses.clone(),
             agent_connected,
             smart_home: None,
+            nodes: HashMap::new(),
         };
 
         let guest_redacted = FullTelemetry {
@@ -156,6 +160,7 @@ impl WsTelemetryBundle {
             app_statuses: guest_app_statuses,
             agent_connected,
             smart_home: None,
+            nodes: HashMap::new(),
         };
 
         let mut buf = String::with_capacity(8192);
@@ -199,6 +204,9 @@ pub(crate) fn start_telemetry_broadcaster(state: Arc<AppState>) {
                 )
             };
             tokio::time::sleep(Duration::from_secs(interval_secs)).await;
+            if !crate::activity::is_active(&state) {
+                continue;
+            }
             if state.telemetry_broadcast.receiver_count() == 0 {
                 continue;
             }
@@ -256,6 +264,12 @@ mod tests {
             integration_cache: Arc::new(crate::integration_cache::IntegrationCache::new(64, 45)),
             http_clients: Arc::new(crate::http_client::build_shared_http_clients()),
             ws_limited_clients: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            activity_mode: Arc::new(std::sync::atomic::AtomicU8::new(0)),
+            active_ws_count: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            active_gui_sessions: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            visible_app_ids: Arc::new(RwLock::new(Vec::new())),
+            last_activity_at: Arc::new(std::sync::Mutex::new(std::time::Instant::now())),
+            node_last_seen: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 

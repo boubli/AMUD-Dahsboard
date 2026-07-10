@@ -35,7 +35,7 @@ dependencies = [
 
 [[package]]
 name = "amud-agent"
-version = "1.7.6"
+version = "1.8.0"
 dependencies = [
  "amud-protocol",
  "http-body-util",
@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "amud-protocol"
-version = "1.7.6"
+version = "1.8.0"
 dependencies = [
  "hex",
  "serde",
@@ -62,7 +62,7 @@ dependencies = [
 
 [[package]]
 name = "amud-server"
-version = "1.7.6"
+version = "1.8.0"
 dependencies = [
  "amud-protocol",
  "argon2",
@@ -88,6 +88,7 @@ dependencies = [
  "sha2",
  "subtle",
  "tokio",
+ "tokio-util",
  "tower",
  "tower-http 0.5.2",
  "urlencoding",

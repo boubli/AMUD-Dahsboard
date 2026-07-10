@@ -1,6 +1,6 @@
 [package]
 name = "amud-server"
-version = "1.7.7"
+version = "1.8.0"
 edition = "2021"
 
 [lib]
@@ -11,6 +11,7 @@ path = "src/lib.rs"
 amud-protocol = { path = "../amud-protocol" }
 chacha20poly1305 = "0.10"
 tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["io"] }
 axum = { version = "0.7", features = ["ws", "multipart"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -36,3 +37,5 @@ serde_yaml = "0.9"
 ldap3 = { version = "0.12", default-features = false, features = ["tls-rustls-ring"] }
 mimalloc = { version = "0.1", default-features = false }
 
+[features]
+integration-tests = []

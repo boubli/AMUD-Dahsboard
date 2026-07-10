@@ -136,6 +136,12 @@ impl IntegrationCache {
         self.len() == 0
     }
 
+    pub fn clear(&self) {
+        let mut inner = self.inner.write().unwrap();
+        inner.entries.clear();
+        inner.access_order.clear();
+    }
+
     /// Fetch with singleflight: concurrent requests for the same app_id share one upstream call.
     pub async fn get_or_fetch<F, Fut>(&self, app_id: i64, ttl: Duration, fetch: F) -> Option<Value>
     where
