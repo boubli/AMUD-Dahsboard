@@ -9,7 +9,6 @@ use serde::Deserialize;
 use std::os::unix::fs::PermissionsExt;
 #[cfg(unix)]
 use std::path::Path as FilePath;
-use std::collections::HashMap;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::Instant;
@@ -360,7 +359,9 @@ pub(crate) fn agent_config_for_state(
 ) -> serde_json::Value {
     let cache = state.settings_cache.read().unwrap();
     let mode = crate::activity::activity_mode_name(
-        state.activity_mode.load(std::sync::atomic::Ordering::Relaxed),
+        state
+            .activity_mode
+            .load(std::sync::atomic::Ordering::Relaxed),
     );
     let node_tag = cache
         .get("agent_node_tag")

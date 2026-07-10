@@ -60,8 +60,8 @@ pub mod integration_test_exports {
         settings::apply_performance_preset(db, preset);
     }
 
-    pub fn new_telemetry_broadcast() -> watch::Sender<Arc<crate::telemetry_broadcast::WsTelemetryBundle>>
-    {
+    pub fn new_telemetry_broadcast(
+    ) -> watch::Sender<Arc<crate::telemetry_broadcast::WsTelemetryBundle>> {
         telemetry_broadcast::new_telemetry_broadcast()
     }
 }
@@ -603,7 +603,10 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
             get(custom_api_templates_handler),
         )
         .route("/api/telemetry", get(api_telemetry_handler))
-        .route("/api/apps/integrations/batch", post(batch_integration_handler))
+        .route(
+            "/api/apps/integrations/batch",
+            post(batch_integration_handler),
+        )
         .route("/api/apps/:id/integration", get(integration_data_handler))
         .route(
             "/api/apps/:id/integration/action",

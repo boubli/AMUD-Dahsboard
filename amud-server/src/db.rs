@@ -95,34 +95,11 @@ pub(crate) fn load_apps_by_ids(db: &Connection, ids: &[i64]) -> Vec<App> {
         return apps;
     };
     while let Ok(Some(row)) = rows.next() {
-        if let Ok(app) = row_to_app(&row) {
+        if let Ok(app) = row_to_app(row) {
             apps.push(app);
         }
     }
     apps
-}
-
-pub(crate) fn load_apps_page(db: &Connection, offset: i64, limit: i64) -> Vec<App> {
-    let mut apps = Vec::new();
-    let Ok(mut stmt) = db.prepare(&format!(
-        "{APP_SELECT} ORDER BY sort_order ASC, id ASC LIMIT ? OFFSET ?"
-    )) else {
-        return apps;
-    };
-    let Ok(mut rows) = stmt.query([limit, offset]) else {
-        return apps;
-    };
-    while let Ok(Some(row)) = rows.next() {
-        if let Ok(app) = row_to_app(&row) {
-            apps.push(app);
-        }
-    }
-    apps
-}
-
-pub(crate) fn count_apps(db: &Connection) -> i64 {
-    db.query_row("SELECT COUNT(*) FROM apps", [], |row| row.get(0))
-        .unwrap_or(0)
 }
 
 pub(crate) fn has_integration_type(db: &Connection, integration_type: &str) -> bool {
@@ -134,20 +111,11 @@ pub(crate) fn has_integration_type(db: &Connection, integration_type: &str) -> b
     .is_ok()
 }
 
-pub(crate) fn count_integrated_apps(db: &Connection) -> i64 {
-    db.query_row(
-        "SELECT COUNT(*) FROM apps WHERE integration_type IS NOT NULL AND integration_type != '' AND api_key IS NOT NULL AND api_key != ''",
-        [],
-        |row| row.get(0),
-    )
-    .unwrap_or(0)
-}
-
 pub(crate) fn load_linked_container_names(db: &Connection, node_tag: &str) -> Vec<String> {
     let mut names = Vec::new();
-    let Ok(mut stmt) = db.prepare(
-        "SELECT name FROM apps WHERE node_tag = ? AND name != '' ORDER BY sort_order ASC",
-    ) else {
+    let Ok(mut stmt) = db
+        .prepare("SELECT name FROM apps WHERE node_tag = ? AND name != '' ORDER BY sort_order ASC")
+    else {
         return names;
     };
     let Ok(mut rows) = stmt.query([node_tag]) else {
@@ -172,7 +140,7 @@ pub(crate) fn load_dashboard_apps_page(db: &Connection, offset: i64, limit: i64)
         return apps;
     };
     while let Ok(Some(row)) = rows.next() {
-        if let Ok(app) = row_to_app(&row) {
+        if let Ok(app) = row_to_app(row) {
             apps.push(app);
         }
     }
@@ -199,7 +167,7 @@ pub(crate) fn load_rss_apps_page(db: &Connection, offset: i64, limit: i64) -> Ve
         return apps;
     };
     while let Ok(Some(row)) = rows.next() {
-        if let Ok(app) = row_to_app(&row) {
+        if let Ok(app) = row_to_app(row) {
             apps.push(app);
         }
     }
@@ -384,10 +352,7 @@ pub(crate) fn load_categories(db: &Connection) -> Vec<(i64, String)> {
     categories
 }
 
-pub(crate) fn load_app_name_urls_for_ids(
-    db: &Connection,
-    ids: &[i64],
-) -> Vec<(String, String)> {
+pub(crate) fn load_app_name_urls_for_ids(db: &Connection, ids: &[i64]) -> Vec<(String, String)> {
     if ids.is_empty() {
         return Vec::new();
     }
@@ -404,24 +369,6 @@ pub(crate) fn load_app_name_urls_for_ids(
         .map(|id| rusqlite::types::Value::Integer(*id))
         .collect();
     let Ok(rows) = stmt.query_map(rusqlite::params_from_iter(params), |row| {
-        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-    }) else {
-        return apps;
-    };
-    for app in rows.flatten() {
-        apps.push(app);
-    }
-    apps
-}
-
-pub(crate) fn load_app_name_urls(db: &Connection) -> Vec<(String, String)> {
-    let mut apps = Vec::new();
-    let Ok(mut stmt) = db.prepare(
-        "SELECT name, url FROM apps WHERE integration_type IS NULL OR integration_type != 'rss'",
-    ) else {
-        return apps;
-    };
-    let Ok(rows) = stmt.query_map([], |row| {
         Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
     }) else {
         return apps;
@@ -1128,12 +1075,12 @@ mod tests {
     fn load_app_name_urls_skips_rss_feeds() {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(
-            "CREATE TABLE apps (name TEXT, url TEXT, integration_type TEXT DEFAULT '');
+            "CREATE TABLE apps (id INTEGER PRIMARY KEY, name TEXT, url TEXT, integration_type TEXT DEFAULT '');
              INSERT INTO apps (name, url, integration_type) VALUES ('Radarr', 'http://radarr', '');
              INSERT INTO apps (name, url, integration_type) VALUES ('BBC News', 'https://bbc.com', 'rss');",
         )
         .unwrap();
-        let urls = load_app_name_urls(&conn);
+        let urls = load_app_name_urls_for_ids(&conn, &[1, 2]);
         assert_eq!(urls.len(), 1);
         assert_eq!(urls[0].0, "Radarr");
     }

@@ -2,9 +2,8 @@
 
 use crate::agent::push_agent_config;
 use crate::models::AppState;
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex as StdMutex};
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 /// Deep idle: no GUI, pollers stopped, caches cleared.
@@ -53,16 +52,12 @@ fn grace_secs(state: &AppState) -> u64 {
 }
 
 pub(crate) fn signal_ws_connected(state: &Arc<AppState>) {
-    state
-        .active_ws_count
-        .fetch_add(1, Ordering::Relaxed);
+    state.active_ws_count.fetch_add(1, Ordering::Relaxed);
     transition_toward_active(state);
 }
 
 pub(crate) fn signal_ws_disconnected(state: &Arc<AppState>) {
-    let prev = state
-        .active_ws_count
-        .fetch_sub(1, Ordering::Relaxed);
+    let prev = state.active_ws_count.fetch_sub(1, Ordering::Relaxed);
     if prev <= 1 {
         state.active_ws_count.store(0, Ordering::Relaxed);
     }
@@ -70,16 +65,12 @@ pub(crate) fn signal_ws_disconnected(state: &Arc<AppState>) {
 }
 
 pub(crate) fn signal_gui_session_start(state: &Arc<AppState>) {
-    state
-        .active_gui_sessions
-        .fetch_add(1, Ordering::Relaxed);
+    state.active_gui_sessions.fetch_add(1, Ordering::Relaxed);
     transition_toward_active(state);
 }
 
 pub(crate) fn signal_gui_session_end(state: &Arc<AppState>) {
-    let prev = state
-        .active_gui_sessions
-        .fetch_sub(1, Ordering::Relaxed);
+    let prev = state.active_gui_sessions.fetch_sub(1, Ordering::Relaxed);
     if prev <= 1 {
         state.active_gui_sessions.store(0, Ordering::Relaxed);
     }
@@ -102,9 +93,7 @@ fn has_gui_presence(state: &AppState) -> bool {
 }
 
 fn transition_toward_active(state: &Arc<AppState>) {
-    let prev = state
-        .activity_mode
-        .swap(MODE_ACTIVE, Ordering::Relaxed);
+    let prev = state.activity_mode.swap(MODE_ACTIVE, Ordering::Relaxed);
     if prev != MODE_ACTIVE {
         enter_active(state);
     }
@@ -122,9 +111,7 @@ fn maybe_enter_grace(state: &Arc<AppState>) {
 }
 
 pub(crate) fn enter_deep_idle(state: &Arc<AppState>) {
-    let prev = state
-        .activity_mode
-        .swap(MODE_DEEP_IDLE, Ordering::Relaxed);
+    let prev = state.activity_mode.swap(MODE_DEEP_IDLE, Ordering::Relaxed);
     if prev == MODE_DEEP_IDLE {
         return;
     }
@@ -194,14 +181,12 @@ mod tests {
     use crate::models::AppState;
     use amud_protocol::AgentTelemetry;
     use std::collections::HashMap;
-    use std::sync::atomic::AtomicU64;
+    use std::sync::atomic::{AtomicU64, AtomicU8, AtomicUsize};
     use std::sync::{Mutex, RwLock};
 
     fn test_state() -> Arc<AppState> {
         Arc::new(AppState {
-            db: Arc::new(Mutex::new(
-                rusqlite::Connection::open_in_memory().unwrap(),
-            )),
+            db: Arc::new(Mutex::new(rusqlite::Connection::open_in_memory().unwrap())),
             sessions: Arc::new(RwLock::new(HashMap::new())),
             latest_telemetry: Arc::new(RwLock::new(AgentTelemetry::default())),
             telemetry_by_node: Arc::new(RwLock::new(HashMap::new())),
@@ -230,7 +215,7 @@ mod tests {
             active_ws_count: Arc::new(AtomicUsize::new(0)),
             active_gui_sessions: Arc::new(AtomicUsize::new(0)),
             visible_app_ids: Arc::new(RwLock::new(Vec::new())),
-            last_activity_at: Arc::new(StdMutex::new(Instant::now())),
+            last_activity_at: Arc::new(Mutex::new(Instant::now())),
             node_last_seen: Arc::new(RwLock::new(HashMap::new())),
         })
     }

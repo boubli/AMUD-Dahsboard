@@ -1,5 +1,4 @@
-use crate::apps::{is_jellyfin_app, is_plex_app};
-use crate::db::{load_apps_from_db, load_settings_snapshot};
+use crate::db::load_settings_snapshot;
 use crate::models::MediaStream;
 use std::collections::HashMap;
 use std::sync::Arc;

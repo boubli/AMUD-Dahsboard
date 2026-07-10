@@ -580,7 +580,10 @@ pub async fn integration_data_handler(
     let session = get_session(&headers, &state.sessions);
     let is_admin = session.as_ref().map(|s| s.role == "Admin").unwrap_or(false);
 
-    let app = with_db(state.db.clone(), move |db| crate::db::load_app_by_id(db, id)).await;
+    let app = with_db(state.db.clone(), move |db| {
+        crate::db::load_app_by_id(db, id)
+    })
+    .await;
 
     match &app {
         Some(app) => {
@@ -692,7 +695,10 @@ pub async fn integration_action_handler(
     };
 
     let action = payload.get("action").cloned().unwrap_or_default();
-    let app = with_db(state.db.clone(), move |db| crate::db::load_app_by_id(db, id)).await;
+    let app = with_db(state.db.clone(), move |db| {
+        crate::db::load_app_by_id(db, id)
+    })
+    .await;
 
     if let Some(app) = app {
         if let Some(data) = crate::integrations::execute_integration_action(
@@ -1336,7 +1342,7 @@ pub async fn batch_integration_handler(
     }
     let session = get_session(&headers, &state.sessions);
     let token_ok = api_token_authorized(&headers, &state, "read:integrations");
-    if session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) == false && !token_ok {
+    if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) && !token_ok {
         return Response::builder()
             .status(StatusCode::FORBIDDEN)
             .header("Content-Type", "application/json")
@@ -1362,7 +1368,10 @@ pub async fn batch_integration_handler(
             .unwrap_or(false)
     };
 
-    let apps = with_db(state.db.clone(), move |db| crate::db::load_apps_by_ids(db, &ids)).await;
+    let apps = with_db(state.db.clone(), move |db| {
+        crate::db::load_apps_by_ids(db, &ids)
+    })
+    .await;
     let cache = state.integration_cache.clone();
     let clients = state.http_clients.clone();
     let mut results = serde_json::Map::new();
@@ -1389,11 +1398,7 @@ pub async fn batch_integration_handler(
         }
     }
 
-    api_json(
-        StatusCode::OK,
-        serde_json::Value::Object(results),
-    )
-    .into_response()
+    api_json(StatusCode::OK, serde_json::Value::Object(results)).into_response()
 }
 
 #[cfg(test)]

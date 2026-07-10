@@ -678,9 +678,7 @@ pub(crate) fn backup_export_overdue(settings: &HashMap<String, String>) -> bool 
     }
     chrono::DateTime::parse_from_rfc3339(last)
         .ok()
-        .map(|dt| {
-            (chrono::Utc::now() - dt.with_timezone(&chrono::Utc)).num_days() >= reminder_days
-        })
+        .map(|dt| (chrono::Utc::now() - dt.with_timezone(&chrono::Utc)).num_days() >= reminder_days)
         .unwrap_or(true)
 }
 

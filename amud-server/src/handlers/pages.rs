@@ -292,14 +292,8 @@ pub async fn settings_page_handler(
             &escape_html(&last_backup_export_at),
         )
         .replace("{{backup_overdue_banner}}", &backup_overdue_banner)
-        .replace(
-            "{{alert_cpu_threshold}}",
-            &escape_html(alert_cpu_threshold),
-        )
-        .replace(
-            "{{alert_ram_threshold}}",
-            &escape_html(alert_ram_threshold),
-        )
+        .replace("{{alert_cpu_threshold}}", &escape_html(alert_cpu_threshold))
+        .replace("{{alert_ram_threshold}}", &escape_html(alert_ram_threshold))
         .replace(
             "{{alert_disk_threshold}}",
             &escape_html(alert_disk_threshold),

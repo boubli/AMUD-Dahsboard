@@ -59,8 +59,11 @@ pub async fn integration_test_handler(
     let clients = state.http_clients.clone();
     match crate::integrations::fetch_integration_data_uncached(&app, accept_invalid, &clients).await
     {
-        Some(data) => api_json(StatusCode::OK, serde_json::json!({ "ok": true, "data": data }))
-            .into_response(),
+        Some(data) => api_json(
+            StatusCode::OK,
+            serde_json::json!({ "ok": true, "data": data }),
+        )
+        .into_response(),
         None => api_json(
             StatusCode::BAD_GATEWAY,
             serde_json::json!({ "ok": false, "error": "connection_failed" }),
@@ -97,7 +100,7 @@ pub async fn api_telemetry_handler(
 ) -> impl IntoResponse {
     if !api_token_authorized(&headers, &state, "read:telemetry") {
         let session = get_session(&headers, &state.sessions);
-        if session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) == false {
+        if !session.as_ref().map(|s| s.role == "Admin").unwrap_or(false) {
             return Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
                 .body(Body::from(r#"{"error":"Unauthorized"}"#))

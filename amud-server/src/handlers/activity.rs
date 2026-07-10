@@ -1,7 +1,10 @@
 //! Activity viewport and presence API handlers.
 
 use super::imports::*;
-use crate::activity::{is_deep_idle, signal_gui_session_end, signal_gui_session_start, signal_viewport, MAX_VISIBLE_APPS};
+use crate::activity::{
+    is_deep_idle, signal_gui_session_end, signal_gui_session_start, signal_viewport,
+    MAX_VISIBLE_APPS,
+};
 use axum::Json;
 use serde::Deserialize;
 
@@ -37,11 +40,7 @@ pub async fn activity_viewport_handler(
     }
     let ids: Vec<i64> = body.ids.into_iter().take(MAX_VISIBLE_APPS).collect();
     signal_viewport(&state, ids);
-    (
-        StatusCode::OK,
-        Json(serde_json::json!({ "ok": true })),
-    )
-        .into_response()
+    (StatusCode::OK, Json(serde_json::json!({ "ok": true }))).into_response()
 }
 
 pub async fn activity_presence_handler(
@@ -61,9 +60,5 @@ pub async fn activity_presence_handler(
     } else {
         signal_gui_session_end(&state);
     }
-    (
-        StatusCode::OK,
-        Json(serde_json::json!({ "ok": true })),
-    )
-        .into_response()
+    (StatusCode::OK, Json(serde_json::json!({ "ok": true }))).into_response()
 }

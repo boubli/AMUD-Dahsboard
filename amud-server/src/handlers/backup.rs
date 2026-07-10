@@ -1,8 +1,8 @@
 use super::imports::*;
 use axum::body::Body;
-use tokio_util::io::ReaderStream;
 use rusqlite::Connection;
 use std::sync::Mutex;
+use tokio_util::io::ReaderStream;
 
 fn count_table(conn: &Connection, sql: &str) -> i64 {
     conn.query_row(sql, [], |row| row.get(0)).unwrap_or(0)

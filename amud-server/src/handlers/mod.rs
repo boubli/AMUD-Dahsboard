@@ -1,4 +1,3 @@
-mod integrations_api;
 mod activity;
 mod admin;
 mod api_tokens;
@@ -12,6 +11,7 @@ mod discover;
 mod embed;
 mod feed_categories;
 mod imports;
+mod integrations_api;
 mod migration;
 mod oidc;
 mod pages;
@@ -23,7 +23,6 @@ mod users;
 mod webhook_routes;
 mod widgets;
 
-pub use integrations_api::*;
 pub use activity::*;
 pub use admin::*;
 pub use api_tokens::*;
@@ -36,6 +35,7 @@ pub use dashboard::*;
 pub use discover::*;
 pub use embed::*;
 pub use feed_categories::*;
+pub use integrations_api::*;
 pub use migration::*;
 pub use oidc::*;
 pub use pages::*;

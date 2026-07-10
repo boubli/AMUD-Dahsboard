@@ -1,5 +1,5 @@
 pub(crate) use super::{api_json, apply_csp_nonce, check_api_rate_limit};
-pub(crate) use crate::agent::{agent_config_payload, push_agent_config};
+pub(crate) use crate::agent::push_agent_config;
 pub(crate) use crate::apps::{is_jellyfin_app, is_plex_app};
 pub(crate) use crate::audit::list_recent_audit;
 pub(crate) use crate::auth::{
@@ -25,11 +25,11 @@ pub(crate) use crate::security::{sanitize_rss_feed_url, url_allowed_for_webhook}
 pub(crate) use crate::settings::{
     apply_integration_cache_limits, apply_performance_preset, parse_guest_visible_categories,
     parse_show_container_metrics, resolve_card_span, sanitize_active_theme_id,
-    sanitize_bool_setting, sanitize_cache_max_entries, sanitize_cache_ttl_secs,
-    sanitize_card_span, sanitize_custom_css, sanitize_dashboard_layout, sanitize_disk_mount_list,
-    sanitize_embed_mode, sanitize_guest_visible_categories, sanitize_iface_list,
-    sanitize_integration_url, sanitize_interval_setting, sanitize_performance_preset,
-    sanitize_setting_url, sanitize_theme_mode, sanitize_theme_scheduler, sanitize_time_hhmm,
+    sanitize_bool_setting, sanitize_cache_max_entries, sanitize_cache_ttl_secs, sanitize_card_span,
+    sanitize_custom_css, sanitize_dashboard_layout, sanitize_disk_mount_list, sanitize_embed_mode,
+    sanitize_guest_visible_categories, sanitize_iface_list, sanitize_integration_url,
+    sanitize_interval_setting, sanitize_performance_preset, sanitize_setting_url,
+    sanitize_theme_mode, sanitize_theme_scheduler, sanitize_time_hhmm,
     sanitize_wallpaper_overlay_strength, sanitize_widget_type, setting_key_allowed,
     AGENT_CONFIG_SETTING_KEYS, DONATION_LINKS, DONATION_MESSAGE, SECRET_SETTING_KEYS,
 };
