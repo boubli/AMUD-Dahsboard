@@ -10,28 +10,27 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.0
+### What's new in v1.8.1
 
-- **Smart idle / active** — pollers and caches pause when nobody is on the dashboard; full speed when you open the GUI (configurable grace period)
-- **Performance presets** — Light, Balanced, Active, or Custom intervals in Settings → Performance & resources
-- **Multi-node homelabs** — tag apps and agents by node; per-host telemetry and container matching
-- **Batch integrations** — fetch up to 50 integration cards in one API request
-- **API token scopes** — pick telemetry, webhooks, integrations, and more when creating tokens
-- **Backup reminders** — overdue export nudge; streaming export for large databases
-- **Idle host alerts** — CPU, RAM, and disk webhook thresholds while the GUI is closed
-- **v1.7.7** — configurable poll intervals, feeds toggle, per-theme light mode
+- **Jellyfin now-playing posters** — real movie/episode artwork on the stream card, proxied through the server (API key never reaches the browser)
+- **Playback controls** — admin pause / resume / stop for the active Jellyfin session; visible only while something is streaming
+- **Media integrations in Add App** — Jellyfin/Emby and Plex configured per app card; legacy Settings credentials migrate automatically
+- **Instant status on reload** — last-known statuses and container CPU/RAM appear immediately instead of `CHECKING...`
+- **Taghawsa theme** — WebGL animated gradient with mouse ripple (38 themes total)
+- **Container action fix** — `client error (SendRequest)` resolved with automatic retry and actionable error messages
+- **v1.8.0** — smart idle/active runtime, performance presets, multi-node, batch integrations, API token scopes
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (2026-07-10)
+### Release status (2026-07-13)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.0` (current latest recommended)
+- `v1.8.1` (current latest recommended)
+- `v1.8.0`
 - `v1.7.7`
 - `v1.7.6`
 - `v1.7.5`
-- `v1.7.4`
 
 **Do not use:** `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 

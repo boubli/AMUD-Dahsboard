@@ -410,6 +410,7 @@ pub async fn run() {
             params![pve_seed],
         )
         .ok();
+        db::migrate_media_settings_to_apps(&conn);
     }
 
     {
@@ -606,6 +607,14 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route(
             "/api/apps/integrations/batch",
             post(batch_integration_handler),
+        )
+        .route(
+            "/api/media/jellyfin/poster/:item_id",
+            get(jellyfin_poster_handler),
+        )
+        .route(
+            "/api/media/jellyfin/session/:session_id/:command",
+            post(jellyfin_session_command_handler),
         )
         .route("/api/apps/:id/integration", get(integration_data_handler))
         .route(

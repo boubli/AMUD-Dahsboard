@@ -84,7 +84,7 @@ Details: [Troubleshooting](/docs/troubleshooting) · [Blog: Fix CHECKING... badg
 
 ## Does AMUD Dashboard support Plex and Jellyfin?
 
-**Yes.** Configure URLs and API tokens under **Settings → Integrations**. App cards show live stream badges.
+**Yes.** Add a Jellyfin, Emby, or Plex app card and pick the matching **Integration** with its API key or token (Add App / Edit App). The "Now Playing" card shows live streams, and Jellyfin additionally shows the movie poster with admin playback controls while something is playing.
 
 ---
 

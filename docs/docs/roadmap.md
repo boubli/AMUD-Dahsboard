@@ -11,6 +11,14 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.8.1)
+
+- **Jellyfin posters + playback controls** — real artwork on the stream card, admin pause / resume / stop while streaming
+- **Per-app media integration** — Jellyfin/Emby and Plex configured in Add App; automatic migration from legacy Settings
+- **Instant status on reload** — SSR-embedded last-known statuses and metrics, localStorage hydration
+- **Taghawsa theme** — WebGL animated gradient with mouse ripple (38 themes)
+- **Container action fix** — retry + actionable errors for `client error (SendRequest)`
+
 ## Recently shipped (v1.8.0)
 
 - **Smart idle / active runtime** — pollers and caches pause when nobody is on the dashboard; configurable grace period

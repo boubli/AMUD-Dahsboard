@@ -174,14 +174,27 @@ async fn render_page(
             &logo_manifest,
             &feed_categories,
         ),
-        PageMode::Dashboard => render_apps_grid(
-            &apps,
-            is_admin,
-            &csrf_token,
-            &csrf_attr,
-            &logo_manifest,
-            iframe_embeds_enabled,
-        ),
+        PageMode::Dashboard => {
+            // Last known in-memory state, embedded into the SSR HTML so a page
+            // reload shows statuses/metrics instantly instead of placeholders.
+            let known_statuses = state.app_statuses.read().unwrap().clone();
+            let known_containers = state
+                .latest_telemetry
+                .read()
+                .unwrap()
+                .lxc_containers
+                .clone();
+            render_apps_grid(
+                &apps,
+                is_admin,
+                &csrf_token,
+                &csrf_attr,
+                &logo_manifest,
+                iframe_embeds_enabled,
+                &known_statuses,
+                &known_containers,
+            )
+        }
     };
 
     let wol_html = render_wol_devices(&wol_devices, is_admin, &csrf_attr);
@@ -928,6 +941,66 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, _show_cpu_ra
     )
 }
 
+fn normalize_container_token(value: &str) -> String {
+    value
+        .to_lowercase()
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric())
+        .collect()
+}
+
+/// Server-side mirror of dashboard-live.js findContainerByNames, so SSR can
+/// pre-fill the same status/metrics the WebSocket would send.
+fn find_container_for_tokens<'a>(
+    containers: &'a [crate::models::LxcContainer],
+    alias_tokens: &[String],
+) -> Option<&'a crate::models::LxcContainer> {
+    let tokens: Vec<String> = alias_tokens
+        .iter()
+        .flat_map(|n| {
+            n.to_lowercase()
+                .split(|c: char| !c.is_ascii_alphanumeric())
+                .map(normalize_container_token)
+                .collect::<Vec<_>>()
+        })
+        .filter(|t| !t.is_empty())
+        .collect();
+    containers.iter().find(|lxc| {
+        let cname = normalize_container_token(&lxc.name);
+        if cname.is_empty() {
+            return false;
+        }
+        tokens
+            .iter()
+            .any(|t| cname == *t || t.contains(&cname) || cname.contains(t.as_str()))
+    })
+}
+
+fn format_bytes_short(bytes: f64) -> String {
+    if !bytes.is_finite() || bytes <= 0.0 {
+        return "—".to_string();
+    }
+    if bytes >= 1_000_000_000_000.0 {
+        format!("{:.1} TB", bytes / 1_000_000_000_000.0)
+    } else if bytes >= 1_000_000_000.0 {
+        format!("{:.1} GB", bytes / 1_000_000_000.0)
+    } else if bytes >= 1_000_000.0 {
+        format!("{:.0} MB", bytes / 1_000_000.0)
+    } else {
+        format!("{:.0} KB", bytes / 1_000.0)
+    }
+}
+
+fn status_badge_class(status: &str) -> &'static str {
+    match status.to_lowercase().as_str() {
+        "running" | "online" => "status-online",
+        "checking" => "status-checking",
+        "not configured" | "unknown" => "status-unknown",
+        _ => "status-offline",
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
 fn render_apps_grid(
     apps: &[App],
     is_admin: bool,
@@ -935,6 +1008,8 @@ fn render_apps_grid(
     csrf_attr: &str,
     logo_manifest: &HashMap<String, String>,
     iframe_embeds_enabled: bool,
+    known_statuses: &HashMap<String, crate::models::AppStatus>,
+    known_containers: &[crate::models::LxcContainer],
 ) -> String {
     if apps.is_empty() {
         return r#"
@@ -957,19 +1032,84 @@ fn render_apps_grid(
             "/static/fallback.svg".to_string()
         };
 
-        let status_title = if is_admin {
-            "Waiting for container or URL health status"
-        } else {
-            "Public availability check"
-        };
-        let status_badge = format!(
-            r#"<span class="status-badge status-checking" title="{}" aria-label="{}" data-last-status="">CHECKING...</span>"#,
-            status_title, status_title
-        );
-
         let cat_slug = category_slug(&app.category);
 
         let name_lower = app.name.to_lowercase();
+
+        let mut alias_tokens = vec![name_lower.clone()];
+        if !lowercase_icon.is_empty() && lowercase_icon != name_lower {
+            alias_tokens.push(lowercase_icon.clone());
+        }
+        let url_lower = app.url.to_lowercase();
+        for token in url_lower
+            .split(|c: char| !c.is_ascii_alphanumeric())
+            .filter(|t| t.len() >= 3)
+        {
+            if !alias_tokens.iter().any(|t| t == token) {
+                alias_tokens.push(token.to_string());
+            }
+        }
+
+        // Instant status: pre-fill the badge from the server's last known
+        // container state or URL health check, so a reload never shows an
+        // empty CHECKING... badge when data already exists in memory.
+        let container_match = find_container_for_tokens(known_containers, &alias_tokens);
+        let url_status = known_statuses
+            .get(&app.name)
+            .or_else(|| known_statuses.get(&name_lower));
+
+        let (known_status, status_title) = if let Some(container) = container_match {
+            let status = if is_admin {
+                container.status.clone()
+            } else if matches!(
+                container.status.to_lowercase().as_str(),
+                "running" | "online"
+            ) {
+                "online".to_string()
+            } else {
+                "offline".to_string()
+            };
+            (
+                Some(status),
+                if is_admin {
+                    "Container runtime status"
+                } else {
+                    "Service availability"
+                },
+            )
+        } else if let Some(status) = url_status {
+            (
+                Some(status.status.clone()),
+                if is_admin {
+                    "URL health check"
+                } else {
+                    "Public availability check"
+                },
+            )
+        } else {
+            (
+                None,
+                if is_admin {
+                    "Waiting for container or URL health status"
+                } else {
+                    "Public availability check"
+                },
+            )
+        };
+        let status_badge = match &known_status {
+            Some(status) => format!(
+                r#"<span class="status-badge {}" title="{}" aria-label="{}" data-last-status="{}">{}</span>"#,
+                status_badge_class(status),
+                status_title,
+                status_title,
+                escape_html(&status.to_lowercase()),
+                escape_html(&status.to_uppercase())
+            ),
+            None => format!(
+                r#"<span class="status-badge status-checking" title="{}" aria-label="{}" data-last-status="">CHECKING...</span>"#,
+                status_title, status_title
+            ),
+        };
         let use_filled = app.card_span == "1x2"
             && is_admin
             && !app.integration_type.is_empty()
@@ -993,18 +1133,39 @@ fn render_apps_grid(
                 </div>"#
                     .to_string()
             } else if app.show_container_metrics && !use_filled {
-                r#"
+                // Instant metrics: seed CPU/RAM from the last agent telemetry
+                // instead of empty dashes when the container is already known.
+                let (cpu_display, ram_display) = match container_match {
+                    Some(container) => {
+                        let cpu = container.cpu.unwrap_or(0.0);
+                        let cpu_display = if cpu > 0.0 {
+                            format!("{:.1}%", cpu * 100.0)
+                        } else {
+                            "0%".to_string()
+                        };
+                        let ram_display = container
+                            .mem
+                            .filter(|m| *m > 0)
+                            .map(|m| format_bytes_short(m as f64))
+                            .unwrap_or_else(|| "—".to_string());
+                        (cpu_display, ram_display)
+                    }
+                    None => ("—".to_string(), "—".to_string()),
+                };
+                format!(
+                    r#"
                 <div class="nested-metrics-grid cols-2" data-lxc-metrics>
                     <div class="metric-block">
-                        <span class="metric-value">—</span>
+                        <span class="metric-value">{}</span>
                         <span class="metric-label">CPU</span>
                     </div>
                     <div class="metric-block">
-                        <span class="metric-value">—</span>
+                        <span class="metric-value">{}</span>
                         <span class="metric-label">RAM</span>
                     </div>
-                </div>"#
-                    .to_string()
+                </div>"#,
+                    cpu_display, ram_display
+                )
             } else {
                 String::new()
             }
@@ -1402,19 +1563,6 @@ fn render_apps_grid(
             "".to_string()
         };
 
-        let mut alias_tokens = vec![name_lower.clone()];
-        if !lowercase_icon.is_empty() && lowercase_icon != name_lower {
-            alias_tokens.push(lowercase_icon);
-        }
-        let url_lower = app.url.to_lowercase();
-        for token in url_lower
-            .split(|c: char| !c.is_ascii_alphanumeric())
-            .filter(|t| t.len() >= 3)
-        {
-            if !alias_tokens.iter().any(|t| t == token) {
-                alias_tokens.push(token.to_string());
-            }
-        }
         let container_aliases = alias_tokens.join(" ");
         let is_host_agent_app = alias_tokens
             .iter()
@@ -1784,7 +1932,7 @@ fn category_slug(category: &str) -> String {
 fn render_streams(
     apps: &[App],
     session: &Option<Session>,
-    _is_admin: bool,
+    is_admin: bool,
     _csrf_attr: &str,
     _logo_manifest: &HashMap<String, String>,
 ) -> String {
@@ -1792,8 +1940,12 @@ fn render_streams(
         return String::new();
     }
 
-    let has_plex = apps.iter().any(is_plex_app);
-    let has_jellyfin = apps.iter().any(is_jellyfin_app);
+    let has_plex = apps
+        .iter()
+        .any(|app| app.integration_type == "plex" || is_plex_app(app));
+    let has_jellyfin = apps.iter().any(|app| {
+        matches!(app.integration_type.as_str(), "jellyfin" | "emby") || is_jellyfin_app(app)
+    });
 
     if !has_plex && !has_jellyfin {
         return String::new();
@@ -1836,7 +1988,16 @@ fn render_streams(
             "#);
     }
     if has_jellyfin {
-        media_cards.push_str(r#"
+        let playback_controls = if is_admin {
+            r#"<span class="stream-playback-controls" id="jellyfin-controls" style="display: none;">
+                                <button type="button" class="stream-ctrl-btn" data-jf-command="unpause" title="Resume" style="display: none;"><i data-lucide="play"></i></button>
+                                <button type="button" class="stream-ctrl-btn" data-jf-command="pause" title="Pause"><i data-lucide="pause"></i></button>
+                                <button type="button" class="stream-ctrl-btn" data-jf-command="stop" title="Stop"><i data-lucide="square"></i></button>
+                            </span>"#
+        } else {
+            ""
+        };
+        media_cards.push_str(&format!(r#"
             <!-- Jellyfin/Emby stream card -->
             <div class="glass-panel stream-card">
                 <div class="stream-main">
@@ -1853,16 +2014,19 @@ fn render_streams(
                 </div>
                 
                 <div class="stream-player">
-                    <div class="stream-controls-row">
-                        <span class="stream-track-title" id="jellyfin-track" style="color: var(--text-muted);">No Active Streams</span>
-                        <span id="jellyfin-timer">-</span>
-                    </div>
-                    <div class="stream-progress-track">
-                        <div class="stream-progress-fill" id="jellyfin-progress" style="width: 0%;"></div>
+                    <img id="jellyfin-poster" class="stream-poster" alt="" draggable="false" style="display: none;">
+                    <div class="stream-player-info">
+                        <div class="stream-controls-row">
+                            <span class="stream-track-title" id="jellyfin-track" style="color: var(--text-muted);">No Active Streams</span>
+                            <span class="stream-actions">{playback_controls}<span id="jellyfin-timer">-</span></span>
+                        </div>
+                        <div class="stream-progress-track">
+                            <div class="stream-progress-fill" id="jellyfin-progress" style="width: 0%;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-            "#);
+            "#));
     }
 
     if has_plex || has_jellyfin {

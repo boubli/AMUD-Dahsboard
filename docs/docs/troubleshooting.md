@@ -650,14 +650,15 @@ If using a reverse proxy, also verify `/static/sw.js`, `/static/manifest.json`, 
 
 ## Media Integrations Not Showing Streams
 
-Real Jellyfin and Plex playback requires API credentials in **Settings → Integrations**.
+Real Jellyfin and Plex playback requires credentials on the **app card** (Add App / Edit App → Integration), not in global settings. Credentials saved in the old **Settings → Integrations** fields are migrated to the app card automatically on upgrade.
 
 ### Jellyfin
 
-Set:
+On your Jellyfin app card, set:
 
-- `Jellyfin URL`, for example `http://jellyfin.local:8096`
-- `Jellyfin API Key`
+- **URL**, for example `http://jellyfin.local:8096`
+- **Integration**: Jellyfin
+- **API key / token**: a Jellyfin API key
 
 AMUD polls:
 
@@ -668,10 +669,11 @@ X-Emby-Token: <api-key>
 
 ### Plex
 
-Set:
+On your Plex app card, set:
 
-- `Plex URL`, for example `http://plex.local:32400`
-- `Plex Token`
+- **URL**, for example `http://plex.local:32400`
+- **Integration**: Plex
+- **API key / token**: your Plex token
 
 AMUD polls:
 

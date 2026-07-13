@@ -839,15 +839,8 @@
                         </div>
 
                         <div class="settings-block">
-                            <h3><i data-lucide="tv" style="color:var(--accent-color);"></i> Jellyfin / Emby</h3>
-                            <div class="form-group">
-                                <label for="setting-jellyfin-url">Jellyfin URL</label>
-                                <input type="url" id="setting-jellyfin-url" name="jellyfin_url" class="form-control" value="{{jellyfin_url}}" placeholder="http://jellyfin.local:8096">
-                            </div>
-                            <div class="form-group" style="margin-top:1rem;">
-                                <label for="setting-jellyfin-api-key">Jellyfin API Key</label>
-                                <input type="password" id="setting-jellyfin-api-key" name="jellyfin_api_key" class="form-control" value="" placeholder="{{jellyfin_api_key_placeholder}}">
-                            </div>
+                            <h3><i data-lucide="tv" style="color:var(--accent-color);"></i> Media streams (Jellyfin / Emby / Plex)</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Media servers are now configured per app: add (or edit) your Jellyfin, Emby, or Plex app card and pick the matching <strong>Integration</strong> with its API key or token. The "Now Playing" stream card, posters, and playback controls follow that app automatically.</p>
                         </div>
 
                         <div class="settings-block">
@@ -865,17 +858,6 @@
                             </div>
                         </div>
 
-                        <div class="settings-block">
-                            <h3><i data-lucide="play" style="color:var(--accent-color);"></i> Plex</h3>
-                            <div class="form-group">
-                                <label for="setting-plex-url">Plex URL</label>
-                                <input type="url" id="setting-plex-url" name="plex_url" class="form-control" value="{{plex_url}}" placeholder="http://plex.local:32400">
-                            </div>
-                            <div class="form-group" style="margin-top:1rem;">
-                                <label for="setting-plex-token">Plex Token</label>
-                                <input type="password" id="setting-plex-token" name="plex_token" class="form-control" value="" placeholder="{{plex_token_placeholder}}">
-                            </div>
-                        </div>
                     </div>
 
                     <!-- TAB: PRIVACY & ACCESS -->

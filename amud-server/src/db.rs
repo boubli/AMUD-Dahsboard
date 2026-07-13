@@ -102,13 +102,88 @@ pub(crate) fn load_apps_by_ids(db: &Connection, ids: &[i64]) -> Vec<App> {
     apps
 }
 
-pub(crate) fn has_integration_type(db: &Connection, integration_type: &str) -> bool {
-    db.query_row(
-        "SELECT 1 FROM apps WHERE integration_type = ? LIMIT 1",
-        [integration_type],
-        |_| Ok(()),
-    )
-    .is_ok()
+pub(crate) fn load_first_app_with_integration(db: &Connection, types: &[&str]) -> Option<App> {
+    if types.is_empty() {
+        return None;
+    }
+    let placeholders: String = types.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+    let sql = format!(
+        "{APP_SELECT} WHERE integration_type IN ({placeholders}) ORDER BY sort_order ASC, id ASC LIMIT 1"
+    );
+    let params: Vec<rusqlite::types::Value> = types
+        .iter()
+        .map(|t| rusqlite::types::Value::Text(t.to_string()))
+        .collect();
+    db.query_row(&sql, rusqlite::params_from_iter(params), row_to_app)
+        .ok()
+}
+
+/// One-time migration: move legacy global media settings (jellyfin_url /
+/// jellyfin_api_key / plex_url / plex_token) into the matching per-app
+/// integration, then drop the legacy settings rows.
+pub(crate) fn migrate_media_settings_to_apps(db: &Connection) {
+    migrate_media_service(
+        db,
+        &["jellyfin", "emby"],
+        "jellyfin_url",
+        "jellyfin_api_key",
+    );
+    migrate_media_service(db, &["plex"], "plex_url", "plex_token");
+}
+
+fn migrate_media_service(db: &Connection, types: &[&str], url_key: &str, secret_key: &str) {
+    let read_setting = |key: &str| -> String {
+        db.query_row("SELECT value FROM settings WHERE key = ?", [key], |r| {
+            r.get::<_, String>(0)
+        })
+        .ok()
+        .map(|stored| crate::secrets::decrypt_value(&stored).unwrap_or(stored))
+        .unwrap_or_default()
+    };
+    let url = read_setting(url_key);
+    let api_key = read_setting(secret_key);
+
+    if !api_key.trim().is_empty() {
+        // Prefer an app that already carries the integration type; otherwise
+        // fall back to an app that looks like the media service by name/url/icon.
+        let target = load_first_app_with_integration(db, types).or_else(|| {
+            load_apps_from_db(db).into_iter().find(|app| {
+                let hay = format!("{} {} {}", app.name, app.url, app.icon).to_lowercase();
+                types.iter().any(|t| hay.contains(t))
+            })
+        });
+        if let Some(app) = target {
+            if app.api_key.trim().is_empty() {
+                let encrypted = crate::secrets::encrypt_value(api_key.trim())
+                    .unwrap_or_else(|_| api_key.trim().to_string());
+                let _ = db.execute(
+                    "UPDATE apps SET api_key = ? WHERE id = ?",
+                    params![encrypted, app.id],
+                );
+            }
+            if app.integration_type.trim().is_empty() {
+                let _ = db.execute(
+                    "UPDATE apps SET integration_type = ? WHERE id = ?",
+                    params![types[0], app.id],
+                );
+            }
+            if app.url.trim().is_empty() && !url.trim().is_empty() {
+                let _ = db.execute(
+                    "UPDATE apps SET url = ? WHERE id = ?",
+                    params![url.trim(), app.id],
+                );
+            }
+            println!(
+                "Migrated legacy {} settings into app '{}' (id {}).",
+                types[0], app.name, app.id
+            );
+        }
+    }
+
+    let _ = db.execute(
+        "DELETE FROM settings WHERE key IN (?, ?)",
+        params![url_key, secret_key],
+    );
 }
 
 pub(crate) fn load_linked_container_names(db: &Connection, node_tag: &str) -> Vec<String> {

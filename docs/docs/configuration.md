@@ -41,23 +41,28 @@ Each widget supports bento spans (`1×1`, `2×1`, `1×2`) and an optional **gues
 
 ## Media integrations (Jellyfin & Plex)
 
-Open **Settings → Integrations** to connect live stream detection for Jellyfin and Plex cards on the dashboard.
+Media servers are configured **per app** — the same place as every other integration. Add (or edit) your Jellyfin, Emby, or Plex app card and pick the matching **Integration** in the dropdown, then paste the API key or token. The "Now Playing" stream card, movie posters, and playback controls follow that app automatically.
+
+:::info Migrating from older versions
+Before v1.8.1, Jellyfin and Plex credentials lived in **Settings → Integrations**. On first start, AMUD automatically moves those credentials into the matching app card, so no manual action is needed.
+:::
 
 When credentials are missing, stream badges show **NOT CONFIGURED**. When configured, badges start as **CHECKING...** and update from live session polling plus LXC/Docker telemetry.
 
-### Jellyfin
+### Jellyfin / Emby
 
-| Field | Description |
+| Field (in Add App / Edit App) | Description |
 |-------|-------------|
-| **Jellyfin URL** | Base URL of your server, e.g. `http://jellyfin.local:8096` |
-| **Jellyfin API Key** | API key from Jellyfin admin |
+| **URL** | Base URL of your server, e.g. `http://jellyfin.local:8096` |
+| **Integration** | Select **Jellyfin** |
+| **API key / token** | API key from Jellyfin admin |
 
 **Create an API key in Jellyfin:**
 
 1. Open Jellyfin as an administrator.
 2. Go to **Dashboard → Advanced → API Keys**.
 3. Click **+** to create a key (e.g. name it `AMUD`).
-4. Paste the key into AMUD **Settings → Integrations**.
+4. Paste the key into the app's **API key / token** field.
 
 AMUD polls:
 
@@ -68,12 +73,15 @@ X-Emby-Token: <your-api-key>
 
 The API key is sent in the `X-Emby-Token` header (Emby/Jellyfin convention), not as a query parameter.
 
+While someone is streaming, the Jellyfin card shows the **movie/episode poster** (proxied through the AMUD server — the API key never reaches the browser) plus **pause / resume / stop** controls for admins. When nothing is playing, the poster and controls are hidden automatically.
+
 ### Plex
 
-| Field | Description |
+| Field (in Add App / Edit App) | Description |
 |-------|-------------|
-| **Plex URL** | Base URL of your Plex server, e.g. `http://plex.local:32400` |
-| **Plex Token** | `X-Plex-Token` for your account |
+| **URL** | Base URL of your Plex server, e.g. `http://plex.local:32400` |
+| **Integration** | Select **Plex** |
+| **API key / token** | `X-Plex-Token` for your account |
 
 **Find your Plex token:**
 

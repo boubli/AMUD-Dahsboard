@@ -1651,6 +1651,38 @@ fn execute_command_from_server(line: &str, response_stream: &mut StreamType) {
     }
 }
 
+/// Turns an opaque hyper client error (e.g. "client error (SendRequest)")
+/// into an actionable message by walking the error source chain.
+fn action_http_error_message(err: &dyn std::error::Error, target: &str) -> String {
+    let mut cause: Option<String> = None;
+    let mut source = err.source();
+    while let Some(s) = source {
+        if let Some(io) = s.downcast_ref::<std::io::Error>() {
+            cause = Some(match io.kind() {
+                std::io::ErrorKind::ConnectionRefused => {
+                    format!(
+                        "connection refused — is {} reachable from the agent?",
+                        target
+                    )
+                }
+                std::io::ErrorKind::NotFound => format!("{} not found", target),
+                std::io::ErrorKind::PermissionDenied => {
+                    format!("permission denied accessing {}", target)
+                }
+                std::io::ErrorKind::TimedOut => format!("connection to {} timed out", target),
+                _ => format!("{} ({})", io, target),
+            });
+        } else {
+            cause = Some(s.to_string());
+        }
+        source = s.source();
+    }
+    match cause {
+        Some(c) => format!("HTTP request failed: {}", c),
+        None => format!("HTTP request failed: {} ({})", err, target),
+    }
+}
+
 fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
     let token = get_pve_api_token();
     if token.is_empty() {
@@ -1678,20 +1710,39 @@ fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
             );
             println!("[LXC Action] POSTing: {}", api_url);
 
-            let req = match hyper::Request::builder()
-                .method("POST")
-                .uri(&api_url)
-                .header("Authorization", &token)
-                .body(Empty::<Bytes>::new())
-            {
-                Ok(r) => r,
-                Err(e) => {
-                    return (false, Some(format!("Failed to build request: {}", e)));
+            // Stale keep-alive connections surface as "client error (SendRequest)"
+            // on the first request after idle, so retry once on failure.
+            let mut last_err: Option<hyper_util::client::legacy::Error> = None;
+            let mut response = None;
+            for attempt in 0..2 {
+                if attempt > 0 {
+                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                 }
-            };
+                let req = match hyper::Request::builder()
+                    .method("POST")
+                    .uri(&api_url)
+                    .header("Authorization", &token)
+                    .body(Empty::<Bytes>::new())
+                {
+                    Ok(r) => r,
+                    Err(e) => {
+                        return (false, Some(format!("Failed to build request: {}", e)));
+                    }
+                };
+                match client.request(req).await {
+                    Ok(resp) => {
+                        response = Some(resp);
+                        break;
+                    }
+                    Err(e) => {
+                        eprintln!("[LXC Action] attempt {} failed: {}", attempt + 1, e);
+                        last_err = Some(e);
+                    }
+                }
+            }
 
-            match client.request(req).await {
-                Ok(resp) => {
+            match response {
+                Some(resp) => {
                     let status = resp.status();
                     println!("[LXC Action] PVE API response status: {}", status);
                     if status.is_success() {
@@ -1700,7 +1751,16 @@ fn execute_lxc_action(vmid: i64, action: &str) -> (bool, Option<String>) {
                         (false, Some(format!("PVE API returned HTTP {}", status)))
                     }
                 }
-                Err(e) => (false, Some(format!("HTTP request failed: {}", e))),
+                None => {
+                    let err = last_err.expect("request failed without error");
+                    (
+                        false,
+                        Some(action_http_error_message(
+                            &err,
+                            "the Proxmox API at localhost:8006",
+                        )),
+                    )
+                }
             }
         })
         .await
@@ -1746,22 +1806,41 @@ fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<St
 
             let client = http_clients::docker_unix_client();
             let api_path = format!("/containers/{}/{}", c_name, action_str);
-            let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", &api_path).into();
 
             println!("[Docker Action] POSTing: {}", api_path);
 
-            let req = match hyper::Request::builder()
-                .method("POST")
-                .uri(uri)
-                .header("Host", "localhost")
-                .body(Empty::<Bytes>::new())
-            {
-                Ok(r) => r,
-                Err(e) => return (false, Some(format!("Failed to build request: {}", e))),
-            };
+            // Retry once: idle keep-alive sockets commonly fail the first
+            // request with an opaque "client error (SendRequest)".
+            let mut last_err: Option<hyper_util::client::legacy::Error> = None;
+            let mut response = None;
+            for attempt in 0..2 {
+                if attempt > 0 {
+                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                }
+                let uri: hyper::Uri = UnixUri::new("/var/run/docker.sock", &api_path).into();
+                let req = match hyper::Request::builder()
+                    .method("POST")
+                    .uri(uri)
+                    .header("Host", "localhost")
+                    .body(Empty::<Bytes>::new())
+                {
+                    Ok(r) => r,
+                    Err(e) => return (false, Some(format!("Failed to build request: {}", e))),
+                };
+                match client.request(req).await {
+                    Ok(resp) => {
+                        response = Some(resp);
+                        break;
+                    }
+                    Err(e) => {
+                        eprintln!("[Docker Action] attempt {} failed: {}", attempt + 1, e);
+                        last_err = Some(e);
+                    }
+                }
+            }
 
-            match client.request(req).await {
-                Ok(resp) => {
+            match response {
+                Some(resp) => {
                     let status = resp.status();
                     println!("[Docker Action] Docker API response status: {}", status);
                     if status.is_success() || status.as_u16() == 304 {
@@ -1770,7 +1849,16 @@ fn execute_docker_action(container_name: &str, action: &str) -> (bool, Option<St
                         (false, Some(format!("Docker API returned HTTP {}", status)))
                     }
                 }
-                Err(e) => (false, Some(format!("HTTP request failed: {}", e))),
+                None => {
+                    let err = last_err.expect("request failed without error");
+                    (
+                        false,
+                        Some(action_http_error_message(
+                            &err,
+                            "the Docker socket /var/run/docker.sock",
+                        )),
+                    )
+                }
             }
         })
         .await

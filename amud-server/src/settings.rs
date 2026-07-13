@@ -12,10 +12,6 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("wallpaper_overlay_strength", "0.85");
     s.insert("bento_radius", "16");
     s.insert("grid_columns", "3");
-    s.insert("jellyfin_url", "");
-    s.insert("jellyfin_api_key", "");
-    s.insert("plex_url", "");
-    s.insert("plex_token", "");
     s.insert("pve_api_token", "");
     s.insert("donate_enabled", "1");
     s.insert("telemetry_public", "0");
@@ -70,8 +66,6 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
 
 pub(crate) const SECRET_SETTING_KEYS: &[&str] = &[
     "pve_api_token",
-    "jellyfin_api_key",
-    "plex_token",
     "ha_token",
     "oidc_client_secret",
     "ldap_bind_password",

@@ -644,6 +644,27 @@
       "uiProfile": "skyline",
       "iconPack": "/static/themes/icons/midnight-city/pack.json",
       "layoutCss": "/static/theme-layouts/skyline.css"
+    },
+    {
+      "id": "taghawsa",
+      "name": "Taghawsa",
+      "file": "taghawsa.css",
+      "category": "advanced",
+      "tags": [
+        "animated",
+        "webgl",
+        "orange",
+        "teal",
+        "moroccan"
+      ],
+      "preview": "/static/themes/previews/taghawsa.webp",
+      "wallpaper": "",
+      "usesWallpaper": false,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&display=swap",
+      "uiProfile": "taghawsa",
+      "iconPack": "/static/themes/icons/volcanic-ember/pack.json",
+      "layoutCss": "/static/theme-layouts/volcanic.css",
+      "backgroundScript": "/static/themes/backgrounds/taghawsa-bg.js"
     }
   ]
 }

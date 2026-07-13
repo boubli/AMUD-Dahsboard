@@ -32,7 +32,11 @@ Scaffold blocks: `python scripts/generate_theme_light_blocks.py` (mirrors `ui/st
 
 ## Procedural themes (`usesWallpaper: false`)
 
-`brutalist-mono`, `blueprint-tech`, `vaporwave-grid`, `terminal-matrix`, `terminal-amber`, `terminal-phosphor`
+`brutalist-mono`, `blueprint-tech`, `vaporwave-grid`, `terminal-matrix`, `terminal-amber`, `terminal-phosphor`, `taghawsa`
+
+## WebGL themes (`backgroundScript` in manifest)
+
+`taghawsa` — Scheme 5 animated gradient (orange `#F15A22`, teal `#004238`, black). Falls back to procedural CSS on mobile, reduced motion, light mode, and Settings page.
 
 ## QA matrix (pass 1 authoring + pass 2 smoke)
 
@@ -75,6 +79,7 @@ Scaffold blocks: `python scripts/generate_theme_light_blocks.py` (mirrors `ui/st
 | zen-garden | pass | pass | pass | calm zen | pass |
 | retro-arcade | pass | pass | pass | arcade neon | pass |
 | midnight-city | pass | pass | pass | urban night | pass |
+| taghawsa | pass | pass | n/a | WebGL Scheme 5 + CSS fallback | pass |
 
 ## Global fixes (v1.5.6.4)
 

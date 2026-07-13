@@ -536,6 +536,66 @@ body::-webkit-scrollbar-button {
     gap: 0.5rem;
 }
 
+/* Row layout used when a poster thumbnail can appear next to the track info */
+.stream-player:has(.stream-player-info) {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.stream-player-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stream-poster {
+    width: 2.75rem;
+    height: 4rem;
+    object-fit: cover;
+    border-radius: var(--radius-sm, 6px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.stream-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stream-playback-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.stream-ctrl-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    padding: 0.2rem;
+    border-radius: var(--radius-sm, 6px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.75;
+    transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.stream-ctrl-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.stream-ctrl-btn svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
 .stream-track-title {
     font-size: 0.82rem;
     font-weight: 600;
@@ -828,6 +888,16 @@ body::-webkit-scrollbar-button {
     border-top: 1px solid rgba(255, 255, 255, 0.04);
     padding-top: 0.75rem;
     overflow: hidden;
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+}
+
+.app-card-metrics-slot .metric-value,
+.app-card-metrics-slot .metric-label {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
 }
 
 .app-card-metrics-slot .nested-metrics-grid {
@@ -4091,10 +4161,16 @@ body.has-video-bg {
     background-image: none !important;
 }
 
+body.has-webgl-bg {
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
 /* Disable heavy animations on mobile for performance */
 @media (max-width: 768px) {
     body::before,
-    body::after {
+    body::after,
+    #amud-webgl-bg {
         display: none;
     }
     
@@ -4112,7 +4188,8 @@ body.has-video-bg {
     }
     
     body::before,
-    body::after {
+    body::after,
+    #amud-webgl-bg {
         display: none;
     }
 }

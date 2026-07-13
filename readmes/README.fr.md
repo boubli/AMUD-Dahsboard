@@ -10,22 +10,21 @@
 
 **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galerie de thèmes](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Feuille de route](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Nouveautés de la v1.8.0
+### Nouveautés de la v1.8.1
 
-- **Veille intelligente** — les sondes et caches se mettent en pause quand personne n'utilise le tableau de bord ; pleine vitesse à l'ouverture de l'interface (période de grâce configurable)
-- **Profils de performance** — Light, Balanced, Active ou Custom dans Réglages → Performance et ressources
-- **Homelab multi-nœud** — étiquetez apps et agents par nœud ; télémétrie et conteneurs par hôte
-- **Intégrations par lot** — jusqu'à 50 cartes en une requête API
-- **Portées des jetons API** — choisissez télémétrie, webhooks, intégrations, etc. à la création
-- **Rappels de sauvegarde** — alerte si l'export est en retard ; export en streaming pour les grosses bases
-- **Alertes hôte en veille** — seuils CPU, RAM et disque par webhook quand l'interface est fermée
-- **v1.7.7** — intervalles de polling, toggle Feeds, mode clair par thème
+- **Affiches Jellyfin** — vraies jaquettes de films/épisodes sur la carte de streaming, relayées par le serveur (la clé API n'atteint jamais le navigateur)
+- **Contrôles de lecture** — pause / reprise / arrêt de la session Jellyfin active (admins) ; visibles uniquement pendant la lecture
+- **Intégrations médias dans Ajouter une app** — Jellyfin/Emby et Plex se configurent par app ; les anciens identifiants des Réglages migrent automatiquement
+- **Statut instantané au rechargement** — statuts et CPU/RAM des conteneurs s'affichent immédiatement au lieu de `CHECKING...`
+- **Thème Taghawsa** — dégradé animé WebGL avec effet d'ondulation à la souris (38 thèmes au total)
+- **Correction des actions de conteneur** — `client error (SendRequest)` résolu avec nouvelle tentative automatique et erreurs explicites
+- **v1.8.0** — veille intelligente, profils de performance, multi-nœud, intégrations par lot, portées des jetons API
 
 Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### État des versions
 
-Dernière version recommandée : **v1.8.0**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
+Dernière version recommandée : **v1.8.1**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

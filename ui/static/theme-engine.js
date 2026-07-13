@@ -23,6 +23,8 @@
     ].join(', ');
 
     var manifestCache = null;
+    var activeBackgroundScript = null;
+    var threeLoadPromise = null;
 
     function themeId() {
         return document.body?.getAttribute('data-theme-id') || 'default';
@@ -177,6 +179,67 @@
         return Promise.all(tasks);
     }
 
+    function teardownBackground() {
+        if (global.amudThemeBackground && typeof global.amudThemeBackground.destroy === 'function') {
+            try { global.amudThemeBackground.destroy(); } catch (e) { /* ignore */ }
+        }
+        activeBackgroundScript = null;
+    }
+
+    function loadScriptOnce(src, globalFlag) {
+        if (globalFlag && global[globalFlag]) return Promise.resolve();
+        var existing = document.querySelector('script[data-amud-src="' + src + '"]');
+        if (existing) {
+            if (existing.getAttribute('data-amud-loaded') === '1') {
+                return Promise.resolve();
+            }
+            return new Promise(function (resolve, reject) {
+                existing.addEventListener('load', function () {
+                    existing.setAttribute('data-amud-loaded', '1');
+                    resolve();
+                }, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+            });
+        }
+        return new Promise(function (resolve, reject) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.setAttribute('data-amud-src', src);
+            script.onload = function () {
+                script.setAttribute('data-amud-loaded', '1');
+                if (globalFlag) global[globalFlag] = true;
+                resolve();
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    function loadThreeJs() {
+        if (typeof global.THREE !== 'undefined') return Promise.resolve();
+        if (threeLoadPromise) return threeLoadPromise;
+        threeLoadPromise = loadScriptOnce('/static/vendor/three.min.js', '__amudThreeLoaded');
+        return threeLoadPromise;
+    }
+
+    function loadBackgroundScript(manifest, entry) {
+        teardownBackground();
+        if (!entry || !entry.backgroundScript) return Promise.resolve();
+        var scriptUrl = resolveAssetUrl(manifest, entry.backgroundScript);
+        if (!scriptUrl) return Promise.resolve();
+
+        return loadThreeJs()
+            .then(function () {
+                return loadScriptOnce(scriptUrl).then(function () {
+                    activeBackgroundScript = scriptUrl;
+                    if (global.amudThemeBackground && typeof global.amudThemeBackground.init === 'function') {
+                        global.amudThemeBackground.init();
+                    }
+                });
+            })
+            .catch(function () { /* WebGL optional */ });
+    }
+
     function applyThemeChrome(id) {
         return loadManifest().then(function (manifest) {
             var entry = themeEntry(manifest, id);
@@ -186,11 +249,23 @@
             if (entry?.wallpaper && entry.usesWallpaper !== false) {
                 var wp = resolveAssetUrl(manifest, entry.wallpaper);
                 if (wp) applyWallpaperUrl(wp);
+            } else if (entry && entry.usesWallpaper === false) {
+                document.documentElement.style.removeProperty('--brand-bg-image');
             }
             return loadIconPack(manifest, id).then(function (pack) {
                 return swapChromeIcons(manifest, pack);
+            }).then(function () {
+                return loadBackgroundScript(manifest, entry);
             });
         });
+    }
+
+    function refreshBackground(overrideId) {
+        var id = overrideId || themeId();
+        return loadManifest().then(function (manifest) {
+            var entry = themeEntry(manifest, id);
+            return loadBackgroundScript(manifest, entry);
+        }).catch(function () { /* ignore */ });
     }
 
     function initThemeEngine() {
@@ -214,6 +289,7 @@
         applyUiProfile: applyUiProfile,
         injectLayoutCss: injectLayoutCss,
         refreshChromeIcons: refreshChromeIcons,
+        refreshBackground: refreshBackground,
         init: initThemeEngine
     };
 

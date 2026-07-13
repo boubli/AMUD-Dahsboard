@@ -10,22 +10,21 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.0 새로운 기능
+### v1.8.1 새로운 기능
 
-- **스마트 유휴** — 대시보드를 사용하지 않을 때 폴링과 캐시 일시 중지; GUI 열면 전속력(설정 가능한 유예 기간)
-- **성능 프리셋** — 설정 → 성능 및 리소스에서 Light, Balanced, Active 또는 Custom
-- **멀티 노드 homelab** — 앱과 에이전트에 노드 태그; 호스트별 원격 측정 및 컨테이너 매칭
-- **일괄 통합** — API 요청 한 번에 최대 50개 카드
-- **API 토큰 범위** — 토큰 생성 시 원격 측정, webhook, 통합 등 선택
-- **백업 알림** — 보내기 기한 초과 시 안내; 대용량 DB 스트리밍 보내기
-- **유휴 호스트 경고** — GUI가 닫혀 있어도 CPU, RAM, 디스크 webhook 임계값
-- **v1.7.7** — 구성 가능한 폴링 간격, Feeds 토글, 테마별 라이트 모드
+- **Jellyfin 포스터** — 스트림 카드에 실제 영화/에피소드 아트워크 표시. 서버 프록시를 통해 API 키는 브라우저에 노출되지 않음
+- **재생 컨트롤** — 활성 Jellyfin 세션의 일시정지 / 재개 / 정지(관리자 전용); 재생 중에만 표시
+- **미디어 통합을 앱 추가로 이동** — Jellyfin/Emby와 Plex는 앱 카드별로 구성; 기존 설정의 자격 증명은 자동 마이그레이션
+- **새로고침 시 즉시 상태 표시** — `CHECKING...` 대신 상태와 컨테이너 CPU/RAM이 즉시 표시
+- **Taghawsa 테마** — 마우스 리플 효과가 있는 WebGL 애니메이션 그라데이션(총 38개 테마)
+- **컨테이너 작업 수정** — 자동 재시도와 명확한 오류 메시지로 `client error (SendRequest)` 해결
+- **v1.8.0** — 스마트 유휴, 성능 프리셋, 멀티 노드, 일괄 통합, API 토큰 범위
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 릴리스 상태
 
-권장 버전: **v1.8.0**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
+권장 버전: **v1.8.1**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

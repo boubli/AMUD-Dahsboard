@@ -1,0 +1,104 @@
+/* AMUD Theme: taghawsa — WebGL Scheme 5 (orange / teal / black) */
+@import url('_shared.css');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&display=swap');
+
+:root {
+    --theme-font: 'Syne', sans-serif;
+    --theme-bg-fallback: #000000;
+    --theme-card-r: 0;
+    --theme-card-g: 66;
+    --theme-card-b: 56;
+    --bg-card: rgba(0, 66, 56, var(--glass-opacity));
+    --accent-color: #F15A22;
+    --accent-glow: rgba(241, 90, 34, 0.22);
+    --text-primary: #f8fafc;
+    --text-secondary: #94b8a8;
+    --text-muted: #6b8f82;
+    --border-card: rgba(241, 90, 34, 0.2);
+    --border-hover: #F15A22;
+    --theme-procedural: 1;
+    --theme-body-stack:
+        radial-gradient(ellipse 80% 50% at 20% 80%, rgba(241, 90, 34, 0.28), transparent),
+        radial-gradient(ellipse 60% 45% at 80% 20%, rgba(0, 66, 56, 0.65), transparent),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(241, 90, 34, 0.12), transparent),
+        linear-gradient(180deg, #000000 0%, #004238 45%, #0a0e27 70%, #000000 100%);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(120deg, transparent, rgba(241, 90, 34, 0.1), transparent, rgba(0, 66, 56, 0.15), transparent);
+    animation: amud-taghawsa-drift 14s ease-in-out infinite;
+}
+
+@keyframes amud-taghawsa-drift {
+    0%, 100% { opacity: 0.5; transform: translateX(-4%); }
+    50% { opacity: 1; transform: translateX(4%); }
+}
+
+body.has-webgl-bg {
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
+body.has-webgl-bg::before,
+body.has-webgl-bg::after {
+    display: none !important;
+}
+
+.app-card.glass-panel {
+    border: 1px solid rgba(241, 90, 34, 0.28);
+    box-shadow: 0 0 24px rgba(241, 90, 34, 0.08);
+}
+
+body { font-family: var(--theme-font), system-ui, sans-serif; }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+
+.dashboard-container { position: relative; z-index: 1; }
+.topbar-inner { align-items: center; }
+.greeting-widget .greeting-title { color: var(--text-primary); }
+.clock-widget .clock-time { color: var(--accent-color); }
+.category-tabs .filter-tab:hover { color: var(--accent-color); }
+.modal-content.glass-panel { border-color: var(--border-card); }
+.settings-page-title { font-family: var(--theme-font), system-ui, sans-serif; }
+.app-card-header .app-name { font-family: var(--theme-font), system-ui, sans-serif; }
+
+[data-theme-id="taghawsa"] .dashboard-container { position: relative; z-index: 1; }
+[data-theme-id="taghawsa"] .topbar-action:hover { color: var(--accent-color); }
+[data-theme-id="taghawsa"] .app-card:hover { border-color: var(--border-hover); }
+[data-theme-id="taghawsa"] .metric-value { font-weight: 600; }
+[data-theme-id="taghawsa"] .settings-sidebar .nav-item:hover { color: var(--accent-color); }
+
+/* AMUD light mode — taghawsa (static CSS only; WebGL disabled) */
+:root[data-theme="light"][data-theme-id="taghawsa"] {
+    --theme-bg-fallback: #f5f0eb;
+    --theme-card-r: 0;
+    --theme-card-g: 66;
+    --theme-card-b: 56;
+    --bg-card: rgba(0, 66, 56, var(--glass-opacity));
+    --accent-color: #d94e1a;
+    --accent-glow: rgba(217, 78, 26, 0.2);
+    --text-primary: #1a2e28;
+    --text-secondary: #3d5c52;
+    --text-muted: #5a7a6e;
+    --border-card: rgba(217, 78, 26, 0.18);
+    --border-hover: #d94e1a;
+    --theme-body-stack:
+        radial-gradient(ellipse 70% 45% at 15% 85%, rgba(241, 90, 34, 0.15), transparent),
+        radial-gradient(ellipse 55% 40% at 85% 15%, rgba(0, 66, 56, 0.12), transparent),
+        linear-gradient(180deg, #f5f0eb 0%, #e8f0ed 50%, #f5f0eb 100%);
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="taghawsa"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+/* AMUD light mode end */

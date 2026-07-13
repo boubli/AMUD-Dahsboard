@@ -128,6 +128,9 @@
             if (global.amudThemeEngine?.refreshChromeIcons) {
                 global.amudThemeEngine.refreshChromeIcons(theme.id);
             }
+            if (global.amudThemeEngine?.refreshBackground) {
+                global.amudThemeEngine.refreshBackground(theme.id);
+            }
             if (theme.id === 'default' || !theme.file) {
                 applyDefaultTheme(theme);
                 return;

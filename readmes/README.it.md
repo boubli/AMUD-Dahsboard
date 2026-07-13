@@ -10,22 +10,21 @@
 
 **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galleria dei Temi](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Tabella di marcia](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentazione](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novità in v1.8.0
+### Novità in v1.8.1
 
-- **Inattività intelligente** — polling e cache si fermano quando nessuno usa la dashboard; piena velocità all'apertura dell'interfaccia (periodo di grazia configurabile)
-- **Profili prestazioni** — Light, Balanced, Active o Custom in Impostazioni → Prestazioni e risorse
-- **Homelab multi-nodo** — etichetta app e agent per nodo; telemetria e container per host
-- **Integrazioni in batch** — fino a 50 schede in una richiesta API
-- **Ambiti token API** — scegli telemetria, webhook, integrazioni e altro alla creazione
-- **Promemoria backup** — avviso se l'export è in ritardo; export in streaming per database grandi
-- **Avvisi host in inattività** — soglie CPU, RAM e disco via webhook con la GUI chiusa
-- **v1.7.7** — intervalli di polling, toggle Feeds, modalità chiara per tema
+- **Poster Jellyfin** — vere locandine di film/episodi sulla scheda streaming, tramite proxy del server (la chiave API non raggiunge mai il browser)
+- **Controlli di riproduzione** — pausa / ripresa / stop della sessione Jellyfin attiva (solo admin); visibili solo durante la riproduzione
+- **Integrazioni multimediali in Aggiungi app** — Jellyfin/Emby e Plex si configurano per app; le vecchie credenziali delle Impostazioni migrano automaticamente
+- **Stato istantaneo al ricaricamento** — stati e CPU/RAM dei container appaiono subito invece di `CHECKING...`
+- **Tema Taghawsa** — gradiente animato WebGL con effetto ripple del mouse (38 temi in totale)
+- **Fix azioni container** — `client error (SendRequest)` risolto con retry automatico ed errori chiari
+- **v1.8.0** — inattività intelligente, profili prestazioni, multi-nodo, integrazioni in batch, ambiti token API
 
 Cronologia completa: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Stato release
 
-Consigliato: **v1.8.0**. Dettagli e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
+Consigliato: **v1.8.1**. Dettagli e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

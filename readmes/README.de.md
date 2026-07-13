@@ -10,22 +10,21 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme-Galerie](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Dokumentation](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Was ist neu in v1.8.0
+### Was ist neu in v1.8.1
 
-- **Intelligenter Leerlauf** — Poller und Caches pausieren, wenn niemand das Dashboard nutzt; volle Geschwindigkeit beim Öffnen der Oberfläche (konfigurierbare Schonfrist)
-- **Leistungsprofile** — Light, Balanced, Active oder Custom unter Einstellungen → Leistung & Ressourcen
-- **Multi-Node-Homelab** — Apps und Agenten nach Knoten taggen; Telemetrie und Container pro Host
-- **Batch-Integrationen** — bis zu 50 Integrationskarten in einer API-Anfrage
-- **API-Token-Bereiche** — Telemetrie, Webhooks, Integrationen u. a. bei der Token-Erstellung wählen
-- **Backup-Erinnerungen** — Hinweis bei überfälligem Export; Streaming-Export für große Datenbanken
-- **Host-Alarme im Leerlauf** — CPU-, RAM- und Festplatten-Schwellen per Webhook bei geschlossener GUI
-- **v1.7.7** — konfigurierbare Poll-Intervalle, Feeds-Toggle, Hellmodus pro Theme
+- **Jellyfin-Poster** — echte Film-/Episoden-Cover auf der Stream-Karte, über den Server geproxyt (der API-Schlüssel erreicht nie den Browser)
+- **Wiedergabesteuerung** — Pause / Fortsetzen / Stopp der aktiven Jellyfin-Sitzung (nur Admins); nur sichtbar, während etwas läuft
+- **Medien-Integrationen in App hinzufügen** — Jellyfin/Emby und Plex werden pro App konfiguriert; alte Zugangsdaten aus den Einstellungen migrieren automatisch
+- **Sofortiger Status beim Neuladen** — Status und Container-CPU/RAM erscheinen sofort statt `CHECKING...`
+- **Taghawsa-Theme** — animierter WebGL-Farbverlauf mit Maus-Ripple (insgesamt 38 Themes)
+- **Container-Aktionen behoben** — `client error (SendRequest)` durch automatischen Retry und klare Fehlermeldungen gelöst
+- **v1.8.0** — intelligenter Leerlauf, Leistungsprofile, Multi-Node, Batch-Integrationen, API-Token-Bereiche
 
 Vollständiger Verlauf: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Release-Status
 
-Aktuell empfohlen: **v1.8.0**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
+Aktuell empfohlen: **v1.8.1**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

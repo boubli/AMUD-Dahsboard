@@ -37,11 +37,6 @@ pub async fn settings_page_handler(
         .get("weather_temp_unit")
         .map(|s| s.as_str())
         .unwrap_or("celsius");
-    let jellyfin_url = settings
-        .get("jellyfin_url")
-        .map(|s| s.as_str())
-        .unwrap_or("");
-    let plex_url = settings.get("plex_url").map(|s| s.as_str()).unwrap_or("");
     let donate_enabled = settings
         .get("donate_enabled")
         .map(|s| s.as_str())
@@ -59,14 +54,6 @@ pub async fn settings_page_handler(
     let pve_api_token_placeholder = secret_field_placeholder(
         secret_setting_configured(&settings, "pve_api_token"),
         "PVEAPIToken=root@pam!tokenid=xxxx-xxxx-xxxx-xxxx",
-    );
-    let jellyfin_api_key_placeholder = secret_field_placeholder(
-        secret_setting_configured(&settings, "jellyfin_api_key"),
-        "Paste API key",
-    );
-    let plex_token_placeholder = secret_field_placeholder(
-        secret_setting_configured(&settings, "plex_token"),
-        "Paste Plex token",
     );
     let csrf_token = csrf_token_for_session(&headers, &state.sessions);
     let root_css = build_root_css(&branding);
@@ -140,16 +127,6 @@ pub async fn settings_page_handler(
         .replace(
             "{{pve_api_token_placeholder}}",
             &escape_html(&pve_api_token_placeholder),
-        )
-        .replace("{{jellyfin_url}}", jellyfin_url)
-        .replace(
-            "{{jellyfin_api_key_placeholder}}",
-            &escape_html(&jellyfin_api_key_placeholder),
-        )
-        .replace("{{plex_url}}", plex_url)
-        .replace(
-            "{{plex_token_placeholder}}",
-            &escape_html(&plex_token_placeholder),
         )
         .replace("{{ha_url}}", ha_url)
         .replace(

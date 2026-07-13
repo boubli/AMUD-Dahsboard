@@ -47,7 +47,7 @@ pub async fn settings_handler(
                 sanitize_setting_url(&val)
             } else if key == "custom_css" {
                 sanitize_custom_css(&val)
-            } else if key == "ha_url" || key == "jellyfin_url" || key == "plex_url" {
+            } else if key == "ha_url" {
                 sanitize_integration_url(&val)
             } else if key == "theme_mode" {
                 sanitize_theme_mode(&val)

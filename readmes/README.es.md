@@ -10,22 +10,21 @@
 
 **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galería de temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Hoja de ruta](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentación](https://boubli.github.io/AMUD-Dashboard/)** · **[Preguntas frecuentes](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novedades en v1.8.0
+### Novedades en v1.8.1
 
-- **Inactividad inteligente** — los sondeos y cachés se pausan cuando nadie usa el panel; máxima velocidad al abrir la interfaz (periodo de gracia configurable)
-- **Perfiles de rendimiento** — Light, Balanced, Active o Custom en Ajustes → Rendimiento y recursos
-- **Homelab multi-nodo** — etiqueta apps y agentes por nodo; telemetría y contenedores por host
-- **Integraciones por lotes** — hasta 50 tarjetas en una solicitud API
-- **Ámbitos de tokens API** — elige telemetría, webhooks, integraciones y más al crear tokens
-- **Recordatorios de copia** — aviso si la exportación está atrasada; exportación en streaming para bases grandes
-- **Alertas de host en inactividad** — umbrales de CPU, RAM y disco por webhook con el panel cerrado
-- **v1.7.7** — intervalos de sondeo, toggle de Feeds, modo claro por tema
+- **Pósters de Jellyfin** — carátulas reales de películas/episodios en la tarjeta de streaming, servidas a través del servidor (la clave API nunca llega al navegador)
+- **Controles de reproducción** — pausar / reanudar / detener la sesión activa de Jellyfin (solo admins); visibles solo mientras algo se reproduce
+- **Integraciones de medios en Añadir app** — Jellyfin/Emby y Plex se configuran por app; las credenciales antiguas de Ajustes migran automáticamente
+- **Estado instantáneo al recargar** — estados y CPU/RAM de contenedores aparecen al instante en lugar de `CHECKING...`
+- **Tema Taghawsa** — degradado animado WebGL con ondas al mover el ratón (38 temas en total)
+- **Arreglo de acciones de contenedor** — `client error (SendRequest)` resuelto con reintento automático y errores claros
+- **v1.8.0** — inactividad inteligente, perfiles de rendimiento, multi-nodo, integraciones por lotes, ámbitos de tokens API
 
 Historial completo: **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Estado de versiones
 
-Recomendado ahora: **v1.8.0**. Detalles y versiones retiradas: **[README en inglés](../README.md)** (sección Release status).
+Recomendado ahora: **v1.8.1**. Detalles y versiones retiradas: **[README en inglés](../README.md)** (sección Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

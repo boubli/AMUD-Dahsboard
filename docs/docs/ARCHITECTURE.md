@@ -70,6 +70,6 @@ graph TD
 - App-card integrations are fetched through a **server-side TTL cache** with singleflight (`integration_cache.rs`) so many cards do not hammer upstream APIs.
 - A **PollCoordinator** (`integration_coordinator.rs`) warms cache entries only for integrations present on the dashboard, on a staggered schedule.
 - Client cards still refresh on viewport visibility (~30s); responses are served from cache when fresh.
-- Jellyfin, Plex (global stream badges), and Home Assistant use lightweight background pollers when configured.
+- Jellyfin, Plex (per-app stream cards), and Home Assistant use lightweight background pollers when configured.
 - **Custom API** integrations allow arbitrary HTTP JSON field mapping without a new Rust fetcher per service.
 - **Homepage import** (`homepage_import.rs`) maps `services.yaml` widget types into AMUD integration types for migration.

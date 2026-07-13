@@ -304,6 +304,56 @@
         });
     }
 
+    let jellyfinSessionId = '';
+
+    function updateJellyfinExtras(stream) {
+        const poster = document.getElementById('jellyfin-poster');
+        const controls = document.getElementById('jellyfin-controls');
+        const active = !!stream.active;
+
+        if (poster) {
+            if (active && stream.poster) {
+                if (poster.getAttribute('src') !== stream.poster) poster.src = stream.poster;
+                poster.style.display = '';
+            } else {
+                poster.style.display = 'none';
+                poster.removeAttribute('src');
+            }
+        }
+
+        jellyfinSessionId = active && stream.session_id ? stream.session_id : '';
+        if (controls) {
+            // Playback controls only appear while someone is actually streaming.
+            controls.style.display = jellyfinSessionId ? '' : 'none';
+            const paused = !!stream.is_paused;
+            const pauseBtn = controls.querySelector('[data-jf-command="pause"]');
+            const playBtn = controls.querySelector('[data-jf-command="unpause"]');
+            if (pauseBtn) pauseBtn.style.display = paused ? 'none' : '';
+            if (playBtn) playBtn.style.display = paused ? '' : 'none';
+        }
+    }
+
+    function sendJellyfinCommand(command) {
+        if (!jellyfinSessionId) return;
+        const headers = typeof amudCsrfHeaders === 'function' ? amudCsrfHeaders() : {};
+        fetch(`/api/media/jellyfin/session/${encodeURIComponent(jellyfinSessionId)}/${command}`, {
+            method: 'POST',
+            headers
+        }).then(res => {
+            if (!res.ok) return;
+            // Optimistic toggle; the next telemetry frame confirms real state.
+            const controls = document.getElementById('jellyfin-controls');
+            if (!controls) return;
+            if (command === 'pause' || command === 'unpause') {
+                const paused = command === 'pause';
+                const pauseBtn = controls.querySelector('[data-jf-command="pause"]');
+                const playBtn = controls.querySelector('[data-jf-command="unpause"]');
+                if (pauseBtn) pauseBtn.style.display = paused ? 'none' : '';
+                if (playBtn) playBtn.style.display = paused ? '' : 'none';
+            }
+        }).catch(() => {});
+    }
+
     function updateMediaStream(service, stream) {
         const normalized = service === 'plex' ? 'plex' : 'jellyfin';
         const track = document.getElementById(`${normalized}-track`);
@@ -317,6 +367,9 @@
         if (progress) progress.style.width = `${stream.progress_percent || 0}%`;
         if (badge && stream.status) {
             styleStatusBadge(badge, stream.status);
+        }
+        if (normalized === 'jellyfin') {
+            updateJellyfinExtras(stream);
         }
     }
 
@@ -574,8 +627,76 @@
                         if (data) data.integrationData = d;
                     }
                 });
+                saveIntegrationSnapshot(batch);
             })
             .catch(() => {});
+    }
+
+    // Persist a slim snapshot of integration metrics so a page reload can show
+    // last-known values instantly instead of empty dashes.
+    function saveIntegrationSnapshot(batch) {
+        try {
+            const existing = JSON.parse(localStorage.getItem('amud-cache-integrations') || '{}');
+            Object.entries(batch).forEach(([id, d]) => {
+                if (!d || !d.type) return;
+                const json = JSON.stringify(d);
+                if (json.length <= 2048) existing[id] = d;
+            });
+            localStorage.setItem('amud-cache-integrations', JSON.stringify(existing));
+        } catch (_) { /* quota */ }
+    }
+
+    function hydrateCachedStatuses() {
+        let cached;
+        try {
+            cached = JSON.parse(localStorage.getItem('amud-offline-status') || 'null');
+        } catch (_) {
+            return;
+        }
+        if (!cached) return;
+        const lookup = {};
+        Object.entries(cached).forEach(([name, entry]) => {
+            lookup[String(name).toLowerCase()] = entry;
+        });
+        document.querySelectorAll('.app-card').forEach(card => {
+            const appName = (card.getAttribute('data-app-name') || '').toLowerCase();
+            if (!appName) return;
+            const entry = lookup[appName];
+            if (!entry || !entry.s) return;
+            const badge = card.querySelector('.status-badge');
+            // Skip badges the server already pre-filled (data-last-status set).
+            if (!badge || badge.dataset.lastStatus) return;
+            styleStatusBadge(badge, entry.s);
+            badge.title = 'Last known status (updating…)';
+        });
+    }
+
+    function hydrateCachedIntegrations() {
+        let cached;
+        try {
+            cached = JSON.parse(localStorage.getItem('amud-cache-integrations') || 'null');
+        } catch (_) {
+            return;
+        }
+        if (!cached) return;
+        const apply = () => {
+            if (typeof Alpine === 'undefined' || typeof Alpine.$data !== 'function') return;
+            document.querySelectorAll('[data-integration-refresh]').forEach(card => {
+                const id = card.getAttribute('data-integration-refresh');
+                const d = cached[id];
+                if (!d || !d.type) return;
+                try {
+                    const data = Alpine.$data(card);
+                    // Only fill the gap; never overwrite live data.
+                    if (data && !data.integrationData) data.integrationData = d;
+                } catch (_) { /* card not alpine-managed */ }
+            });
+        };
+        if (typeof Alpine !== 'undefined' && typeof Alpine.$data === 'function') {
+            apply();
+        } else {
+            document.addEventListener('alpine:initialized', () => setTimeout(apply, 0), { once: true });
+        }
     }
 
     function reportViewport(ids) {
@@ -643,19 +764,50 @@
 
         updateClock();
         setInterval(updateClock, 1000);
+
+        const jfPoster = document.getElementById('jellyfin-poster');
+        if (jfPoster) {
+            jfPoster.addEventListener('error', () => { jfPoster.style.display = 'none'; });
+        }
+
+        // Instant status: paint last-known values before the WebSocket delivers
+        // fresh data; live frames overwrite these as soon as they arrive.
+        hydrateCachedStatuses();
+        hydrateCachedIntegrations();
+
         connectWebSocket();
         initActivityPresence();
         initIntegrationRefresh();
 
         // Make app cards clickable across their whole surface, while preserving
-        // drag handles, control buttons, and other interactive elements.
+        // drag handles, control buttons, metrics (copyable), and other interactive elements.
+        const CARD_METRICS_SELECTOR = [
+            '.app-card-metrics-slot',
+            '.integration-widget',
+            '.integration-metrics-grid',
+            '.nested-metrics-grid',
+            '.metric-block'
+        ].join(', ');
+
         document.addEventListener('click', function (event) {
+            const jfBtn = event.target.closest('[data-jf-command]');
+            if (jfBtn) {
+                sendJellyfinCommand(jfBtn.getAttribute('data-jf-command'));
+                return;
+            }
+
             const card = event.target.closest('.app-card');
             if (!card) return;
 
             // Ignore clicks that originate from interactive controls or links.
             const interactive = event.target.closest('button, form, input, select, textarea, label, a');
             if (interactive) return;
+
+            // Metrics area: allow text selection and copy without opening the app.
+            if (event.target.closest(CARD_METRICS_SELECTOR)) return;
+
+            const sel = window.getSelection();
+            if (sel && sel.toString().length > 0) return;
 
             const link = card.querySelector('.app-card-open');
             if (!link) return;

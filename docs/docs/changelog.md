@@ -11,6 +11,25 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.1 — Jellyfin posters, instant status, Taghawsa theme
+
+**2026-07-13** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.1)
+
+### Added
+- **Jellyfin now-playing posters** — the stream card shows the movie/episode poster, proxied through the server (API key never reaches the browser)
+- **Playback controls** — admins can pause / resume / stop the active Jellyfin session; controls appear only while something is streaming
+- **Taghawsa theme** — WebGL animated gradient with mouse ripple (38 themes total), with a static CSS fallback for mobile/reduced-motion
+- **Instant status on reload** — last known statuses and container CPU/RAM are embedded in the page HTML and hydrated from a local cache, so cards never flash empty
+
+### Changed
+- **Media integrations moved to Add App** — Jellyfin/Emby and Plex are now configured per app (Integration dropdown), like every other integration; legacy Settings → Integrations credentials migrate automatically on first start
+
+### Fixed
+- **`HTTP request failed: client error (SendRequest)`** on container start/stop — the agent now retries once on stale connections and reports actionable errors (connection refused, missing Docker socket, timeout)
+- **Copying app card metrics** no longer opens the app URL; metric text is selectable
+
+---
+
 ## v1.8.0 — Smart idle, lower RAM, multi-node
 
 **2026-07-10** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.0)

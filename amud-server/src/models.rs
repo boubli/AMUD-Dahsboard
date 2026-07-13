@@ -69,7 +69,7 @@ pub struct Session {
 
 pub(crate) use amud_protocol::{AgentTelemetry, LxcContainer, NetworkTelemetry};
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Default)]
 pub struct MediaStream {
     pub(crate) status: String,
     pub(crate) active: bool,
@@ -77,6 +77,12 @@ pub struct MediaStream {
     pub(crate) current_time: String,
     pub(crate) total_time: String,
     pub(crate) progress_percent: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) poster: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) session_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) is_paused: Option<bool>,
 }
 
 #[derive(Serialize, Clone, Default)]

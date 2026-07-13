@@ -11,10 +11,8 @@ pub(crate) fn default_media_streams() -> HashMap<String, MediaStream> {
         MediaStream {
             status: "NOT CONFIGURED".to_string(),
             active: false,
-            title: "Add Plex URL and token in Settings".to_string(),
-            current_time: String::new(),
-            total_time: String::new(),
-            progress_percent: 0.0,
+            title: "Add a token in Edit App -> Integration".to_string(),
+            ..Default::default()
         },
     );
     streams.insert(
@@ -22,10 +20,8 @@ pub(crate) fn default_media_streams() -> HashMap<String, MediaStream> {
         MediaStream {
             status: "NOT CONFIGURED".to_string(),
             active: false,
-            title: "Add Jellyfin URL and API key in Settings".to_string(),
-            current_time: String::new(),
-            total_time: String::new(),
-            progress_percent: 0.0,
+            title: "Add an API key in Edit App -> Integration".to_string(),
+            ..Default::default()
         },
     );
     streams
@@ -68,9 +64,7 @@ pub(crate) async fn poll_jellyfin(
                 status: "ERROR".to_string(),
                 active: false,
                 title: format!("Jellyfin unreachable: {}", e),
-                current_time: String::new(),
-                total_time: String::new(),
-                progress_percent: 0.0,
+                ..Default::default()
             }
         }
     };
@@ -86,9 +80,7 @@ pub(crate) async fn poll_jellyfin(
             status: "RUNNING".to_string(),
             active: false,
             title: "No Active Streams".to_string(),
-            current_time: String::new(),
-            total_time: String::new(),
-            progress_percent: 0.0,
+            ..Default::default()
         };
     }
 
@@ -116,6 +108,17 @@ pub(crate) async fn poll_jellyfin(
         0.0
     };
 
+    let session_id = first
+        .get("Id")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+    let is_paused = first
+        .get("PlayState")
+        .and_then(|v| v.get("IsPaused"))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let poster = jellyfin_poster_path(item);
+
     MediaStream {
         status: "RUNNING".to_string(),
         active: true,
@@ -123,7 +126,30 @@ pub(crate) async fn poll_jellyfin(
         current_time: format_media_time(current_ms),
         total_time: format_media_time(total_ms),
         progress_percent,
+        poster,
+        session_id,
+        is_paused: Some(is_paused),
     }
+}
+
+/// Builds an internal poster proxy path from a Jellyfin NowPlayingItem, so the
+/// browser never sees the Jellyfin URL or API key.
+fn jellyfin_poster_path(item: &serde_json::Value) -> Option<String> {
+    let item_id = item.get("Id").and_then(|v| v.as_str());
+    let primary_tag = item
+        .get("ImageTags")
+        .and_then(|v| v.get("Primary"))
+        .and_then(|v| v.as_str());
+    let series_id = item.get("SeriesId").and_then(|v| v.as_str());
+    let series_tag = item.get("SeriesPrimaryImageTag").and_then(|v| v.as_str());
+
+    if let (Some(id), Some(tag)) = (item_id, primary_tag) {
+        return Some(format!("/api/media/jellyfin/poster/{}?tag={}", id, tag));
+    }
+    if let (Some(id), Some(tag)) = (series_id, series_tag) {
+        return Some(format!("/api/media/jellyfin/poster/{}?tag={}", id, tag));
+    }
+    None
 }
 
 pub(crate) async fn poll_plex(
@@ -149,9 +175,7 @@ pub(crate) async fn poll_plex(
                 status: "ERROR".to_string(),
                 active: false,
                 title: format!("Plex unreachable: {}", e),
-                current_time: String::new(),
-                total_time: String::new(),
-                progress_percent: 0.0,
+                ..Default::default()
             }
         }
     };
@@ -168,9 +192,7 @@ pub(crate) async fn poll_plex(
             status: "RUNNING".to_string(),
             active: false,
             title: "No Active Streams".to_string(),
-            current_time: String::new(),
-            total_time: String::new(),
-            progress_percent: 0.0,
+            ..Default::default()
         };
     }
 
@@ -198,6 +220,19 @@ pub(crate) async fn poll_plex(
         current_time: format_media_time(view_offset_ms),
         total_time: format_media_time(duration_ms),
         progress_percent,
+        ..Default::default()
+    }
+}
+
+/// Usable URL + API key from a per-app media integration, or None when the
+/// app is missing either field.
+pub(crate) fn app_media_credentials(app: &crate::models::App) -> Option<(String, String)> {
+    let url = app.url.trim().trim_end_matches('/');
+    let key = app.api_key.trim();
+    if url.is_empty() || key.is_empty() {
+        None
+    } else {
+        Some((url.to_string(), key.to_string()))
     }
 }
 
@@ -221,74 +256,36 @@ pub(crate) fn start_media_poller(state: Arc<crate::models::AppState>) {
                 .unwrap_or(false);
             let client =
                 crate::http_client::select_http_client(&state.http_clients, accept_invalid).clone();
+            // Credentials come from the per-app integration (Add App / Edit App),
+            // not from global settings.
             let db_for_blocking = state.db.clone();
-            let apps_check = tokio::task::spawn_blocking(move || {
+            let (jellyfin_app, plex_app) = tokio::task::spawn_blocking(move || {
                 let db = db_for_blocking.lock().unwrap();
                 (
-                    crate::db::has_integration_type(&db, "jellyfin")
-                        || crate::db::has_integration_type(&db, "emby"),
-                    crate::db::has_integration_type(&db, "plex"),
+                    crate::db::load_first_app_with_integration(&db, &["jellyfin", "emby"]),
+                    crate::db::load_first_app_with_integration(&db, &["plex"]),
                 )
             })
             .await
-            .unwrap_or((false, false));
-            let (has_jellyfin, has_plex) = apps_check;
-            let jellyfin_configured = settings
-                .get("jellyfin_url")
-                .map(|s| !s.trim().is_empty())
-                .unwrap_or(false)
-                && settings
-                    .get("jellyfin_api_key")
-                    .map(|s| !s.trim().is_empty())
-                    .unwrap_or(false);
-            let plex_configured = settings
-                .get("plex_url")
-                .map(|s| !s.trim().is_empty())
-                .unwrap_or(false)
-                && settings
-                    .get("plex_token")
-                    .map(|s| !s.trim().is_empty())
-                    .unwrap_or(false);
-            let media_active =
-                (has_jellyfin && jellyfin_configured) || (has_plex && plex_configured);
-
-            if !media_active {
-                tokio::time::sleep(Duration::from_secs(300)).await;
-                continue;
-            }
+            .unwrap_or((None, None));
+            let jellyfin_creds = jellyfin_app.as_ref().and_then(app_media_credentials);
+            let plex_creds = plex_app.as_ref().and_then(app_media_credentials);
+            let media_active = jellyfin_creds.is_some() || plex_creds.is_some();
 
             let jellyfin_fut = async {
-                if has_jellyfin {
-                    Some(
-                        poll_jellyfin(
-                            &client,
-                            settings
-                                .get("jellyfin_url")
-                                .map(|s| s.as_str())
-                                .unwrap_or(""),
-                            settings
-                                .get("jellyfin_api_key")
-                                .map(|s| s.as_str())
-                                .unwrap_or(""),
-                        )
-                        .await,
-                    )
-                } else {
-                    None::<MediaStream>
+                match &jellyfin_creds {
+                    Some((url, key)) => Some(poll_jellyfin(&client, url, key).await),
+                    None => jellyfin_app
+                        .as_ref()
+                        .map(|_| default_media_streams().remove("jellyfin").unwrap()),
                 }
             };
             let plex_fut = async {
-                if has_plex {
-                    Some(
-                        poll_plex(
-                            &client,
-                            settings.get("plex_url").map(|s| s.as_str()).unwrap_or(""),
-                            settings.get("plex_token").map(|s| s.as_str()).unwrap_or(""),
-                        )
-                        .await,
-                    )
-                } else {
-                    None::<MediaStream>
+                match &plex_creds {
+                    Some((url, key)) => Some(poll_plex(&client, url, key).await),
+                    None => plex_app
+                        .as_ref()
+                        .map(|_| default_media_streams().remove("plex").unwrap()),
                 }
             };
             let (jellyfin, plex) = tokio::join!(jellyfin_fut, plex_fut);
@@ -306,6 +303,11 @@ pub(crate) fn start_media_poller(state: Arc<crate::models::AppState>) {
                 } else {
                     streams.remove("plex");
                 }
+            }
+
+            if !media_active {
+                tokio::time::sleep(Duration::from_secs(300)).await;
+                continue;
             }
 
             tokio::time::sleep(Duration::from_secs(crate::settings::setting_u64_bounded(

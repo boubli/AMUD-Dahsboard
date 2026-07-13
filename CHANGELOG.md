@@ -8,6 +8,25 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.8.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.1) — 2026-07-13
+
+Jellyfin posters and playback controls, per-app media integration, instant status on reload, and the Taghawsa WebGL theme.
+
+### Added
+- **Jellyfin now-playing posters** — real movie/episode artwork on the stream card, proxied through the server so the API key never reaches the browser
+- **Playback controls** — admin pause / resume / stop for the active Jellyfin session; visible only while something is streaming
+- **Taghawsa theme** — WebGL animated gradient with mouse ripple (38 themes total), static CSS fallback on mobile/reduced-motion
+- **Instant status on reload** — SSR-embedded last-known statuses and container CPU/RAM, plus localStorage hydration for statuses and integration metrics
+
+### Changed
+- **Media integrations moved to Add App** — Jellyfin/Emby and Plex credentials now live on the app card (Integration dropdown); legacy Settings → Integrations values migrate automatically on first start
+
+### Fixed
+- **Container actions** — `HTTP request failed: client error (SendRequest)` resolved with an automatic retry on stale connections and actionable agent error messages
+- **App card metrics** are selectable/copyable without opening the app URL
+
+---
+
 ## [v1.8.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.0) — 2026-07-10
 
 Smart idle runtime, performance presets, multi-node support, and a big RAM efficiency push.

@@ -10,22 +10,21 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.0 の新機能
+### v1.8.1 の新機能
 
-- **スマートアイドル** — ダッシュボード未使用時はポーリングとキャッシュを一時停止；GUI 表示時はフル速度（猶予期間は設定可能）
-- **パフォーマンスプリセット** — 設定 → パフォーマンスとリソースで Light / Balanced / Active / Custom
-- **マルチノード homelab** — アプリとエージェントにノードタグ；ホストごとのテレメトリとコンテナ照合
-- **バッチ統合** — 1 回の API リクエストで最大 50 カード
-- **API トークンスコープ** — トークン作成時にテレメトリ、webhook、統合などを選択
-- **バックアップリマインダー** — エクスポート期限超過の通知；大規模 DB のストリーミングエクスポート
-- **アイドル時ホストアラート** — GUI 非表示時も CPU / RAM / ディスクの webhook しきい値
-- **v1.7.7** — ポーリング間隔、Feeds トグル、テーマ別ライトモード
+- **Jellyfin ポスター** — ストリームカードに映画/エピソードの実際のアートワークを表示。サーバー経由のプロキシで API キーはブラウザに届きません
+- **再生コントロール** — アクティブな Jellyfin セッションの一時停止 / 再開 / 停止（管理者のみ）。再生中のみ表示
+- **メディア統合を「アプリ追加」へ** — Jellyfin/Emby と Plex はアプリカードごとに設定。旧設定の資格情報は自動移行
+- **リロード時の即時ステータス** — `CHECKING...` の代わりにステータスとコンテナ CPU/RAM が即座に表示
+- **Taghawsa テーマ** — マウスリップル付き WebGL アニメーショングラデーション（全 38 テーマ）
+- **コンテナ操作の修正** — 自動リトライと明確なエラーで `client error (SendRequest)` を解決
+- **v1.8.0** — スマートアイドル、パフォーマンスプリセット、マルチノード、バッチ統合、API トークンスコープ
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### リリース状況
 
-推奨バージョン: **v1.8.0**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.8.1**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

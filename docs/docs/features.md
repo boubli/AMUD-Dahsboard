@@ -28,7 +28,7 @@ Complete inventory of what AMUD Dashboard ships today (v1.8.0). Everything below
 | **Bento app grid** | Drag-and-drop reorder (admin), card spans (`1x1`, `2x1`, `1x2`), category filter tabs |
 | **Dashboard widgets** | Custom note, link list, or HTML blocks above the app grid — see [Dashboard Widgets](./dashboard-widgets) |
 | **~2000 bundled logos** | Offline SVG library plus custom URL icons |
-| **Light & dark mode** | System-wide theme toggle with **37 bundled CSS themes** and visual Theme Gallery |
+| **Light & dark mode** | System-wide theme toggle with **38 bundled CSS themes** (including WebGL Taghawsa) and visual Theme Gallery |
 | **Video wallpapers** | `.mp4`, `.webm`, `.ogg` background support |
 | **Weather widget** | Open-Meteo via latitude/longitude in Settings |
 | **Live settings preview** | Accent, glass blur/opacity, wallpaper overlay strength, grid columns, wallpaper |
@@ -153,14 +153,16 @@ RSS feeds are managed under **Settings → RSS Feeds** (not the Add App modal).
 
 ---
 
-## Media stream badges
+## Media stream cards
 
-Configured under **Settings → Integrations**. Polls every few seconds when matching app cards exist.
+Configured per app (**Add App / Edit App → Integration** with an API key or token). Polls every few seconds when a matching app card exists.
 
-| Service | Badge |
+| Service | Stream card |
 |---------|-------|
-| **Jellyfin** (incl. Emby) | Now playing title, progress bar, multi-stream summary |
-| **Plex** | Same |
+| **Jellyfin** (incl. Emby) | Now playing title, **movie poster**, progress bar, multi-stream summary, admin **pause / resume / stop** controls (shown only while streaming) |
+| **Plex** | Now playing title, progress bar, multi-stream summary |
+
+Posters are proxied through the AMUD server so the media server URL and API key never reach the browser.
 
 ---
 
