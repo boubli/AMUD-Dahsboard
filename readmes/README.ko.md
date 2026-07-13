@@ -10,24 +10,28 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.7 새로운 기능
+### v1.8.0 새로운 기능
 
-- **성능** — 구성 가능한 폴링 간격; 에이전트 선택적 sysinfo 및 Docker/LXC 캐시
-- **Feeds** — 백그라운드 RSS 폴링 비활성화 및 Feeds 페이지 숨김(소스는 DB에 유지)
-- **라이트 모드** — 테마별 팔레트; 설정 미리보기가 테마 CSS 변수 사용
-- **v1.7.6** — 메모리 최적화(PVE/Docker 풀링, mimalloc, Tokio)
+- **스마트 유휴** — 대시보드를 사용하지 않을 때 폴링과 캐시 일시 중지; GUI 열면 전속력(설정 가능한 유예 기간)
+- **성능 프리셋** — 설정 → 성능 및 리소스에서 Light, Balanced, Active 또는 Custom
+- **멀티 노드 homelab** — 앱과 에이전트에 노드 태그; 호스트별 원격 측정 및 컨테이너 매칭
+- **일괄 통합** — API 요청 한 번에 최대 50개 카드
+- **API 토큰 범위** — 토큰 생성 시 원격 측정, webhook, 통합 등 선택
+- **백업 알림** — 보내기 기한 초과 시 안내; 대용량 DB 스트리밍 보내기
+- **유휴 호스트 경고** — GUI가 닫혀 있어도 CPU, RAM, 디스크 webhook 임계값
+- **v1.7.7** — 구성 가능한 폴링 간격, Feeds 토글, 테마별 라이트 모드
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 릴리스 상태
 
-권장 버전: **v1.7.7**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
+권장 버전: **v1.8.0**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 **홈랩을 하나로.** Rust로 만든 빠르고 YAML이 필요 없는 대시보드로, Proxmox와 Docker 실시간 텔레메트리, 컨테이너 제어, 인기 있는 셀프호스팅 서비스 연동을 모두 UI에서 제공합니다.
 
-무거운 런타임(PHP-FPM, Node.js)에서 실행되고 복잡하게 중첩된 YAML 설정 파일에 의존하는 기존 대시보드(Heimdall, Homepage, Homarr)와 달리, AMUD는 컴파일된 Rust로 작성되었으며 데이터는 SQLite에 완전히 영구 저장됩니다. 서버와 원격 측정 에ージェント를 합쳐도 대기 상태에서 **35MB ~ 100MB RAM**만 사용하며, 라우팅 실행 속도는 밀리초 미만입니다.
+무거운 런타임(PHP-FPM, Node.js)에서 실행되고 복잡하게 중첩된 YAML 설정 파일에 의존하는 기존 대시보드(Heimdall, Homepage, Homarr)와 달리, AMUD는 컴파일된 Rust로 작성되었으며 데이터는 SQLite에 완전히 영구 저장됩니다. 서버와 원격 측정 에이전트는 대기 상태에서 **30–50 MB RAM**(전체 통합 그리드 시 피크 ~150 MB)을 사용하며, 라우팅 실행 속도는 밀리초 미만입니다.
 
 ## 아키텍처 및 설계 결정
 
@@ -163,7 +167,7 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 | **엔진** | PHP 8+ / Laravel | Rust / Axum / Tokio |
 | **실행 오버헤드** | 높음 (인터프리터 PHP-FPM) | 없음 (기본 기계어) |
 | **에셋 전달** | 요청당 디스크 읽기 | `include_str!`를 통해 바이나리에 포함됨 |
-| **대기 상태 RAM 점유**| ~150MB | **35MB - 100MB** (합산) |
+| **대기 상태 RAM 점유**| ~150MB | **30–50 MB** (피크 ~150 MB) |
 | **시작 시간**| ~2 - 5초 | **밀리초 미만** |
 
 ---

@@ -10,24 +10,28 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.7 の新機能
+### v1.8.0 の新機能
 
-- **パフォーマンス** — 設定可能なポーリング間隔；エージェントの選択的 sysinfo と Docker/LXC キャッシュ
-- **Feeds** — バックグラウンド RSS ポーリングを無効化し Feeds ページを非表示（ソースは DB に保持）
-- **ライトモード** — テーマごとのパレット；設定プレビューがテーマ CSS 変数を参照
-- **v1.7.6** — メモリ最適化（PVE/Docker プール、mimalloc、Tokio）
+- **スマートアイドル** — ダッシュボード未使用時はポーリングとキャッシュを一時停止；GUI 表示時はフル速度（猶予期間は設定可能）
+- **パフォーマンスプリセット** — 設定 → パフォーマンスとリソースで Light / Balanced / Active / Custom
+- **マルチノード homelab** — アプリとエージェントにノードタグ；ホストごとのテレメトリとコンテナ照合
+- **バッチ統合** — 1 回の API リクエストで最大 50 カード
+- **API トークンスコープ** — トークン作成時にテレメトリ、webhook、統合などを選択
+- **バックアップリマインダー** — エクスポート期限超過の通知；大規模 DB のストリーミングエクスポート
+- **アイドル時ホストアラート** — GUI 非表示時も CPU / RAM / ディスクの webhook しきい値
+- **v1.7.7** — ポーリング間隔、Feeds トグル、テーマ別ライトモード
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### リリース状況
 
-推奨バージョン: **v1.7.7**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.8.0**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 **ホームラボを統合。** Rust 製で高速、YAML 不要のダッシュボード。Proxmox と Docker のリアルタイムテレメトリ、コンテナ操作、人気のセルフホストサービスとの連携を、すべて UI から。
 
-重いランタイム（PHP-FPM、Node.js）で動作し、複雑なネストされたYAML設定ファイルに依存する従来のダッシュボード（Heimdall、Homepage、Homarr）とは異なり、AMUDはコンパイル済みのRustで書かれており、完全にSQLiteに保存されます。サーバーとテレメトリエージェントを合わせても、アイドル時のRAM使用量は **35MB〜100MB** で、ルート実行速度はミリ秒未満です。
+重いランタイム（PHP-FPM、Node.js）で動作し、複雑なネストされたYAML設定ファイルに依存する従来のダッシュボード（Heimdall、Homepage、Homarr）とは異なり、AMUDはコンパイル済みのRustで書かれており、完全にSQLiteに保存されます。サーバーとテレメトリエージェントはアイドル時 **30–50 MB RAM**（統合グリッド満載時のピーク約 150 MB）で、ルート実行速度はミリ秒未満です。
 
 ## アーキテクチャと設計決定
 
@@ -163,7 +167,7 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 | **エンジン** | PHP 8+ / Laravel | Rust / Axum / Tokio |
 | **実行オーバーヘッド** | 高（解釈型PHP-FPM） | ゼロ（ネイティブマシンコード） |
 | **アセット配信** | リクエストごとのディスク読み込み | `include_str!` によりバイナリに埋め込み |
-| **アイドル時RAM使用量**| ~150MB | **35MB - 100MB** (合計) |
+| **アイドル時RAM使用量**| ~150MB | **30–50 MB** (ピーク ~150 MB) |
 | **起動時間**| ~2 - 5 秒 | **ミリ秒未満** |
 
 ---

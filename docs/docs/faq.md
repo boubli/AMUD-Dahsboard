@@ -27,9 +27,9 @@ Use **AMUD Dashboard** in documentation and search results — not "AMUD" alone,
 
 ## How much RAM does AMUD Dashboard use?
 
-On **Proxmox** (native LXC + host agent), server and agent combined typically idle around **26–35MB RAM**.
+On **Proxmox** (native LXC + host agent), server and agent combined typically idle around **26–35 MB RAM** when the dashboard GUI is open; **30–50 MB** combined in typical homelab use.
 
-In **Docker**, expect roughly **35–100MB** depending on the host.
+In **Docker**, expect roughly **30–50 MB idle** (peak ~150 MB with many integration cards and the dashboard open). With **v1.8.0** smart idle, background work scales down when nobody is viewing the dashboard.
 
 ---
 

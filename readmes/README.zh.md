@@ -10,24 +10,28 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.7.7 新特性
+### v1.8.0 新特性
 
-- **性能** — 可配置轮询间隔；Agent 选择性 sysinfo 与 Docker/LXC 缓存
-- **Feeds** — 可关闭后台 RSS 轮询并隐藏 Feeds 页面（源数据仍保留）
-- **浅色模式** — 每套主题独立调色板；设置预览读取主题 CSS 变量
-- **v1.7.6** — 内存优化（PVE/Docker 池化、mimalloc、Tokio）
+- **智能空闲** — 无人使用仪表板时暂停轮询与缓存；打开界面后全速运行（可配置宽限期）
+- **性能预设** — 设置 → 性能与资源中的 Light、Balanced、Active 或 Custom
+- **多节点 homelab** — 按节点标记应用与 Agent；按主机匹配遥测与容器
+- **批量集成** — 单次 API 请求最多 50 张集成卡片
+- **API 令牌范围** — 创建令牌时选择遥测、webhook、集成等权限
+- **备份提醒** — 导出逾期提示；大型数据库流式导出
+- **空闲主机告警** — 界面关闭时通过 webhook 触发 CPU、RAM、磁盘阈值
+- **v1.7.7** — 可配置轮询间隔、Feeds 开关、每主题浅色模式
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 版本状态
 
-当前推荐：**v1.7.7**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**v1.8.0**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 **统一你的家庭实验室。** 一个快速、基于 Rust、零 YAML 的仪表板，提供 Proxmox 与 Docker 实时遥测、容器控制，以及对热门自托管服务的集成——全部通过界面完成。
 
-与运行在笨重运行时（PHP-FPM、Node.js）并依赖复杂的嵌套 YAML 配置文件的主流仪表板（Heimdall、Homepage、Homarr）不同，AMUD 采用编译型 Rust 编写，并完全持久化在 SQLite 中。服务器和遥测代理在空闲时的总内存占用仅为 **35MB 到 100MB RAM**，路由执行时间在亚毫秒级。
+与运行在笨重运行时（PHP-FPM、Node.js）并依赖复杂的嵌套 YAML 配置文件的主流仪表板（Heimdall、Homepage、Homarr）不同，AMUD 采用编译型 Rust 编写，并完全持久化在 SQLite 中。服务器和遥测代理在空闲时合计 **30–50 MB RAM**（完整集成网格峰值约 150 MB），路由执行时间在亚毫秒级。
 
 ## 架构与设计决策
 
@@ -163,7 +167,7 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 | **引擎** | PHP 8+ / Laravel | Rust / Axum / Tokio |
 | **运行开销** | 高 (解释型 PHP-FPM) | 零 (原生机器码) |
 | **静态资源分发** | 每次请求读取磁盘 | 通过 `include_str!` 嵌入二进制文件中 |
-| **空闲 RAM 占用** | ~150MB | **35MB - 100MB** (合并占用) |
+| **空闲 RAM 占用** | ~150MB | **30–50 MB**（峰值 ~150 MB） |
 | **启动时间**| ~2 - 5 秒 | **亚毫秒级** |
 
 ---

@@ -10,24 +10,28 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galeria de Temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentação](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novidades na v1.7.7
+### Novidades na v1.8.0
 
-- **Desempenho** — intervalos de polling configuráveis; agente com sysinfo seletivo e caches Docker/LXC
-- **Feeds** — desativar polling RSS em segundo plano e ocultar a página Feeds (fontes permanecem salvas)
-- **Modo claro** — paletas por tema; pré-visualização em Definições lê variáveis CSS do tema
-- **v1.7.6** — otimização de memória (pooling PVE/Docker, mimalloc, Tokio)
+- **Inatividade inteligente** — pesquisas e caches pausam quando ninguém está no painel; velocidade total ao abrir a interface (período de graça configurável)
+- **Perfis de desempenho** — Light, Balanced, Active ou Custom em Definições → Desempenho e recursos
+- **Homelab multi-nó** — etiquete apps e agentes por nó; telemetria e contêineres por host
+- **Integrações em lote** — até 50 cartões em uma solicitação API
+- **Escopos de tokens API** — escolha telemetria, webhooks, integrações e mais ao criar tokens
+- **Lembretes de backup** — aviso se a exportação estiver atrasada; exportação em streaming para bancos grandes
+- **Alertas de host em inatividade** — limites de CPU, RAM e disco por webhook com o painel fechado
+- **v1.7.7** — intervalos de polling, toggle de Feeds, modo claro por tema
 
 Histórico completo: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Estado da versão
 
-Recomendado: **v1.7.7**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
+Recomendado: **v1.8.0**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 **Unifique seu homelab.** Um painel rápido, feito em Rust e sem YAML, com telemetria ao vivo de Proxmox e Docker, controles de contêineres e integrações para os serviços auto-hospedados mais populares — tudo pela interface.
 
-Ao contrário dos painéis legados (Heimdall, Homepage, Homarr) que rodam em runtimes pesados (PHP-FPM, Node.js) e dependem de arquivos complexos de configuração YAML aninhados, o AMUD é escrito em Rust compilado e persistido inteiramente em SQLite. Juntos, o servidor e o agente de telemetria consomem entre **35MB e 100MB de RAM** em repouso, com execução de rotas em submilisegundos.
+Ao contrário dos painéis legados (Heimdall, Homepage, Homarr) que rodam em runtimes pesados (PHP-FPM, Node.js) e dependem de arquivos complexos de configuração YAML aninhados, o AMUD é escrito em Rust compilado e persistido inteiramente em SQLite. Juntos, o servidor e o agente de telemetria consomem em repouso **30–50 MB de RAM** (pico ~150 MB com a grade de integrações completa), com execução de rotas em submilisegundos.
 
 ## Arquitetura & Decisões de Design
 
@@ -163,7 +167,7 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 | **Motor** | PHP 8+ / Laravel | Rust / Axum / Tokio |
 | **Sobrecarga de Execução** | Alta (PHP-FPM Interpretado) | Zero (Código de Máquina Nativo) |
 | **Entrega de Recursos** | Leitura de disco por requisição | Embutidos no binário via `include_str!` |
-| **Uso de RAM Ocioso** | ~150MB | **35MB - 100MB** (Combinado) |
+| **Uso de RAM Ocioso** | ~150MB | **30–50 MB** (pico ~150 MB) |
 | **Tempo de Inicialização**| ~2 - 5 segundos | **Submilisegundo** |
 
 ---

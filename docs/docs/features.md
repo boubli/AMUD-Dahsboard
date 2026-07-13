@@ -5,7 +5,7 @@ title: Features
 
 # Features
 
-Complete inventory of what AMUD Dashboard ships today (v1.7.0). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
+Complete inventory of what AMUD Dashboard ships today (v1.8.0). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
 
 ![AMUD Dashboard — default theme](/img/AMUD-Dashboard.png)
 
@@ -183,7 +183,7 @@ Configured under **Settings → Integrations**. Polls every few seconds when mat
 | **Sessions** | 24h HttpOnly cookies, CSRF tokens, login rate limiting |
 | **OIDC SSO** | OpenID Connect login with configurable issuer, client, redirect |
 | **LDAP** | Optional bind authentication for homelab directories |
-| **API tokens** | Scoped Bearer tokens (`read:apps`, `read:status`) for automation |
+| **API tokens** | Scoped Bearer tokens (`read:apps`, `read:status`, `read:telemetry`, `read:integrations`, `write:webhooks`, …) for automation |
 | **Encrypted secrets** | Integration API keys stored with ChaCha20-Poly1305 at rest |
 | **Security headers** | CSP nonce, X-Frame-Options, HSTS-ready via reverse proxy |
 
@@ -210,8 +210,9 @@ Dedicated **Settings → Wake-on-LAN** device list (decoupled from app cards). S
 
 | Action | Endpoint |
 |--------|----------|
-| Export `amud.db` | Settings → Backup |
+| Export `amud.db` | Settings → Backup (streaming download for large databases) |
 | Import `amud.db` | Validates SQLite header, creates `.bak`, restarts process |
+| Backup reminder | Optional banner when last export is older than configured days |
 
 Back up `.amud-secrets-key` alongside the database when using encrypted integration tokens.
 

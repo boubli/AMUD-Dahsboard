@@ -10,24 +10,28 @@
 
 **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galerie de thèmes](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Feuille de route](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Nouveautés de la v1.7.7
+### Nouveautés de la v1.8.0
 
-- **Performances** — intervalles de polling configurables ; agent avec sysinfo sélectif et caches Docker/LXC
-- **Feeds** — désactiver le polling RSS en arrière-plan et masquer la page Feeds (les sources restent enregistrées)
-- **Mode clair** — palettes par thème ; l'aperçu des réglages lit les variables CSS du thème
-- **v1.7.6** — optimisation mémoire (pooling PVE/Docker, mimalloc, Tokio)
+- **Veille intelligente** — les sondes et caches se mettent en pause quand personne n'utilise le tableau de bord ; pleine vitesse à l'ouverture de l'interface (période de grâce configurable)
+- **Profils de performance** — Light, Balanced, Active ou Custom dans Réglages → Performance et ressources
+- **Homelab multi-nœud** — étiquetez apps et agents par nœud ; télémétrie et conteneurs par hôte
+- **Intégrations par lot** — jusqu'à 50 cartes en une requête API
+- **Portées des jetons API** — choisissez télémétrie, webhooks, intégrations, etc. à la création
+- **Rappels de sauvegarde** — alerte si l'export est en retard ; export en streaming pour les grosses bases
+- **Alertes hôte en veille** — seuils CPU, RAM et disque par webhook quand l'interface est fermée
+- **v1.7.7** — intervalles de polling, toggle Feeds, mode clair par thème
 
 Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### État des versions
 
-Dernière version recommandée : **v1.7.7**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
+Dernière version recommandée : **v1.8.0**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
 **Unifiez votre homelab.** Un tableau de bord rapide, propulsé par Rust et sans YAML, avec télémétrie en direct de Proxmox et Docker, contrôles des conteneurs et intégrations pour les services auto-hébergés les plus populaires — le tout depuis l'interface.
 
-Contrairement aux tableaux de bord hérités (Heimdall, Homepage, Homarr) qui s'exécutent sur des environnements lourds (PHP-FPM, Node.js) et s'appuient sur des fichiers de configuration YAML imbriqués et complexes, AMUD est écrit en Rust compilé et ses données sont entièrement persistées dans SQLite. Ensemble, le serveur et l'agent de télémétrie ne consomment que **35 Mo à 100 Mo de RAM** au repos, avec un temps d'exécution des requêtes inférieur à la milliseconde.
+Contrairement aux tableaux de bord hérités (Heimdall, Homepage, Homarr) qui s'exécutent sur des environnements lourds (PHP-FPM, Node.js) et s'appuient sur des fichiers de configuration YAML imbriqués et complexes, AMUD est écrit en Rust compilé et ses données sont entièrement persistées dans SQLite. Ensemble, le serveur et l'agent de télémétrie consomment **30 à 50 Mo de RAM** au repos (pic ~150 Mo avec une grille d'intégrations complète), avec un temps d'exécution des requêtes inférieur à la milliseconde.
 
 ## Architecture & Décisions de conception
 
@@ -163,7 +167,7 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 | **Moteur** | PHP 8+ / Laravel | Rust / Axum / Tokio |
 | **Surcharge d'exécution** | Élevée (PHP-FPM interprété) | Nulle (Code machine natif) |
 | **Livraison des ressources** | Lectures de disque par requête | Intégrée dans le binaire via `include_str!` |
-| **RAM au repos** | ~150 Mo | **35 Mo - 100 Mo** (Combiné) |
+| **RAM au repos** | ~150 Mo | **30–50 Mo** (pic ~150 Mo) |
 | **Temps de démarrage**| ~2 - 5 secondes | **Inférieur à la milliseconde** |
 
 ---

@@ -10,25 +10,28 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.7.7
+### What's new in v1.8.0
 
-- **Performance** — configurable poll intervals; idle poller gating; integration cache hot-reload; agent selective sysinfo, Docker/LXC caches, GPU backoff
-- **Feeds toggle** — disable background RSS polling and hide the Feeds page (sources stay saved in the database)
-- **Light mode** — per-theme light palettes for all bundled themes; settings live preview reads theme CSS variables
-- **v1.7.6** — agent PVE/Docker client pooling + mimalloc; server Tokio 2 workers, telemetry buffer reuse
-- **v1.7.5** — container RAM as MB/GB; Weather under Appearance; web search engines
+- **Smart idle / active** — pollers and caches pause when nobody is on the dashboard; full speed when you open the GUI (configurable grace period)
+- **Performance presets** — Light, Balanced, Active, or Custom intervals in Settings → Performance & resources
+- **Multi-node homelabs** — tag apps and agents by node; per-host telemetry and container matching
+- **Batch integrations** — fetch up to 50 integration cards in one API request
+- **API token scopes** — pick telemetry, webhooks, integrations, and more when creating tokens
+- **Backup reminders** — overdue export nudge; streaming export for large databases
+- **Idle host alerts** — CPU, RAM, and disk webhook thresholds while the GUI is closed
+- **v1.7.7** — configurable poll intervals, feeds toggle, per-theme light mode
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (2026-07-09)
+### Release status (2026-07-10)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.7.7` (current latest recommended)
+- `v1.8.0` (current latest recommended)
+- `v1.7.7`
 - `v1.7.6`
 - `v1.7.5`
 - `v1.7.4`
-- `v1.7.3`
 
 **Do not use:** `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 
@@ -175,7 +178,7 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 | **Engine** | PHP 8+ / Laravel | Rust / Axum / Tokio |
 | **Execution Overhead** | High (Interpreted PHP-FPM) | Zero (Native Machine Code) |
 | **Asset Delivery** | Disk reads per request | Embedded in binary via `include_str!` |
-| **Idle RAM Footprint** | ~150MB | **35MB - 100MB** (Combined) |
+| **Idle RAM Footprint** | ~150MB | **30–50 MB** (peak ~150 MB) |
 | **Startup / Boot Time**| ~2 - 5 seconds | **Sub-millisecond** |
 
 ---

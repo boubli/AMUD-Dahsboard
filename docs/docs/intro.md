@@ -6,7 +6,7 @@ sidebar_position: 1
 
 AMUD (Advanced Modern Unified Dashboard) is a compiled, zero-dependency homelab control center and telemetry dashboard.
 
-Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes (PHP-FPM, Node.js) and rely on complex nested YAML configuration files, **AMUD Dashboard** is written in compiled Rust and persisted entirely in SQLite. Combined, the server and telemetry agent idle at **35MB to 100MB of RAM** with sub-millisecond route execution.
+Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes (PHP-FPM, Node.js) and rely on complex nested YAML configuration files, **AMUD Dashboard** is written in compiled Rust and persisted entirely in SQLite. Combined, the server and telemetry agent idle at **30–50 MB of RAM** (peak ~150 MB with a full integration grid) with sub-millisecond route execution.
 
 ## System Architecture
 
@@ -38,7 +38,7 @@ See the full **[Features](./features.md)** page for every shipped capability —
 
 ## Next Steps
 
-- [Features](./features.md) — complete feature inventory (v1.5.2.1)
+- [Features](./features.md) — complete feature inventory (v1.8.0)
 - [FAQ](./faq.md) — common questions (install, RAM, YAML, comparisons)
 - [Blog](/blog) — guides and homelab notes (canonical source for cross-posts)
 - [Dashboard Configuration](./configuration.md) — appearance, custom CSS, smart home, and media integrations

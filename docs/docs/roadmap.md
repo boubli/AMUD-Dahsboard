@@ -11,6 +11,22 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.8.0)
+
+- **Smart idle / active runtime** — pollers and caches pause when nobody is on the dashboard; configurable grace period
+- **Performance presets** — Light, Balanced, Active, or Custom in Settings → Performance & resources
+- **Multi-node homelabs** — `agent_node_tag` and per-card `node_tag` for multi-host telemetry
+- **Batch integrations API** — up to 50 cards per request; paginated `GET /api/apps?page=`
+- **API token scopes** — selectable scopes when creating tokens
+- **Backup reminders** — overdue export banner; streaming database export
+- **Idle host alerts** — CPU / RAM / disk webhook thresholds in deep idle
+- **Agent RAM diet** — idle agents skip unlinked containers; concurrent Docker stats
+
+## Recently shipped (v1.7.7)
+
+- **Performance** — configurable poll intervals; feeds toggle; per-theme light mode
+- **Server** — idle poller gating, integration cache hot-reload
+
 ## Recently shipped (v1.7.5)
 
 - **App cards** — container RAM in MB/GB; settings reorganized (Weather → Appearance, Proxmox → Integrations)
