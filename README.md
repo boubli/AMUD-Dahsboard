@@ -10,21 +10,21 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.3
+### What's new in v1.8.4
 
-- **Windows desktop layout fix** — dashboard fills the screen again (broken CSS brace in v1.8.2 squeezed content to the corner)
-- **Taghawsa on Windows** — WebGL preloads earlier, retries at lower quality, CSS drift fallback if GPU blocks WebGL
-- **Greeting shimmer** — works in Chromium/Brave on desktop
-- **v1.8.2** — cross-device effects, Performance tab, audit/update history on LXC, card drag reorder
+- **Layout restore** — desktop bento grid back to 3-column layout (Taghawsa-style) with proven 1440px container width
+- **Grid-aware drag** — drop cards where your cursor points; preview marker, no forced shuffle
+- **Release error docs** — each release notes which bugs were introduced, fixed, and still open
+- **v1.8.3** — Windows layout hotfix, Taghawsa WebGL preload
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (2026-07-14)
+### Release status (2026-07-15)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.3` (current latest recommended)
-- `v1.8.2`
+- `v1.8.4` (current latest recommended)
+- `v1.8.3`
 - `v1.8.0`
 - `v1.7.7`
 - `v1.7.6`

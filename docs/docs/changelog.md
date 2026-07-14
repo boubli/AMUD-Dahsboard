@@ -11,6 +11,26 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.4 — Layout restore + grid-aware card drag
+
+**2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.4)
+
+### Fixed
+- **Desktop layout** — bento grid 3-column layout restored; `.dashboard-container` `max-width: 1440px` + `width: 100%`
+- **Drag-and-drop** — grid-aware 2D insertion, preview marker, pointer-only (no live shuffle)
+- **Drag artifacts** — removed orange glow / rotate glitches
+- **PWA cache v40**
+
+### Bugs fixed from prior releases
+- v1.8.2 stray CSS brace broke Windows desktop layout
+- v1.8.2 drag forced cards into wrong grid slots
+- v1.8.2 drag orange line artifacts
+
+### Known issues
+- Taghawsa WebGL may fall back to CSS drift on some Windows GPUs
+
+---
+
 ## v1.8.3 — Windows desktop layout + Taghawsa WebGL fix
 
 **2026-07-14** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.3)

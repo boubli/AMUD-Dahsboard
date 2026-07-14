@@ -135,7 +135,7 @@ body::-webkit-scrollbar-button {
 /* Base Layout Container */
 .dashboard-container {
     width: 100%;
-    max-width: min(100%, 1920px);
+    max-width: 1440px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -647,6 +647,7 @@ body::-webkit-scrollbar-button {
     gap: 1rem;
     align-items: stretch;
     overflow-x: clip;
+    position: relative;
 }
 
 .bento-grid--guest-compact {
@@ -3865,32 +3866,34 @@ body::after {
 
 /* Card being dragged */
 .app-card.dragging {
-    opacity: 0.5;
-    transform: scale(0.95) rotate(1deg);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 30px var(--accent-glow);
+    opacity: 0.55;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 20px var(--accent-glow);
     z-index: 100;
     transition: none;
     pointer-events: none;
 }
 
-/* Drop target indicator */
+/* Drop target indicator — subtle highlight only */
 .app-card.drag-over {
-    border-color: var(--accent-color) !important;
-    box-shadow: 
-        0 0 20px var(--accent-glow),
-        inset 0 0 20px var(--accent-glow) !important;
-    transform: scale(1.02);
-    transition: all 0.2s ease;
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
-/* Smooth reorder transition */
-.bento-grid.reordering {
-    grid-auto-flow: row;
+/* Insertion marker — shown during drag preview */
+.drop-insertion-marker {
+    position: absolute;
+    height: 3px;
+    background: var(--accent-color);
+    box-shadow: 0 0 12px var(--accent-glow);
+    pointer-events: none;
+    z-index: 50;
+    border-radius: 2px;
+    display: none;
 }
 
-.bento-grid.reordering .app-card {
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), 
-                opacity 0.3s ease;
+/* Smooth reorder transition — disabled during drag to avoid layout jumps */
+.bento-grid.reordering .app-card:not(.dragging) {
+    transition: none;
 }
 
 /* ============================================================

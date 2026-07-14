@@ -1,5 +1,5 @@
 /**
- * AMUD Drag & Drop — card reorder (admin only, handle-only, all-categories filter)
+ * AMUD Drag & Drop — grid-aware card reorder (admin only, handle-only)
  */
 (function() {
     'use strict';
@@ -15,9 +15,10 @@
         let draggedCard = null;
         let orderSnapshot = null;
         let persistInFlight = false;
-        let dropCommitted = false;
         let pointerDrag = null;
         let allAppIds = [];
+        let insertionMarker = null;
+        let pendingInsertion = null;
 
         function parseAppIdsFromDom() {
             return Array.from(grid.querySelectorAll('.app-card[data-app-id]'))
@@ -33,6 +34,18 @@
             ).filter(function(card) {
                 return card.style.display !== 'none';
             });
+        }
+
+        function getVisualOrderCards() {
+            return getSortableCards()
+                .filter(function(card) { return card !== draggedCard; })
+                .sort(function(a, b) {
+                    const ra = a.getBoundingClientRect();
+                    const rb = b.getBoundingClientRect();
+                    const rowDiff = ra.top - rb.top;
+                    if (Math.abs(rowDiff) > 12) return rowDiff;
+                    return ra.left - rb.left;
+                });
         }
 
         function snapshotOrder() {
@@ -84,46 +97,153 @@
             });
         }
 
-        function cleanup() {
-            if (draggedCard) {
-                draggedCard.classList.remove('dragging');
+        function ensureMarker() {
+            if (!insertionMarker) {
+                insertionMarker = document.createElement('div');
+                insertionMarker.className = 'drop-insertion-marker';
+                insertionMarker.setAttribute('aria-hidden', 'true');
+                grid.appendChild(insertionMarker);
             }
-            clearDragHighlights();
-            grid.classList.remove('reordering');
-            draggedCard = null;
-            pointerDrag = null;
+            return insertionMarker;
         }
 
-        function insertRelativeToTarget(targetCard, clientY) {
-            if (!draggedCard || !targetCard || targetCard === draggedCard) return;
-            if (targetCard.classList.contains('filter-empty-msg')) return;
-
-            const rect = targetCard.getBoundingClientRect();
-            const insertAfter = clientY > rect.top + rect.height / 2;
-
-            if (insertAfter) {
-                grid.insertBefore(draggedCard, targetCard.nextElementSibling);
-            } else {
-                grid.insertBefore(draggedCard, targetCard);
+        function hideMarker() {
+            if (insertionMarker) {
+                insertionMarker.style.display = 'none';
             }
+            pendingInsertion = null;
         }
 
-        function cardFromPoint(clientX, clientY) {
-            const cards = getSortableCards();
+        function sameRow(rectA, rectB) {
+            return Math.abs(rectA.top - rectB.top) < Math.min(rectA.height, rectB.height) * 0.45;
+        }
+
+        function computeInsertion(clientX, clientY) {
+            const cards = getVisualOrderCards();
+            const gridRect = grid.getBoundingClientRect();
+
+            if (!cards.length) {
+                return { refNode: null, highlightCard: null };
+            }
+
+            let overCard = null;
             for (let i = 0; i < cards.length; i++) {
-                const card = cards[i];
-                if (card === draggedCard) continue;
-                const rect = card.getBoundingClientRect();
+                const rect = cards[i].getBoundingClientRect();
                 if (
                     clientX >= rect.left &&
                     clientX <= rect.right &&
                     clientY >= rect.top &&
                     clientY <= rect.bottom
                 ) {
-                    return card;
+                    overCard = { card: cards[i], index: i, rect: rect };
+                    break;
                 }
             }
-            return null;
+
+            if (overCard) {
+                const rect = overCard.rect;
+                const midX = rect.left + rect.width / 2;
+                const midY = rect.top + rect.height / 2;
+                let insertIndex = overCard.index;
+
+                if (clientY > midY) {
+                    insertIndex = overCard.index + 1;
+                } else if (clientX > midX) {
+                    const next = cards[overCard.index + 1];
+                    if (next && sameRow(rect, next.getBoundingClientRect())) {
+                        insertIndex = overCard.index + 1;
+                    }
+                }
+
+                return {
+                    refNode: cards[insertIndex] || null,
+                    highlightCard: overCard.card,
+                };
+            }
+
+            let bestIndex = cards.length;
+            let bestDist = Infinity;
+
+            for (let i = 0; i <= cards.length; i++) {
+                let markerY;
+                if (i === 0) {
+                    markerY = cards[0].getBoundingClientRect().top;
+                } else if (i === cards.length) {
+                    markerY = cards[cards.length - 1].getBoundingClientRect().bottom;
+                } else {
+                    const prev = cards[i - 1].getBoundingClientRect();
+                    const next = cards[i].getBoundingClientRect();
+                    markerY = (prev.bottom + next.top) / 2;
+                }
+
+                const dist = Math.abs(clientY - markerY) + Math.abs(clientX - gridRect.left - gridRect.width / 2) * 0.15;
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    bestIndex = i;
+                }
+            }
+
+            return {
+                refNode: cards[bestIndex] || null,
+                highlightCard: null,
+            };
+        }
+
+        function updateMarker(clientX, clientY) {
+            pendingInsertion = computeInsertion(clientX, clientY);
+            const marker = ensureMarker();
+            const cards = getVisualOrderCards();
+            const gridRect = grid.getBoundingClientRect();
+            const refNode = pendingInsertion.refNode;
+
+            clearDragHighlights();
+            if (pendingInsertion.highlightCard) {
+                pendingInsertion.highlightCard.classList.add('drag-over');
+            }
+
+            if (refNode) {
+                const rect = refNode.getBoundingClientRect();
+                marker.style.display = 'block';
+                marker.style.left = (rect.left - gridRect.left) + 'px';
+                marker.style.top = (rect.top - gridRect.top - 4) + 'px';
+                marker.style.width = rect.width + 'px';
+                return;
+            }
+
+            if (cards.length) {
+                const last = cards[cards.length - 1].getBoundingClientRect();
+                marker.style.display = 'block';
+                marker.style.left = '0px';
+                marker.style.top = (last.bottom - gridRect.top + 6) + 'px';
+                marker.style.width = '100%';
+                return;
+            }
+
+            marker.style.display = 'none';
+        }
+
+        function applyInsertion(insertion) {
+            if (!draggedCard || !insertion) return;
+            if (insertion.refNode) {
+                grid.insertBefore(draggedCard, insertion.refNode);
+            } else {
+                grid.appendChild(draggedCard);
+            }
+        }
+
+        function cleanup(restore) {
+            hideMarker();
+            if (draggedCard) {
+                draggedCard.classList.remove('dragging');
+            }
+            clearDragHighlights();
+            grid.classList.remove('reordering');
+            if (restore && orderSnapshot) {
+                restoreOrder(orderSnapshot);
+            }
+            draggedCard = null;
+            pointerDrag = null;
+            orderSnapshot = null;
         }
 
         function buildFullOrderIds() {
@@ -157,13 +277,13 @@
                 handle.removeAttribute('draggable');
 
                 if (blocked) {
-                    handle.setAttribute('draggable', 'false');
                     handle.style.opacity = '0.35';
                     handle.style.cursor = 'not-allowed';
+                    handle.style.pointerEvents = 'none';
                 } else {
-                    handle.setAttribute('draggable', 'true');
                     handle.style.opacity = '';
                     handle.style.cursor = 'grab';
+                    handle.style.pointerEvents = '';
                 }
             });
         }
@@ -181,7 +301,7 @@
             if (e.target && e.target.id === 'search-input') injectDragHandles();
         });
 
-        function beginDrag(handle, card, clientX, clientY) {
+        function beginDrag(handle, card) {
             const blocked = reorderBlockedMessage();
             if (blocked) {
                 if (typeof amudShowToast === 'function') amudShowToast(blocked, 'warning');
@@ -190,103 +310,51 @@
 
             draggedCard = card;
             orderSnapshot = snapshotOrder();
-            dropCommitted = false;
             card.classList.add('dragging');
             grid.classList.add('reordering');
             clearDragHighlights();
-
-            const overCard = cardFromPoint(clientX, clientY);
-            if (overCard && overCard !== card) overCard.classList.add('drag-over');
             return true;
         }
 
         function finishDrag(clientX, clientY) {
             if (!draggedCard) return;
 
-            const overCard = cardFromPoint(clientX, clientY);
-            if (overCard && overCard !== draggedCard) {
-                insertRelativeToTarget(overCard, clientY);
-            } else if (!overCard) {
-                grid.appendChild(draggedCard);
-            }
+            const insertion = computeInsertion(clientX, clientY);
+            const rollbackSnapshot = orderSnapshot;
+            applyInsertion(insertion);
+            hideMarker();
+            clearDragHighlights();
+            draggedCard.classList.remove('dragging');
+            grid.classList.remove('reordering');
 
-            dropCommitted = true;
-            persistOrder(orderSnapshot);
-            cleanup();
+            draggedCard = null;
+            pointerDrag = null;
+            orderSnapshot = null;
+
+            persistOrder(rollbackSnapshot);
         }
 
-        grid.addEventListener('dragstart', function(e) {
-            const handle = e.target.closest('.drag-handle');
-            if (!handle) {
-                e.preventDefault();
-                return;
-            }
-
-            const card = handle.closest('.app-card');
-            if (!card || !beginDrag(handle, card, e.clientX, e.clientY)) {
-                e.preventDefault();
-                return;
-            }
-
-            if (e.dataTransfer) {
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', card.getAttribute('data-app-id') || '');
-            }
-        });
-
-        grid.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            if (!draggedCard) return;
-            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-
-            clearDragHighlights();
-            const overCard = cardFromPoint(e.clientX, e.clientY);
-            if (overCard && overCard !== draggedCard) {
-                overCard.classList.add('drag-over');
-                insertRelativeToTarget(overCard, e.clientY);
-            }
-        });
-
-        grid.addEventListener('dragleave', function(e) {
-            const card = e.target.closest('.app-card');
-            if (card) card.classList.remove('drag-over');
-        });
-
-        grid.addEventListener('drop', function(e) {
-            e.preventDefault();
-            finishDrag(e.clientX, e.clientY);
-        });
-
-        grid.addEventListener('dragend', function() {
-            if (!dropCommitted && orderSnapshot) restoreOrder(orderSnapshot);
-            dropCommitted = false;
-            orderSnapshot = null;
-            cleanup();
-        });
+        function cancelDrag() {
+            cleanup(true);
+        }
 
         grid.addEventListener('pointerdown', function(e) {
             const handle = e.target.closest('.drag-handle');
             if (!handle) return;
 
             const card = handle.closest('.app-card');
-            if (!card) return;
+            if (!card || reorderBlockedMessage()) return;
 
             e.preventDefault();
             handle.setPointerCapture(e.pointerId);
-            pointerDrag = { handle: handle, active: true };
-            beginDrag(handle, card, e.clientX, e.clientY);
+            pointerDrag = { handle: handle, active: true, pointerId: e.pointerId };
+            beginDrag(handle, card);
         });
 
         grid.addEventListener('pointermove', function(e) {
             if (!pointerDrag || !pointerDrag.active || !draggedCard) return;
             e.preventDefault();
-
-            clearDragHighlights();
-            const overCard = cardFromPoint(e.clientX, e.clientY);
-            if (overCard && overCard !== draggedCard) {
-                overCard.classList.add('drag-over');
-                insertRelativeToTarget(overCard, e.clientY);
-            }
+            updateMarker(e.clientX, e.clientY);
         });
 
         grid.addEventListener('pointerup', function(e) {
@@ -299,10 +367,18 @@
         });
 
         grid.addEventListener('pointercancel', function() {
-            if (pointerDrag && pointerDrag.active && orderSnapshot) restoreOrder(orderSnapshot);
-            dropCommitted = false;
-            orderSnapshot = null;
-            cleanup();
+            if (pointerDrag && pointerDrag.active) cancelDrag();
+        });
+
+        document.addEventListener('pointerup', function(e) {
+            if (pointerDrag && pointerDrag.active && draggedCard) {
+                const handle = pointerDrag.handle;
+                if (handle && handle.hasPointerCapture(pointerDrag.pointerId)) {
+                    handle.releasePointerCapture(pointerDrag.pointerId);
+                }
+                pointerDrag.active = false;
+                finishDrag(e.clientX, e.clientY);
+            }
         });
 
         function persistOrder(rollbackSnapshot) {
@@ -355,7 +431,6 @@
                     return;
                 }
                 allAppIds = ids.slice();
-                orderSnapshot = snapshotOrder();
                 if (typeof amudShowToast === 'function') amudShowToast('Card order saved.', 'success');
             })
             .catch(function() {
