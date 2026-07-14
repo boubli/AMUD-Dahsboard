@@ -418,10 +418,6 @@ pub(crate) fn integration_api_metrics_hidden(integration_visible_metrics: &str) 
     integration_visible_metrics.trim() == "[]"
 }
 
-pub(crate) fn integration_shows_all_api_metrics(integration_visible_metrics: &str) -> bool {
-    integration_visible_metrics.trim().is_empty()
-}
-
 pub(crate) fn default_integration_visible_metrics(integration_type: &str) -> String {
     match integration_type.trim().to_ascii_lowercase().as_str() {
         "jellyfin" | "plex" | "emby" => "[]".to_string(),
