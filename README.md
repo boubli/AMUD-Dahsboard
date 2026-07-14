@@ -186,7 +186,7 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 
 **Bugs and feature requests:** [GitHub Issues](https://github.com/boubli/AMUD-Dashboard/issues) (preferred — tracked per release)  
 **Questions and chat:** [GitHub Discussions](https://github.com/boubli/AMUD-Dashboard/discussions)  
-**Docs / troubleshooting:** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard/docs)
+**Docs / troubleshooting:** [boubli.github.io/AMUD-Dashboard/docs](https://boubli.github.io/AMUD-Dashboard)
 
 * [GitHub Sponsors](https://github.com/sponsors/boubli)
 * [Donate via Stripe](https://buy.stripe.com/cNi14n6b9a7v5Jg4Rq4ko00)
