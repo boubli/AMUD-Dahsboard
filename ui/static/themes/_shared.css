@@ -22,7 +22,7 @@
 .modal-header { border-bottom-color: var(--border-card); }
 
 /* Preserve greeting shimmer — do not override text fill with flat color */
-.greeting-widget .greeting-title {
+.greeting-widget .greeting-title #greeting-text {
     color: transparent;
     -webkit-text-fill-color: transparent;
 }

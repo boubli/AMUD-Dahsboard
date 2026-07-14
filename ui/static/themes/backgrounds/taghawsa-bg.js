@@ -42,7 +42,7 @@
         if (tier === 'tablet') {
             return { dpr: 1.5, gradientCount: 10, intensity: 1.6, grain: 0.06, touchOnly: false };
         }
-        return { dpr: 2, gradientCount: 12, intensity: 1.8, grain: 0.08, touchOnly: false };
+        return { dpr: 1.5, gradientCount: 12, intensity: 1.8, grain: 0.08, touchOnly: false };
     }
 
     function shouldSkipWebGl() {
@@ -278,7 +278,9 @@
             powerPreference: 'high-performance',
             alpha: false,
             stencil: false,
-            depth: false
+            depth: false,
+            failIfMajorPerformanceCaveat: false,
+            preserveDrawingBuffer: false
         });
         this.renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, settings.dpr));
         this.renderer.domElement.style.display = 'block';
@@ -452,28 +454,53 @@
         return container;
     }
 
-    function init() {
+    function enableCssFallback() {
+        document.body.classList.remove('has-webgl-bg');
+        if (document.body.getAttribute('data-theme-id') === THEME_ID) {
+            document.body.classList.add('taghawsa-css-fallback');
+        }
+    }
+
+    function disableCssFallback() {
+        document.body.classList.remove('taghawsa-css-fallback');
+    }
+
+    function init(retryTier) {
         if (instance) return;
         if (typeof THREE === 'undefined') return;
-        if (shouldSkipWebGl()) return;
+        if (shouldSkipWebGl()) {
+            enableCssFallback();
+            return;
+        }
 
-        var tier = qualityTier();
+        var tier = retryTier || qualityTier();
         lastTier = tier;
         var settings = tierSettings(tier);
 
         try {
             var container = ensureContainer();
+            disableCssFallback();
             document.body.classList.add('has-webgl-bg');
             instance = new TaghawsaApp(container, settings);
             instance.start();
         } catch (e) {
             document.body.classList.remove('has-webgl-bg');
             instance = null;
+            if (!retryTier && tier === 'desktop') {
+                init('tablet');
+                return;
+            }
+            if (!retryTier && tier === 'tablet') {
+                init('phone');
+                return;
+            }
+            enableCssFallback();
         }
     }
 
     function destroy() {
         document.body.classList.remove('has-webgl-bg');
+        disableCssFallback();
         if (instance) {
             instance.dispose();
             instance = null;

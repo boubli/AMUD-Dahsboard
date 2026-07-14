@@ -11,6 +11,18 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.3 — Windows desktop layout + Taghawsa WebGL fix
+
+**2026-07-14** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.3)
+
+### Fixed
+- **Desktop layout** — broken CSS brace in `.dashboard-container` squeezed content on Windows; full-width layout restored (up to 1920px)
+- **Taghawsa WebGL on Windows** — preload Three.js, lower DPR, quality-tier retry, CSS drift fallback
+- **Greeting shimmer** — Chromium/Brave desktop rendering fix
+- **PWA cache v39**
+
+---
+
 ## v1.8.2 — Cross-device effects, responsive fixes, settings and audit overhaul
 
 **2026-07-14** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.2)

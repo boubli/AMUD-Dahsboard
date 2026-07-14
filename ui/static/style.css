@@ -134,13 +134,17 @@ body::-webkit-scrollbar-button {
 
 /* Base Layout Container */
 .dashboard-container {
-    max-width: 1440px;
+    width: 100%;
+    max-width: min(100%, 1920px);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    overflow-x: clip;
-}
     gap: 1.25rem;
+    overflow-x: clip;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
 }
 
 /* Topbar Header */
@@ -2044,6 +2048,9 @@ select.form-control optgroup option {
     align-items: center;
     padding: 1.5rem 1rem;
     gap: 2rem;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     animation: fadeSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
     animation-delay: 0.1s;
 }
@@ -2052,12 +2059,19 @@ select.form-control optgroup option {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .greeting-title {
     font-size: 2.25rem;
     font-weight: 800;
     letter-spacing: -0.04em;
+    line-height: 1.15;
+    color: var(--text-primary);
+}
+
+.greeting-title #greeting-text {
     color: transparent;
     background: linear-gradient(
         90deg,
@@ -2074,7 +2088,7 @@ select.form-control optgroup option {
     animation: textShimmer 6s ease-in-out infinite;
 }
 
-html[data-greeting-animations="0"] .greeting-title {
+html[data-greeting-animations="0"] .greeting-title #greeting-text {
     animation: none;
     color: var(--text-primary);
     -webkit-text-fill-color: var(--text-primary);
@@ -2082,7 +2096,7 @@ html[data-greeting-animations="0"] .greeting-title {
 }
 
 @supports not (-webkit-background-clip: text) {
-    .greeting-title {
+    .greeting-title #greeting-text {
         color: var(--text-primary);
         background: none;
         animation: none;
@@ -4236,6 +4250,25 @@ body.has-webgl-bg {
     background-image: none !important;
 }
 
+#amud-webgl-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+#amud-webgl-bg canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+body.taghawsa-css-fallback::before {
+    display: block !important;
+    opacity: 1 !important;
+}
+
 /* Disable heavy WebGL layer on mobile when CSS fallback is active */
 @media (max-width: 768px) {
     body.has-webgl-bg::before,
@@ -4252,7 +4285,7 @@ body.has-webgl-bg {
         transition-duration: 0.001ms !important;
     }
 
-    .greeting-title {
+    .greeting-title #greeting-text {
         animation: none !important;
         color: var(--text-primary);
         -webkit-text-fill-color: var(--text-primary);

@@ -308,6 +308,12 @@
     global.addEventListener('resize', scheduleBackgroundRefresh);
     global.addEventListener('orientationchange', scheduleBackgroundRefresh);
 
+    global.addEventListener('load', function () {
+        if (themeId() !== 'taghawsa') return;
+        if (document.body.classList.contains('has-webgl-bg')) return;
+        refreshBackground().catch(function () { /* ignore */ });
+    });
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
             initThemeEngine().then(function () {

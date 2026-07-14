@@ -352,6 +352,20 @@ async fn render_page(
         PageMode::Feeds => "page-feeds",
         PageMode::Dashboard => "",
     };
+    let webgl_preload_script = if active_theme_id == "taghawsa"
+        && settings
+            .get("webgl_effects_enabled")
+            .map(|s| s.as_str() != "0")
+            .unwrap_or(true)
+    {
+        format!(
+            r#"<link rel="preload" href="/static/vendor/three.min.js?v={ver}" as="script">
+    <script src="/static/vendor/three.min.js?v={ver}"></script>"#,
+            ver = safe_app_version
+        )
+    } else {
+        String::new()
+    };
 
     let mut result = index_tmpl
         .replace("/* ROOT_CSS */", &root_css)
@@ -421,6 +435,7 @@ async fn render_page(
                 "0"
             },
         )
+        .replace("{{webgl_preload_script}}", &webgl_preload_script)
         .replace(
             "{{admin_drag_script}}",
             if is_admin

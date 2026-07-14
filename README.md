@@ -10,17 +10,12 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.2
+### What's new in v1.8.3
 
-- **Taghawsa on every device** — adaptive WebGL on phones and Windows; CSS drift fallback when WebGL is off or reduced-motion is on
-- **Mobile layout fixes** — app card headers wrap, metrics grid scales 4→3→2 columns, no horizontal scroll on narrow screens
-- **Greeting shimmer + glass** — cross-browser shimmer fix; opaque fallback when backdrop-filter is unsupported
-- **Performance settings tab** — preset cards (Light / Balanced / Active / Custom), live activity badge, polling controls moved out of Privacy
-- **Audit + update history on LXC** — script and manual upgrades recorded on boot; System tab shows Last Updated; audit log rebuilds legacy DB schemas
-- **Card drag reorder** — saves full app order (including filtered cards), bigger handle, pointer drag on touch, toggle in Appearance
-- **Settings cleanup** — removed legacy Media streams block; Support sidebar icon fixed on dark themes
-- **PWA cache v38** — precaches WebGL background and drag-reorder scripts
-- **v1.8.1** — Jellyfin posters, per-app media integration, instant status on reload
+- **Windows desktop layout fix** — dashboard fills the screen again (broken CSS brace in v1.8.2 squeezed content to the corner)
+- **Taghawsa on Windows** — WebGL preloads earlier, retries at lower quality, CSS drift fallback if GPU blocks WebGL
+- **Greeting shimmer** — works in Chromium/Brave on desktop
+- **v1.8.2** — cross-device effects, Performance tab, audit/update history on LXC, card drag reorder
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -28,8 +23,8 @@ Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changel
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.2` (current latest recommended)
-- `v1.8.1`
+- `v1.8.3` (current latest recommended)
+- `v1.8.2`
 - `v1.8.0`
 - `v1.7.7`
 - `v1.7.6`
