@@ -11,6 +11,15 @@ Items move between **Now**, **Next**, and **Later** as reality hits. Recently sh
 
 ---
 
+## Recently shipped (v1.8.2)
+
+- **Cross-device Taghawsa** — adaptive WebGL on phones and Windows; CSS fallback when WebGL is off
+- **Mobile responsive fixes** — card wrap, metrics grid breakpoints, no horizontal scroll
+- **Performance settings tab** — preset cards, live activity badge, polling moved out of Privacy
+- **Audit + update history on LXC** — boot version tracking, Last Updated in System tab, legacy audit schema rebuild
+- **Card drag reorder polish** — full ID persist, bigger handle, pointer drag, Appearance toggle
+- **Settings cleanup** — removed Media streams block; Support icon fix on dark themes
+
 ## Recently shipped (v1.8.1)
 
 - **Jellyfin posters + playback controls** — real artwork on the stream card, admin pause / resume / stop while streaming

@@ -10,21 +10,21 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.1 の新機能
+### v1.8.2 の新機能
 
-- **Jellyfin ポスター** — ストリームカードに映画/エピソードの実際のアートワークを表示。サーバー経由のプロキシで API キーはブラウザに届きません
-- **再生コントロール** — アクティブな Jellyfin セッションの一時停止 / 再開 / 停止（管理者のみ）。再生中のみ表示
-- **メディア統合を「アプリ追加」へ** — Jellyfin/Emby と Plex はアプリカードごとに設定。旧設定の資格情報は自動移行
-- **リロード時の即時ステータス** — `CHECKING...` の代わりにステータスとコンテナ CPU/RAM が即座に表示
-- **Taghawsa テーマ** — マウスリップル付き WebGL アニメーショングラデーション（全 38 テーマ）
-- **コンテナ操作の修正** — 自動リトライと明確なエラーで `client error (SendRequest)` を解決
-- **v1.8.0** — スマートアイドル、パフォーマンスプリセット、マルチノード、バッチ統合、API トークンスコープ
+- **全デバイスで Taghawsa** — スマホと Windows で適応型 WebGL；WebGL オフ時は CSS フォールバック
+- **モバイルレイアウト** — カードヘッダーの折り返し、メトリクス 4→3→2 列、横スクロールなし
+- **パフォーマンスタブ** — プリセットカード、ライブ活動バッジ、ポーリング設定をプライバシーから分離
+- **LXC の更新履歴** — スクリプト更新を起動時に記録；システムに「最終更新」を表示
+- **カード並べ替え** — 全アプリ ID を保存、大きなハンドル、タッチドラッグ、外観で切り替え
+- **監査ログ** — レガシー SQLite スキーマの自動再構築
+- **v1.8.1** — Jellyfin ポスター、アプリ別メディア統合、即時ステータス
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### リリース状況
 
-推奨バージョン: **v1.8.1**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.8.2**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

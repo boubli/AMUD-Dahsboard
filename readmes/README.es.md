@@ -10,21 +10,21 @@
 
 **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galería de temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Hoja de ruta](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentación](https://boubli.github.io/AMUD-Dashboard/)** · **[Preguntas frecuentes](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novedades en v1.8.1
+### Novedades en v1.8.2
 
-- **Pósters de Jellyfin** — carátulas reales de películas/episodios en la tarjeta de streaming, servidas a través del servidor (la clave API nunca llega al navegador)
-- **Controles de reproducción** — pausar / reanudar / detener la sesión activa de Jellyfin (solo admins); visibles solo mientras algo se reproduce
-- **Integraciones de medios en Añadir app** — Jellyfin/Emby y Plex se configuran por app; las credenciales antiguas de Ajustes migran automáticamente
-- **Estado instantáneo al recargar** — estados y CPU/RAM de contenedores aparecen al instante en lugar de `CHECKING...`
-- **Tema Taghawsa** — degradado animado WebGL con ondas al mover el ratón (38 temas en total)
-- **Arreglo de acciones de contenedor** — `client error (SendRequest)` resuelto con reintento automático y errores claros
-- **v1.8.0** — inactividad inteligente, perfiles de rendimiento, multi-nodo, integraciones por lotes, ámbitos de tokens API
+- **Taghawsa en todos los dispositivos** — WebGL adaptativo en móvil y Windows; respaldo CSS cuando WebGL está desactivado
+- **Diseño móvil** — cabeceras de tarjetas flexibles, métricas 4→3→2 columnas, sin scroll horizontal
+- **Pestaña Rendimiento** — tarjetas de preset, indicador de actividad en vivo, sondeo fuera de Privacidad
+- **Historial de actualizaciones en LXC** — actualizaciones por script registradas al arrancar; «Última actualización» en Sistema
+- **Reordenar tarjetas** — guarda todos los IDs, asa más grande, arrastre táctil, interruptor en Apariencia
+- **Registro de auditoría** — reconstrucción automática de esquemas legacy
+- **v1.8.1** — pósters Jellyfin, integración de medios por app, estado instantáneo
 
 Historial completo: **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Estado de versiones
 
-Recomendado ahora: **v1.8.1**. Detalles y versiones retiradas: **[README en inglés](../README.md)** (sección Release status).
+Recomendado ahora: **v1.8.2**. Detalles y versiones retiradas: **[README en inglés](../README.md)** (sección Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

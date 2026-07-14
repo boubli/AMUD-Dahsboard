@@ -10,21 +10,21 @@
 
 **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galerie de thèmes](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Feuille de route](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Nouveautés de la v1.8.1
+### Nouveautés de la v1.8.2
 
-- **Affiches Jellyfin** — vraies jaquettes de films/épisodes sur la carte de streaming, relayées par le serveur (la clé API n'atteint jamais le navigateur)
-- **Contrôles de lecture** — pause / reprise / arrêt de la session Jellyfin active (admins) ; visibles uniquement pendant la lecture
-- **Intégrations médias dans Ajouter une app** — Jellyfin/Emby et Plex se configurent par app ; les anciens identifiants des Réglages migrent automatiquement
-- **Statut instantané au rechargement** — statuts et CPU/RAM des conteneurs s'affichent immédiatement au lieu de `CHECKING...`
-- **Thème Taghawsa** — dégradé animé WebGL avec effet d'ondulation à la souris (38 thèmes au total)
-- **Correction des actions de conteneur** — `client error (SendRequest)` résolu avec nouvelle tentative automatique et erreurs explicites
-- **v1.8.0** — veille intelligente, profils de performance, multi-nœud, intégrations par lot, portées des jetons API
+- **Taghawsa sur tous les appareils** — WebGL adaptatif sur mobile et Windows ; repli CSS si WebGL est désactivé
+- **Mise en page mobile** — en-têtes de cartes flexibles, métriques 4→3→2 colonnes, pas de défilement horizontal
+- **Onglet Performance** — cartes de profils, badge d'activité en direct, sondages hors Confidentialité
+- **Historique des mises à jour sur LXC** — mises à jour script enregistrées au démarrage ; « Dernière mise à jour » dans Système
+- **Réordonnancement des cartes** — enregistre tous les IDs, poignée plus grande, glisser tactile, bascule dans Apparence
+- **Journal d'audit** — reconstruction automatique des anciens schémas SQLite
+- **v1.8.1** — affiches Jellyfin, intégration média par app, statut instantané
 
 Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### État des versions
 
-Dernière version recommandée : **v1.8.1**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
+Dernière version recommandée : **v1.8.2**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

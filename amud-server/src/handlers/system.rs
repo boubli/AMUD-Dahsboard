@@ -232,7 +232,9 @@ pub async fn system_version_handler(
     let audit_entry_count =
         with_db(state.db.clone(), |db| audit_health_check(db).unwrap_or(0)).await;
     let activity_mode = crate::activity::activity_mode_name(
-        state.activity_mode.load(std::sync::atomic::Ordering::Relaxed),
+        state
+            .activity_mode
+            .load(std::sync::atomic::Ordering::Relaxed),
     )
     .to_string();
     let active_viewers = state

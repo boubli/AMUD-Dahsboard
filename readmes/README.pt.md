@@ -10,21 +10,21 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galeria de Temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentação](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novidades na v1.8.1
+### Novidades na v1.8.2
 
-- **Pôsteres do Jellyfin** — arte real de filmes/episódios no cartão de streaming, via proxy do servidor (a chave API nunca chega ao navegador)
-- **Controles de reprodução** — pausar / retomar / parar a sessão ativa do Jellyfin (somente admins); visíveis apenas durante a reprodução
-- **Integrações de mídia em Adicionar app** — Jellyfin/Emby e Plex configurados por app; credenciais antigas das Definições migram automaticamente
-- **Status instantâneo ao recarregar** — status e CPU/RAM dos contêineres aparecem imediatamente em vez de `CHECKING...`
-- **Tema Taghawsa** — gradiente animado WebGL com efeito ripple do mouse (38 temas no total)
-- **Correção de ações de contêiner** — `client error (SendRequest)` resolvido com retry automático e erros claros
-- **v1.8.0** — inatividade inteligente, perfis de desempenho, multi-nó, integrações em lote, escopos de tokens API
+- **Taghawsa em todos os dispositivos** — WebGL adaptativo no telemóvel e Windows; fallback CSS quando WebGL está desligado
+- **Layout móvel** — cabeçalhos flexíveis, métricas 4→3→2 colunas, sem scroll horizontal
+- **Separador Desempenho** — cartões de preset, indicador de atividade em tempo real, polling fora de Privacidade
+- **Histórico de atualizações no LXC** — updates por script registados no arranque; « Última atualização » em Sistema
+- **Reordenar cartões** — grava todos os IDs, pega maior, arrastar tátil, interruptor em Aparência
+- **Registo de auditoria** — reconstrução automática de esquemas legacy
+- **v1.8.1** — pôsteres Jellyfin, integração de media por app, estado instantâneo
 
 Histórico completo: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Estado da versão
 
-Recomendado: **v1.8.1**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
+Recomendado: **v1.8.2**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

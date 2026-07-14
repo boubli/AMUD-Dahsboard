@@ -10,21 +10,21 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.1 新特性
+### v1.8.2 新特性
 
-- **Jellyfin 海报** — 流媒体卡片显示真实的电影/剧集封面，经服务器代理（API 密钥不会到达浏览器）
-- **播放控制** — 管理员可暂停 / 恢复 / 停止当前 Jellyfin 会话；仅在播放时显示
-- **媒体集成移至「添加应用」** — Jellyfin/Emby 和 Plex 按应用卡片配置；旧的设置凭据自动迁移
-- **刷新即时状态** — 重新加载页面时立即显示状态和容器 CPU/RAM，不再出现 `CHECKING...`
-- **Taghawsa 主题** — WebGL 动画渐变加鼠标涟漪效果（共 38 个主题）
-- **容器操作修复** — 通过自动重试和清晰的错误信息解决 `client error (SendRequest)`
-- **v1.8.0** — 智能空闲、性能预设、多节点、批量集成、API 令牌范围
+- **全设备 Taghawsa** — 手机与 Windows 上自适应 WebGL；WebGL 关闭时使用 CSS 备用效果
+- **移动端布局** — 卡片标题自动换行，指标 4→3→2 列，窄屏无横向滚动
+- **性能设置页** — 预设卡片、实时活动指示，轮询选项移出隐私页
+- **LXC 更新历史** — 脚本升级在启动时写入审计；系统页显示「最后更新」
+- **卡片拖拽排序** — 保存全部应用 ID、更大拖柄、触摸拖拽、外观页开关
+- **审计日志** — 自动重建旧版 SQLite 表结构
+- **v1.8.1** — Jellyfin 海报、按应用配置媒体、刷新即时状态
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 版本状态
 
-当前推荐：**v1.8.1**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**v1.8.2**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

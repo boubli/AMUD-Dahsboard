@@ -10,21 +10,21 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.1 새로운 기능
+### v1.8.2 새로운 기능
 
-- **Jellyfin 포스터** — 스트림 카드에 실제 영화/에피소드 아트워크 표시. 서버 프록시를 통해 API 키는 브라우저에 노출되지 않음
-- **재생 컨트롤** — 활성 Jellyfin 세션의 일시정지 / 재개 / 정지(관리자 전용); 재생 중에만 표시
-- **미디어 통합을 앱 추가로 이동** — Jellyfin/Emby와 Plex는 앱 카드별로 구성; 기존 설정의 자격 증명은 자동 마이그레이션
-- **새로고침 시 즉시 상태 표시** — `CHECKING...` 대신 상태와 컨테이너 CPU/RAM이 즉시 표시
-- **Taghawsa 테마** — 마우스 리플 효과가 있는 WebGL 애니메이션 그라데이션(총 38개 테마)
-- **컨테이너 작업 수정** — 자동 재시도와 명확한 오류 메시지로 `client error (SendRequest)` 해결
-- **v1.8.0** — 스마트 유휴, 성능 프리셋, 멀티 노드, 일괄 통합, API 토큰 범위
+- **모든 기기에서 Taghawsa** — 모바일과 Windows에서 적응형 WebGL; WebGL 꺼짐 시 CSS 대체
+- **모바일 레이아웃** — 카드 헤더 줄바꿈, 지표 4→3→2열, 가로 스크롤 없음
+- **성능 탭** — 프리셋 카드, 실시간 활동 배지, 폴링 설정을 개인정보에서 분리
+- **LXC 업데이트 기록** — 스크립트 업데이트를 부팅 시 기록; 시스템에 «마지막 업데이트» 표시
+- **카드 순서 변경** — 모든 앱 ID 저장, 더 큰 핸들, 터치 드래그, 모양에서 토글
+- **감사 로그** — 레거시 SQLite 스키마 자동 재구성
+- **v1.8.1** — Jellyfin 포스터, 앱별 미디어 통합, 즉시 상태
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 릴리스 상태
 
-권장 버전: **v1.8.1**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
+권장 버전: **v1.8.2**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

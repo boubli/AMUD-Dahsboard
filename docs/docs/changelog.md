@@ -11,6 +11,30 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.2 — Cross-device effects, responsive fixes, settings and audit overhaul
+
+**2026-07-14** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.2)
+
+### Added
+- **Adaptive Taghawsa WebGL** — background effects on phones and Windows with quality tiers; CSS drift fallback when WebGL is off or reduced-motion is on
+- **Performance settings tab** — preset cards, live activity badge, polling/cache controls moved out of Privacy
+- **Dashboard effect toggles** — WebGL, greeting shimmer, and card reorder in Appearance
+- **Boot version tracking** — script/manual/in-app upgrades recorded in audit log and System → Last Updated
+- **Audit log schema rebuild** — legacy DBs with old `user` column migrate automatically
+
+### Changed
+- **Mobile layout** — card headers wrap, metrics grid 4→3→2 columns, overflow clipped on narrow screens
+- **Card drag reorder** — full app ID list saved, bigger handle, pointer drag on touch, filter hint banner
+- **Settings cleanup** — removed legacy Media streams block; Support sidebar icon fixed on dark themes
+- **PWA service worker v38** — precaches WebGL and drag scripts
+
+### Fixed
+- **Greeting shimmer on Windows** — cross-browser gradient text with static fallback
+- **Glass blur fallback** — opaque cards when `backdrop-filter` is unsupported
+- **Local CI script** — `scripts/ci-check.sh` / `scripts/ci-check.ps1` mirror GitHub Actions
+
+---
+
 ## v1.8.1 — Jellyfin posters, instant status, Taghawsa theme
 
 **2026-07-13** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.1)

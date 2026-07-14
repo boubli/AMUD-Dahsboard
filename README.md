@@ -10,23 +10,26 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.1
+### What's new in v1.8.2
 
-- **Jellyfin now-playing posters** — real movie/episode artwork on the stream card, proxied through the server (API key never reaches the browser)
-- **Playback controls** — admin pause / resume / stop for the active Jellyfin session; visible only while something is streaming
-- **Media integrations in Add App** — Jellyfin/Emby and Plex configured per app card; legacy Settings credentials migrate automatically
-- **Instant status on reload** — last-known statuses and container CPU/RAM appear immediately instead of `CHECKING...`
-- **Taghawsa theme** — WebGL animated gradient with mouse ripple (38 themes total)
-- **Container action fix** — `client error (SendRequest)` resolved with automatic retry and actionable error messages
-- **v1.8.0** — smart idle/active runtime, performance presets, multi-node, batch integrations, API token scopes
+- **Taghawsa on every device** — adaptive WebGL on phones and Windows; CSS drift fallback when WebGL is off or reduced-motion is on
+- **Mobile layout fixes** — app card headers wrap, metrics grid scales 4→3→2 columns, no horizontal scroll on narrow screens
+- **Greeting shimmer + glass** — cross-browser shimmer fix; opaque fallback when backdrop-filter is unsupported
+- **Performance settings tab** — preset cards (Light / Balanced / Active / Custom), live activity badge, polling controls moved out of Privacy
+- **Audit + update history on LXC** — script and manual upgrades recorded on boot; System tab shows Last Updated; audit log rebuilds legacy DB schemas
+- **Card drag reorder** — saves full app order (including filtered cards), bigger handle, pointer drag on touch, toggle in Appearance
+- **Settings cleanup** — removed legacy Media streams block; Support sidebar icon fixed on dark themes
+- **PWA cache v38** — precaches WebGL background and drag-reorder scripts
+- **v1.8.1** — Jellyfin posters, per-app media integration, instant status on reload
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (2026-07-13)
+### Release status (2026-07-14)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.1` (current latest recommended)
+- `v1.8.2` (current latest recommended)
+- `v1.8.1`
 - `v1.8.0`
 - `v1.7.7`
 - `v1.7.6`
@@ -179,6 +182,24 @@ curl -sSL https://github.com/boubli/AMUD-Dashboard/releases/latest/download/setu
 | **Asset Delivery** | Disk reads per request | Embedded in binary via `include_str!` |
 | **Idle RAM Footprint** | ~150MB | **30–50 MB** (peak ~150 MB) |
 | **Startup / Boot Time**| ~2 - 5 seconds | **Sub-millisecond** |
+
+---
+
+## For developers
+
+Before you push Rust changes, run the same checks as GitHub CI:
+
+```powershell
+# Windows
+.\scripts\ci-check.ps1
+```
+
+```bash
+# Linux / macOS / Git Bash
+./scripts/ci-check.sh
+```
+
+Optional: install a pre-push hook with `./scripts/install-git-hooks.sh` so `cargo fmt` failures never reach CI again.
 
 ---
 
