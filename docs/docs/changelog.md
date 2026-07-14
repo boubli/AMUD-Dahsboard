@@ -11,6 +11,25 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.5 — Cross-device layout, per-app metrics, Jellyfin defaults
+
+**2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.5)
+
+### Added
+- Per-app integration metric visibility (toggle + checklist in Edit/Add App)
+
+### Changed
+- Desktop layout widened to 1920px; CSS cache busting + SW v41
+- Jellyfin/Plex/Emby app cards default to CPU/RAM only
+- Integration picker icons from full logo manifest
+
+### Fixed
+- Mac/Windows layout drift from stale CSS
+- Duplicate Jellyfin stats on stream + app cards
+- Missing integration icons in picker
+
+---
+
 ## v1.8.4 — Layout restore + grid-aware card drag
 
 **2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.4)

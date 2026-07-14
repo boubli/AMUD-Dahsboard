@@ -67,6 +67,7 @@ pub async fn status_page_handler(
         ));
     }
 
+    let ver = env!("CARGO_PKG_VERSION");
     let html = format!(
         r#"<!DOCTYPE html>
 <html lang="en" data-theme="{}">
@@ -74,7 +75,7 @@ pub async fn status_page_handler(
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Status — {}</title>
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/style.css?v={ver}">
 <style>:root {{ /* ROOT_CSS */ }}</style>
 </head>
 <body class="status-page">

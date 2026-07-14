@@ -394,16 +394,60 @@ pub(crate) fn sanitize_card_span(value: &str) -> String {
     }
 }
 
-/// Integration + container metrics need a tall card to show both rows.
+/// Integration + container metrics need a tall card when API metrics are shown.
 pub(crate) fn resolve_card_span(
     integration_type: &str,
-    _show_container_metrics: bool,
+    show_container_metrics: bool,
+    integration_visible_metrics: &str,
     requested: &str,
 ) -> String {
-    if !integration_type.is_empty() && integration_type != "rss" {
-        return "1x2".to_string();
+    if integration_type.is_empty() || integration_type == "rss" {
+        return sanitize_card_span(requested);
     }
-    sanitize_card_span(requested)
+    if integration_api_metrics_hidden(integration_visible_metrics) {
+        if show_container_metrics {
+            return "1x1".to_string();
+        }
+        return sanitize_card_span(requested);
+    }
+    "1x2".to_string()
+}
+
+/// Empty JSON array hides API integration metrics on the app card (CPU/RAM may still show).
+pub(crate) fn integration_api_metrics_hidden(integration_visible_metrics: &str) -> bool {
+    integration_visible_metrics.trim() == "[]"
+}
+
+pub(crate) fn integration_shows_all_api_metrics(integration_visible_metrics: &str) -> bool {
+    integration_visible_metrics.trim().is_empty()
+}
+
+pub(crate) fn default_integration_visible_metrics(integration_type: &str) -> String {
+    match integration_type.trim().to_ascii_lowercase().as_str() {
+        "jellyfin" | "plex" | "emby" => "[]".to_string(),
+        _ => String::new(),
+    }
+}
+
+pub(crate) fn sanitize_integration_visible_metrics(raw: Option<&str>) -> String {
+    let Some(value) = raw.map(str::trim).filter(|s| !s.is_empty()) else {
+        return String::new();
+    };
+    if value == "[]" {
+        return "[]".to_string();
+    }
+    let Ok(parsed) = serde_json::from_str::<Vec<String>>(value) else {
+        return String::new();
+    };
+    let cleaned: Vec<String> = parsed
+        .into_iter()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
+    if cleaned.is_empty() {
+        return "[]".to_string();
+    }
+    serde_json::to_string(&cleaned).unwrap_or_default()
 }
 
 /// Per-app embed mode: link, iframe, or tab.
@@ -555,10 +599,12 @@ mod tests {
 
     #[test]
     fn test_resolve_card_span_integration_metrics() {
-        assert_eq!(resolve_card_span("radarr", true, "1x1"), "1x2");
-        assert_eq!(resolve_card_span("radarr", false, "2x1"), "1x2");
-        assert_eq!(resolve_card_span("rss", true, "1x1"), "1x1");
-        assert_eq!(resolve_card_span("", true, "2x1"), "2x1");
+        assert_eq!(resolve_card_span("radarr", true, "", "1x1"), "1x2");
+        assert_eq!(resolve_card_span("radarr", false, "", "2x1"), "1x2");
+        assert_eq!(resolve_card_span("jellyfin", true, "[]", "1x1"), "1x1");
+        assert_eq!(resolve_card_span("jellyfin", false, "[]", "2x1"), "2x1");
+        assert_eq!(resolve_card_span("rss", true, "", "1x1"), "1x1");
+        assert_eq!(resolve_card_span("", true, "", "2x1"), "2x1");
     }
 
     #[test]

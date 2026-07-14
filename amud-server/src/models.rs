@@ -36,6 +36,9 @@ pub struct App {
     pub(crate) guest_visible: bool,
     #[serde(default = "default_embed_mode")]
     pub(crate) embed_mode: String,
+    /// JSON array of integration metric keys to show; empty string = all; "[]" = hide API metrics.
+    #[serde(default)]
+    pub(crate) integration_visible_metrics: String,
 }
 
 fn default_guest_visible() -> bool {

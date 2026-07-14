@@ -103,9 +103,19 @@ pub async fn add_app_handler(
         let headers = headers.clone();
         let show_container_metrics =
             parse_show_container_metrics(form.get("show_container_metrics").map(|s| s.as_str()));
+        let integration_visible_metrics =
+            match form.get("integration_visible_metrics").map(|s| s.as_str()) {
+                Some("") => String::new(),
+                Some(s) => sanitize_integration_visible_metrics(Some(s)),
+                None if !integration_type.is_empty() => {
+                    default_integration_visible_metrics(&integration_type)
+                }
+                None => String::new(),
+            };
         let card_span = resolve_card_span(
             &integration_type,
             show_container_metrics != 0,
+            &integration_visible_metrics,
             form.get("card_span").map(|s| s.as_str()).unwrap_or("1x1"),
         );
         let guest_visible =
@@ -117,8 +127,8 @@ pub async fn add_app_handler(
             let sort_order = crate::db::next_app_sort_order(db);
             if db
                 .execute(
-                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode],
+                    "INSERT INTO apps (name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode, integration_visible_metrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    params![name, url, icon, description, category, node_tag, mac_address, integration_type, encrypted_api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode, integration_visible_metrics],
                 )
                 .is_ok()
             {
@@ -217,9 +227,13 @@ pub async fn edit_app_handler(
                 let show_container_metrics = parse_show_container_metrics(
                     form.get("show_container_metrics").map(|s| s.as_str()),
                 );
+                let integration_visible_metrics = sanitize_integration_visible_metrics(
+                    form.get("integration_visible_metrics").map(|s| s.as_str()),
+                );
                 let card_span = resolve_card_span(
                     &integration_type,
                     show_container_metrics != 0,
+                    &integration_visible_metrics,
                     form.get("card_span").map(|s| s.as_str()).unwrap_or("1x1"),
                 );
                 let guest_visible =
@@ -238,8 +252,8 @@ pub async fn edit_app_handler(
                     };
                     if db
                         .execute(
-                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ?, card_span = ?, show_container_metrics = ?, guest_visible = ?, embed_mode = ? WHERE id = ?",
-                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, card_span, show_container_metrics, guest_visible, embed_mode, id],
+                            "UPDATE apps SET name = ?, url = ?, icon = ?, description = ?, category = ?, node_tag = ?, mac_address = ?, integration_type = ?, api_key = ?, card_span = ?, show_container_metrics = ?, guest_visible = ?, embed_mode = ?, integration_visible_metrics = ? WHERE id = ?",
+                            params![name, url, icon, description, category, node_tag, mac_address, integration_type, final_api_key, card_span, show_container_metrics, guest_visible, embed_mode, integration_visible_metrics, id],
                         )
                         .is_ok()
                     {

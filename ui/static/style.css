@@ -135,7 +135,7 @@ body::-webkit-scrollbar-button {
 /* Base Layout Container */
 .dashboard-container {
     width: 100%;
-    max-width: 1440px;
+    max-width: min(100%, 1920px);
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -145,6 +145,13 @@ body::-webkit-scrollbar-button {
     position: relative;
     z-index: 1;
     box-sizing: border-box;
+}
+
+@media (min-width: 1280px) {
+    body {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
 }
 
 /* Topbar Header */

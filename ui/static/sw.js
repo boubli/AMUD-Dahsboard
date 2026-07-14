@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amud-dashboard-v40';
+const CACHE_NAME = 'amud-dashboard-v41';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
@@ -24,6 +24,11 @@ const ASSETS_TO_CACHE = [
   '/static/drag.js'
 ];
 
+const STALE_WHILE_REVALIDATE = [
+  '/static/style.css',
+  '/static/theme-guards.css',
+];
+
 function parseManifestJson(res) {
   if (!res.ok) return null;
   return res.json();
@@ -39,6 +44,28 @@ function cacheThemePreviews() {
         .filter(function (p) { return p?.startsWith('/'); });
     })
     .catch(function () { return []; });
+}
+
+function isStaleWhileRevalidate(pathname) {
+  return STALE_WHILE_REVALIDATE.some(function (p) {
+    return pathname === p || pathname.startsWith(p + '?');
+  });
+}
+
+function staleWhileRevalidate(request) {
+  return caches.open(CACHE_NAME).then(function (cache) {
+    return cache.match(request).then(function (cached) {
+      const networkFetch = fetch(request)
+        .then(function (response) {
+          if (response && response.ok) {
+            cache.put(request, response.clone());
+          }
+          return response;
+        })
+        .catch(function () { return cached; });
+      return cached || networkFetch;
+    });
+  });
 }
 
 globalThis.addEventListener('install', event => {
@@ -83,6 +110,10 @@ globalThis.addEventListener('fetch', event => {
   }
 
   if (url.pathname.startsWith('/static/')) {
+    if (isStaleWhileRevalidate(url.pathname)) {
+      event.respondWith(staleWhileRevalidate(request));
+      return;
+    }
     event.respondWith(
       caches.match(request).then(cached => {
         return cached || fetch(request).then(response => {

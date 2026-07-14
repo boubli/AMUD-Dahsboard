@@ -163,6 +163,6 @@ pub async fn integration_manifest_handler(
     }
     api_json(
         StatusCode::OK,
-        crate::integration_registry::integration_manifest_json(),
+        crate::integration_registry::integration_manifest_json(state.logo_manifest.as_ref()),
     )
 }

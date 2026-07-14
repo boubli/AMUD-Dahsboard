@@ -507,8 +507,12 @@ fn filled_loading_grid() -> &'static str {
     r#"<div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div><div class="metric-block"><span class="metric-value">—</span><span class="metric-label">…</span></div>"#
 }
 
-fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, _show_cpu_ram: bool) -> String {
-    let cpu_ram = filled_cpu_ram_cells();
+fn build_filled_integration_widget(show_cpu_ram: bool) -> String {
+    let cpu_ram = if show_cpu_ram {
+        filled_cpu_ram_cells()
+    } else {
+        ""
+    };
     format!(
         r#"
                 <div class="integration-widget integration-widget--filled">
@@ -517,455 +521,455 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, _show_cpu_ra
                     <template x-if="integrationData.type === 'pihole' || integrationData.type === 'adguard'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.ads_blocked_today ?? '—'"></span><span class="metric-label">Blocked</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.dns_queries_today ?? '—'"></span><span class="metric-label">Queries</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.ads_percentage_today ?? integrationData.avg_processing_time ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Block %' : 'Avg time'"></span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.domains_being_blocked ?? integrationData.status ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Domains' : 'Status'"></span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.unique_clients ?? integrationData.block_pct ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Clients' : 'Block %'"></span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.gravity_updated ?? integrationData.dns_rewrites ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Gravity' : 'Rewrites'"></span></div>
+                            <div class="metric-block" x-show="metricVisible('ads_blocked_today')"><span class="metric-value" x-text="integrationData.ads_blocked_today ?? '—'"></span><span class="metric-label">Blocked</span></div>
+                            <div class="metric-block" x-show="metricVisible('dns_queries_today')"><span class="metric-value" x-text="integrationData.dns_queries_today ?? '—'"></span><span class="metric-label">Queries</span></div>
+                            <div class="metric-block" x-show="metricVisible('ads_percentage_today')"><span class="metric-value" x-text="integrationData.ads_percentage_today ?? integrationData.avg_processing_time ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Block %' : 'Avg time'"></span></div>
+                            <div class="metric-block" x-show="metricVisible('domains_being_blocked')"><span class="metric-value" x-text="integrationData.domains_being_blocked ?? integrationData.status ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Domains' : 'Status'"></span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('unique_clients')"><span class="metric-value" x-text="integrationData.unique_clients ?? integrationData.block_pct ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Clients' : 'Block %'"></span></div>
+                            <div class="metric-block" x-show="metricVisible('gravity_updated')"><span class="metric-value" x-text="integrationData.gravity_updated ?? integrationData.dns_rewrites ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'pihole' ? 'Gravity' : 'Rewrites'"></span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'radarr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Movies</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('missing')"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block" x-show="metricVisible('library_count')"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Movies</span></div>
+                            <div class="metric-block" x-show="metricVisible('disk_free')"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('health')"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'sonarr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.series_count ?? '—'"></span><span class="metric-label">Series</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.episode_count ?? '—'"></span><span class="metric-label">Episodes</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('missing')"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block" x-show="metricVisible('series_count')"><span class="metric-value" x-text="integrationData.series_count ?? '—'"></span><span class="metric-label">Series</span></div>
+                            <div class="metric-block" x-show="metricVisible('episode_count')"><span class="metric-value" x-text="integrationData.episode_count ?? '—'"></span><span class="metric-label">Episodes</span></div>
+                            <div class="metric-block" x-show="metricVisible('disk_free')"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'lidarr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Artists</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.album_count ?? '—'"></span><span class="metric-label">Albums</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('missing')"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block" x-show="metricVisible('library_count')"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Artists</span></div>
+                            <div class="metric-block" x-show="metricVisible('album_count')"><span class="metric-value" x-text="integrationData.album_count ?? '—'"></span><span class="metric-label">Albums</span></div>
+                            <div class="metric-block" x-show="metricVisible('disk_free')"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('health')"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'readarr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Books</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.author_count ?? '—'"></span><span class="metric-label">Authors</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('missing')"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block" x-show="metricVisible('library_count')"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Books</span></div>
+                            <div class="metric-block" x-show="metricVisible('author_count')"><span class="metric-value" x-text="integrationData.author_count ?? '—'"></span><span class="metric-label">Authors</span></div>
+                            <div class="metric-block" x-show="metricVisible('disk_free')"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('health')"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'whisparr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.series_count ?? '—'"></span><span class="metric-label">Series</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.episode_count ?? '—'"></span><span class="metric-label">Episodes</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('missing')"><span class="metric-value" x-text="integrationData.missing ?? '—'"></span><span class="metric-label">Missing</span></div>
+                            <div class="metric-block" x-show="metricVisible('series_count')"><span class="metric-value" x-text="integrationData.series_count ?? '—'"></span><span class="metric-label">Series</span></div>
+                            <div class="metric-block" x-show="metricVisible('episode_count')"><span class="metric-value" x-text="integrationData.episode_count ?? '—'"></span><span class="metric-label">Episodes</span></div>
+                            <div class="metric-block" x-show="metricVisible('disk_free')"><span class="metric-value" x-text="integrationData.disk_free ?? '—'"></span><span class="metric-label">Disk free</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('health')"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'overseerr' || integrationData.type === 'jellyseerr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.pending_requests ?? '—'"></span><span class="metric-label">Pending</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.approved_requests ?? '—'"></span><span class="metric-label">Approved</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.processing_requests ?? '—'"></span><span class="metric-label">Processing</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.total_requests ?? '—'"></span><span class="metric-label">Total</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.declined_requests ?? '—'"></span><span class="metric-label">Declined</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.available_requests ?? '—'"></span><span class="metric-label">Available</span></div>
+                            <div class="metric-block" x-show="metricVisible('pending_requests')"><span class="metric-value" x-text="integrationData.pending_requests ?? '—'"></span><span class="metric-label">Pending</span></div>
+                            <div class="metric-block" x-show="metricVisible('approved_requests')"><span class="metric-value" x-text="integrationData.approved_requests ?? '—'"></span><span class="metric-label">Approved</span></div>
+                            <div class="metric-block" x-show="metricVisible('processing_requests')"><span class="metric-value" x-text="integrationData.processing_requests ?? '—'"></span><span class="metric-label">Processing</span></div>
+                            <div class="metric-block" x-show="metricVisible('total_requests')"><span class="metric-value" x-text="integrationData.total_requests ?? '—'"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block" x-show="metricVisible('declined_requests')"><span class="metric-value" x-text="integrationData.declined_requests ?? '—'"></span><span class="metric-label">Declined</span></div>
+                            <div class="metric-block" x-show="metricVisible('available_requests')"><span class="metric-value" x-text="integrationData.available_requests ?? '—'"></span><span class="metric-label">Available</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'prowlarr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.indexers_enabled ?? '—'"></span>/<span x-text="integrationData.indexers_total ?? '—'"></span></span><span class="metric-label">Indexers</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.failed_indexers ?? '—'"></span><span class="metric-label">Failed</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.app_count ?? '—'"></span><span class="metric-label">Apps</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('failed_indexers')"><span class="metric-value" x-text="integrationData.failed_indexers ?? '—'"></span><span class="metric-label">Failed</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('health')"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block" x-show="metricVisible('app_count')"><span class="metric-value" x-text="integrationData.app_count ?? '—'"></span><span class="metric-label">Apps</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'uptime_kuma'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.monitors_up ?? '—'"></span><span class="metric-label">Up</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.monitors_down ?? '—'"></span><span class="metric-label">Down</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.monitors_total ?? '—'"></span><span class="metric-label">Total</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.maintenance ?? '—'"></span><span class="metric-label">Maint.</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.avg_ping ?? '—'"></span><span class="metric-label">Avg ping</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cert_expiring ?? '—'"></span><span class="metric-label">Incidents</span></div>
+                            <div class="metric-block" x-show="metricVisible('monitors_up')"><span class="metric-value" x-text="integrationData.monitors_up ?? '—'"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block" x-show="metricVisible('monitors_down')"><span class="metric-value" x-text="integrationData.monitors_down ?? '—'"></span><span class="metric-label">Down</span></div>
+                            <div class="metric-block" x-show="metricVisible('monitors_total')"><span class="metric-value" x-text="integrationData.monitors_total ?? '—'"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block" x-show="metricVisible('maintenance')"><span class="metric-value" x-text="integrationData.maintenance ?? '—'"></span><span class="metric-label">Maint.</span></div>
+                            <div class="metric-block" x-show="metricVisible('avg_ping')"><span class="metric-value" x-text="integrationData.avg_ping ?? '—'"></span><span class="metric-label">Avg ping</span></div>
+                            <div class="metric-block" x-show="metricVisible('cert_expiring')"><span class="metric-value" x-text="integrationData.cert_expiring ?? '—'"></span><span class="metric-label">Incidents</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'cloudflare_tunnel'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.75rem;text-transform:capitalize;" x-text="integrationData.tunnel_status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.connections ?? '—'"></span><span class="metric-label">Connections</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.colo_count ?? '—'"></span><span class="metric-label">Colos</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.tunnel_name ?? '—'"></span><span class="metric-label">Tunnel</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.connector_version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.origin_count ?? '—'"></span><span class="metric-label">Origins</span></div>
+                            <div class="metric-block" x-show="metricVisible('tunnel_status')"><span class="metric-value" style="font-size:0.75rem;text-transform:capitalize;" x-text="integrationData.tunnel_status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('connections')"><span class="metric-value" x-text="integrationData.connections ?? '—'"></span><span class="metric-label">Connections</span></div>
+                            <div class="metric-block" x-show="metricVisible('colo_count')"><span class="metric-value" x-text="integrationData.colo_count ?? '—'"></span><span class="metric-label">Colos</span></div>
+                            <div class="metric-block" x-show="metricVisible('tunnel_name')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.tunnel_name ?? '—'"></span><span class="metric-label">Tunnel</span></div>
+                            <div class="metric-block" x-show="metricVisible('connector_version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.connector_version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('origin_count')"><span class="metric-value" x-text="integrationData.origin_count ?? '—'"></span><span class="metric-label">Origins</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'peanut'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.battery_percent ?? '—'"></span>%</span><span class="metric-label">Battery</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.ups_load ?? '—'"></span><span class="metric-label">Load</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.battery_runtime ?? '—'"></span><span class="metric-label">Runtime</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.75rem;" x-text="integrationData.ups_status ?? '—'"></span><span class="metric-label">UPS</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.input_voltage ?? '—'"></span><span class="metric-label">Input V</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.output_power ?? '—'"></span><span class="metric-label">Output</span></div>
+                            <div class="metric-block" x-show="metricVisible('ups_load')"><span class="metric-value" x-text="integrationData.ups_load ?? '—'"></span><span class="metric-label">Load</span></div>
+                            <div class="metric-block" x-show="metricVisible('battery_runtime')"><span class="metric-value" x-text="integrationData.battery_runtime ?? '—'"></span><span class="metric-label">Runtime</span></div>
+                            <div class="metric-block" x-show="metricVisible('ups_status')"><span class="metric-value" style="font-size:0.75rem;" x-text="integrationData.ups_status ?? '—'"></span><span class="metric-label">UPS</span></div>
+                            <div class="metric-block" x-show="metricVisible('input_voltage')"><span class="metric-value" x-text="integrationData.input_voltage ?? '—'"></span><span class="metric-label">Input V</span></div>
+                            <div class="metric-block" x-show="metricVisible('output_power')"><span class="metric-value" x-text="integrationData.output_power ?? '—'"></span><span class="metric-label">Output</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'qbittorrent'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Upload</span></div>
+                            <div class="metric-block" x-show="metricVisible('download_speed')"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block" x-show="metricVisible('upload_speed')"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Upload</span></div>
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.active_downloads ?? '—'"></span>↓ <span x-text="integrationData.seeding ?? '—'"></span>↑</span><span class="metric-label">Active</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.total_torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.paused_torrents ?? '—'"></span><span class="metric-label">Paused</span></div>
+                            <div class="metric-block" x-show="metricVisible('free_disk')"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                            <div class="metric-block" x-show="metricVisible('total_torrents')"><span class="metric-value" x-text="integrationData.total_torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
+                            <div class="metric-block" x-show="metricVisible('paused_torrents')"><span class="metric-value" x-text="integrationData.paused_torrents ?? '—'"></span><span class="metric-label">Paused</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'sabnzbd' || integrationData.type === 'nzbget'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.paused ?? '—'"></span><span class="metric-label">Paused</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('download_speed')"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block" x-show="metricVisible('free_disk')"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                            <div class="metric-block" x-show="metricVisible('paused')"><span class="metric-value" x-text="integrationData.paused ?? '—'"></span><span class="metric-label">Paused</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'transmission'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Upload</span></div>
+                            <div class="metric-block" x-show="metricVisible('download_speed')"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block" x-show="metricVisible('upload_speed')"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Upload</span></div>
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.active_downloads ?? '—'"></span>↓ <span x-text="integrationData.seeding ?? '—'"></span>↑</span><span class="metric-label">Active</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.total_torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.paused_torrents ?? '—'"></span><span class="metric-label">Paused</span></div>
+                            <div class="metric-block" x-show="metricVisible('free_disk')"><span class="metric-value" x-text="integrationData.free_disk ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                            <div class="metric-block" x-show="metricVisible('total_torrents')"><span class="metric-value" x-text="integrationData.total_torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
+                            <div class="metric-block" x-show="metricVisible('paused_torrents')"><span class="metric-value" x-text="integrationData.paused_torrents ?? '—'"></span><span class="metric-label">Paused</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'jackett'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.indexers_enabled ?? '—'"></span>/<span x-text="integrationData.indexers_total ?? '—'"></span></span><span class="metric-label">Indexers</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.failed_indexers ?? '—'"></span><span class="metric-label">Failed</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.indexers_total ?? '—'"></span><span class="metric-label">Total</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.indexers_enabled ?? '—'"></span><span class="metric-label">Enabled</span></div>
+                            <div class="metric-block" x-show="metricVisible('failed_indexers')"><span class="metric-value" x-text="integrationData.failed_indexers ?? '—'"></span><span class="metric-label">Failed</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('health')"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block" x-show="metricVisible('indexers_total')"><span class="metric-value" x-text="integrationData.indexers_total ?? '—'"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block" x-show="metricVisible('indexers_enabled')"><span class="metric-value" x-text="integrationData.indexers_enabled ?? '—'"></span><span class="metric-label">Enabled</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'tautulli'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stream_count ?? '—'"></span><span class="metric-label">Streams</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.bandwidth ?? '—'"></span><span class="metric-label">Bandwidth</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libraries</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.sessions ?? '—'"></span><span class="metric-label">Sessions</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stream_count ?? '—'"></span><span class="metric-label">Active</span></div>
+                            <div class="metric-block" x-show="metricVisible('stream_count')"><span class="metric-value" x-text="integrationData.stream_count ?? '—'"></span><span class="metric-label">Streams</span></div>
+                            <div class="metric-block" x-show="metricVisible('bandwidth')"><span class="metric-value" x-text="integrationData.bandwidth ?? '—'"></span><span class="metric-label">Bandwidth</span></div>
+                            <div class="metric-block" x-show="metricVisible('library_count')"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libraries</span></div>
+                            <div class="metric-block" x-show="metricVisible('sessions')"><span class="metric-value" x-text="integrationData.sessions ?? '—'"></span><span class="metric-label">Sessions</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('stream_count')"><span class="metric-value" x-text="integrationData.stream_count ?? '—'"></span><span class="metric-label">Active</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'audiobookshelf'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libraries</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.item_count ?? '—'"></span><span class="metric-label">Items</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libs</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.item_count ?? '—'"></span><span class="metric-label">Media</span></div>
+                            <div class="metric-block" x-show="metricVisible('library_count')"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libraries</span></div>
+                            <div class="metric-block" x-show="metricVisible('item_count')"><span class="metric-value" x-text="integrationData.item_count ?? '—'"></span><span class="metric-label">Items</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('library_count')"><span class="metric-value" x-text="integrationData.library_count ?? '—'"></span><span class="metric-label">Libs</span></div>
+                            <div class="metric-block" x-show="metricVisible('item_count')"><span class="metric-value" x-text="integrationData.item_count ?? '—'"></span><span class="metric-label">Media</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'immich'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.photos ?? '—'"></span><span class="metric-label">Photos</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.videos ?? '—'"></span><span class="metric-label">Videos</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.assets ?? '—'"></span><span class="metric-label">Assets</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage_used ?? '—'"></span><span class="metric-label">Storage</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('photos')"><span class="metric-value" x-text="integrationData.photos ?? '—'"></span><span class="metric-label">Photos</span></div>
+                            <div class="metric-block" x-show="metricVisible('videos')"><span class="metric-value" x-text="integrationData.videos ?? '—'"></span><span class="metric-label">Videos</span></div>
+                            <div class="metric-block" x-show="metricVisible('assets')"><span class="metric-value" x-text="integrationData.assets ?? '—'"></span><span class="metric-label">Assets</span></div>
+                            <div class="metric-block" x-show="metricVisible('storage_used')"><span class="metric-value" x-text="integrationData.storage_used ?? '—'"></span><span class="metric-label">Storage</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'tdarr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Staged</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.workers ?? '—'"></span><span class="metric-label">Workers</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.staged ?? '—'"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.workers ?? '—'"></span><span class="metric-label">Nodes</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size ?? '—'"></span><span class="metric-label">Staged</span></div>
+                            <div class="metric-block" x-show="metricVisible('workers')"><span class="metric-value" x-text="integrationData.workers ?? '—'"></span><span class="metric-label">Workers</span></div>
+                            <div class="metric-block" x-show="metricVisible('health')"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block" x-show="metricVisible('staged')"><span class="metric-value" x-text="integrationData.staged ?? '—'"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('workers')"><span class="metric-value" x-text="integrationData.workers ?? '—'"></span><span class="metric-label">Nodes</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'maintainerr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.issue_count ?? '—'"></span><span class="metric-label">Issues</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.rule_count ?? '—'"></span><span class="metric-label">Rules</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.user_count ?? '—'"></span><span class="metric-label">Users</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.issues ?? '—'"></span><span class="metric-label">Open</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.rules ?? '—'"></span><span class="metric-label">Active</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('issue_count')"><span class="metric-value" x-text="integrationData.issue_count ?? '—'"></span><span class="metric-label">Issues</span></div>
+                            <div class="metric-block" x-show="metricVisible('rule_count')"><span class="metric-value" x-text="integrationData.rule_count ?? '—'"></span><span class="metric-label">Rules</span></div>
+                            <div class="metric-block" x-show="metricVisible('user_count')"><span class="metric-value" x-text="integrationData.user_count ?? '—'"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block" x-show="metricVisible('issues')"><span class="metric-value" x-text="integrationData.issues ?? '—'"></span><span class="metric-label">Open</span></div>
+                            <div class="metric-block" x-show="metricVisible('rules')"><span class="metric-value" x-text="integrationData.rules ?? '—'"></span><span class="metric-label">Active</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'frigate'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.cameras_up ?? '—'"></span>/<span x-text="integrationData.cameras_total ?? '—'"></span></span><span class="metric-label">Cameras</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.detection_fps ?? '—'"></span><span class="metric-label">Det. FPS</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.online ?? '—'"></span><span class="metric-label">Online</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cameras ?? '—'"></span><span class="metric-label">Total</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cameras_up ?? '—'"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block" x-show="metricVisible('detection_fps')"><span class="metric-value" x-text="integrationData.detection_fps ?? '—'"></span><span class="metric-label">Det. FPS</span></div>
+                            <div class="metric-block" x-show="metricVisible('online')"><span class="metric-value" x-text="integrationData.online ?? '—'"></span><span class="metric-label">Online</span></div>
+                            <div class="metric-block" x-show="metricVisible('cameras')"><span class="metric-value" x-text="integrationData.cameras ?? '—'"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('cameras_up')"><span class="metric-value" x-text="integrationData.cameras_up ?? '—'"></span><span class="metric-label">Up</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'bazarr'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing_episodes ?? '—'"></span><span class="metric-label">Ep. missing</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.missing_movies ?? '—'"></span><span class="metric-label">Mov. missing</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.language_count ?? '—'"></span><span class="metric-label">Languages</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.provider_count ?? '—'"></span><span class="metric-label">Providers</span></div>
+                            <div class="metric-block" x-show="metricVisible('missing_episodes')"><span class="metric-value" x-text="integrationData.missing_episodes ?? '—'"></span><span class="metric-label">Ep. missing</span></div>
+                            <div class="metric-block" x-show="metricVisible('missing_movies')"><span class="metric-value" x-text="integrationData.missing_movies ?? '—'"></span><span class="metric-label">Mov. missing</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('health')"><span class="metric-value" x-text="integrationData.health ?? '—'"></span><span class="metric-label">Health</span></div>
+                            <div class="metric-block" x-show="metricVisible('language_count')"><span class="metric-value" x-text="integrationData.language_count ?? '—'"></span><span class="metric-label">Languages</span></div>
+                            <div class="metric-block" x-show="metricVisible('provider_count')"><span class="metric-value" x-text="integrationData.provider_count ?? '—'"></span><span class="metric-label">Providers</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'fritz'">
                         <div class="integration-metrics-grid">
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.75rem;text-transform:capitalize;" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Down</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Up</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.external_ip ?? '—'"></span><span class="metric-label">Ext IP</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.uptime ?? '—'"></span><span class="metric-label">Uptime</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.model ?? '—'"></span><span class="metric-label">Model</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.down_link ?? '—'"></span><span class="metric-label">Down link</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.up_link ?? '—'"></span><span class="metric-label">Up link</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" style="font-size:0.75rem;text-transform:capitalize;" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('download_speed')"><span class="metric-value" x-text="integrationData.download_speed ?? '—'"></span><span class="metric-label">Down</span></div>
+                            <div class="metric-block" x-show="metricVisible('upload_speed')"><span class="metric-value" x-text="integrationData.upload_speed ?? '—'"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block" x-show="metricVisible('external_ip')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.external_ip ?? '—'"></span><span class="metric-label">Ext IP</span></div>
+                            <div class="metric-block" x-show="metricVisible('uptime')"><span class="metric-value" x-text="integrationData.uptime ?? '—'"></span><span class="metric-label">Uptime</span></div>
+                            <div class="metric-block" x-show="metricVisible('devices')"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('model')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.model ?? '—'"></span><span class="metric-label">Model</span></div>
+                            <div class="metric-block" x-show="metricVisible('down_link')"><span class="metric-value" x-text="integrationData.down_link ?? '—'"></span><span class="metric-label">Down link</span></div>
+                            <div class="metric-block" x-show="metricVisible('up_link')"><span class="metric-value" x-text="integrationData.up_link ?? '—'"></span><span class="metric-label">Up link</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'portainer'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.containers_running ?? '—'"></span><span class="metric-label">Running</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.containers_stopped ?? '—'"></span><span class="metric-label">Stopped</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stacks ?? '—'"></span><span class="metric-label">Stacks</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.endpoints ?? '—'"></span><span class="metric-label">Endpoints</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('containers_running')"><span class="metric-value" x-text="integrationData.containers_running ?? '—'"></span><span class="metric-label">Running</span></div>
+                            <div class="metric-block" x-show="metricVisible('containers_stopped')"><span class="metric-value" x-text="integrationData.containers_stopped ?? '—'"></span><span class="metric-label">Stopped</span></div>
+                            <div class="metric-block" x-show="metricVisible('stacks')"><span class="metric-value" x-text="integrationData.stacks ?? '—'"></span><span class="metric-label">Stacks</span></div>
+                            <div class="metric-block" x-show="metricVisible('endpoints')"><span class="metric-value" x-text="integrationData.endpoints ?? '—'"></span><span class="metric-label">Endpoints</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'opnsense' || integrationData.type === 'pfsense'">
                         <div class="integration-metrics-grid">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">CPU</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.memory ?? '—'"></span><span class="metric-label">Memory</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.states ?? '—'"></span><span class="metric-label">States</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.uptime ?? '—'"></span><span class="metric-label">Uptime</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.gateways_up ?? integrationData.status ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'opnsense' ? 'GW up' : 'Status'"></span></div>
+                            <div class="metric-block" x-show="metricVisible('cpu')"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">CPU</span></div>
+                            <div class="metric-block" x-show="metricVisible('memory')"><span class="metric-value" x-text="integrationData.memory ?? '—'"></span><span class="metric-label">Memory</span></div>
+                            <div class="metric-block" x-show="metricVisible('states')"><span class="metric-value" x-text="integrationData.states ?? '—'"></span><span class="metric-label">States</span></div>
+                            <div class="metric-block" x-show="metricVisible('uptime')"><span class="metric-value" x-text="integrationData.uptime ?? '—'"></span><span class="metric-label">Uptime</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('gateways_up')"><span class="metric-value" x-text="integrationData.gateways_up ?? integrationData.status ?? '—'"></span><span class="metric-label" x-text="integrationData.type === 'opnsense' ? 'GW up' : 'Status'"></span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'truenas'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.pools_healthy ?? '—'"></span><span class="metric-label">Pools OK</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.pools_degraded ?? '—'"></span><span class="metric-label">Degraded</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage_used ?? '—'"></span><span class="metric-label">Used</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage_free ?? '—'"></span><span class="metric-label">Free</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('pools_healthy')"><span class="metric-value" x-text="integrationData.pools_healthy ?? '—'"></span><span class="metric-label">Pools OK</span></div>
+                            <div class="metric-block" x-show="metricVisible('pools_degraded')"><span class="metric-value" x-text="integrationData.pools_degraded ?? '—'"></span><span class="metric-label">Degraded</span></div>
+                            <div class="metric-block" x-show="metricVisible('storage_used')"><span class="metric-value" x-text="integrationData.storage_used ?? '—'"></span><span class="metric-label">Used</span></div>
+                            <div class="metric-block" x-show="metricVisible('storage_free')"><span class="metric-value" x-text="integrationData.storage_free ?? '—'"></span><span class="metric-label">Free</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'unifi'">
                         <div class="integration-metrics-grid">
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.wan_status ?? '—'"></span><span class="metric-label">WAN</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.clients ?? '—'"></span><span class="metric-label">Clients</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.aps_online ?? '—'"></span><span class="metric-label">APs up</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.latency ?? '—'"></span><span class="metric-label">Latency</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('wan_status')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.wan_status ?? '—'"></span><span class="metric-label">WAN</span></div>
+                            <div class="metric-block" x-show="metricVisible('clients')"><span class="metric-value" x-text="integrationData.clients ?? '—'"></span><span class="metric-label">Clients</span></div>
+                            <div class="metric-block" x-show="metricVisible('aps_online')"><span class="metric-value" x-text="integrationData.aps_online ?? '—'"></span><span class="metric-label">APs up</span></div>
+                            <div class="metric-block" x-show="metricVisible('devices')"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
+                            <div class="metric-block" x-show="metricVisible('latency')"><span class="metric-value" x-text="integrationData.latency ?? '—'"></span><span class="metric-label">Latency</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'grafana'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.dashboards ?? '—'"></span><span class="metric-label">Dashboards</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.datasources ?? '—'"></span><span class="metric-label">Sources</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.database ?? '—'"></span><span class="metric-label">Database</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.organization ?? '—'"></span><span class="metric-label">Org</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('dashboards')"><span class="metric-value" x-text="integrationData.dashboards ?? '—'"></span><span class="metric-label">Dashboards</span></div>
+                            <div class="metric-block" x-show="metricVisible('datasources')"><span class="metric-value" x-text="integrationData.datasources ?? '—'"></span><span class="metric-label">Sources</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('database')"><span class="metric-value" x-text="integrationData.database ?? '—'"></span><span class="metric-label">Database</span></div>
+                            <div class="metric-block" x-show="metricVisible('organization')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.organization ?? '—'"></span><span class="metric-label">Org</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'netdata'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">Host CPU</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.alarms ?? '—'"></span><span class="metric-label">Alarms</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.charts ?? '—'"></span><span class="metric-label">Charts</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.hostname ?? '—'"></span><span class="metric-label">Host</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('cpu')"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">Host CPU</span></div>
+                            <div class="metric-block" x-show="metricVisible('alarms')"><span class="metric-value" x-text="integrationData.alarms ?? '—'"></span><span class="metric-label">Alarms</span></div>
+                            <div class="metric-block" x-show="metricVisible('charts')"><span class="metric-value" x-text="integrationData.charts ?? '—'"></span><span class="metric-label">Charts</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('hostname')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.hostname ?? '—'"></span><span class="metric-label">Host</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'glances'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">Host CPU</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.memory ?? '—'"></span><span class="metric-label">Host RAM</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.load ?? '—'"></span><span class="metric-label">Load</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('cpu')"><span class="metric-value" x-text="integrationData.cpu ?? '—'"></span><span class="metric-label">Host CPU</span></div>
+                            <div class="metric-block" x-show="metricVisible('memory')"><span class="metric-value" x-text="integrationData.memory ?? '—'"></span><span class="metric-label">Host RAM</span></div>
+                            <div class="metric-block" x-show="metricVisible('load')"><span class="metric-value" x-text="integrationData.load ?? '—'"></span><span class="metric-label">Load</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'beszel'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems_up ?? '—'"></span><span class="metric-label">Up</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems_down ?? '—'"></span><span class="metric-label">Down</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems ?? '—'"></span><span class="metric-label">Systems</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.avg_cpu ?? '—'"></span><span class="metric-label">Avg CPU</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('systems_up')"><span class="metric-value" x-text="integrationData.systems_up ?? '—'"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block" x-show="metricVisible('systems_down')"><span class="metric-value" x-text="integrationData.systems_down ?? '—'"></span><span class="metric-label">Down</span></div>
+                            <div class="metric-block" x-show="metricVisible('systems')"><span class="metric-value" x-text="integrationData.systems ?? '—'"></span><span class="metric-label">Systems</span></div>
+                            <div class="metric-block" x-show="metricVisible('avg_cpu')"><span class="metric-value" x-text="integrationData.avg_cpu ?? '—'"></span><span class="metric-label">Avg CPU</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'paperless'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.documents ?? '—'"></span><span class="metric-label">Documents</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.inbox ?? '—'"></span><span class="metric-label">Inbox</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.correspondents ?? '—'"></span><span class="metric-label">Contacts</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.tags ?? '—'"></span><span class="metric-label">Tags</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage ?? '—'"></span><span class="metric-label">Storage</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('documents')"><span class="metric-value" x-text="integrationData.documents ?? '—'"></span><span class="metric-label">Documents</span></div>
+                            <div class="metric-block" x-show="metricVisible('inbox')"><span class="metric-value" x-text="integrationData.inbox ?? '—'"></span><span class="metric-label">Inbox</span></div>
+                            <div class="metric-block" x-show="metricVisible('correspondents')"><span class="metric-value" x-text="integrationData.correspondents ?? '—'"></span><span class="metric-label">Contacts</span></div>
+                            <div class="metric-block" x-show="metricVisible('tags')"><span class="metric-value" x-text="integrationData.tags ?? '—'"></span><span class="metric-label">Tags</span></div>
+                            <div class="metric-block" x-show="metricVisible('storage')"><span class="metric-value" x-text="integrationData.storage ?? '—'"></span><span class="metric-label">Storage</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'mealie'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.recipes ?? '—'"></span><span class="metric-label">Recipes</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users ?? '—'"></span><span class="metric-label">Users</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('recipes')"><span class="metric-value" x-text="integrationData.recipes ?? '—'"></span><span class="metric-label">Recipes</span></div>
+                            <div class="metric-block" x-show="metricVisible('users')"><span class="metric-value" x-text="integrationData.users ?? '—'"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'nextcloud'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users_active ?? '—'"></span><span class="metric-label">Active 24h</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users_online ?? '—'"></span><span class="metric-label">Online</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_space ?? '—'"></span><span class="metric-label">Free</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('users_active')"><span class="metric-value" x-text="integrationData.users_active ?? '—'"></span><span class="metric-label">Active 24h</span></div>
+                            <div class="metric-block" x-show="metricVisible('users_online')"><span class="metric-value" x-text="integrationData.users_online ?? '—'"></span><span class="metric-label">Online</span></div>
+                            <div class="metric-block" x-show="metricVisible('free_space')"><span class="metric-value" x-text="integrationData.free_space ?? '—'"></span><span class="metric-label">Free</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'vaultwarden'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users ?? '—'"></span><span class="metric-label">Users</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.organizations ?? '—'"></span><span class="metric-label">Orgs</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.server ?? '—'"></span><span class="metric-label">Server</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('users')"><span class="metric-value" x-text="integrationData.users ?? '—'"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block" x-show="metricVisible('organizations')"><span class="metric-value" x-text="integrationData.organizations ?? '—'"></span><span class="metric-label">Orgs</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('server')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.server ?? '—'"></span><span class="metric-label">Server</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'deluge'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.downloading ?? '—'"></span><span class="metric-label">Downloading</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.seeding ?? '—'"></span><span class="metric-label">Seeding</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_space ?? '—'"></span><span class="metric-label">Free disk</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('downloading')"><span class="metric-value" x-text="integrationData.downloading ?? '—'"></span><span class="metric-label">Downloading</span></div>
+                            <div class="metric-block" x-show="metricVisible('seeding')"><span class="metric-value" x-text="integrationData.seeding ?? '—'"></span><span class="metric-label">Seeding</span></div>
+                            <div class="metric-block" x-show="metricVisible('torrents')"><span class="metric-value" x-text="integrationData.torrents ?? '—'"></span><span class="metric-label">Torrents</span></div>
+                            <div class="metric-block" x-show="metricVisible('free_space')"><span class="metric-value" x-text="integrationData.free_space ?? '—'"></span><span class="metric-label">Free disk</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'navidrome'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.artists ?? '—'"></span><span class="metric-label">Artists</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('artists')"><span class="metric-value" x-text="integrationData.artists ?? '—'"></span><span class="metric-label">Artists</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'komga'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.series ?? '—'"></span><span class="metric-label">Series</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.books ?? '—'"></span><span class="metric-label">Books</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.libraries ?? '—'"></span><span class="metric-label">Libraries</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('series')"><span class="metric-value" x-text="integrationData.series ?? '—'"></span><span class="metric-label">Series</span></div>
+                            <div class="metric-block" x-show="metricVisible('books')"><span class="metric-value" x-text="integrationData.books ?? '—'"></span><span class="metric-label">Books</span></div>
+                            <div class="metric-block" x-show="metricVisible('libraries')"><span class="metric-value" x-text="integrationData.libraries ?? '—'"></span><span class="metric-label">Libraries</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'photoprism'">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.photos ?? '—'"></span><span class="metric-label">Photos</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.videos ?? '—'"></span><span class="metric-label">Videos</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.albums ?? '—'"></span><span class="metric-label">Albums</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.index_status ?? '—'"></span><span class="metric-label">Index</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('photos')"><span class="metric-value" x-text="integrationData.photos ?? '—'"></span><span class="metric-label">Photos</span></div>
+                            <div class="metric-block" x-show="metricVisible('videos')"><span class="metric-value" x-text="integrationData.videos ?? '—'"></span><span class="metric-label">Videos</span></div>
+                            <div class="metric-block" x-show="metricVisible('albums')"><span class="metric-value" x-text="integrationData.albums ?? '—'"></span><span class="metric-label">Albums</span></div>
+                            <div class="metric-block" x-show="metricVisible('index_status')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.index_status ?? '—'"></span><span class="metric-label">Index</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'proxmox'">
                         <div class="integration-metrics-grid">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.nodes ?? '—'"></span><span class="metric-label">Nodes</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.vms ?? '—'"></span><span class="metric-label">VMs</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.lxcs ?? '—'"></span><span class="metric-label">LXCs</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cluster_cpu ?? '—'"></span><span class="metric-label">CPU</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cluster_mem ?? '—'"></span><span class="metric-label">Memory</span></div>
-                            <div class="metric-block"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
+                            <div class="metric-block" x-show="metricVisible('nodes')"><span class="metric-value" x-text="integrationData.nodes ?? '—'"></span><span class="metric-label">Nodes</span></div>
+                            <div class="metric-block" x-show="metricVisible('vms')"><span class="metric-value" x-text="integrationData.vms ?? '—'"></span><span class="metric-label">VMs</span></div>
+                            <div class="metric-block" x-show="metricVisible('lxcs')"><span class="metric-value" x-text="integrationData.lxcs ?? '—'"></span><span class="metric-label">LXCs</span></div>
+                            <div class="metric-block" x-show="metricVisible('cluster_cpu')"><span class="metric-value" x-text="integrationData.cluster_cpu ?? '—'"></span><span class="metric-label">CPU</span></div>
+                            <div class="metric-block" x-show="metricVisible('cluster_mem')"><span class="metric-value" x-text="integrationData.cluster_mem ?? '—'"></span><span class="metric-label">Memory</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" style="font-size:0.7rem;" x-text="integrationData.version ?? '—'"></span><span class="metric-label">Version</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'tailscale'">
                         <div class="integration-metrics-grid">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices_online ?? '—'"></span><span class="metric-label">Online</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.exit_nodes ?? '—'"></span><span class="metric-label">Exit nodes</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('devices_online')"><span class="metric-value" x-text="integrationData.devices_online ?? '—'"></span><span class="metric-label">Online</span></div>
+                            <div class="metric-block" x-show="metricVisible('devices')"><span class="metric-value" x-text="integrationData.devices ?? '—'"></span><span class="metric-label">Devices</span></div>
+                            <div class="metric-block" x-show="metricVisible('exit_nodes')"><span class="metric-value" x-text="integrationData.exit_nodes ?? '—'"></span><span class="metric-label">Exit nodes</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'netbird'">
                         <div class="integration-metrics-grid">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.peers_connected ?? '—'"></span><span class="metric-label">Connected</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.peers ?? '—'"></span><span class="metric-label">Peers</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.setup_keys ?? '—'"></span><span class="metric-label">Setup keys</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('peers_connected')"><span class="metric-value" x-text="integrationData.peers_connected ?? '—'"></span><span class="metric-label">Connected</span></div>
+                            <div class="metric-block" x-show="metricVisible('peers')"><span class="metric-value" x-text="integrationData.peers ?? '—'"></span><span class="metric-label">Peers</span></div>
+                            <div class="metric-block" x-show="metricVisible('setup_keys')"><span class="metric-value" x-text="integrationData.setup_keys ?? '—'"></span><span class="metric-label">Setup keys</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.tier2">
                         <div class="integration-metrics-grid" data-lxc-metrics>
                             {cpu_ram}
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
                             <template x-for="key in ['version','users','flows','devices','stacks','zones','plugins','entities','sessions','missing','queue','library','datastores','proxy_hosts','routers','array_state','blocking','volumes','model','models','running','certificates','middlewares','services','lights_on','server_name','wanted','total','pending','containers','parity_status','luci','active_streams','releases','watches','applications','teams','active','unread','nodes','pods','jobs']" :key="key">
-                                <div class="metric-block" x-show="integrationData[key] !== undefined && integrationData[key] !== null && integrationData[key] !== '—'">
+                                <div class="metric-block" x-show="metricVisible(key) && integrationData[key] !== undefined && integrationData[key] !== null && integrationData[key] !== '—'">
                                     <span class="metric-value" x-text="integrationData[key]"></span>
                                     <span class="metric-label" x-text="key.replace(/_/g, ' ')"></span>
                                 </div>
@@ -974,8 +978,8 @@ fn build_filled_integration_widget(_app_id: i64, _csrf_token: &str, _show_cpu_ra
                     </template>
                     <template x-if="integrationData.health_only">
                         <div class="integration-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? integrationData.latency_ms ?? '—'"></span><span class="metric-label" x-text="integrationData.version ? 'Version' : 'Latency'"></span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status ?? '—'"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? integrationData.latency_ms ?? '—'"></span><span class="metric-label" x-text="integrationData.version ? 'Version' : 'Latency'"></span></div>
                         </div>
                     </template>
                     </div>
@@ -1154,10 +1158,13 @@ fn render_apps_grid(
                 status_title, status_title
             ),
         };
+        let api_metrics_hidden =
+            crate::settings::integration_api_metrics_hidden(&app.integration_visible_metrics);
         let use_filled = app.card_span == "1x2"
             && is_admin
             && !app.integration_type.is_empty()
-            && app.integration_type != "rss";
+            && app.integration_type != "rss"
+            && !api_metrics_hidden;
         let sub_metrics = if is_admin {
             if name_lower.contains("home") && name_lower.contains("assistant") {
                 r#"
@@ -1176,7 +1183,7 @@ fn render_apps_grid(
                     </div>
                 </div>"#
                     .to_string()
-            } else if app.show_container_metrics && !use_filled {
+            } else if app.show_container_metrics && (!use_filled || api_metrics_hidden) {
                 // Instant metrics: seed CPU/RAM from the last agent telemetry
                 // instead of empty dashes when the container is already known.
                 let (cpu_display, ram_display) = match container_match {
@@ -1228,7 +1235,7 @@ fn render_apps_grid(
                 .replace('"', "&quot;")
                 .replace('\'', "&#39;");
             let edit_control = format!(
-                r#"<button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0); setTimeout(function(){{ if (window.amudRefreshIntegrationPicker) window.amudRefreshIntegrationPicker('edit-app-integration-picker', editApp.integration_type || ''); }}, 50);"><i data-lucide="edit-2"></i></button>"#,
+                r#"<button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); if (window.amudHydrateAppMetrics) amudHydrateAppMetrics(editApp); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0); setTimeout(function(){{ if (window.amudRefreshIntegrationPicker) window.amudRefreshIntegrationPicker('edit-app-integration-picker', editApp.integration_type || ''); }}, 50);"><i data-lucide="edit-2"></i></button>"#,
                 escaped_json
             );
             format!(
@@ -1268,10 +1275,9 @@ fn render_apps_grid(
         };
 
         let mut integration_widget = String::new();
-        if is_admin && !app.integration_type.is_empty() {
+        if is_admin && !app.integration_type.is_empty() && !api_metrics_hidden {
             if use_filled {
-                integration_widget =
-                    build_filled_integration_widget(app.id, csrf_token, app.show_container_metrics);
+                integration_widget = build_filled_integration_widget(app.show_container_metrics);
             } else if app.integration_type == "rss" {
                 integration_widget = r#"
                 <div class="integration-widget integration-widget--always">
@@ -1425,170 +1431,170 @@ fn render_apps_grid(
                     </template>
                     <template x-if="integrationData.type === 'fritz'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Down</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('download_speed')"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Down</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'portainer'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.containers_running"></span><span class="metric-label">Running</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stacks"></span><span class="metric-label">Stacks</span></div>
+                            <div class="metric-block" x-show="metricVisible('containers_running')"><span class="metric-value" x-text="integrationData.containers_running"></span><span class="metric-label">Running</span></div>
+                            <div class="metric-block" x-show="metricVisible('stacks')"><span class="metric-value" x-text="integrationData.stacks"></span><span class="metric-label">Stacks</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'opnsense' || integrationData.type === 'pfsense'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu"></span><span class="metric-label">CPU</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.states"></span><span class="metric-label">States</span></div>
+                            <div class="metric-block" x-show="metricVisible('cpu')"><span class="metric-value" x-text="integrationData.cpu"></span><span class="metric-label">CPU</span></div>
+                            <div class="metric-block" x-show="metricVisible('states')"><span class="metric-value" x-text="integrationData.states"></span><span class="metric-label">States</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'truenas'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.pools_healthy"></span><span class="metric-label">Pools OK</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.storage_free"></span><span class="metric-label">Free</span></div>
+                            <div class="metric-block" x-show="metricVisible('pools_healthy')"><span class="metric-value" x-text="integrationData.pools_healthy"></span><span class="metric-label">Pools OK</span></div>
+                            <div class="metric-block" x-show="metricVisible('storage_free')"><span class="metric-value" x-text="integrationData.storage_free"></span><span class="metric-label">Free</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'unifi'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.clients"></span><span class="metric-label">Clients</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.aps_online"></span><span class="metric-label">APs up</span></div>
+                            <div class="metric-block" x-show="metricVisible('clients')"><span class="metric-value" x-text="integrationData.clients"></span><span class="metric-label">Clients</span></div>
+                            <div class="metric-block" x-show="metricVisible('aps_online')"><span class="metric-value" x-text="integrationData.aps_online"></span><span class="metric-label">APs up</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'grafana'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.dashboards"></span><span class="metric-label">Dashboards</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.datasources"></span><span class="metric-label">Sources</span></div>
+                            <div class="metric-block" x-show="metricVisible('dashboards')"><span class="metric-value" x-text="integrationData.dashboards"></span><span class="metric-label">Dashboards</span></div>
+                            <div class="metric-block" x-show="metricVisible('datasources')"><span class="metric-value" x-text="integrationData.datasources"></span><span class="metric-label">Sources</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'netdata' || integrationData.type === 'glances'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.cpu"></span><span class="metric-label">CPU</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.alarms ?? integrationData.memory"></span><span class="metric-label" x-text="integrationData.type === 'netdata' ? 'Alarms' : 'RAM'"></span></div>
+                            <div class="metric-block" x-show="metricVisible('cpu')"><span class="metric-value" x-text="integrationData.cpu"></span><span class="metric-label">CPU</span></div>
+                            <div class="metric-block" x-show="metricVisible('alarms')"><span class="metric-value" x-text="integrationData.alarms ?? integrationData.memory"></span><span class="metric-label" x-text="integrationData.type === 'netdata' ? 'Alarms' : 'RAM'"></span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'beszel'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems_up"></span><span class="metric-label">Up</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.systems"></span><span class="metric-label">Systems</span></div>
+                            <div class="metric-block" x-show="metricVisible('systems_up')"><span class="metric-value" x-text="integrationData.systems_up"></span><span class="metric-label">Up</span></div>
+                            <div class="metric-block" x-show="metricVisible('systems')"><span class="metric-value" x-text="integrationData.systems"></span><span class="metric-label">Systems</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'paperless'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.documents"></span><span class="metric-label">Documents</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.inbox"></span><span class="metric-label">Inbox</span></div>
+                            <div class="metric-block" x-show="metricVisible('documents')"><span class="metric-value" x-text="integrationData.documents"></span><span class="metric-label">Documents</span></div>
+                            <div class="metric-block" x-show="metricVisible('inbox')"><span class="metric-value" x-text="integrationData.inbox"></span><span class="metric-label">Inbox</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'mealie'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.recipes"></span><span class="metric-label">Recipes</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block" x-show="metricVisible('recipes')"><span class="metric-value" x-text="integrationData.recipes"></span><span class="metric-label">Recipes</span></div>
+                            <div class="metric-block" x-show="metricVisible('users')"><span class="metric-value" x-text="integrationData.users"></span><span class="metric-label">Users</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'nextcloud'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users_active"></span><span class="metric-label">Active</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.free_space"></span><span class="metric-label">Free</span></div>
+                            <div class="metric-block" x-show="metricVisible('users_active')"><span class="metric-value" x-text="integrationData.users_active"></span><span class="metric-label">Active</span></div>
+                            <div class="metric-block" x-show="metricVisible('free_space')"><span class="metric-value" x-text="integrationData.free_space"></span><span class="metric-label">Free</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'vaultwarden'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.users"></span><span class="metric-label">Users</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.organizations"></span><span class="metric-label">Orgs</span></div>
+                            <div class="metric-block" x-show="metricVisible('users')"><span class="metric-value" x-text="integrationData.users"></span><span class="metric-label">Users</span></div>
+                            <div class="metric-block" x-show="metricVisible('organizations')"><span class="metric-value" x-text="integrationData.organizations"></span><span class="metric-label">Orgs</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'deluge'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.downloading"></span><span class="metric-label">Downloading</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.seeding"></span><span class="metric-label">Seeding</span></div>
+                            <div class="metric-block" x-show="metricVisible('downloading')"><span class="metric-value" x-text="integrationData.downloading"></span><span class="metric-label">Downloading</span></div>
+                            <div class="metric-block" x-show="metricVisible('seeding')"><span class="metric-value" x-text="integrationData.seeding"></span><span class="metric-label">Seeding</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'navidrome'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.artists"></span><span class="metric-label">Artists</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('artists')"><span class="metric-value" x-text="integrationData.artists"></span><span class="metric-label">Artists</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'komga'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.series"></span><span class="metric-label">Series</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.books"></span><span class="metric-label">Books</span></div>
+                            <div class="metric-block" x-show="metricVisible('series')"><span class="metric-value" x-text="integrationData.series"></span><span class="metric-label">Series</span></div>
+                            <div class="metric-block" x-show="metricVisible('books')"><span class="metric-value" x-text="integrationData.books"></span><span class="metric-label">Books</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'photoprism'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.photos"></span><span class="metric-label">Photos</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.videos"></span><span class="metric-label">Videos</span></div>
+                            <div class="metric-block" x-show="metricVisible('photos')"><span class="metric-value" x-text="integrationData.photos"></span><span class="metric-label">Photos</span></div>
+                            <div class="metric-block" x-show="metricVisible('videos')"><span class="metric-value" x-text="integrationData.videos"></span><span class="metric-label">Videos</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'proxmox'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.vms"></span><span class="metric-label">VMs</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.lxcs"></span><span class="metric-label">LXCs</span></div>
+                            <div class="metric-block" x-show="metricVisible('vms')"><span class="metric-value" x-text="integrationData.vms"></span><span class="metric-label">VMs</span></div>
+                            <div class="metric-block" x-show="metricVisible('lxcs')"><span class="metric-value" x-text="integrationData.lxcs"></span><span class="metric-label">LXCs</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'tailscale' || integrationData.type === 'netbird'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices_online ?? integrationData.peers_connected"></span><span class="metric-label">Online</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.devices ?? integrationData.peers"></span><span class="metric-label">Total</span></div>
+                            <div class="metric-block" x-show="metricVisible('devices_online')"><span class="metric-value" x-text="integrationData.devices_online ?? integrationData.peers_connected"></span><span class="metric-label">Online</span></div>
+                            <div class="metric-block" x-show="metricVisible('devices')"><span class="metric-value" x-text="integrationData.devices ?? integrationData.peers"></span><span class="metric-label">Total</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.tier2 || integrationData.health_only">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.version ?? integrationData.latency_ms ?? '—'"></span><span class="metric-label">Info</span></div>
+                            <div class="metric-block" x-show="metricVisible('status')"><span class="metric-value" x-text="integrationData.status"></span><span class="metric-label">Status</span></div>
+                            <div class="metric-block" x-show="metricVisible('version')"><span class="metric-value" x-text="integrationData.version ?? integrationData.latency_ms ?? '—'"></span><span class="metric-label">Info</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'sabnzbd' || integrationData.type === 'nzbget'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size"></span><span class="metric-label">Queue</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size"></span><span class="metric-label">Queue</span></div>
+                            <div class="metric-block" x-show="metricVisible('download_speed')"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Download</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'transmission'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Download</span></div>
+                            <div class="metric-block" x-show="metricVisible('download_speed')"><span class="metric-value" x-text="integrationData.download_speed"></span><span class="metric-label">Download</span></div>
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.active_downloads"></span>↓ <span x-text="integrationData.seeding"></span>↑</span><span class="metric-label">Active</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'jackett'">
                         <div class="nested-metrics-grid cols-2">
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.indexers_enabled"></span>/<span x-text="integrationData.indexers_total"></span></span><span class="metric-label">Indexers</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.failed_indexers"></span><span class="metric-label">Failed</span></div>
+                            <div class="metric-block" x-show="metricVisible('failed_indexers')"><span class="metric-value" x-text="integrationData.failed_indexers"></span><span class="metric-label">Failed</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'tautulli'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.stream_count"></span><span class="metric-label">Streams</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.bandwidth"></span><span class="metric-label">Bandwidth</span></div>
+                            <div class="metric-block" x-show="metricVisible('stream_count')"><span class="metric-value" x-text="integrationData.stream_count"></span><span class="metric-label">Streams</span></div>
+                            <div class="metric-block" x-show="metricVisible('bandwidth')"><span class="metric-value" x-text="integrationData.bandwidth"></span><span class="metric-label">Bandwidth</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'audiobookshelf'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.library_count"></span><span class="metric-label">Libraries</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.item_count"></span><span class="metric-label">Items</span></div>
+                            <div class="metric-block" x-show="metricVisible('library_count')"><span class="metric-value" x-text="integrationData.library_count"></span><span class="metric-label">Libraries</span></div>
+                            <div class="metric-block" x-show="metricVisible('item_count')"><span class="metric-value" x-text="integrationData.item_count"></span><span class="metric-label">Items</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'immich'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.photos"></span><span class="metric-label">Photos</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.videos"></span><span class="metric-label">Videos</span></div>
+                            <div class="metric-block" x-show="metricVisible('photos')"><span class="metric-value" x-text="integrationData.photos"></span><span class="metric-label">Photos</span></div>
+                            <div class="metric-block" x-show="metricVisible('videos')"><span class="metric-value" x-text="integrationData.videos"></span><span class="metric-label">Videos</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'tdarr'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.queue_size"></span><span class="metric-label">Staged</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.workers"></span><span class="metric-label">Workers</span></div>
+                            <div class="metric-block" x-show="metricVisible('queue_size')"><span class="metric-value" x-text="integrationData.queue_size"></span><span class="metric-label">Staged</span></div>
+                            <div class="metric-block" x-show="metricVisible('workers')"><span class="metric-value" x-text="integrationData.workers"></span><span class="metric-label">Workers</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'maintainerr'">
                         <div class="nested-metrics-grid cols-2">
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.issue_count"></span><span class="metric-label">Issues</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.rule_count"></span><span class="metric-label">Rules</span></div>
+                            <div class="metric-block" x-show="metricVisible('issue_count')"><span class="metric-value" x-text="integrationData.issue_count"></span><span class="metric-label">Issues</span></div>
+                            <div class="metric-block" x-show="metricVisible('rule_count')"><span class="metric-value" x-text="integrationData.rule_count"></span><span class="metric-label">Rules</span></div>
                         </div>
                     </template>
                     <template x-if="integrationData.type === 'frigate'">
                         <div class="nested-metrics-grid cols-2">
                             <div class="metric-block"><span class="metric-value"><span x-text="integrationData.cameras_up"></span>/<span x-text="integrationData.cameras_total"></span></span><span class="metric-label">Cameras</span></div>
-                            <div class="metric-block"><span class="metric-value" x-text="integrationData.detection_fps"></span><span class="metric-label">Det. FPS</span></div>
+                            <div class="metric-block" x-show="metricVisible('detection_fps')"><span class="metric-value" x-text="integrationData.detection_fps"></span><span class="metric-label">Det. FPS</span></div>
                         </div>
                     </template>
                     </div>
@@ -1598,13 +1604,19 @@ fn render_apps_grid(
             }
         }
 
-        let alpine_init = if is_admin && !app.integration_type.is_empty() {
+        let visible_metrics_attr = escape_html(&app.integration_visible_metrics);
+        let visible_metrics_js = if app.integration_visible_metrics.trim().is_empty() {
+            "null".to_string()
+        } else {
+            app.integration_visible_metrics.clone()
+        };
+        let alpine_init = if is_admin && !app.integration_type.is_empty() && !api_metrics_hidden {
             format!(
-                r#"x-data="{{ integrationData: null }}" data-integration-refresh="{}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }}).catch(() => {{}})""#,
-                app.id, app.id
+                r#"data-integration-visible-metrics="{}" x-data="{{ integrationData: null, visibleMetrics: {visible_metrics_js}, metricVisible(key) {{ const v = this.visibleMetrics; if (v === null || v === undefined) return true; if (Array.isArray(v) && v.length === 0) return false; return v.includes(key); }} }}" data-integration-refresh="{}" x-init="fetch('/api/apps/{}/integration').then(r => r.ok ? r.json() : null).then(d => {{ if (d && d.type) integrationData = d }}).catch(() => {{}})""#,
+                visible_metrics_attr, app.id, app.id
             )
         } else {
-            "".to_string()
+            String::new()
         };
 
         let container_aliases = alias_tokens.join(" ");
@@ -1682,7 +1694,7 @@ fn render_apps_grid(
 
         let card = format!(
             r#"
-            <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-node-tag="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" {}>
+            <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-node-tag="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" data-integration-visible-metrics="{}" {}>
                 <div class="app-card-header">
                     <a href="{}"{}{} class="app-card-identity app-card-open" style="text-decoration:none; color:inherit;">
                         <div class="app-card-icon">
@@ -1714,6 +1726,7 @@ fn render_apps_grid(
             } else {
                 "false"
             },
+            visible_metrics_attr,
             alpine_init,
             escape_html(&open_url),
             link_target,
@@ -1928,7 +1941,7 @@ fn render_auth_buttons(
                 }
                 PageMode::Dashboard => {
                     r#"
-            <button type="button" class="glass-panel topbar-action btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true };">
+            <button type="button" class="glass-panel topbar-action btn-admin" @click="addAppModalOpen = true; appIconUrl = ''; newApp = { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link', show_integration_metrics: true, integration_visible_metrics: [] };">
                 <i data-lucide="plus"></i> Add App
             </button>
             <a href="/admin/settings" class="glass-panel topbar-action btn-admin">
@@ -2124,7 +2137,7 @@ fn render_proxmox_stream_card(
             .replace('\'', "&#39;");
         format!(
             r#"<div style="display: inline-flex; align-items: center; gap: 0.25rem; margin-left: 0.35rem;">
-                <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0); setTimeout(function(){{ if (window.amudRefreshIntegrationPicker) window.amudRefreshIntegrationPicker('edit-app-integration-picker', editApp.integration_type || ''); }}, 50);">
+                <button type="button" class="btn-edit-app" title="Edit application" data-app="{}" @click="editApp = JSON.parse($el.getAttribute('data-app')); window.editingAppOriginalName = (editApp.name || '').toLowerCase(); if (window.amudHydrateAppMetrics) amudHydrateAppMetrics(editApp); editAppModalOpen = true; setTimeout(checkDuplicateAppName, 0); setTimeout(function(){{ if (window.amudRefreshIntegrationPicker) window.amudRefreshIntegrationPicker('edit-app-integration-picker', editApp.integration_type || ''); }}, 50);">
                     <i data-lucide="edit-2"></i>
                 </button>
                 <form action="/apps/delete" method="POST" style="margin: 0; display: inline-flex; align-items: center;">

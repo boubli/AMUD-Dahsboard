@@ -186,6 +186,14 @@ pub async fn run() {
         "ALTER TABLE apps ADD COLUMN embed_mode TEXT DEFAULT 'link'",
         [],
     );
+    let _ = conn.execute(
+        "ALTER TABLE apps ADD COLUMN integration_visible_metrics TEXT NOT NULL DEFAULT ''",
+        [],
+    );
+    let _ = conn.execute(
+        "UPDATE apps SET integration_visible_metrics = '[]' WHERE integration_type IN ('jellyfin','plex','emby') AND (integration_visible_metrics IS NULL OR TRIM(integration_visible_metrics) = '')",
+        [],
+    );
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS dashboard_widgets (

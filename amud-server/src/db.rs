@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex, RwLock};
 pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
     let mut apps = Vec::new();
     let Ok(mut stmt) = db.prepare(
-        "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode FROM apps ORDER BY sort_order ASC, id ASC",
+        "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode, integration_visible_metrics FROM apps ORDER BY sort_order ASC, id ASC",
     ) else {
         return apps;
     };
@@ -39,6 +39,7 @@ pub(crate) fn load_apps_from_db(db: &Connection) -> Vec<App> {
                 show_container_metrics: row.get::<_, i64>(12).unwrap_or(1) != 0,
                 guest_visible: row.get::<_, i64>(13).unwrap_or(1) != 0,
                 embed_mode: row.get(14).unwrap_or_else(|_| "link".to_string()),
+                integration_visible_metrics: row.get(15).unwrap_or_else(|_| String::new()),
             })
         })() {
             apps.push(app);
@@ -67,10 +68,11 @@ fn row_to_app(row: &rusqlite::Row<'_>) -> rusqlite::Result<App> {
         show_container_metrics: row.get::<_, i64>(12).unwrap_or(1) != 0,
         guest_visible: row.get::<_, i64>(13).unwrap_or(1) != 0,
         embed_mode: row.get(14).unwrap_or_else(|_| "link".to_string()),
+        integration_visible_metrics: row.get(15).unwrap_or_else(|_| String::new()),
     })
 }
 
-const APP_SELECT: &str = "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode FROM apps";
+const APP_SELECT: &str = "SELECT id, name, url, icon, description, category, node_tag, mac_address, integration_type, api_key, sort_order, card_span, show_container_metrics, guest_visible, embed_mode, integration_visible_metrics FROM apps";
 
 pub(crate) fn load_app_by_id(db: &Connection, id: i64) -> Option<App> {
     db.query_row(&format!("{APP_SELECT} WHERE id = ?"), [id], row_to_app)

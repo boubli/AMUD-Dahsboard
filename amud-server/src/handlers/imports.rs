@@ -23,11 +23,12 @@ pub(crate) use crate::logos::{fallback_brand_logo, resolve_logo_from_manifest};
 pub(crate) use crate::models::{AppState, Session};
 pub(crate) use crate::security::{sanitize_rss_feed_url, url_allowed_for_webhook};
 pub(crate) use crate::settings::{
-    apply_integration_cache_limits, apply_performance_preset, parse_guest_visible_categories,
-    parse_show_container_metrics, resolve_card_span, sanitize_active_theme_id,
-    sanitize_bool_setting, sanitize_cache_max_entries, sanitize_cache_ttl_secs, sanitize_card_span,
-    sanitize_custom_css, sanitize_dashboard_layout, sanitize_disk_mount_list, sanitize_embed_mode,
-    sanitize_guest_visible_categories, sanitize_iface_list, sanitize_integration_url,
+    apply_integration_cache_limits, apply_performance_preset, default_integration_visible_metrics,
+    parse_guest_visible_categories, parse_show_container_metrics, resolve_card_span,
+    sanitize_active_theme_id, sanitize_bool_setting, sanitize_cache_max_entries,
+    sanitize_cache_ttl_secs, sanitize_card_span, sanitize_custom_css, sanitize_dashboard_layout,
+    sanitize_disk_mount_list, sanitize_embed_mode, sanitize_guest_visible_categories,
+    sanitize_iface_list, sanitize_integration_url, sanitize_integration_visible_metrics,
     sanitize_interval_setting, sanitize_performance_preset, sanitize_setting_url,
     sanitize_theme_mode, sanitize_theme_scheduler, sanitize_time_hhmm,
     sanitize_wallpaper_overlay_strength, sanitize_widget_type, setting_key_allowed,

@@ -711,6 +711,7 @@ mod tests {
             show_container_metrics: true,
             guest_visible: true,
             embed_mode: "link".to_string(),
+            integration_visible_metrics: String::new(),
         }
     }
 

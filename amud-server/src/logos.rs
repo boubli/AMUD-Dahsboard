@@ -162,12 +162,23 @@ pub(crate) fn fallback_brand_logo(lowercase_icon: &str) -> String {
         "casaos" => "/static/logos/casaos.svg".to_string(),
         "ollama" => "/static/logos/ollama.svg".to_string(),
         "open_webui" | "open-webui" => "/static/logos/open-webui.svg".to_string(),
+        "rutorrent" => "/static/logos/rutorrent.svg".to_string(),
+        "jdownloader" => "/static/logos/jdownloader.svg".to_string(),
+        "audiobookshelf" => "/static/logos/audiobookshelf.svg".to_string(),
+        "tdarr" => "/static/logos/tdarr.svg".to_string(),
+        "changedetection" | "changedetection_io" => "/static/logos/changedetection.svg".to_string(),
+        "jellyseerr" => "/static/logos/jellyseerr.svg".to_string(),
+        "memos" => "/static/logos/memos.svg".to_string(),
         _ => "/static/fallback.svg".to_string(),
     }
 }
 
 /// Logo path for an integration catalog id (manifest / picker UI).
-pub(crate) fn logo_for_integration_id(id: &str) -> String {
+pub(crate) fn logo_for_integration_id(id: &str, manifest: &HashMap<String, String>) -> String {
+    let resolved = resolve_logo_from_manifest(id, manifest);
+    if !resolved.is_empty() {
+        return resolved;
+    }
     fallback_brand_logo(id)
 }
 

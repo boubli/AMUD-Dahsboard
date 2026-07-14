@@ -16,7 +16,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="{{apple_touch_icon_url}}">
     {{webgl_preload_script}}
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v={{app_version}}">
     
     <!-- Alpine.js for drawer state / bindings -->
     <script defer src="/static/vendor/alpine.min.js"></script>
@@ -43,7 +43,7 @@
     <style id="amud-custom-css">{{custom_css}}</style>
     <link rel="stylesheet" href="/static/theme-guards.css?v={{app_version}}">
 </head>
-<body data-theme-id="{{active_theme_id}}" x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link' } }" class="theme-{{active_theme_id}} {{video_bg_class}} {{body_page_class}}">
+<body data-theme-id="{{active_theme_id}}" x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link', show_integration_metrics: true, integration_visible_metrics: [] }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link', show_integration_metrics: true, integration_visible_metrics: [] } }" class="theme-{{active_theme_id}} {{video_bg_class}} {{body_page_class}}">
     {{video_bg_element}}
     {{update_banner}}
     <div class="dashboard-container">
@@ -524,6 +524,29 @@
                     </p>
                 </div>
 
+                <div class="form-group" x-show="newApp.integration_type && newApp.integration_type !== 'rss' && amudCardMetricsFor(newApp.integration_type).length">
+                    <input type="hidden" name="integration_visible_metrics" :value="amudSerializeVisibleMetrics(newApp)">
+                    <label class="checkbox-row" for="add-app-show-integration-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="add-app-show-integration-metrics" x-model="newApp.show_integration_metrics" @change="amudOnIntegrationMetricsToggle(newApp)" style="margin-top:0.15rem;">
+                        <span>
+                            Show integration stats on this card
+                            <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Disable to show CPU/RAM only. Jellyfin/Plex/Emby stream cards above the grid still use the API.</span>
+                        </span>
+                    </label>
+                    <div x-show="newApp.show_integration_metrics" class="integration-metrics-picker" style="margin-top:0.65rem; display:flex; flex-direction:column; gap:0.35rem;">
+                        <template x-for="metric in amudCardMetricsFor(newApp.integration_type)" :key="metric.key">
+                            <label class="checkbox-row" style="display:flex; align-items:center; gap:0.5rem; font-weight:400; cursor:pointer;">
+                                <input type="checkbox" :checked="(newApp.integration_visible_metrics || []).includes(metric.key)" @change="amudToggleMetricKey(newApp, metric.key, $event.target.checked)">
+                                <span x-text="metric.label"></span>
+                            </label>
+                        </template>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                            <button type="button" class="btn btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.75rem;" @click="newApp.integration_visible_metrics = amudDefaultVisibleMetricKeys(newApp.integration_type); newApp.show_integration_metrics = true; amudApplyIntegrationSpan(newApp);">Select all</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.75rem;" @click="newApp.show_integration_metrics = false; amudOnIntegrationMetricsToggle(newApp);">Hide all</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="add-app-description">Description</label>
                     <textarea id="add-app-description" name="description" class="form-control" rows="2" placeholder="Optional"></textarea>
@@ -735,6 +758,29 @@
                     </p>
                 </div>
 
+                <div class="form-group" x-show="editApp.integration_type && editApp.integration_type !== 'rss' && amudCardMetricsFor(editApp.integration_type).length">
+                    <input type="hidden" name="integration_visible_metrics" :value="amudSerializeVisibleMetrics(editApp)">
+                    <label class="checkbox-row" for="edit-app-show-integration-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="edit-app-show-integration-metrics" x-model="editApp.show_integration_metrics" @change="amudOnIntegrationMetricsToggle(editApp)" style="margin-top:0.15rem;">
+                        <span>
+                            Show integration stats on this card
+                            <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Disable to show CPU/RAM only. Jellyfin/Plex/Emby stream cards above the grid still use the API.</span>
+                        </span>
+                    </label>
+                    <div x-show="editApp.show_integration_metrics" class="integration-metrics-picker" style="margin-top:0.65rem; display:flex; flex-direction:column; gap:0.35rem;">
+                        <template x-for="metric in amudCardMetricsFor(editApp.integration_type)" :key="metric.key">
+                            <label class="checkbox-row" style="display:flex; align-items:center; gap:0.5rem; font-weight:400; cursor:pointer;">
+                                <input type="checkbox" :checked="(editApp.integration_visible_metrics || []).includes(metric.key)" @change="amudToggleMetricKey(editApp, metric.key, $event.target.checked)">
+                                <span x-text="metric.label"></span>
+                            </label>
+                        </template>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                            <button type="button" class="btn btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.75rem;" @click="editApp.integration_visible_metrics = amudDefaultVisibleMetricKeys(editApp.integration_type); editApp.show_integration_metrics = true; amudApplyIntegrationSpan(editApp);">Select all</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.75rem;" @click="editApp.show_integration_metrics = false; amudOnIntegrationMetricsToggle(editApp);">Hide all</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="edit-app-description">Description</label>
                     <textarea id="edit-app-description" name="description" x-model="editApp.description" class="form-control" rows="2" placeholder="Optional"></textarea>
@@ -785,8 +831,116 @@
         function amudApplyIntegrationSpan(app) {
             if (!app || !app.integration_type || app.integration_type === 'rss') return;
             if (window.HEALTH_ONLY_INTEGRATIONS.has(app.integration_type)) return;
+            if (app.show_integration_metrics === false) {
+                if (app.show_container_metrics) app.card_span = '1x1';
+                return;
+            }
             app.card_span = '1x2';
         }
+
+        function amudMediaStreamIntegrations() {
+            return ['jellyfin', 'plex', 'emby'];
+        }
+
+        function amudCardMetricsFor(integrationId) {
+            if (!integrationId || !window.INTEGRATION_MANIFEST?.groups) return [];
+            for (const group of window.INTEGRATION_MANIFEST.groups) {
+                for (const item of group.integrations || []) {
+                    if (item.id === integrationId) return item.card_metrics || [];
+                }
+            }
+            return [];
+        }
+
+        function amudDefaultShowIntegrationMetrics(integrationId) {
+            return !amudMediaStreamIntegrations().includes(integrationId);
+        }
+
+        function amudDefaultVisibleMetricKeys(integrationId) {
+            if (!amudDefaultShowIntegrationMetrics(integrationId)) return [];
+            return amudCardMetricsFor(integrationId).map(function (m) { return m.key; });
+        }
+
+        function amudHydrateAppMetrics(app) {
+            if (!app) return;
+            const raw = app.integration_visible_metrics;
+            if (raw === '[]' || (typeof raw === 'string' && raw.trim() === '[]')) {
+                app.show_integration_metrics = false;
+                app.integration_visible_metrics = [];
+            } else if (raw === '' || raw == null || raw === undefined) {
+                app.show_integration_metrics = true;
+                app.integration_visible_metrics = amudDefaultVisibleMetricKeys(app.integration_type);
+            } else if (typeof raw === 'string') {
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length === 0) {
+                        app.show_integration_metrics = false;
+                        app.integration_visible_metrics = [];
+                    } else {
+                        app.show_integration_metrics = true;
+                        app.integration_visible_metrics = Array.isArray(parsed) ? parsed : [];
+                    }
+                } catch (e) {
+                    app.show_integration_metrics = true;
+                    app.integration_visible_metrics = amudDefaultVisibleMetricKeys(app.integration_type);
+                }
+            } else if (Array.isArray(raw)) {
+                app.show_integration_metrics = raw.length > 0;
+                app.integration_visible_metrics = raw;
+            }
+            amudApplyIntegrationSpan(app);
+        }
+
+        function amudOnIntegrationMetricsToggle(app) {
+            if (!app) return;
+            if (app.show_integration_metrics) {
+                if (!app.integration_visible_metrics || !app.integration_visible_metrics.length) {
+                    app.integration_visible_metrics = amudDefaultVisibleMetricKeys(app.integration_type);
+                }
+            } else {
+                app.integration_visible_metrics = [];
+            }
+            amudApplyIntegrationSpan(app);
+        }
+
+        function amudOnIntegrationTypeChange(app, integrationId) {
+            if (!app) return;
+            app.integration_type = integrationId || '';
+            app.show_integration_metrics = amudDefaultShowIntegrationMetrics(integrationId);
+            app.integration_visible_metrics = amudDefaultVisibleMetricKeys(integrationId);
+            if (!app.icon && integrationId) {
+                app.icon = integrationId;
+                if (app === document.body._x_dataStack?.[0]?.newApp) {
+                    document.body._x_dataStack[0].appIconUrl = integrationId;
+                }
+            }
+            amudApplyIntegrationSpan(app);
+        }
+
+        function amudSerializeVisibleMetrics(app) {
+            if (!app || !app.integration_type || app.integration_type === 'rss') return '';
+            if (app.show_integration_metrics === false) return '[]';
+            const keys = app.integration_visible_metrics || [];
+            const allKeys = amudDefaultVisibleMetricKeys(app.integration_type);
+            if (!keys.length || (allKeys.length && keys.length >= allKeys.length)) return '';
+            return JSON.stringify(keys);
+        }
+
+        function amudToggleMetricKey(app, key, checked) {
+            if (!app) return;
+            const set = new Set(app.integration_visible_metrics || []);
+            if (checked) set.add(key);
+            else set.delete(key);
+            app.integration_visible_metrics = Array.from(set);
+            app.show_integration_metrics = app.integration_visible_metrics.length > 0;
+            amudApplyIntegrationSpan(app);
+        }
+
+        window.amudCardMetricsFor = amudCardMetricsFor;
+        window.amudHydrateAppMetrics = amudHydrateAppMetrics;
+        window.amudSerializeVisibleMetrics = amudSerializeVisibleMetrics;
+        window.amudOnIntegrationMetricsToggle = amudOnIntegrationMetricsToggle;
+        window.amudOnIntegrationTypeChange = amudOnIntegrationTypeChange;
 
         function amudSafeLower(value) {
             return (value || '').trim().toLowerCase();

@@ -35,16 +35,108 @@ pub fn map_homepage_widget_type(widget_type: &str) -> Option<&'static str> {
         .map(|(_, v)| *v)
 }
 
-pub fn integration_manifest_json() -> Value {
+/// API metric keys and labels shown on filled integration app cards (not CPU/RAM).
+pub fn card_metrics_for(integration_id: &str) -> &'static [(&'static str, &'static str)] {
+    match integration_id {
+        "radarr" => &[
+            ("queue_size", "Queue"),
+            ("missing", "Missing"),
+            ("library_count", "Movies"),
+            ("disk_free", "Disk free"),
+            ("version", "Version"),
+            ("health", "Health"),
+        ],
+        "sonarr" => &[
+            ("queue_size", "Queue"),
+            ("missing", "Missing"),
+            ("series_count", "Series"),
+            ("episode_count", "Episodes"),
+            ("disk_free", "Disk free"),
+            ("version", "Version"),
+        ],
+        "lidarr" => &[
+            ("queue_size", "Queue"),
+            ("missing", "Missing"),
+            ("library_count", "Artists"),
+            ("album_count", "Albums"),
+            ("disk_free", "Disk free"),
+            ("version", "Version"),
+            ("health", "Health"),
+        ],
+        "readarr" => &[
+            ("queue_size", "Queue"),
+            ("missing", "Missing"),
+            ("library_count", "Books"),
+            ("author_count", "Authors"),
+            ("disk_free", "Disk free"),
+            ("version", "Version"),
+            ("health", "Health"),
+        ],
+        "whisparr" => &[
+            ("queue_size", "Queue"),
+            ("missing", "Missing"),
+            ("series_count", "Series"),
+            ("episode_count", "Episodes"),
+            ("disk_free", "Disk free"),
+            ("version", "Version"),
+            ("health", "Health"),
+        ],
+        "prowlarr" => &[
+            ("indexers_enabled", "Indexers"),
+            ("queue_size", "Queue"),
+            ("failed_indexers", "Failed"),
+            ("version", "Version"),
+            ("health", "Health"),
+            ("app_count", "Apps"),
+        ],
+        "jellyfin" | "plex" | "emby" => &[("active_streams", "Streams"), ("status", "Status")],
+        "tautulli" => &[
+            ("stream_count", "Streams"),
+            ("bandwidth", "Bandwidth"),
+            ("library_count", "Libraries"),
+            ("sessions", "Sessions"),
+            ("status", "Status"),
+        ],
+        "qbittorrent" | "transmission" => &[
+            ("download_speed", "Download"),
+            ("upload_speed", "Upload"),
+            ("active_downloads", "Active"),
+            ("free_disk", "Free disk"),
+            ("total_torrents", "Torrents"),
+            ("paused_torrents", "Paused"),
+        ],
+        "pihole" | "adguard" => &[
+            ("ads_blocked_today", "Blocked"),
+            ("dns_queries_today", "Queries"),
+            ("status", "Status"),
+        ],
+        "overseerr" | "jellyseerr" => &[
+            ("pending_requests", "Pending"),
+            ("approved_requests", "Approved"),
+            ("processing_requests", "Processing"),
+            ("total_requests", "Total"),
+        ],
+        _ => &[],
+    }
+}
+
+pub fn integration_manifest_json(
+    logo_manifest: &std::collections::HashMap<String, String>,
+) -> Value {
     let mut groups: std::collections::BTreeMap<&str, Vec<Value>> =
         std::collections::BTreeMap::new();
     for meta in INTEGRATION_CATALOG {
+        let card_metrics: Vec<Value> = card_metrics_for(meta.id)
+            .iter()
+            .map(|(key, label)| json!({ "key": key, "label": label }))
+            .collect();
         groups.entry(meta.group).or_default().push(json!({
             "id": meta.id,
             "label": meta.label,
-            "icon": crate::logos::logo_for_integration_id(meta.id),
+            "icon": crate::logos::logo_for_integration_id(meta.id, logo_manifest),
             "tier": tier_str(meta.tier),
             "health_only": meta.tier == IntegrationTier::Health,
+            "card_metrics": card_metrics,
         }));
     }
     let grouped: Vec<Value> = groups

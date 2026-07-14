@@ -14,12 +14,16 @@
         if (!root) return;
         if (field === 'newApp') {
             root.newApp.integration_type = value;
-            if (typeof window.amudApplyIntegrationSpan === 'function') {
+            if (typeof window.amudOnIntegrationTypeChange === 'function') {
+                window.amudOnIntegrationTypeChange(root.newApp, value);
+            } else if (typeof window.amudApplyIntegrationSpan === 'function') {
                 window.amudApplyIntegrationSpan(root.newApp);
             }
         } else if (field === 'editApp') {
             root.editApp.integration_type = value;
-            if (typeof window.amudApplyIntegrationSpan === 'function') {
+            if (typeof window.amudOnIntegrationTypeChange === 'function') {
+                window.amudOnIntegrationTypeChange(root.editApp, value);
+            } else if (typeof window.amudApplyIntegrationSpan === 'function') {
                 window.amudApplyIntegrationSpan(root.editApp);
             }
         }
@@ -35,6 +39,7 @@
                     label: item.label,
                     icon: item.icon || NONE_ICON,
                     health_only: !!item.health_only,
+                    card_metrics: item.card_metrics || [],
                 };
             });
         });

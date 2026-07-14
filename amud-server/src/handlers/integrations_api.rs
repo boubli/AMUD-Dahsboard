@@ -55,6 +55,7 @@ pub async fn integration_test_handler(
         show_container_metrics: false,
         guest_visible: false,
         embed_mode: "link".into(),
+        integration_visible_metrics: String::new(),
     };
     let clients = state.http_clients.clone();
     match crate::integrations::fetch_integration_data_uncached(&app, accept_invalid, &clients).await
