@@ -17,9 +17,9 @@ pub const MAX_VISIBLE_APPS: usize = 50;
 
 pub(crate) fn activity_mode_name(mode: u8) -> &'static str {
     match mode {
-        MODE_ACTIVE => "active",
-        MODE_GRACE => "grace",
-        _ => "idle",
+        MODE_ACTIVE => "Active",
+        MODE_GRACE => "Grace period",
+        _ => "Deep idle",
     }
 }
 

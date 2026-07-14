@@ -60,6 +60,9 @@ pub(crate) fn get_default_settings() -> HashMap<&'static str, &'static str> {
     s.insert("alert_ram_threshold", "90");
     s.insert("alert_disk_threshold", "95");
     s.insert("backup_reminder_days", "30");
+    s.insert("webgl_effects_enabled", "1");
+    s.insert("greeting_animations_enabled", "1");
+    s.insert("dashboard_reorder_enabled", "1");
 
     s
 }
@@ -121,6 +124,12 @@ pub(crate) const EXTRA_SETTING_KEYS: &[&str] = &[
     "alert_ram_threshold",
     "alert_disk_threshold",
     "backup_reminder_days",
+    "webgl_effects_enabled",
+    "greeting_animations_enabled",
+    "dashboard_reorder_enabled",
+    "installed_version",
+    "last_version_change_at",
+    "last_update_method",
 ];
 
 pub(crate) const AGENT_CONFIG_SETTING_KEYS: &[&str] = &[

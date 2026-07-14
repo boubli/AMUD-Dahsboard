@@ -3,14 +3,28 @@
 /* Glass tint from user sliders; themes control shape via --radius-xl */
 .glass-panel {
     background: rgba(var(--theme-card-r, 15), var(--theme-card-g, 20), var(--theme-card-b, 25), var(--glass-opacity)) !important;
-    backdrop-filter: blur(var(--glass-blur-intensity)) !important;
-    -webkit-backdrop-filter: blur(var(--glass-blur-intensity)) !important;
+    backdrop-filter: blur(var(--glass-blur-intensity));
+    -webkit-backdrop-filter: blur(var(--glass-blur-intensity));
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-panel {
+        background: rgba(var(--theme-card-r, 15), var(--theme-card-g, 20), var(--theme-card-b, 25), calc(var(--glass-opacity) + 0.15)) !important;
+    }
 }
 
 .app-card.glass-panel {
     overflow: visible;
     height: auto;
     min-height: var(--bento-row-height);
+}
+
+@media (max-width: 768px) {
+    .app-card.glass-panel {
+        overflow: hidden;
+        max-width: 100%;
+        min-width: 0;
+    }
 }
 
 .app-card.glass-panel.app-card--guest-compact {
@@ -96,4 +110,20 @@
 
 .app-card .metric-label {
     color: var(--text-muted);
+}
+
+.settings-sidebar .nav-item svg,
+.settings-sidebar .nav-item [data-lucide] {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    stroke: currentColor;
+    fill: none;
+    opacity: 0.9;
+}
+
+.settings-sidebar .nav-item.active svg,
+.settings-sidebar .nav-item.active [data-lucide] {
+    opacity: 1;
+    stroke: var(--accent-color);
 }

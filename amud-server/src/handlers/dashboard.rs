@@ -398,8 +398,37 @@ async fn render_page(
         .replace("{{app_names_json}}", &app_names_json)
         .replace("{{is_admin}}", if is_admin { "true" } else { "false" })
         .replace(
+            "{{webgl_effects_enabled}}",
+            if settings
+                .get("webgl_effects_enabled")
+                .map(|s| s.as_str() != "0")
+                .unwrap_or(true)
+            {
+                "1"
+            } else {
+                "0"
+            },
+        )
+        .replace(
+            "{{greeting_animations_enabled}}",
+            if settings
+                .get("greeting_animations_enabled")
+                .map(|s| s.as_str() != "0")
+                .unwrap_or(true)
+            {
+                "1"
+            } else {
+                "0"
+            },
+        )
+        .replace(
             "{{admin_drag_script}}",
-            if is_admin {
+            if is_admin
+                && settings
+                    .get("dashboard_reorder_enabled")
+                    .map(|s| s.as_str() != "0")
+                    .unwrap_or(true)
+            {
                 r#"<script src="/static/drag.js"></script>"#
             } else {
                 ""

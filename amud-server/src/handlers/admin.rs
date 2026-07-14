@@ -73,6 +73,9 @@ pub async fn settings_handler(
                 || key == "iframe_embeds_enabled"
                 || key == "feeds_enabled"
                 || key == "enable_proxmox"
+                || key == "webgl_effects_enabled"
+                || key == "greeting_animations_enabled"
+                || key == "dashboard_reorder_enabled"
             {
                 sanitize_bool_setting(&val)
             } else if key == "integration_cache_max_entries" {

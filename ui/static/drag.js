@@ -10,11 +10,22 @@
         const grid = document.querySelector('main.bento-grid');
         if (!grid) return;
 
+        const hintBanner = document.getElementById('reorder-hint-banner');
+
         let draggedCard = null;
         let orderSnapshot = null;
         let persistInFlight = false;
         let dropCommitted = false;
         let pointerDrag = null;
+        let allAppIds = [];
+
+        function parseAppIdsFromDom() {
+            return Array.from(grid.querySelectorAll('.app-card[data-app-id]'))
+                .map(function(card) { return parseInt(card.getAttribute('data-app-id'), 10); })
+                .filter(function(id) { return !isNaN(id); });
+        }
+
+        allAppIds = parseAppIdsFromDom();
 
         function getSortableCards() {
             return Array.from(
@@ -47,10 +58,24 @@
         }
 
         function reorderBlockedMessage() {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput && searchInput.value.trim()) {
+                return 'Clear the search filter before reordering cards.';
+            }
             if (window.activeCategoryFilter && window.activeCategoryFilter !== 'all') {
                 return 'Switch to the All category before reordering cards.';
             }
             return null;
+        }
+
+        function updateReorderHint() {
+            if (!hintBanner) return;
+            const blocked = reorderBlockedMessage();
+            if (blocked) {
+                hintBanner.classList.add('is-visible');
+            } else {
+                hintBanner.classList.remove('is-visible');
+            }
         }
 
         function clearDragHighlights() {
@@ -101,8 +126,21 @@
             return null;
         }
 
+        function buildFullOrderIds() {
+            const visibleOrder = getSortableCards().map(function(card) {
+                return parseInt(card.getAttribute('data-app-id'), 10);
+            }).filter(function(id) { return !isNaN(id); });
+
+            const hiddenSet = new Set(allAppIds.filter(function(id) {
+                return visibleOrder.indexOf(id) === -1;
+            }));
+            const hiddenIds = allAppIds.filter(function(id) { return hiddenSet.has(id); });
+            return visibleOrder.concat(hiddenIds);
+        }
+
         function injectDragHandles() {
             const blocked = reorderBlockedMessage();
+            updateReorderHint();
             const cards = grid.querySelectorAll('.app-card:not(.filter-empty-msg):not(.app-card--empty)');
 
             cards.forEach(function(card) {
@@ -122,12 +160,10 @@
                     handle.setAttribute('draggable', 'false');
                     handle.style.opacity = '0.35';
                     handle.style.cursor = 'not-allowed';
-                    handle.style.pointerEvents = 'auto';
                 } else {
                     handle.setAttribute('draggable', 'true');
                     handle.style.opacity = '';
                     handle.style.cursor = 'grab';
-                    handle.style.pointerEvents = '';
                 }
             });
         }
@@ -135,124 +171,37 @@
         injectDragHandles();
 
         const observer = new MutationObserver(function() {
+            allAppIds = parseAppIdsFromDom();
             injectDragHandles();
         });
         observer.observe(grid, { childList: true });
 
-        document.addEventListener('amud:category-filter', function() {
-            injectDragHandles();
+        document.addEventListener('amud:category-filter', injectDragHandles);
+        document.addEventListener('input', function(e) {
+            if (e.target && e.target.id === 'search-input') injectDragHandles();
         });
 
-        grid.addEventListener('dragstart', function(e) {
-            const handle = e.target.closest('.drag-handle');
-            if (!handle) {
-                e.preventDefault();
-                return;
-            }
-
+        function beginDrag(handle, card, clientX, clientY) {
             const blocked = reorderBlockedMessage();
             if (blocked) {
-                e.preventDefault();
-                if (typeof amudShowToast === 'function') {
-                    amudShowToast(blocked, 'warning');
-                }
-                return;
-            }
-
-            const card = handle.closest('.app-card');
-            if (!card || card.classList.contains('filter-empty-msg')) {
-                e.preventDefault();
-                return;
+                if (typeof amudShowToast === 'function') amudShowToast(blocked, 'warning');
+                return false;
             }
 
             draggedCard = card;
             orderSnapshot = snapshotOrder();
             dropCommitted = false;
-
-            if (e.dataTransfer) {
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', card.getAttribute('data-app-id') || '');
-            }
-
-            requestAnimationFrame(function() {
-                card.classList.add('dragging');
-                grid.classList.add('reordering');
-            });
-        });
-
-        grid.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            if (!draggedCard) return;
-            if (e.dataTransfer) {
-                e.dataTransfer.dropEffect = 'move';
-            }
-
-            clearDragHighlights();
-
-            const overCard = cardFromPoint(e.clientX, e.clientY);
-            if (overCard && overCard !== draggedCard) {
-                overCard.classList.add('drag-over');
-                insertRelativeToTarget(overCard, e.clientY);
-            }
-        });
-
-        grid.addEventListener('dragleave', function(e) {
-            const card = e.target.closest('.app-card');
-            if (card) {
-                card.classList.remove('drag-over');
-            }
-        });
-
-        grid.addEventListener('drop', function(e) {
-            e.preventDefault();
-            if (!draggedCard) return;
-
-            const overCard = cardFromPoint(e.clientX, e.clientY);
-            if (overCard && overCard !== draggedCard) {
-                insertRelativeToTarget(overCard, e.clientY);
-            } else if (!overCard) {
-                grid.appendChild(draggedCard);
-            }
-
-            dropCommitted = true;
-            persistOrder(orderSnapshot);
-            cleanup();
-        });
-
-        grid.addEventListener('dragend', function() {
-            if (!dropCommitted && orderSnapshot) {
-                restoreOrder(orderSnapshot);
-            }
-            dropCommitted = false;
-            orderSnapshot = null;
-            cleanup();
-        });
-
-        function beginPointerDrag(handle, card, clientX, clientY) {
-            const blocked = reorderBlockedMessage();
-            if (blocked) {
-                if (typeof amudShowToast === 'function') {
-                    amudShowToast(blocked, 'warning');
-                }
-                return;
-            }
-
-            draggedCard = card;
-            orderSnapshot = snapshotOrder();
-            dropCommitted = false;
-            pointerDrag = { handle: handle, active: true };
             card.classList.add('dragging');
             grid.classList.add('reordering');
             clearDragHighlights();
 
             const overCard = cardFromPoint(clientX, clientY);
-            if (overCard && overCard !== card) {
-                overCard.classList.add('drag-over');
-            }
+            if (overCard && overCard !== card) overCard.classList.add('drag-over');
+            return true;
         }
 
-        function finishPointerDrag(clientX, clientY) {
-            if (!pointerDrag || !pointerDrag.active || !draggedCard) return;
+        function finishDrag(clientX, clientY) {
+            if (!draggedCard) return;
 
             const overCard = cardFromPoint(clientX, clientY);
             if (overCard && overCard !== draggedCard) {
@@ -263,21 +212,69 @@
 
             dropCommitted = true;
             persistOrder(orderSnapshot);
-            dropCommitted = false;
-            orderSnapshot = null;
             cleanup();
         }
 
+        grid.addEventListener('dragstart', function(e) {
+            const handle = e.target.closest('.drag-handle');
+            if (!handle) {
+                e.preventDefault();
+                return;
+            }
+
+            const card = handle.closest('.app-card');
+            if (!card || !beginDrag(handle, card, e.clientX, e.clientY)) {
+                e.preventDefault();
+                return;
+            }
+
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.getAttribute('data-app-id') || '');
+            }
+        });
+
+        grid.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (!draggedCard) return;
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+
+            clearDragHighlights();
+            const overCard = cardFromPoint(e.clientX, e.clientY);
+            if (overCard && overCard !== draggedCard) {
+                overCard.classList.add('drag-over');
+                insertRelativeToTarget(overCard, e.clientY);
+            }
+        });
+
+        grid.addEventListener('dragleave', function(e) {
+            const card = e.target.closest('.app-card');
+            if (card) card.classList.remove('drag-over');
+        });
+
+        grid.addEventListener('drop', function(e) {
+            e.preventDefault();
+            finishDrag(e.clientX, e.clientY);
+        });
+
+        grid.addEventListener('dragend', function() {
+            if (!dropCommitted && orderSnapshot) restoreOrder(orderSnapshot);
+            dropCommitted = false;
+            orderSnapshot = null;
+            cleanup();
+        });
+
         grid.addEventListener('pointerdown', function(e) {
             const handle = e.target.closest('.drag-handle');
-            if (!handle || e.pointerType === 'mouse') return;
+            if (!handle) return;
 
             const card = handle.closest('.app-card');
             if (!card) return;
 
             e.preventDefault();
             handle.setPointerCapture(e.pointerId);
-            beginPointerDrag(handle, card, e.clientX, e.clientY);
+            pointerDrag = { handle: handle, active: true };
+            beginDrag(handle, card, e.clientX, e.clientY);
         });
 
         grid.addEventListener('pointermove', function(e) {
@@ -297,13 +294,12 @@
             if (pointerDrag.handle && pointerDrag.handle.hasPointerCapture(e.pointerId)) {
                 pointerDrag.handle.releasePointerCapture(e.pointerId);
             }
-            finishPointerDrag(e.clientX, e.clientY);
+            pointerDrag.active = false;
+            finishDrag(e.clientX, e.clientY);
         });
 
         grid.addEventListener('pointercancel', function() {
-            if (pointerDrag && pointerDrag.active && orderSnapshot) {
-                restoreOrder(orderSnapshot);
-            }
+            if (pointerDrag && pointerDrag.active && orderSnapshot) restoreOrder(orderSnapshot);
             dropCommitted = false;
             orderSnapshot = null;
             cleanup();
@@ -312,20 +308,12 @@
         function persistOrder(rollbackSnapshot) {
             if (persistInFlight) return;
 
-            const cards = getSortableCards();
-            const ids = cards.map(function(card) {
-                return parseInt(card.getAttribute('data-app-id'), 10);
-            }).filter(function(id) {
-                return !isNaN(id);
-            });
-
+            const ids = buildFullOrderIds();
             if (ids.length === 0) return;
 
             const previousIds = (rollbackSnapshot || []).map(function(item) {
                 return parseInt(item.id, 10);
-            }).filter(function(id) {
-                return !isNaN(id);
-            });
+            }).filter(function(id) { return !isNaN(id); });
 
             if (previousIds.length === ids.length && previousIds.every(function(id, index) {
                 return id === ids[index];
@@ -354,11 +342,8 @@
             .then(function(res) {
                 return res.text().then(function(text) {
                     let data = {};
-                    try {
-                        data = text ? JSON.parse(text) : {};
-                    } catch (parseErr) {
-                        data = { success: false, error: text || 'Invalid server response' };
-                    }
+                    try { data = text ? JSON.parse(text) : {}; }
+                    catch (parseErr) { data = { success: false, error: text || 'Invalid server response' }; }
                     return { ok: res.ok, data: data };
                 });
             })
@@ -366,12 +351,12 @@
                 if (!result.ok || !result.data.success) {
                     restoreOrder(rollbackSnapshot);
                     const message = (result.data && result.data.error) || 'Failed to save card order.';
-                    if (typeof amudShowToast === 'function') {
-                        amudShowToast(message, 'error');
-                    }
+                    if (typeof amudShowToast === 'function') amudShowToast(message, 'error');
                     return;
                 }
+                allAppIds = ids.slice();
                 orderSnapshot = snapshotOrder();
+                if (typeof amudShowToast === 'function') amudShowToast('Card order saved.', 'success');
             })
             .catch(function() {
                 restoreOrder(rollbackSnapshot);

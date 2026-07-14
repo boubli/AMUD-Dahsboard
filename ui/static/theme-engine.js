@@ -293,6 +293,21 @@
         init: initThemeEngine
     };
 
+    var resizeBgTimer = null;
+    function scheduleBackgroundRefresh() {
+        if (resizeBgTimer) global.clearTimeout(resizeBgTimer);
+        resizeBgTimer = global.setTimeout(function () {
+            if (global.amudThemeBackground && typeof global.amudThemeBackground.refresh === 'function') {
+                try { global.amudThemeBackground.refresh(); } catch (e) { /* ignore */ }
+                return;
+            }
+            refreshBackground().catch(function () { /* ignore */ });
+        }, 250);
+    }
+
+    global.addEventListener('resize', scheduleBackgroundRefresh);
+    global.addEventListener('orientationchange', scheduleBackgroundRefresh);
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
             initThemeEngine().then(function () {

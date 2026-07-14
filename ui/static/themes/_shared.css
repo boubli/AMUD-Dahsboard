@@ -20,3 +20,12 @@
 .save-bar { border-top-color: var(--border-card); }
 .settings-sidebar .nav-item.active { color: var(--accent-color); }
 .modal-header { border-bottom-color: var(--border-card); }
+
+/* Preserve greeting shimmer — do not override text fill with flat color */
+.greeting-widget .greeting-title {
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+.clock-widget .clock-time {
+    color: var(--accent-color);
+}

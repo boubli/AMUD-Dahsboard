@@ -454,6 +454,8 @@ pub async fn run() {
         Err(e) => eprintln!("[AUDIT] schema setup failed: {e}"),
     }
 
+    db::track_installed_version_on_boot(&conn);
+
     let shared_db = Arc::new(Mutex::new(conn));
     let sessions = Arc::new(RwLock::new(HashMap::<String, Session>::new()));
     let latest_telemetry = Arc::new(RwLock::new(AgentTelemetry::default()));

@@ -138,6 +138,8 @@ body::-webkit-scrollbar-button {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
+    overflow-x: clip;
+}
     gap: 1.25rem;
 }
 
@@ -640,6 +642,7 @@ body::-webkit-scrollbar-button {
     grid-auto-flow: row;
     gap: 1rem;
     align-items: stretch;
+    overflow-x: clip;
 }
 
 .bento-grid--guest-compact {
@@ -873,6 +876,10 @@ body::-webkit-scrollbar-button {
     letter-spacing: 0.02em;
     margin-top: 0.15rem;
     text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 /* Fixed metrics slot — integration and CPU/RAM share one footprint */
@@ -2051,7 +2058,7 @@ select.form-control optgroup option {
     font-size: 2.25rem;
     font-weight: 800;
     letter-spacing: -0.04em;
-    color: var(--text-primary);
+    color: transparent;
     background: linear-gradient(
         90deg,
         var(--text-primary) 0%,
@@ -2067,7 +2074,23 @@ select.form-control optgroup option {
     animation: textShimmer 6s ease-in-out infinite;
 }
 
+html[data-greeting-animations="0"] .greeting-title {
+    animation: none;
+    color: var(--text-primary);
+    -webkit-text-fill-color: var(--text-primary);
+    background: none;
+}
+
+@supports not (-webkit-background-clip: text) {
+    .greeting-title {
+        color: var(--text-primary);
+        background: none;
+        animation: none;
+    }
+}
+
 .username-highlight {
+    -webkit-text-fill-color: var(--accent-color);
     color: var(--accent-color);
     text-shadow: 0 0 20px var(--accent-glow);
 }
@@ -2484,6 +2507,10 @@ input[type="color"].form-control {
 }
 
 @media (max-width: 1024px) {
+    body {
+        background-attachment: scroll;
+    }
+
     .bento-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -2672,7 +2699,7 @@ input[type="color"].form-control {
         flex-direction: row;
         align-items: center;
         gap: 0.5rem;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
 
     .app-card-identity {
@@ -2686,10 +2713,16 @@ input[type="color"].form-control {
 
     .app-card:not(.app-card--guest-compact) .app-card-badges {
         width: auto;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         flex-shrink: 0;
         gap: 0.4rem;
         justify-content: flex-end;
+    }
+
+    .app-card:not(.app-card--guest-compact) {
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
     }
 
     .app-card--guest-compact .app-card-badges {
@@ -2779,7 +2812,7 @@ input[type="color"].form-control {
     .app-card:not(.app-card--guest-compact) .integration-metrics-grid {
         min-height: auto;
         gap: 0.3rem;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .app-card:not(.app-card--guest-compact) .integration-metrics-grid .metric-block {
@@ -2802,6 +2835,26 @@ input[type="color"].form-control {
     .btn-edit-app {
         min-width: 44px;
         min-height: 44px;
+    }
+}
+
+@media (max-width: 520px) {
+    .app-card:not(.app-card--guest-compact) .integration-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .app-card:not(.app-card--guest-compact) .integration-metrics-grid .metric-value {
+        font-size: 0.68rem;
+    }
+
+    .app-card:not(.app-card--guest-compact) .app-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .app-card:not(.app-card--guest-compact) .app-card-badges {
+        width: 100%;
+        justify-content: flex-end;
     }
 }
 
@@ -3741,18 +3794,18 @@ body::after {
    PHASE 2: DRAG & DROP STYLES
    ============================================================ */
 
-/* Drag handle — visible on admin hover */
+/* Drag handle — always subtly visible for admins */
 .drag-handle {
     position: absolute;
     top: 0.35rem;
     left: 50%;
     transform: translateX(-50%);
-    width: 2rem;
+    width: 2.5rem;
     height: 0.35rem;
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.12);
     cursor: grab;
-    opacity: 0;
+    opacity: 0.45;
     transition: opacity 0.2s ease, background 0.2s ease;
     z-index: 5;
 }
@@ -3763,8 +3816,8 @@ body::after {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 3rem;
-    height: 1.25rem;
+    width: 2.75rem;
+    height: 2.75rem;
 }
 
 .app-card:hover .drag-handle {
@@ -3777,6 +3830,23 @@ body::after {
 
 .drag-handle:active {
     cursor: grabbing;
+}
+
+.reorder-hint-banner {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    margin-bottom: 0.65rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-card);
+    background: rgba(var(--theme-card-r, 15), var(--theme-card-g, 20), var(--theme-card-b, 25), 0.55);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+.reorder-hint-banner.is-visible {
+    display: flex;
 }
 
 /* Card being dragged */
@@ -4166,16 +4236,11 @@ body.has-webgl-bg {
     background-image: none !important;
 }
 
-/* Disable heavy animations on mobile for performance */
+/* Disable heavy WebGL layer on mobile when CSS fallback is active */
 @media (max-width: 768px) {
-    body::before,
-    body::after,
-    #amud-webgl-bg {
-        display: none;
-    }
-    
-    .greeting-title {
-        animation: none;
+    body.has-webgl-bg::before,
+    body.has-webgl-bg::after {
+        display: none !important;
     }
 }
 
@@ -4186,11 +4251,18 @@ body.has-webgl-bg {
         animation-iteration-count: 1 !important;
         transition-duration: 0.001ms !important;
     }
-    
-    body::before,
-    body::after,
+
+    .greeting-title {
+        animation: none !important;
+        color: var(--text-primary);
+        -webkit-text-fill-color: var(--text-primary);
+        background: none;
+    }
+
+    body.has-webgl-bg::before,
+    body.has-webgl-bg::after,
     #amud-webgl-bg {
-        display: none;
+        display: none !important;
     }
 }
 

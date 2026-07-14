@@ -287,6 +287,10 @@ if [[ -n "$CT_ID" ]]; then
     exit 1
   fi
 
+  msg_info "Tagging update method for audit history"
+  pct exec "$CT_ID" -- bash -c 'command -v sqlite3 >/dev/null 2>&1 || apt-get install -qq -y sqlite3 >/dev/null 2>&1; sqlite3 /opt/amud/data/amud.db "INSERT OR REPLACE INTO settings (key, value) VALUES ('"'"'pending_update_method'"'"', '"'"'script'"'"');"' >/dev/null 2>&1 || true
+  msg_ok "Update method flagged as script"
+
   msg_info "Restarting server service"
   pct_exec_cmd "$CT_ID" "systemctl start amud"
   msg_ok "Restarted server service"

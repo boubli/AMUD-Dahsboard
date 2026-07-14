@@ -933,6 +933,61 @@ pub(crate) fn next_app_sort_order(db: &Connection) -> i64 {
     .unwrap_or(0)
 }
 
+/// Records version changes on boot (script/manual/in-app upgrades on LXC/native).
+pub(crate) fn track_installed_version_on_boot(db: &Connection) {
+    use axum::http::HeaderMap;
+
+    let current = option_env!("GIT_TAG").unwrap_or(env!("CARGO_PKG_VERSION"));
+    let stored: String = db
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'installed_version'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or_default();
+
+    if stored.trim().is_empty() {
+        upsert_setting(db, "installed_version", current);
+        let now = chrono::Utc::now().to_rfc3339();
+        upsert_setting(db, "last_version_change_at", &now);
+        upsert_setting(db, "last_update_method", "first_install");
+        return;
+    }
+
+    if stored == current {
+        return;
+    }
+
+    let target = format!("{stored} -> {current}");
+    let method = db
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'pending_update_method'",
+            [],
+            |row| row.get::<_, String>(0),
+        )
+        .unwrap_or_default();
+    let method = if method.trim().is_empty() {
+        "manual"
+    } else {
+        method.trim()
+    };
+
+    crate::audit::record_audit(
+        db,
+        "system",
+        "system_update_complete",
+        &target,
+        "detected on server startup",
+        &HeaderMap::new(),
+    );
+    upsert_setting(db, "installed_version", current);
+    let now = chrono::Utc::now().to_rfc3339();
+    upsert_setting(db, "last_version_change_at", &now);
+    upsert_setting(db, "last_update_method", method);
+    upsert_setting(db, "pending_update_method", "");
+    println!("Version change recorded: {target} (method: {method})");
+}
+
 pub(crate) fn update_app_order(db: &Connection, ids: &[i64]) -> Result<(), String> {
     if ids.is_empty() {
         return Ok(());

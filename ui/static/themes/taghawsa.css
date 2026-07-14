@@ -59,7 +59,6 @@ body { font-family: var(--theme-font), system-ui, sans-serif; }
 
 .dashboard-container { position: relative; z-index: 1; }
 .topbar-inner { align-items: center; }
-.greeting-widget .greeting-title { color: var(--text-primary); }
 .clock-widget .clock-time { color: var(--accent-color); }
 .category-tabs .filter-tab:hover { color: var(--accent-color); }
 .modal-content.glass-panel { border-color: var(--border-card); }

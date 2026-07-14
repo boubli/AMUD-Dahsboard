@@ -119,7 +119,7 @@
             gap: 0.75rem;
             cursor: pointer;
             text-decoration: none;
-            color: var(--text-color);
+            color: var(--text-primary);
         }
 
         .settings-header-brand .brand-logo {
@@ -170,7 +170,7 @@
 
         .nav-item:hover {
             background: rgba(255, 255, 255, 0.05);
-            color: var(--text-color);
+            color: var(--text-primary);
         }
 
         .nav-item.active {
@@ -188,7 +188,7 @@
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            color: var(--text-color);
+            color: var(--text-primary);
         }
 
         .settings-page-subtitle {
@@ -214,6 +214,102 @@
             margin-bottom: 1.25rem;
             padding-bottom: 0.75rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .perf-preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .perf-preset-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .perf-preset-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .perf-preset-card:has(input:checked) {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px var(--accent-glow);
+        }
+
+        .perf-preset-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .perf-preset-card__title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .perf-preset-card__hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
+        .perf-activity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(58, 166, 255, 0.12);
+            border: 1px solid rgba(58, 166, 255, 0.25);
+            color: #58a6ff;
+        }
+
+        .perf-activity-badge--idle {
+            background: rgba(148, 163, 184, 0.12);
+            border-color: rgba(148, 163, 184, 0.25);
+            color: var(--text-muted);
+        }
+
+        .perf-activity-badge--active {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.25);
+            color: #22c55e;
+        }
+
+        .perf-accordion {
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+
+        .perf-accordion summary {
+            cursor: pointer;
+            font-weight: 600;
+            padding: 0.85rem 1rem;
+            background: rgba(0, 0, 0, 0.12);
+            color: var(--text-secondary);
+            list-style: none;
+        }
+
+        .perf-accordion summary::-webkit-details-marker { display: none; }
+
+        .perf-accordion__body {
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+            gap: 1rem;
         }
 
         .save-bar {
@@ -363,7 +459,7 @@
                 border-radius: 8px;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 background: rgba(255, 255, 255, 0.04);
-                color: var(--text-color);
+                color: var(--text-primary);
                 cursor: pointer;
                 flex-shrink: 0;
             }
@@ -484,6 +580,9 @@
                 </button>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'privacy' }" @click="switchTab('privacy')">
                     <i data-lucide="eye"></i> Privacy & Access
+                </button>
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'performance' }" @click="switchTab('performance')">
+                    <i data-lucide="gauge"></i> Performance
                 </button>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'smarthome' }" @click="switchTab('smarthome')">
                     <i data-lucide="home"></i> Smart Home
@@ -764,6 +863,34 @@
                                 </div>
 
                                 <div class="settings-block settings-block--full" style="margin:0;">
+                                    <h3><i data-lucide="sparkles" style="color:var(--accent-color);"></i> Dashboard effects</h3>
+                                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Control background WebGL, greeting shimmer, and admin card reordering. OS “reduce motion” is respected when enabled.</p>
+                                    <div class="appearance-pair-row appearance-pair-row--triple">
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-webgl-effects">WebGL background effects</label>
+                                            <select id="setting-webgl-effects" name="webgl_effects_enabled" class="form-control" style="height:3rem; cursor:pointer;">
+                                                <option value="1" {{eq_webgl_effects_on}}>Enabled (adaptive quality on all devices)</option>
+                                                <option value="0" {{eq_webgl_effects_off}}>Disabled — CSS drift fallback only</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-greeting-animations">Greeting animations</label>
+                                            <select id="setting-greeting-animations" name="greeting_animations_enabled" class="form-control" style="height:3rem; cursor:pointer;">
+                                                <option value="1" {{eq_greeting_animations_on}}>Enabled — shimmer on greeting title</option>
+                                                <option value="0" {{eq_greeting_animations_off}}>Disabled — static greeting text</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="setting-dashboard-reorder">Drag to reorder cards</label>
+                                            <select id="setting-dashboard-reorder" name="dashboard_reorder_enabled" class="form-control" style="height:3rem; cursor:pointer;">
+                                                <option value="1" {{eq_dashboard_reorder_on}}>Enabled (admin only, All tab)</option>
+                                                <option value="0" {{eq_dashboard_reorder_off}}>Disabled — hide drag handles</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-block settings-block--full" style="margin:0;">
                                     <h3><i data-lucide="layout-grid" style="color:var(--accent-color);"></i> Theme Gallery</h3>
                                     <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
                                         Click a theme to preview CSS and matching wallpaper instantly.
@@ -833,14 +960,9 @@
 
                         <div class="settings-block">
                             <h3><i data-lucide="container" style="color:var(--accent-color);"></i> Docker app discovery</h3>
-                            <p style="font-size:0.85rem; color:var(--text-muted);">Scan labeled containers via the host agent (<code>amud.enable=true</code>, <code>amud.url</code>, etc.) and import as dashboard apps.</p>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Scan labeled containers via the host agent (<code>amud.enable=true</code>, <code>amud.url</code>, etc.) and import as dashboard apps. For Jellyfin/Plex stream cards, add an app with the matching integration type.</p>
                             <button type="button" class="btn btn-secondary" id="btn-docker-scan" style="margin-top:0.75rem;">Scan Docker</button>
                             <div id="docker-discover-results" style="display:none; margin-top:1rem; font-size:0.85rem;"></div>
-                        </div>
-
-                        <div class="settings-block">
-                            <h3><i data-lucide="tv" style="color:var(--accent-color);"></i> Media streams (Jellyfin / Emby / Plex)</h3>
-                            <p style="font-size:0.85rem; color:var(--text-muted);">Media servers are now configured per app: add (or edit) your Jellyfin, Emby, or Plex app card and pick the matching <strong>Integration</strong> with its API key or token. The "Now Playing" stream card, posters, and playback controls follow that app automatically.</p>
                         </div>
 
                         <div class="settings-block">
@@ -923,52 +1045,74 @@
                         </div>
 
                         <div class="settings-block">
-                            <h3><i data-lucide="gauge" style="color:var(--accent-color);"></i> Performance &amp; resources</h3>
-                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Deep idle ~35&nbsp;MB · Active ~42&nbsp;MB with 50 cards (Light preset). Pollers stop when nobody is in the GUI.</p>
+                            <h3><i data-lucide="bell" style="color:var(--accent-color);"></i> Webhook delivery</h3>
                             <div class="form-group">
-                                <label>Performance preset</label>
-                                <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.35rem;">
-                                    <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer;"><input type="radio" name="performance_preset" value="light" {{eq_performance_preset_light}}> Light</label>
-                                    <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer;"><input type="radio" name="performance_preset" value="balanced" {{eq_performance_preset_balanced}}> Balanced</label>
-                                    <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer;"><input type="radio" name="performance_preset" value="active" {{eq_performance_preset_active}}> Active</label>
-                                    <label style="display:flex; align-items:center; gap:0.35rem; cursor:pointer;"><input type="radio" name="performance_preset" value="custom" {{eq_performance_preset_custom}}> Custom</label>
-                                </div>
+                                <label for="setting-webhooks-private">Allow webhooks to private LAN IPs</label>
+                                <select id="setting-webhooks-private" name="webhooks_allow_private_ips" class="form-control" style="height:3rem; cursor:pointer;">
+                                    <option value="0" {{eq_webhooks_private_off}}>Block private IPs (default — safer)</option>
+                                    <option value="1" {{eq_webhooks_private_on}}>Allow private IPs (homelab ntfy/Gotify on LAN)</option>
+                                </select>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Loopback (<code>127.0.0.1</code>) and cloud metadata addresses are always blocked. Enable this only if your notification service runs on a private LAN IP such as <code>192.168.x.x</code>.</p>
                             </div>
-                            <div class="form-group" style="margin-top:1rem;">
+                        </div>
+                    </div>
+
+                    <!-- TAB: PERFORMANCE -->
+                    <div x-show="activeTab === 'performance'" x-transition.opacity style="display:none;">
+                        <h1 class="settings-page-title">Performance</h1>
+                        <p class="settings-page-subtitle">Tune resource usage, polling intervals, and background activity. Pollers slow or pause when nobody is viewing the dashboard.</p>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="activity" style="color:var(--accent-color);"></i> Live activity</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">Current server activity mode — explains why cards may pause updating.</p>
+                            <span class="perf-activity-badge"
+                                  :class="{
+                                      'perf-activity-badge--idle': systemVersion && (systemVersion.activity_mode === 'Deep idle' || systemVersion.activity_mode === 'Grace period'),
+                                      'perf-activity-badge--active': systemVersion && systemVersion.activity_mode === 'Active'
+                                  }"
+                                  x-text="systemVersion && systemVersion.activity_mode ? systemVersion.activity_mode + (systemVersion.active_viewers > 0 ? ' (' + systemVersion.active_viewers + ' viewer' + (systemVersion.active_viewers === 1 ? '' : 's') + ')' : '') : 'Loading…'">
+                            </span>
+                        </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="gauge" style="color:var(--accent-color);"></i> Resource mode</h3>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Choose a preset or unlock Custom to edit intervals manually.</p>
+                            <div class="perf-preset-grid">
+                                <label class="perf-preset-card">
+                                    <input type="radio" name="performance_preset" value="light" {{eq_performance_preset_light}}>
+                                    <span class="perf-preset-card__title">Light</span>
+                                    <span class="perf-preset-card__hint">~35 MB idle · longer polls · smaller cache</span>
+                                </label>
+                                <label class="perf-preset-card">
+                                    <input type="radio" name="performance_preset" value="balanced" {{eq_performance_preset_balanced}}>
+                                    <span class="perf-preset-card__title">Balanced</span>
+                                    <span class="perf-preset-card__hint">~40 MB · default homelab</span>
+                                </label>
+                                <label class="perf-preset-card">
+                                    <input type="radio" name="performance_preset" value="active" {{eq_performance_preset_active}}>
+                                    <span class="perf-preset-card__title">Active</span>
+                                    <span class="perf-preset-card__hint">~42 MB+ · faster polls · live feel</span>
+                                </label>
+                                <label class="perf-preset-card">
+                                    <input type="radio" name="performance_preset" value="custom" {{eq_performance_preset_custom}}>
+                                    <span class="perf-preset-card__title">Custom</span>
+                                    <span class="perf-preset-card__hint">Advanced intervals unlocked</span>
+                                </label>
+                            </div>
+                            <div class="form-group" style="margin-top:1.25rem;">
                                 <label for="setting-idle-grace">Idle grace (seconds before deep sleep)</label>
                                 <input type="number" id="setting-idle-grace" name="idle_grace_secs" class="form-control" value="{{idle_grace_secs}}" min="15" max="300">
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.35rem;">How long after the last viewer leaves before pollers enter deep idle.</p>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" style="margin-top:1rem;">
                                 <label for="setting-agent-node-tag">Agent node tag</label>
                                 <input type="text" id="setting-agent-node-tag" name="agent_node_tag" class="form-control" value="{{agent_node_tag}}" placeholder="Local">
                             </div>
-                            <div class="form-group" style="margin-top:1rem;">
-                                <h4 style="font-size:0.95rem; margin-bottom:0.5rem;">Idle alert thresholds (deep idle only)</h4>
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem;">Fires <code>cpu_high</code> / <code>ram_high</code> / <code>disk_high</code> webhooks when nobody is in the GUI.</p>
-                                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.75rem;">
-                                    <div>
-                                        <label for="setting-alert-cpu">CPU %</label>
-                                        <input type="number" id="setting-alert-cpu" name="alert_cpu_threshold" class="form-control" value="{{alert_cpu_threshold}}" min="50" max="100">
-                                    </div>
-                                    <div>
-                                        <label for="setting-alert-ram">RAM %</label>
-                                        <input type="number" id="setting-alert-ram" name="alert_ram_threshold" class="form-control" value="{{alert_ram_threshold}}" min="50" max="100">
-                                    </div>
-                                    <div>
-                                        <label for="setting-alert-disk">Disk %</label>
-                                        <input type="number" id="setting-alert-disk" name="alert_disk_threshold" class="form-control" value="{{alert_disk_threshold}}" min="50" max="100">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="setting-feeds-enabled">RSS / Feeds</label>
-                                <select id="setting-feeds-enabled" name="feeds_enabled" class="form-control" style="height:3rem; cursor:pointer;" @change="feedsEnabled = $event.target.value === '1'">
-                                    <option value="1" {{eq_feeds_enabled_on}}>Enabled (background RSS polling + Feeds page)</option>
-                                    <option value="0" {{eq_feeds_enabled_off}}>Disabled — stops background RSS polling and hides the Feeds page</option>
-                                </select>
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Your feed sources stay saved when disabled. Re-enable to restore the Feeds page.</p>
-                            </div>
-                            <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
+                        </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="database" style="color:var(--accent-color);"></i> Polling &amp; cache</h3>
+                            <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
                                 <div class="form-group">
                                     <label for="setting-cache-ttl">Integration cache TTL (seconds)</label>
                                     <input type="number" id="setting-cache-ttl" name="integration_cache_ttl_secs" class="form-control" value="{{integration_cache_ttl_secs}}" min="5" max="600">
@@ -978,9 +1122,9 @@
                                     <input type="number" id="setting-cache-max" name="integration_cache_max_entries" class="form-control" value="{{integration_cache_max_entries}}" min="16" max="512">
                                 </div>
                             </div>
-                            <details style="margin-top:1.25rem;">
-                                <summary style="cursor:pointer; font-weight:600; color:var(--text-secondary);">Advanced performance</summary>
-                                <div style="margin-top:1rem; display:grid; grid-template-columns:repeat(auto-fill, minmax(12rem, 1fr)); gap:1rem;">
+                            <details class="perf-accordion">
+                                <summary>Poll intervals (Custom preset)</summary>
+                                <div class="perf-accordion__body">
                                     <div class="form-group">
                                         <label for="setting-agent-telemetry-interval">Agent telemetry (s)</label>
                                         <input type="number" id="setting-agent-telemetry-interval" name="agent_telemetry_interval_secs" class="form-control" value="{{agent_telemetry_interval_secs}}" min="3" max="60">
@@ -1018,14 +1162,33 @@
                         </div>
 
                         <div class="settings-block">
-                            <h3><i data-lucide="bell" style="color:var(--accent-color);"></i> Webhook delivery</h3>
+                            <h3><i data-lucide="bell-ring" style="color:var(--accent-color);"></i> Idle alerts</h3>
+                            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem;">Fires <code>cpu_high</code> / <code>ram_high</code> / <code>disk_high</code> webhooks when nobody is in the GUI.</p>
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.75rem;">
+                                <div class="form-group" style="margin:0;">
+                                    <label for="setting-alert-cpu">CPU %</label>
+                                    <input type="number" id="setting-alert-cpu" name="alert_cpu_threshold" class="form-control" value="{{alert_cpu_threshold}}" min="50" max="100">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label for="setting-alert-ram">RAM %</label>
+                                    <input type="number" id="setting-alert-ram" name="alert_ram_threshold" class="form-control" value="{{alert_ram_threshold}}" min="50" max="100">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label for="setting-alert-disk">Disk %</label>
+                                    <input type="number" id="setting-alert-disk" name="alert_disk_threshold" class="form-control" value="{{alert_disk_threshold}}" min="50" max="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="rss" style="color:var(--accent-color);"></i> Feeds &amp; RSS</h3>
                             <div class="form-group">
-                                <label for="setting-webhooks-private">Allow webhooks to private LAN IPs</label>
-                                <select id="setting-webhooks-private" name="webhooks_allow_private_ips" class="form-control" style="height:3rem; cursor:pointer;">
-                                    <option value="0" {{eq_webhooks_private_off}}>Block private IPs (default — safer)</option>
-                                    <option value="1" {{eq_webhooks_private_on}}>Allow private IPs (homelab ntfy/Gotify on LAN)</option>
+                                <label for="setting-feeds-enabled">RSS / Feeds</label>
+                                <select id="setting-feeds-enabled" name="feeds_enabled" class="form-control" style="height:3rem; cursor:pointer;" @change="feedsEnabled = $event.target.value === '1'">
+                                    <option value="1" {{eq_feeds_enabled_on}}>Enabled (background RSS polling + Feeds page)</option>
+                                    <option value="0" {{eq_feeds_enabled_off}}>Disabled — stops background RSS polling and hides the Feeds page</option>
                                 </select>
-                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Loopback (<code>127.0.0.1</code>) and cloud metadata addresses are always blocked. Enable this only if your notification service runs on a private LAN IP such as <code>192.168.x.x</code>.</p>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.45rem;">Your feed sources stay saved when disabled. Re-enable to restore the Feeds page.</p>
                             </div>
                         </div>
                     </div>
@@ -1505,6 +1668,14 @@
                                           x-text="systemVersion ? (systemVersion.agent_connected ? 'Connected' : 'Disconnected') : 'Checking...'">
                                     </span>
                                 </div>
+                                <div class="sys-info-row">
+                                    <span class="sys-info-label">Last Updated</span>
+                                    <span style="font-size:0.85rem;" x-text="systemVersion && systemVersion.last_version_change_at ? systemVersion.last_version_change_at : ('{{last_version_change_at}}' || '—')"></span>
+                                </div>
+                                <div class="sys-info-row" x-show="systemVersion && systemVersion.last_update_method">
+                                    <span class="sys-info-label">Update Method</span>
+                                    <span style="font-size:0.85rem; text-transform:capitalize;" x-text="systemVersion.last_update_method"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1589,7 +1760,7 @@
                         System Update History
                     </h3>
                     <p style="padding: 0 1.25rem 1rem 1.25rem; font-size: 0.85rem; color: var(--text-muted); margin: 0;">
-                        Past system update events recorded in the audit log.
+                        Past system update events from the audit log. Script or manual upgrades on LXC/native are recorded on next server start.
                     </p>
                     <table class="mgmt-table">
                         <thead>
@@ -1604,7 +1775,10 @@
                             <tr x-show="loadingHistory">
                                 <td colspan="4" style="color:var(--text-muted); text-align:center; padding: 2rem 0;">Loading update history…</td>
                             </tr>
-                            <tr x-show="!loadingHistory && !updateHistory.length">
+                            <tr x-show="!loadingHistory && updateHistoryError">
+                                <td colspan="4" style="color:var(--danger); text-align:center; padding: 2rem 0;" x-text="updateHistoryError"></td>
+                            </tr>
+                            <tr x-show="!loadingHistory && !updateHistoryError && !updateHistory.length">
                                 <td colspan="4" style="color:var(--text-muted); text-align:center; padding: 2rem 0;">No updates recorded yet.</td>
                             </tr>
                             <template x-for="entry in updateHistory" :key="entry.created_at">
@@ -1632,7 +1806,7 @@
             <!-- TAB: AUDIT LOG -->
             <div x-show="activeTab === 'audit'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <h1 class="settings-page-title">Audit Log</h1>
-                <p class="settings-page-subtitle">Recent administrative actions recorded by the server (last 200 entries).</p>
+                <p class="settings-page-subtitle">Recent administrative actions recorded by the server (last 200 entries). <span id="audit-meta-badge" style="font-size:0.85rem;"></span></p>
                 <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
                     <div class="form-group" style="margin:0; flex:1; min-width:180px;">
                         <label for="audit-filter-search" style="font-size:0.75rem;">Search</label>
@@ -1928,6 +2102,7 @@
                 updateCompleted: false,
                 updateHistory: [],
                 loadingHistory: false,
+                updateHistoryError: null,
                 showToast: false,
                 toastMessage: '',
                 toastVersion: '',
@@ -1979,6 +2154,9 @@
                         localStorage.setItem('amud_system_tab_visited', 'true');
                         this.loadUpdateHistory();
                     }
+                    else if (this.activeTab === 'performance') {
+                        this.loadSystemVersion();
+                    }
                 },
 
                 switchTab(tab) {
@@ -2000,6 +2178,9 @@
                         localStorage.setItem('amud_system_tab_visited', 'true');
                         this.loadSystemVersion();
                         this.loadUpdateHistory();
+                    }
+                    if (tab === 'performance') {
+                        this.loadSystemVersion();
                     }
                 },
 
@@ -2030,19 +2211,38 @@
 
                 loadUpdateHistory() {
                     this.loadingHistory = true;
+                    this.updateHistoryError = null;
+                    const versionPromise = this.systemVersion
+                        ? Promise.resolve(this.systemVersion)
+                        : fetch('/api/system/version', { credentials: 'same-origin', cache: 'no-store' })
+                            .then(res => res.ok ? res.json() : null)
+                            .catch(() => null);
+
                     fetch('/api/audit', { credentials: 'same-origin', cache: 'no-store' })
-                        .then(res => {
-                            if (!res.ok) throw new Error('Failed to fetch audit log');
-                            return res.json();
-                        })
-                        .then(data => {
+                        .then(res => parseApiResponse(res))
+                        .then(async ({ ok, data }) => {
+                            if (!ok) throw new Error(data?.error || 'Failed to fetch audit log');
                             if (!Array.isArray(data)) {
                                 throw new Error(data?.error || 'Unexpected audit log response');
                             }
-                            this.updateHistory = data.filter(entry => entry.action && entry.action.startsWith('system_update_'));
+                            let history = data.filter(entry => entry.action && entry.action.startsWith('system_update_'));
+                            if (!history.length) {
+                                const versionData = await versionPromise;
+                                if (versionData?.last_version_change_at) {
+                                    history = [{
+                                        created_at: versionData.last_version_change_at,
+                                        action: 'system_update_complete',
+                                        target: versionData.current || '{{app_version}}',
+                                        details: 'Method: ' + (versionData.last_update_method || 'detected on startup')
+                                    }];
+                                }
+                            }
+                            this.updateHistory = history;
                         })
                         .catch(err => {
                             console.error('Failed to load update history:', err);
+                            this.updateHistoryError = err.message || 'Failed to load update history';
+                            this.updateHistory = [];
                         })
                         .finally(() => {
                             this.loadingHistory = false;
@@ -2761,13 +2961,29 @@
             const tbody = document.getElementById('audit-table-body');
             if (!tbody) return;
             try {
-                const res = await fetch('/api/audit', { credentials: 'same-origin', cache: 'no-store' });
-                const { ok, data } = await parseApiResponse(res);
+                const [auditRes, versionRes] = await Promise.all([
+                    fetch('/api/audit', { credentials: 'same-origin', cache: 'no-store' }),
+                    fetch('/api/system/version', { credentials: 'same-origin', cache: 'no-store' }).catch(() => null)
+                ]);
+                const { ok, data } = await parseApiResponse(auditRes);
                 if (!ok) throw new Error(data.error || 'Failed to load audit log');
                 if (!Array.isArray(data)) {
                     throw new Error(data?.error || 'Unexpected audit log response');
                 }
                 auditEntriesCache = data;
+
+                const metaBadge = document.getElementById('audit-meta-badge');
+                if (metaBadge && versionRes?.ok) {
+                    const versionData = await versionRes.json();
+                    const count = versionData.audit_entry_count ?? data.length;
+                    const deploy = versionData.deployment_type === 'proxmox' ? 'Proxmox LXC'
+                        : versionData.deployment_type === 'docker' ? 'Docker'
+                        : 'Native Linux';
+                    metaBadge.textContent = `${count} entries · ${deploy}`;
+                } else if (metaBadge) {
+                    metaBadge.textContent = `${data.length} entries`;
+                }
+
                 if (!data.length) {
                     setTableMessage(tbody, 5, 'No audit entries yet. Sign out and sign back in, then save a setting — new actions are recorded from that point forward.', { style: 'color:var(--text-muted);' });
                     const countEl = document.getElementById('audit-filter-count');

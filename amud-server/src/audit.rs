@@ -102,6 +102,14 @@ pub(crate) fn record_audit(
                 last_err = Some(e);
             }
             Err(e) => {
+                if attempt == 0 {
+                    if let Err(rebuild_err) = rebuild_audit_log_table(db) {
+                        eprintln!("[AUDIT] rebuild failed: {rebuild_err}");
+                        eprintln!("[AUDIT] insert failed (action={action}, user={username}): {e}");
+                        return;
+                    }
+                    continue;
+                }
                 eprintln!("[AUDIT] insert failed (action={action}, user={username}): {e}");
                 return;
             }
@@ -110,6 +118,48 @@ pub(crate) fn record_audit(
     if let Some(e) = last_err {
         eprintln!("[AUDIT] insert failed after retries (action={action}): {e}");
     }
+}
+
+fn rebuild_audit_log_table(db: &Connection) -> Result<(), rusqlite::Error> {
+    let has_user = audit_table_has_column(db, "user");
+    let has_username = audit_table_has_column(db, "username");
+    let copy_sql = if has_username && has_user {
+        "INSERT INTO audit_log_new (id, created_at, username, action, target, details, client_ip)
+            SELECT id, created_at,
+                COALESCE(NULLIF(username, ''), COALESCE(user, '')),
+                action, COALESCE(target, ''), COALESCE(details, ''), COALESCE(client_ip, '')
+            FROM audit_log"
+    } else if has_username {
+        "INSERT INTO audit_log_new (id, created_at, username, action, target, details, client_ip)
+            SELECT id, created_at, COALESCE(username, ''), action, COALESCE(target, ''),
+                COALESCE(details, ''), COALESCE(client_ip, '')
+            FROM audit_log"
+    } else if has_user {
+        "INSERT INTO audit_log_new (id, created_at, username, action, target, details, client_ip)
+            SELECT id, created_at, COALESCE(user, ''), action, COALESCE(target, ''),
+                COALESCE(details, ''), COALESCE(client_ip, '')
+            FROM audit_log"
+    } else {
+        "INSERT INTO audit_log_new (id, created_at, username, action, target, details, client_ip)
+            SELECT id, created_at, '', action, COALESCE(target, ''), COALESCE(details, ''), ''
+            FROM audit_log"
+    };
+
+    db.execute_batch(&format!(
+        "CREATE TABLE IF NOT EXISTS audit_log_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            username TEXT NOT NULL DEFAULT '',
+            action TEXT NOT NULL,
+            target TEXT NOT NULL DEFAULT '',
+            details TEXT NOT NULL DEFAULT '',
+            client_ip TEXT NOT NULL DEFAULT ''
+        );
+        {copy_sql};
+        DROP TABLE audit_log;
+        ALTER TABLE audit_log_new RENAME TO audit_log;
+        CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at);"
+    ))
 }
 
 pub(crate) fn list_recent_audit(

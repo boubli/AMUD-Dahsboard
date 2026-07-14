@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amud-dashboard-v37';
+const CACHE_NAME = 'amud-dashboard-v38';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
@@ -13,12 +13,15 @@ const ASSETS_TO_CACHE = [
   '/static/themes/_shared.css',
   '/static/vendor/alpine.min.js',
   '/static/vendor/lucide.min.js',
+  '/static/vendor/three.min.js',
+  '/static/themes/backgrounds/taghawsa-bg.js',
   '/static/admin.js',
   '/static/dashboard-live.js',
   '/static/theme-scheduler.js',
   '/static/app-search.js',
   '/static/shortcuts.js',
-  '/static/embed-tabs.js'
+  '/static/embed-tabs.js',
+  '/static/drag.js'
 ];
 
 function parseManifestJson(res) {

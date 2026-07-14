@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="{{theme_mode}}">
+<html lang="en" data-theme="{{theme_mode}}" data-greeting-animations="{{greeting_animations_enabled}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,6 +9,8 @@
     <meta name="theme-color" content="{{accent_color}}">
     <meta name="description" content="AMUD Dashboard homelab operations cockpit">
     <meta name="csrf-token" content="{{csrf_token}}">
+    <meta name="amud-webgl-effects" content="{{webgl_effects_enabled}}">
+    <meta name="amud-greeting-animations" content="{{greeting_animations_enabled}}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{app_name}}">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -239,6 +241,10 @@
         <!-- FEED_HERO -->
 
         <!-- Main Bento Grid Columns -->
+        <div id="reorder-hint-banner" class="reorder-hint-banner" aria-live="polite">
+            <i data-lucide="info" style="width:1rem;height:1rem;flex-shrink:0;"></i>
+            <span>Switch to the <strong>All</strong> category to drag and reorder app cards.</span>
+        </div>
         <main class="{{main_grid_class}}">
             <!-- APPS_GRID -->
         </main>

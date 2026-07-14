@@ -467,6 +467,87 @@ pub async fn settings_page_handler(
             } else {
                 ""
             },
+        )
+        .replace(
+            "{{last_version_change_at}}",
+            &escape_html(
+                settings
+                    .get("last_version_change_at")
+                    .map(String::as_str)
+                    .unwrap_or("Never"),
+            ),
+        )
+        .replace(
+            "{{eq_webgl_effects_on}}",
+            if settings
+                .get("webgl_effects_enabled")
+                .map(|s| s.as_str() != "0")
+                .unwrap_or(true)
+            {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_webgl_effects_off}}",
+            if settings
+                .get("webgl_effects_enabled")
+                .map(|s| s.as_str() == "0")
+                .unwrap_or(false)
+            {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_greeting_animations_on}}",
+            if settings
+                .get("greeting_animations_enabled")
+                .map(|s| s.as_str() != "0")
+                .unwrap_or(true)
+            {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_greeting_animations_off}}",
+            if settings
+                .get("greeting_animations_enabled")
+                .map(|s| s.as_str() == "0")
+                .unwrap_or(false)
+            {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_dashboard_reorder_on}}",
+            if settings
+                .get("dashboard_reorder_enabled")
+                .map(|s| s.as_str() != "0")
+                .unwrap_or(true)
+            {
+                "selected"
+            } else {
+                ""
+            },
+        )
+        .replace(
+            "{{eq_dashboard_reorder_off}}",
+            if settings
+                .get("dashboard_reorder_enabled")
+                .map(|s| s.as_str() == "0")
+                .unwrap_or(false)
+            {
+                "selected"
+            } else {
+                ""
+            },
         );
 
     let db_categories = with_db(state.db.clone(), load_categories).await;

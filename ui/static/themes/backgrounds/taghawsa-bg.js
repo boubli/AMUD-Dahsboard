@@ -7,9 +7,12 @@
 
     var THEME_ID = 'taghawsa';
     var CONTAINER_ID = 'amud-webgl-bg';
-    var MOBILE_MAX = 768;
+    var PHONE_MAX = 480;
+    var TABLET_MAX = 1024;
 
     var instance = null;
+    var resizeTimer = null;
+    var lastTier = '';
 
     function prefersReducedMotion() {
         try {
@@ -19,12 +22,32 @@
         }
     }
 
-    function isMobileViewport() {
-        return global.innerWidth <= MOBILE_MAX;
+    function webglEffectsEnabled() {
+        var meta = document.querySelector('meta[name="amud-webgl-effects"]');
+        if (meta && meta.getAttribute('content') === '0') return false;
+        return true;
+    }
+
+    function qualityTier() {
+        var w = global.innerWidth || 1024;
+        if (w <= PHONE_MAX) return 'phone';
+        if (w <= TABLET_MAX) return 'tablet';
+        return 'desktop';
+    }
+
+    function tierSettings(tier) {
+        if (tier === 'phone') {
+            return { dpr: 1, gradientCount: 8, intensity: 1.4, grain: 0.05, touchOnly: true };
+        }
+        if (tier === 'tablet') {
+            return { dpr: 1.5, gradientCount: 10, intensity: 1.6, grain: 0.06, touchOnly: false };
+        }
+        return { dpr: 2, gradientCount: 12, intensity: 1.8, grain: 0.08, touchOnly: false };
     }
 
     function shouldSkipWebGl() {
-        if (prefersReducedMotion() || isMobileViewport()) return true;
+        if (!webglEffectsEnabled()) return true;
+        if (prefersReducedMotion()) return true;
         if (document.body.classList.contains('settings-page')) return true;
         if (document.documentElement.getAttribute('data-theme') === 'light') return true;
         return false;
@@ -243,20 +266,21 @@
         '}'
     ].join('\n');
 
-    function TaghawsaApp(container) {
+    function TaghawsaApp(container, settings) {
         this.container = container;
+        this.settings = settings || tierSettings('desktop');
         this.running = false;
         this.rafId = null;
         this.paused = false;
 
         this.renderer = new THREE.WebGLRenderer({
-            antialias: true,
+            antialias: settings.dpr >= 1.5,
             powerPreference: 'high-performance',
             alpha: false,
             stencil: false,
             depth: false
         });
-        this.renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, 2));
+        this.renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, settings.dpr));
         this.renderer.domElement.style.display = 'block';
         this.renderer.domElement.style.width = '100%';
         this.renderer.domElement.style.height = '100%';
@@ -279,12 +303,12 @@
             uColor5: { value: new THREE.Vector3(0.945, 0.353, 0.133) },
             uColor6: { value: new THREE.Vector3(0.0, 0.0, 0.0) },
             uSpeed: { value: 1.5 },
-            uIntensity: { value: 1.8 },
+            uIntensity: { value: settings.intensity },
             uTouchTexture: { value: this.touchTexture.texture },
-            uGrainIntensity: { value: 0.08 },
+            uGrainIntensity: { value: settings.grain },
             uDarkNavy: { value: new THREE.Vector3(0.039, 0.055, 0.153) },
             uGradientSize: { value: 0.45 },
-            uGradientCount: { value: 12.0 },
+            uGradientCount: { value: settings.gradientCount },
             uColor1Weight: { value: 0.5 },
             uColor2Weight: { value: 1.8 }
         };
@@ -376,7 +400,9 @@
         this.running = true;
         this.paused = false;
         this.clock.getDelta();
-        global.addEventListener('mousemove', this.onMouseMove);
+        if (!this.settings.touchOnly) {
+            global.addEventListener('mousemove', this.onMouseMove);
+        }
         global.addEventListener('touchmove', this.onTouchMove, { passive: true });
         global.addEventListener('resize', this.onResize);
         document.addEventListener('visibilitychange', this.onVisibility);
@@ -414,11 +440,7 @@
         }
     };
 
-    function init() {
-        if (instance) return;
-        if (typeof THREE === 'undefined') return;
-        if (shouldSkipWebGl()) return;
-
+    function ensureContainer() {
         var container = document.getElementById(CONTAINER_ID);
         if (!container) {
             container = document.createElement('div');
@@ -427,10 +449,27 @@
             container.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;';
             document.body.insertBefore(container, document.body.firstChild);
         }
+        return container;
+    }
 
-        document.body.classList.add('has-webgl-bg');
-        instance = new TaghawsaApp(container);
-        instance.start();
+    function init() {
+        if (instance) return;
+        if (typeof THREE === 'undefined') return;
+        if (shouldSkipWebGl()) return;
+
+        var tier = qualityTier();
+        lastTier = tier;
+        var settings = tierSettings(tier);
+
+        try {
+            var container = ensureContainer();
+            document.body.classList.add('has-webgl-bg');
+            instance = new TaghawsaApp(container, settings);
+            instance.start();
+        } catch (e) {
+            document.body.classList.remove('has-webgl-bg');
+            instance = null;
+        }
     }
 
     function destroy() {
@@ -443,9 +482,32 @@
         if (container) container.remove();
     }
 
+    function reinitIfNeeded() {
+        var tier = qualityTier();
+        if (shouldSkipWebGl()) {
+            destroy();
+            return;
+        }
+        if (instance && tier === lastTier) {
+            instance.onResize();
+            return;
+        }
+        destroy();
+        init();
+    }
+
+    function onViewportChange() {
+        if (resizeTimer) global.clearTimeout(resizeTimer);
+        resizeTimer = global.setTimeout(reinitIfNeeded, 250);
+    }
+
+    global.addEventListener('resize', onViewportChange);
+    global.addEventListener('orientationchange', onViewportChange);
+
     global.amudThemeBackground = {
         id: THEME_ID,
         init: init,
-        destroy: destroy
+        destroy: destroy,
+        refresh: reinitIfNeeded
     };
 })(typeof window !== 'undefined' ? window : globalThis);

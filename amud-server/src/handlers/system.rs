@@ -1,4 +1,5 @@
 use super::imports::*;
+use crate::audit::audit_health_check;
 use reqwest;
 use serde::Serialize;
 use serde_json::json;
@@ -15,6 +16,11 @@ struct VersionResponse {
     release_date: String,
     deployment_type: String,
     agent_connected: bool,
+    audit_entry_count: i64,
+    last_version_change_at: String,
+    last_update_method: String,
+    activity_mode: String,
+    active_viewers: usize,
 }
 
 #[derive(Deserialize, Clone)]
@@ -209,6 +215,33 @@ pub async fn system_version_handler(
 
     let agent_connected = *state.agent_connected.read().unwrap();
 
+    let last_version_change_at = state
+        .settings_cache
+        .read()
+        .unwrap()
+        .get("last_version_change_at")
+        .cloned()
+        .unwrap_or_default();
+    let last_update_method = state
+        .settings_cache
+        .read()
+        .unwrap()
+        .get("last_update_method")
+        .cloned()
+        .unwrap_or_default();
+    let audit_entry_count =
+        with_db(state.db.clone(), |db| audit_health_check(db).unwrap_or(0)).await;
+    let activity_mode = crate::activity::activity_mode_name(
+        state.activity_mode.load(std::sync::atomic::Ordering::Relaxed),
+    )
+    .to_string();
+    let active_viewers = state
+        .active_ws_count
+        .load(std::sync::atomic::Ordering::Relaxed)
+        + state
+            .active_gui_sessions
+            .load(std::sync::atomic::Ordering::Relaxed);
+
     api_json(
         StatusCode::OK,
         json!(VersionResponse {
@@ -220,6 +253,11 @@ pub async fn system_version_handler(
             release_date,
             deployment_type: deployment_type.to_string(),
             agent_connected,
+            audit_entry_count,
+            last_version_change_at,
+            last_update_method,
+            activity_mode,
+            active_viewers,
         }),
     )
 }
