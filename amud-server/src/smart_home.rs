@@ -115,7 +115,7 @@ pub async fn start_ha_polling(state: Arc<AppState>) {
         );
 
         // Prefer credentials from a Home Assistant integrated app (Add App flow).
-        if let Ok(app_creds) = tokio::task::spawn_blocking({
+        if let Ok(Some((url, token))) = tokio::task::spawn_blocking({
             let db = state.db.clone();
             move || {
                 let conn = db.lock().unwrap();
@@ -138,11 +138,9 @@ pub async fn start_ha_polling(state: Arc<AppState>) {
         })
         .await
         {
-            if let Some((url, token)) = app_creds {
-                if !url.is_empty() && !token.is_empty() {
-                    ha_url = url;
-                    ha_token = token;
-                }
+            if !url.is_empty() && !token.is_empty() {
+                ha_url = url;
+                ha_token = token;
             }
         }
 
