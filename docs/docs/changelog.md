@@ -11,6 +11,20 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.6 — Reliable full-width layout
+
+**2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.6)
+
+### Changed
+- Full-width dashboard (`max-width: 100%`); desktop bento/telemetry gaps 1.25rem
+- SW v42 network-first for versioned layout CSS; auto-reload on version change
+
+### Fixed
+- Narrow squeezed layout from stale PWA CSS after v1.8.5
+- Mac/Windows layout drift from cache-first CSS
+
+---
+
 ## v1.8.5 — Cross-device layout, per-app metrics, Jellyfin defaults
 
 **2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.5)

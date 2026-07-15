@@ -135,7 +135,7 @@ body::-webkit-scrollbar-button {
 /* Base Layout Container */
 .dashboard-container {
     width: 100%;
-    max-width: min(100%, 1920px);
+    max-width: 100%;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -151,6 +151,15 @@ body::-webkit-scrollbar-button {
     body {
         padding-left: max(1rem, env(safe-area-inset-left));
         padding-right: max(1rem, env(safe-area-inset-right));
+    }
+
+    .bento-grid:not(.bento-grid--guest-compact) {
+        gap: 1.25rem;
+    }
+
+    .telemetry-row {
+        gap: 1.25rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
 }
 

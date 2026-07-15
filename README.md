@@ -10,12 +10,11 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.5
+### What's new in v1.8.6
 
-- **Cross-device layout** — wider desktop dashboard (1920px), versioned CSS, PWA cache v41 fixes Mac/Windows drift
-- **Per-app metric control** — hide API stats or pick which fields show (queue, missing, etc.) in Edit App
-- **Jellyfin/Plex/Emby** — bento app cards default to CPU/RAM only; stream hero keeps API
-- **Integration icons** — picker uses full logo library
+- **Reliable full-width layout** — 3-column bento uses full browser width on Mac and Windows; visible card gaps
+- **PWA CSS fix** — service worker v42 network-first for layout CSS; auto-reload once after upgrade
+- **v1.8.5** — per-app metric control, Jellyfin CPU/RAM defaults, integration icons
 - **v1.8.4** — layout restore, grid-aware card drag
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
@@ -24,7 +23,8 @@ Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changel
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.5` (current latest recommended)
+- `v1.8.6` (current latest recommended)
+- `v1.8.5`
 - `v1.8.4`
 - `v1.8.0`
 - `v1.7.7`

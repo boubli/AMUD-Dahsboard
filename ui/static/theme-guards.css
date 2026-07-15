@@ -1,4 +1,26 @@
-/* Loaded after custom/bundled theme CSS — metrics layout stability only */
+/* Loaded after custom/bundled theme CSS — metrics + layout stability */
+
+.dashboard-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 1.25rem;
+}
+
+@media (min-width: 1280px) {
+    body {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+
+    .bento-grid:not(.bento-grid--guest-compact) {
+        gap: 1.25rem;
+    }
+
+    .telemetry-row {
+        gap: 1.25rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
 
 /* Glass tint from user sliders; themes control shape via --radius-xl */
 .glass-panel {

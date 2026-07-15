@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amud-dashboard-v41';
+const CACHE_NAME = 'amud-dashboard-v42';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
@@ -24,7 +24,7 @@ const ASSETS_TO_CACHE = [
   '/static/drag.js'
 ];
 
-const STALE_WHILE_REVALIDATE = [
+const LAYOUT_CSS_PATHS = [
   '/static/style.css',
   '/static/theme-guards.css',
 ];
@@ -46,9 +46,28 @@ function cacheThemePreviews() {
     .catch(function () { return []; });
 }
 
-function isStaleWhileRevalidate(pathname) {
-  return STALE_WHILE_REVALIDATE.some(function (p) {
-    return pathname === p || pathname.startsWith(p + '?');
+function isLayoutCss(pathname) {
+  return LAYOUT_CSS_PATHS.some(function (p) {
+    return pathname === p;
+  });
+}
+
+function hasVersionQuery(url) {
+  return url.searchParams.has('v');
+}
+
+function networkFirst(request) {
+  return caches.open(CACHE_NAME).then(function (cache) {
+    return fetch(request)
+      .then(function (response) {
+        if (response && response.ok) {
+          cache.put(request, response.clone());
+        }
+        return response;
+      })
+      .catch(function () {
+        return cache.match(request);
+      });
   });
 }
 
@@ -68,6 +87,23 @@ function staleWhileRevalidate(request) {
   });
 }
 
+function purgeLayoutCssFromAllCaches() {
+  return caches.keys().then(function (keys) {
+    return Promise.all(keys.map(function (key) {
+      return caches.open(key).then(function (cache) {
+        return cache.keys().then(function (requests) {
+          return Promise.all(requests.filter(function (req) {
+            const pathname = new URL(req.url).pathname;
+            return isLayoutCss(pathname);
+          }).map(function (req) {
+            return cache.delete(req);
+          }));
+        });
+      });
+    }));
+  });
+}
+
 globalThis.addEventListener('install', event => {
   event.waitUntil(
     cacheThemePreviews()
@@ -82,13 +118,17 @@ globalThis.addEventListener('install', event => {
 
 globalThis.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      );
-    }).then(() => globalThis.clients.claim())
+    purgeLayoutCssFromAllCaches()
+      .then(function () {
+        return caches.keys().then(function (keys) {
+          return Promise.all(
+            keys
+              .filter(function (key) { return key !== CACHE_NAME; })
+              .map(function (key) { return caches.delete(key); })
+          );
+        });
+      })
+      .then(function () { return globalThis.clients.claim(); })
   );
 });
 
@@ -110,8 +150,12 @@ globalThis.addEventListener('fetch', event => {
   }
 
   if (url.pathname.startsWith('/static/')) {
-    if (isStaleWhileRevalidate(url.pathname)) {
-      event.respondWith(staleWhileRevalidate(request));
+    if (isLayoutCss(url.pathname)) {
+      if (hasVersionQuery(url)) {
+        event.respondWith(networkFirst(request));
+      } else {
+        event.respondWith(staleWhileRevalidate(request));
+      }
       return;
     }
     event.respondWith(

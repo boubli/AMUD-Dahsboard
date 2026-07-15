@@ -1173,11 +1173,36 @@
 
     </script>
     <script nonce="{{csp_nonce}}">
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/static/sw.js');
-            });
-        }
+        (function () {
+            var CSS_VERSION = '{{app_version}}';
+            var KEY = 'amud-css-version';
+            var reloaded = false;
+
+            function maybeReloadForCss() {
+                if (reloaded) return;
+                try {
+                    var stored = localStorage.getItem(KEY);
+                    if (stored && stored !== CSS_VERSION) {
+                        reloaded = true;
+                        localStorage.setItem(KEY, CSS_VERSION);
+                        location.reload();
+                        return;
+                    }
+                    if (!stored) {
+                        localStorage.setItem(KEY, CSS_VERSION);
+                    }
+                } catch (e) {}
+            }
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('controllerchange', maybeReloadForCss);
+                window.addEventListener('load', function () {
+                    navigator.serviceWorker.register('/static/sw.js').then(function () {
+                        maybeReloadForCss();
+                    });
+                });
+            }
+        })();
     </script>
     <script nonce="{{csp_nonce}}">
         // Fetch Live Weather — use manual coordinates if set, otherwise auto-detect via IP
