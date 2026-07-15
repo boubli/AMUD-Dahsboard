@@ -27,21 +27,36 @@
 الإصدار الموصى به: **v1.8.10**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
-</p>
 
 **وحّد مختبرك المنزلي.** لوحة تحكم سريعة مبنية بلغة Rust وبدون YAML، مع قياس عن بُعد مباشر لـ Proxmox وDocker، وأدوات للتحكم بالحاويات، وتكاملات مع أشهر الخدمات المستضافة ذاتيًا — كل ذلك من الواجهة.
 
 على عكس لوحات التحكم القديمة (Heimdall، Homepage، Homarr) التي تعمل على بيئات تشغيل ثقيلة (PHP-FPM، Node.js) وتعتمد على ملفات تكوين YAML المعقدة والمتداخلة، فإن AMUD مكتوب بلغة Rust المجمعة ويتم حفظ البيانات بالكامل في SQLite. في وضع الخمول، يستهلك الخادم ووكيل القياس عن بعد **30–50 ميجابايت RAM** (ذروة ~150 ميجابايت مع شبكة تكامل كاملة) مع وقت تنفيذ للمسارات أقل من جزء من الملي ثانية.
+
+## الجوال
+
+تخطيط جاهز للجوال بسمة Taghawsa — اللوحة وتسجيل الدخول أينما كنت.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
+  &nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
+</p>
+
+## إضافة تطبيق — بدون YAML
+
+أدخل الرابط، واختر أيقونة وتكاملاً. بدون ملفات إعداد.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
+</p>
+
+## الهوية البصرية
+
+الاسم والشعار واللون من الإعدادات — لوحتك، هويتك.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
+</p>
 
 ## الهندسة المعمارية وقرارات التصميم
 

@@ -27,21 +27,36 @@
 권장 버전: **v1.8.10**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
-</p>
 
 **홈랩을 하나로.** Rust로 만든 빠르고 YAML이 필요 없는 대시보드로, Proxmox와 Docker 실시간 텔레메트리, 컨테이너 제어, 인기 있는 셀프호스팅 서비스 연동을 모두 UI에서 제공합니다.
 
 무거운 런타임(PHP-FPM, Node.js)에서 실행되고 복잡하게 중첩된 YAML 설정 파일에 의존하는 기존 대시보드(Heimdall, Homepage, Homarr)와 달리, AMUD는 컴파일된 Rust로 작성되었으며 데이터는 SQLite에 완전히 영구 저장됩니다. 서버와 원격 측정 에이전트는 대기 상태에서 **30–50 MB RAM**(전체 통합 그리드 시 피크 ~150 MB)을 사용하며, 라우팅 실행 속도는 밀리초 미만입니다.
+
+## 모바일
+
+Taghawsa 테마의 모바일 최적화 레이아웃 — 어디서나 대시보드와 로그인.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
+  &nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
+</p>
+
+## 앱 추가 — YAML 없이
+
+URL을 입력하고 아이콘과 연동을 선택하세요. 설정 파일 없이.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
+</p>
+
+## 브랜딩
+
+설정에서 이름, 로고, 강조색 — 나만의 콕핏, 나만의 브랜드.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
+</p>
 
 ## 아키텍처 및 설계 결정
 

@@ -27,21 +27,36 @@ Cronologia completa: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/
 Consigliato: **v1.8.10**. Dettagli e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
-</p>
 
 **Unifica il tuo homelab.** Una dashboard veloce, scritta in Rust e senza YAML, con telemetria live di Proxmox e Docker, controlli dei container e integrazioni per i più diffusi servizi self-hosted — tutto dall'interfaccia.
 
 A differenza delle vecchie dashboard (Heimdall, Homepage, Homarr) che girano su runtime pesanti (PHP-FPM, Node.js) e dipendono da complessi file di configurazione YAML annidati, AMUD è scritto in Rust compilato e persiste interamente su SQLite. Insieme, il server e l'agente di telemetria consumano a riposo **30–50 MB di RAM** (picco ~150 MB con griglia integrazioni completa) con tempi di risposta inferiori al millisecondo.
+
+## Mobile
+
+Layout pronto per lo smartphone con il tema Taghawsa — dashboard e accesso ovunque tu sia.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
+  &nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
+</p>
+
+## Aggiungi un'app — senza YAML
+
+Indica un URL, scegli un'icona e un'integrazione. Nessun file di configurazione.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
+</p>
+
+## Branding
+
+Nome, logo e accento dalle Impostazioni — il tuo cockpit, la tua identità.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
+</p>
 
 ## Architettura e Scelte di Progettazione
 

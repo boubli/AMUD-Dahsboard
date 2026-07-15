@@ -27,21 +27,36 @@
 推奨バージョン: **v1.8.10**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
-</p>
 
 **ホームラボを統合。** Rust 製で高速、YAML 不要のダッシュボード。Proxmox と Docker のリアルタイムテレメトリ、コンテナ操作、人気のセルフホストサービスとの連携を、すべて UI から。
 
 重いランタイム（PHP-FPM、Node.js）で動作し、複雑なネストされたYAML設定ファイルに依存する従来のダッシュボード（Heimdall、Homepage、Homarr）とは異なり、AMUDはコンパイル済みのRustで書かれており、完全にSQLiteに保存されます。サーバーとテレメトリエージェントはアイドル時 **30–50 MB RAM**（統合グリッド満載時のピーク約 150 MB）で、ルート実行速度はミリ秒未満です。
+
+## モバイル
+
+Taghawsa テーマのスマホ向けレイアウト — 外出先でもダッシュボードとサインイン。
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
+  &nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
+</p>
+
+## アプリを追加 — YAML 不要
+
+URL を入力し、アイコンと連携を選ぶだけ。設定ファイルは不要。
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
+</p>
+
+## ブランディング
+
+設定から名前・ロゴ・アクセントを変更 — あなたのコックピット、あなたのブランド。
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
+</p>
 
 ## アーキテクチャと設計決定
 
