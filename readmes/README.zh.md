@@ -24,9 +24,20 @@
 
 ### 版本状态
 
-当前推荐：**v1.8.9**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**v1.8.10**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
+</p>
 
 **统一你的家庭实验室。** 一个快速、基于 Rust、零 YAML 的仪表板，提供 Proxmox 与 Docker 实时遥测、容器控制，以及对热门自托管服务的集成——全部通过界面完成。
 

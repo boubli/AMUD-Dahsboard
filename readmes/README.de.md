@@ -24,9 +24,20 @@ Vollständiger Verlauf: **[Changelog](https://boubli.github.io/AMUD-Dashboard/do
 
 ### Release-Status
 
-Aktuell empfohlen: **v1.8.9**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
+Aktuell empfohlen: **v1.8.10**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
+</p>
 
 **Vereine dein Homelab.** Ein schnelles, in Rust geschriebenes Dashboard ohne YAML – mit Live-Telemetrie für Proxmox und Docker, Container-Steuerung und Integrationen für beliebte selbstgehostete Dienste, alles über die Oberfläche.
 

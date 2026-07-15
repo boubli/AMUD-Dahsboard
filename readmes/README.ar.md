@@ -24,9 +24,20 @@
 
 ### حالة الإصدار
 
-الإصدار الموصى به: **v1.8.9**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
+الإصدار الموصى به: **v1.8.10**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
+</p>
 
 **وحّد مختبرك المنزلي.** لوحة تحكم سريعة مبنية بلغة Rust وبدون YAML، مع قياس عن بُعد مباشر لـ Proxmox وDocker، وأدوات للتحكم بالحاويات، وتكاملات مع أشهر الخدمات المستضافة ذاتيًا — كل ذلك من الواجهة.
 

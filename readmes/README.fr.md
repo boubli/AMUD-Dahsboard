@@ -24,9 +24,20 @@ Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD
 
 ### État des versions
 
-Dernière version recommandée : **v1.8.9**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
+Dernière version recommandée : **v1.8.10**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
+</p>
 
 **Unifiez votre homelab.** Un tableau de bord rapide, propulsé par Rust et sans YAML, avec télémétrie en direct de Proxmox et Docker, contrôles des conteneurs et intégrations pour les services auto-hébergés les plus populaires — le tout depuis l'interface.
 

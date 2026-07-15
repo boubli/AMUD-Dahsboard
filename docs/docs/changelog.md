@@ -11,6 +11,20 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.10 — Settings panels fix + screenshots
+
+**2026-07-16** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.10)
+
+### Fixed
+- Settings Categories → Audit Log blank content area (extra closing `</div>` after Performance)
+
+### Changed
+- README / docs screenshots: Taghawsa mobile, Add App, Branding
+- Removed one-off theme gen scripts from `scripts/`
+- SW v45
+
+---
+
 ## v1.8.9 — Settings UX, audit tools, icons, themes
 
 **2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.9)

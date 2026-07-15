@@ -10,27 +10,38 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.9
+### What's new in v1.8.10
 
-- **Settings UX** — Infrastructure rename, Branding+Support, Home Assistant via Add App, audit clear/export + pagination
-- **Icon gallery** — searchable logos in Add/Edit App
-- **Themes** — five new themes; Light/Dark is a true per-theme variant; unique chrome icon packs
+- **Settings fix** — Categories through Audit Log no longer show a blank page
+- **Screenshots** — Taghawsa mobile, Add App, and Branding shots on README + docs site
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (2026-07-15)
+### Release status (2026-07-16)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.9` (current latest recommended)
+- `v1.8.10` (current latest recommended)
+- `v1.8.9`
 - `v1.8.7`
 - `v1.8.4`
 - `v1.8.0`
-- `v1.7.7`
 
 **Do not use:** `v1.8.6`, `v1.8.5` (layout), `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
+</p>
 
 **Unify your homelab.** A fast, Rust-powered, zero-YAML dashboard with live Proxmox & Docker telemetry, container controls, and integrations for popular self-hosted services — all from the UI.
 

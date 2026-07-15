@@ -8,6 +8,18 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.8.10](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.10) — 2026-07-16
+
+Settings blank-tab fix and updated product screenshots on README / docs.
+
+### Fixed
+- Categories through Audit Log blank Settings panes (extra `</div>` after Performance)
+
+### Changed
+- Screenshot gallery: Taghawsa mobile, Add App, Branding; SW v45
+
+---
+
 ## [v1.8.9](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.9) — 2026-07-15
 
 Settings UX, audit tools, icon gallery, and theme overhaul (five new themes; true Light/Dark variants).

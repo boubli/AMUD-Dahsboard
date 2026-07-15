@@ -24,9 +24,20 @@
 
 ### रिलीज़ स्थिति
 
-अनुशंसित: **v1.8.9**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
+अनुशंसित: **v1.8.10**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
+</p>
 
 **अपने होमलैब को एकीकृत करें।** Rust से बना तेज़, बिना-YAML वाला डैशबोर्ड — Proxmox और Docker की लाइव टेलीमेट्री, कंटेनर नियंत्रण, और लोकप्रिय सेल्फ-होस्टेड सेवाओं के लिए इंटीग्रेशन, सब कुछ UI से।
 

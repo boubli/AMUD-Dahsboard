@@ -24,9 +24,20 @@
 
 ### 릴리스 상태
 
-권장 버전: **v1.8.9**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
+권장 버전: **v1.8.10**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
+</p>
 
 **홈랩을 하나로.** Rust로 만든 빠르고 YAML이 필요 없는 대시보드로, Proxmox와 Docker 실시간 텔레메트리, 컨테이너 제어, 인기 있는 셀프호스팅 서비스 연동을 모두 UI에서 제공합니다.
 

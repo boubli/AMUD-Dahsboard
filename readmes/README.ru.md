@@ -24,9 +24,20 @@
 
 ### Статус релизов
 
-Рекомендуется: **v1.8.9**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
+Рекомендуется: **v1.8.10**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard mobile Taghawsa" width="280" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD login mobile Taghawsa" width="280" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="AMUD Add App" width="420" />
+  &nbsp;
+  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings Branding" width="420" />
+</p>
 
 **Объедините свою домашнюю лабораторию.** Быстрая панель на Rust без YAML: телеметрия Proxmox и Docker в реальном времени, управление контейнерами и интеграции с популярными self-hosted сервисами — всё через интерфейс.
 

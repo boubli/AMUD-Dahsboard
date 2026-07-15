@@ -13,7 +13,17 @@ Complete inventory of what AMUD Dashboard ships today (v1.8.0). Everything below
 
 **Add an app** (no YAML):
 
-![Add app](/img/amud-add-app.gif)
+![Add app](/img/AMUD-Dashboard_add_app.png)
+
+**Settings — Branding:**
+
+![Settings Branding](/img/AMUD-Dashboard_settings_Branding.png)
+
+**Mobile (Taghawsa theme):**
+
+![Dashboard mobile Taghawsa](/img/AMUD-Dashboard_mobile_taghawsa_theme.png)
+
+![Login mobile Taghawsa](/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png)
 
 **Update from Settings → System** (native / Proxmox):
 
