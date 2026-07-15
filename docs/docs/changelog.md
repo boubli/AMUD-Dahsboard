@@ -11,6 +11,22 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.7 — Restore centered desktop margins
+
+**2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.7)
+
+### Changed
+- Centered 1440px dashboard column with 2rem side padding restored
+- SW v43; category tab spacing tweak
+
+### Fixed
+- v1.8.6 edge-to-edge layout (no side margins)
+
+### Deprecated for layout
+- Skip v1.8.5 and v1.8.6 — use v1.8.7
+
+---
+
 ## v1.8.6 — Reliable full-width layout
 
 **2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.6)

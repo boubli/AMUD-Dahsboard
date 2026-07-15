@@ -2,16 +2,13 @@
 
 .dashboard-container {
     width: 100% !important;
-    max-width: 100% !important;
+    max-width: 1440px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     gap: 1.25rem;
 }
 
 @media (min-width: 1280px) {
-    body {
-        padding-left: max(1rem, env(safe-area-inset-left));
-        padding-right: max(1rem, env(safe-area-inset-right));
-    }
-
     .bento-grid:not(.bento-grid--guest-compact) {
         gap: 1.25rem;
     }

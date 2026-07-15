@@ -10,12 +10,11 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.6
+### What's new in v1.8.7
 
-- **Reliable full-width layout** — 3-column bento uses full browser width on Mac and Windows; visible card gaps
-- **PWA CSS fix** — service worker v42 network-first for layout CSS; auto-reload once after upgrade
-- **v1.8.5** — per-app metric control, Jellyfin CPU/RAM defaults, integration icons
-- **v1.8.4** — layout restore, grid-aware card drag
+- **Side margins restored** — centered 1440px dashboard with wallpaper visible on left/right (Mac + Windows desktop)
+- **v1.8.6** — do not use (edge-to-edge regression, fixed in v1.8.7)
+- **v1.8.5** — per-app metrics (keep features; layout cache was unreliable)
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -23,8 +22,7 @@ Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changel
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.6` (current latest recommended)
-- `v1.8.5`
+- `v1.8.7` (current latest recommended)
 - `v1.8.4`
 - `v1.8.0`
 - `v1.7.7`
