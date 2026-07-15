@@ -256,7 +256,11 @@ pub(crate) fn audit_entries_to_csv(entries: &[serde_json::Value]) -> String {
     let mut out = String::from("id,created_at,username,action,target,details,client_ip\n");
     for e in entries {
         let cell = |key: &str| {
-            let raw = e.get(key).and_then(|v| v.as_str()).unwrap_or("").replace('"', "\"\"");
+            let raw = e
+                .get(key)
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .replace('"', "\"\"");
             format!("\"{raw}\"")
         };
         let id = e.get("id").and_then(|v| v.as_i64()).unwrap_or(0);

@@ -1,9 +1,7 @@
 pub(crate) use super::{api_json, apply_csp_nonce, check_api_rate_limit};
 pub(crate) use crate::agent::push_agent_config;
 pub(crate) use crate::apps::{is_jellyfin_app, is_plex_app};
-pub(crate) use crate::audit::{
-    audit_entries_to_csv, clear_audit, list_audit_page, AuditScope,
-};
+pub(crate) use crate::audit::{audit_entries_to_csv, clear_audit, list_audit_page, AuditScope};
 pub(crate) use crate::auth::{
     clear_failed_logins, csrf_forbidden_response, csrf_token_for_session, expired_session_cookie,
     generate_session_token, get_session, hash_password, login_rate_limited, now_epoch_secs,

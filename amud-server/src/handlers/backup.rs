@@ -64,8 +64,10 @@ pub async fn list_audit_handler(
         .unwrap_or(0)
         .max(0);
 
-    let result =
-        with_db(state.db.clone(), move |db| list_audit_page(db, limit, offset, scope)).await;
+    let result = with_db(state.db.clone(), move |db| {
+        list_audit_page(db, limit, offset, scope)
+    })
+    .await;
     match result {
         Ok((entries, total)) => Response::builder()
             .status(StatusCode::OK)
