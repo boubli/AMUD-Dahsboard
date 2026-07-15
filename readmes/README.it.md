@@ -10,7 +10,7 @@
 
 **[Registro delle modifiche](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galleria dei Temi](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Tabella di marcia](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentazione](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novità in v1.8.2
+### Novità in v1.8.9
 
 - **Taghawsa su ogni dispositivo** — WebGL adattivo su mobile e Windows; fallback CSS se WebGL è disattivato
 - **Layout mobile** — intestazioni flessibili, metriche 4→3→2 colonne, niente scroll orizzontale
@@ -24,7 +24,7 @@ Cronologia completa: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/
 
 ### Stato release
 
-Consigliato: **v1.8.2**. Dettagli e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
+Consigliato: **v1.8.9**. Dettagli e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

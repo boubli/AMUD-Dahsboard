@@ -42,10 +42,12 @@ pub async fn settings_page_handler(
         .map(|s| s.as_str())
         .unwrap_or("1");
     let custom_css = settings.get("custom_css").map(|s| s.as_str()).unwrap_or("");
-    let active_theme_id = settings
-        .get("active_theme_id")
-        .map(|s| s.as_str())
-        .unwrap_or("default");
+    let active_theme_id = sanitize_active_theme_id(
+        settings
+            .get("active_theme_id")
+            .map(|s| s.as_str())
+            .unwrap_or("default"),
+    );
     let ha_url = settings.get("ha_url").map(|s| s.as_str()).unwrap_or("");
     let ha_token_placeholder = secret_field_placeholder(
         secret_setting_configured(&settings, "ha_token"),
@@ -134,7 +136,7 @@ pub async fn settings_page_handler(
             &escape_html(&ha_token_placeholder),
         )
         .replace("{{custom_css}}", custom_css)
-        .replace("{{active_theme_id}}", &escape_html(active_theme_id))
+        .replace("{{active_theme_id}}", &escape_html(&active_theme_id))
         .replace("{{csrf_token}}", &csrf_token)
         .replace("{{username}}", &escape_html(username))
         .replace(

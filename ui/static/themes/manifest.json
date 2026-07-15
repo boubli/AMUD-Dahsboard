@@ -24,7 +24,8 @@
       ],
       "preview": "/static/wallpaper.png",
       "wallpaper": "/static/wallpaper.png",
-      "usesWallpaper": true
+      "usesWallpaper": true,
+      "iconPack": "/static/themes/icons/default/pack.json"
     },
     {
       "id": "dracula",
@@ -76,23 +77,6 @@
       "uiProfile": "cyberpunk",
       "iconPack": "/static/themes/icons/cyberpunk-neon/pack.json",
       "layoutCss": "/static/theme-layouts/cyberpunk.css"
-    },
-    {
-      "id": "sunset-warm",
-      "name": "Sunset Warm",
-      "file": "sunset-warm.css",
-      "category": "classic",
-      "tags": [
-        "warm",
-        "amber"
-      ],
-      "preview": "/static/themes/previews/sunset-warm.webp",
-      "wallpaper": "/static/themes/wallpapers/sunset-warm.webp",
-      "usesWallpaper": true,
-      "fontUrl": "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap",
-      "uiProfile": "polaroid",
-      "iconPack": "/static/themes/icons/sunset-warm/pack.json",
-      "layoutCss": "/static/theme-layouts/polaroid.css"
     },
     {
       "id": "catppuccin-mocha",
@@ -241,23 +225,6 @@
       "layoutCss": "/static/theme-layouts/crt_green.css"
     },
     {
-      "id": "vaporwave-grid",
-      "name": "Vaporwave Grid",
-      "file": "vaporwave-grid.css",
-      "category": "advanced",
-      "tags": [
-        "advanced",
-        "vaporwave"
-      ],
-      "preview": "/static/themes/previews/vaporwave-grid.webp",
-      "wallpaper": "",
-      "usesWallpaper": false,
-      "fontUrl": "https://fonts.googleapis.com/css2?family=Pacifico&display=swap",
-      "uiProfile": "vaporwave",
-      "iconPack": "/static/themes/icons/vaporwave-grid/pack.json",
-      "layoutCss": "/static/theme-layouts/vaporwave.css"
-    },
-    {
       "id": "blueprint-tech",
       "name": "Blueprint Tech",
       "file": "blueprint-tech.css",
@@ -285,7 +252,8 @@
       ],
       "preview": "/static/themes/previews/luxury-gold.webp",
       "wallpaper": "/static/themes/wallpapers/luxury-gold.webp",
-      "usesWallpaper": true
+      "usesWallpaper": true,
+      "iconPack": "/static/themes/icons/luxury-gold/pack.json"
     },
     {
       "id": "holographic-prism",
@@ -358,24 +326,6 @@
       "layoutCss": "/static/theme-layouts/sandstone.css"
     },
     {
-      "id": "ocean-depths",
-      "name": "Ocean Depths",
-      "file": "ocean-depths.css",
-      "category": "nature",
-      "tags": [
-        "nature",
-        "ocean",
-        "cyan"
-      ],
-      "preview": "/static/themes/previews/ocean-depths.webp",
-      "wallpaper": "/static/themes/wallpapers/ocean-depths.webp",
-      "usesWallpaper": true,
-      "fontUrl": "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap",
-      "uiProfile": "porthole",
-      "iconPack": "/static/themes/icons/ocean-depths/pack.json",
-      "layoutCss": "/static/theme-layouts/porthole.css"
-    },
-    {
       "id": "rainforest-mist",
       "name": "Rainforest Mist",
       "file": "rainforest-mist.css",
@@ -410,24 +360,6 @@
       "uiProfile": "volcanic",
       "iconPack": "/static/themes/icons/volcanic-ember/pack.json",
       "layoutCss": "/static/theme-layouts/volcanic.css"
-    },
-    {
-      "id": "terminal-amber",
-      "name": "Terminal Amber",
-      "file": "terminal-amber.css",
-      "category": "terminal",
-      "tags": [
-        "terminal",
-        "crt",
-        "amber"
-      ],
-      "preview": "/static/themes/previews/terminal-amber.webp",
-      "wallpaper": "",
-      "usesWallpaper": false,
-      "fontUrl": "https://fonts.googleapis.com/css2?family=VT323&display=swap",
-      "uiProfile": "crt_amber",
-      "iconPack": "/static/themes/icons/terminal-amber/pack.json",
-      "layoutCss": "/static/theme-layouts/crt_amber.css"
     },
     {
       "id": "terminal-matrix",
@@ -556,24 +488,6 @@
       "layoutCss": "/static/theme-layouts/cosmic.css"
     },
     {
-      "id": "arctic-frost",
-      "name": "Arctic Frost",
-      "file": "arctic-frost.css",
-      "category": "variety",
-      "tags": [
-        "ice",
-        "frost",
-        "minimal"
-      ],
-      "preview": "/static/themes/previews/arctic-frost.webp",
-      "wallpaper": "/static/themes/wallpapers/arctic-frost.webp",
-      "usesWallpaper": true,
-      "fontUrl": "https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;600&display=swap",
-      "uiProfile": "crystal",
-      "iconPack": "/static/themes/icons/arctic-frost/pack.json",
-      "layoutCss": "/static/theme-layouts/crystal.css"
-    },
-    {
       "id": "steampunk-brass",
       "name": "Steampunk Brass",
       "file": "steampunk-brass.css",
@@ -662,9 +576,99 @@
       "usesWallpaper": false,
       "fontUrl": "https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&display=swap",
       "uiProfile": "taghawsa",
-      "iconPack": "/static/themes/icons/volcanic-ember/pack.json",
+      "iconPack": "/static/themes/icons/taghawsa/pack.json",
       "layoutCss": "/static/theme-layouts/volcanic.css",
       "backgroundScript": "/static/themes/backgrounds/taghawsa-bg.js"
+    },
+    {
+      "id": "ember-hearth",
+      "name": "Ember Hearth",
+      "file": "ember-hearth.css",
+      "category": "classic",
+      "tags": [
+        "warm",
+        "copper",
+        "charcoal"
+      ],
+      "preview": "/static/themes/previews/ember-hearth.webp",
+      "wallpaper": "/static/themes/wallpapers/ember-hearth.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap",
+      "uiProfile": "polaroid",
+      "iconPack": "/static/themes/icons/ember-hearth/pack.json",
+      "layoutCss": "/static/theme-layouts/polaroid.css"
+    },
+    {
+      "id": "neon-boulevard",
+      "name": "Neon Boulevard",
+      "file": "neon-boulevard.css",
+      "category": "classic",
+      "tags": [
+        "neon",
+        "magenta",
+        "cyan"
+      ],
+      "preview": "/static/themes/previews/neon-boulevard.webp",
+      "wallpaper": "/static/themes/wallpapers/neon-boulevard.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap",
+      "uiProfile": "vaporwave",
+      "iconPack": "/static/themes/icons/neon-boulevard/pack.json",
+      "layoutCss": "/static/theme-layouts/vaporwave.css"
+    },
+    {
+      "id": "kelp-abyss",
+      "name": "Kelp Abyss",
+      "file": "kelp-abyss.css",
+      "category": "classic",
+      "tags": [
+        "teal",
+        "green",
+        "depth"
+      ],
+      "preview": "/static/themes/previews/kelp-abyss.webp",
+      "wallpaper": "/static/themes/wallpapers/kelp-abyss.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap",
+      "uiProfile": "porthole",
+      "iconPack": "/static/themes/icons/kelp-abyss/pack.json",
+      "layoutCss": "/static/theme-layouts/porthole.css"
+    },
+    {
+      "id": "amber-console",
+      "name": "Amber Console",
+      "file": "amber-console.css",
+      "category": "terminal",
+      "tags": [
+        "amber",
+        "crt",
+        "console"
+      ],
+      "preview": "/static/themes/previews/amber-console.webp",
+      "wallpaper": "/static/themes/wallpapers/amber-console.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap",
+      "uiProfile": "crt_amber",
+      "iconPack": "/static/themes/icons/amber-console/pack.json",
+      "layoutCss": "/static/theme-layouts/crt_amber.css"
+    },
+    {
+      "id": "glacier-mist",
+      "name": "Glacier Mist",
+      "file": "glacier-mist.css",
+      "category": "classic",
+      "tags": [
+        "cool",
+        "frost",
+        "slate"
+      ],
+      "preview": "/static/themes/previews/glacier-mist.webp",
+      "wallpaper": "/static/themes/wallpapers/glacier-mist.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap",
+      "uiProfile": "crystal",
+      "iconPack": "/static/themes/icons/glacier-mist/pack.json",
+      "layoutCss": "/static/theme-layouts/crystal.css"
     }
   ]
 }

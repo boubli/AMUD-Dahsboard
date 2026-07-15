@@ -8,6 +8,24 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.8.9](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.9) — 2026-07-15
+
+Settings UX, audit tools, icon gallery, and theme overhaul (five new themes; true Light/Dark variants).
+
+### Added
+- Audit / update-history pagination, clear, CSV export; scoped audit API
+- Searchable Add/Edit App icon gallery
+- Themes: ember-hearth, neon-boulevard, kelp-abyss, amber-console, glacier-mist
+
+### Changed
+- Infrastructure rename; Branding absorbs Support; HA via Add App
+- Light/Dark as per-theme variants; unique icon packs; SW v44
+
+### Removed
+- sunset-warm, vaporwave-grid, ocean-depths, terminal-amber, arctic-frost
+
+---
+
 ## [v1.8.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.1) — 2026-07-13
 
 Jellyfin posters and playback controls, per-app media integration, instant status on reload, and the Taghawsa WebGL theme.

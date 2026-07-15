@@ -1,0 +1,55 @@
+/* AMUD Theme: neon-boulevard */
+@import url('_shared.css');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
+
+:root {
+    --theme-font: 'Space Grotesk', sans-serif;
+    --theme-bg-fallback: #12101a;
+    --theme-card-r: 36;
+    --theme-card-g: 28;
+    --theme-card-b: 52;
+    --bg-card: rgba(36, 28, 52, var(--glass-opacity));
+    --accent-color: #ff4ecd;
+    --accent-glow: rgba(255, 78, 205, 0.2);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border-card: rgba(255, 78, 205, 0.22);
+    --border-hover: #ff4ecd;
+}
+
+body { font-family: var(--theme-font), system-ui, sans-serif; background-color: var(--theme-bg-fallback); }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.dashboard-container { position: relative; z-index: 1; }
+.app-card.glass-panel { border: 1px solid var(--border-card); box-shadow: 0 8px 28px rgba(0,0,0,0.28); }
+.clock-widget .clock-time { color: var(--accent-color); }
+.category-tabs .filter-tab:hover { color: var(--accent-color); }
+
+[data-theme-id="neon-boulevard"] .topbar-action:hover { color: var(--accent-color); }
+[data-theme-id="neon-boulevard"] .app-card:hover { border-color: var(--border-hover); }
+[data-theme-id="neon-boulevard"] .metric-value { font-weight: 600; }
+
+:root[data-theme="light"][data-theme-id="neon-boulevard"] {
+    --theme-bg-fallback: #f4f0fa;
+    --theme-card-r: 36;
+    --theme-card-g: 28;
+    --theme-card-b: 52;
+    --bg-card: rgba(36, 28, 52, calc(var(--glass-opacity) * 0.55 + 0.22));
+    --accent-color: #ff4ecd;
+    --accent-glow: rgba(255, 78, 205, 0.18);
+    --text-primary: #2a2040;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --border-card: rgba(255, 78, 205, 0.2);
+    --border-hover: #ff4ecd;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="neon-boulevard"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}

@@ -27,7 +27,17 @@
     var threeLoadPromise = null;
 
     function themeId() {
-        return document.body?.getAttribute('data-theme-id') || 'default';
+        return document.documentElement?.getAttribute('data-theme-id')
+            || document.body?.getAttribute('data-theme-id')
+            || 'default';
+    }
+
+    function setThemeId(id) {
+        var next = id || 'default';
+        document.documentElement.setAttribute('data-theme-id', next);
+        if (document.body) {
+            document.body.setAttribute('data-theme-id', next);
+        }
     }
 
     function resolveAssetUrl(manifest, path) {
@@ -277,13 +287,14 @@
     function refreshChromeIcons(overrideId) {
         var id = overrideId || themeId();
         if (overrideId) {
-            document.body.setAttribute('data-theme-id', id);
+            setThemeId(id);
         }
         return applyThemeChrome(id).catch(function () { /* ignore */ });
     }
 
     global.amudThemeEngine = {
         themeId: themeId,
+        setThemeId: setThemeId,
         resolveAssetUrl: resolveAssetUrl,
         loadManifest: loadManifest,
         applyUiProfile: applyUiProfile,

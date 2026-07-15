@@ -16,7 +16,6 @@
         var activeThemeInput = document.getElementById('setting-active-theme-id');
         var accentInput = document.getElementById('setting-accent-color');
         var themeModeSelect = document.getElementById('theme-mode-select');
-        var lightWarning = document.getElementById('theme-light-mode-warning');
         var defaultAccent = opts.defaultAccent || '#cf6427';
         var defaultWallpaper = opts.defaultWallpaper || '/static/wallpaper.png';
         var syncAccentFromCss = opts.syncAccentPickerFromCss;
@@ -48,8 +47,15 @@
 
         function applyPreviewThemeMeta(theme) {
             var scene = document.getElementById('preview-scene');
+            var id = (theme && theme.id) || 'default';
+            if (global.amudThemeEngine?.setThemeId) {
+                global.amudThemeEngine.setThemeId(id);
+            } else {
+                document.documentElement.setAttribute('data-theme-id', id);
+                if (document.body) document.body.setAttribute('data-theme-id', id);
+            }
             if (!scene || !theme) return;
-            scene.setAttribute('data-theme-id', theme.id || 'default');
+            scene.setAttribute('data-theme-id', id);
             if (theme.uiProfile) {
                 scene.setAttribute('data-ui-profile', theme.uiProfile);
             } else {
@@ -61,10 +67,7 @@
         }
 
         function updateLightModeWarning() {
-            if (!lightWarning || !themeModeSelect) return;
-            var hasCss = (cssTextarea.value || '').trim().length > 0;
-            var isLight = themeModeSelect.value === 'light';
-            lightWarning.style.display = (hasCss && isLight) ? 'block' : 'none';
+            /* Light/Dark is a per-theme variant; no dark-mode-only warning. */
         }
 
         function markActiveCard() {
@@ -261,7 +264,16 @@
 
         bindDownload();
         if (searchInput) searchInput.addEventListener('input', renderGrid);
-        if (themeModeSelect) themeModeSelect.addEventListener('change', updateLightModeWarning);
+        if (themeModeSelect) {
+            themeModeSelect.addEventListener('change', function () {
+                var mode = themeModeSelect.value === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', mode);
+                updateLightModeWarning();
+                if (typeof global.amudRefreshLivePreview === 'function') {
+                    global.amudRefreshLivePreview();
+                }
+            });
+        }
         cssTextarea.addEventListener('input', updateLightModeWarning);
         loadManifest();
     }

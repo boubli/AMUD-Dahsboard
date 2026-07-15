@@ -98,11 +98,13 @@ async fn render_page(
     };
     let logo_manifest = state.logo_manifest.clone();
     let custom_css = settings.get("custom_css").map(|s| s.as_str()).unwrap_or("");
-    let active_theme_id = settings
-        .get("active_theme_id")
-        .map(|s| s.as_str())
-        .unwrap_or("default");
-    let safe_active_theme_id = escape_html(active_theme_id);
+    let active_theme_id = sanitize_active_theme_id(
+        settings
+            .get("active_theme_id")
+            .map(|s| s.as_str())
+            .unwrap_or("default"),
+    );
+    let safe_active_theme_id = escape_html(&active_theme_id);
     let csrf_token = csrf_token_for_session(headers, &state.sessions);
     let csrf_attr = escape_html(&csrf_token);
 

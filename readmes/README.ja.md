@@ -10,7 +10,7 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.2 の新機能
+### v1.8.9 の新機能
 
 - **全デバイスで Taghawsa** — スマホと Windows で適応型 WebGL；WebGL オフ時は CSS フォールバック
 - **モバイルレイアウト** — カードヘッダーの折り返し、メトリクス 4→3→2 列、横スクロールなし
@@ -24,7 +24,7 @@
 
 ### リリース状況
 
-推奨バージョン: **v1.8.2**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.8.9**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

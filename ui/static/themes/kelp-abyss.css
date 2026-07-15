@@ -1,0 +1,55 @@
+/* AMUD Theme: kelp-abyss */
+@import url('_shared.css');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap');
+
+:root {
+    --theme-font: 'Nunito Sans', sans-serif;
+    --theme-bg-fallback: #0f1716;
+    --theme-card-r: 20;
+    --theme-card-g: 48;
+    --theme-card-b: 44;
+    --bg-card: rgba(20, 48, 44, var(--glass-opacity));
+    --accent-color: #2dd4bf;
+    --accent-glow: rgba(45, 212, 191, 0.2);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border-card: rgba(45, 212, 191, 0.22);
+    --border-hover: #2dd4bf;
+}
+
+body { font-family: var(--theme-font), system-ui, sans-serif; background-color: var(--theme-bg-fallback); }
+.brand-title, .greeting-title, .clock-time { font-family: var(--theme-font), system-ui, sans-serif; }
+.dashboard-container { position: relative; z-index: 1; }
+.app-card.glass-panel { border: 1px solid var(--border-card); box-shadow: 0 8px 28px rgba(0,0,0,0.28); }
+.clock-widget .clock-time { color: var(--accent-color); }
+.category-tabs .filter-tab:hover { color: var(--accent-color); }
+
+[data-theme-id="kelp-abyss"] .topbar-action:hover { color: var(--accent-color); }
+[data-theme-id="kelp-abyss"] .app-card:hover { border-color: var(--border-hover); }
+[data-theme-id="kelp-abyss"] .metric-value { font-weight: 600; }
+
+:root[data-theme="light"][data-theme-id="kelp-abyss"] {
+    --theme-bg-fallback: #eef8f5;
+    --theme-card-r: 20;
+    --theme-card-g: 48;
+    --theme-card-b: 44;
+    --bg-card: rgba(20, 48, 44, calc(var(--glass-opacity) * 0.55 + 0.22));
+    --accent-color: #2dd4bf;
+    --accent-glow: rgba(45, 212, 191, 0.18);
+    --text-primary: #14302c;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --border-card: rgba(45, 212, 191, 0.2);
+    --border-hover: #2dd4bf;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="kelp-abyss"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}

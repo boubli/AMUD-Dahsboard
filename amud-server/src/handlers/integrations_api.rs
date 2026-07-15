@@ -95,6 +95,31 @@ pub async fn custom_api_templates_handler(
         .into_response()
 }
 
+pub async fn logos_list_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    if require_admin_session(&headers, &state.sessions).is_err() {
+        return Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .body(Body::from(r#"{"error":"Forbidden"}"#))
+            .unwrap()
+            .into_response();
+    }
+    let mut entries: Vec<_> = state
+        .logo_manifest
+        .iter()
+        .map(|(stem, url)| serde_json::json!({ "id": stem, "url": url }))
+        .collect();
+    entries.sort_by(|a, b| {
+        a.get("id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .cmp(b.get("id").and_then(|v| v.as_str()).unwrap_or(""))
+    });
+    api_json(StatusCode::OK, serde_json::json!({ "logos": entries })).into_response()
+}
+
 pub async fn api_telemetry_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,

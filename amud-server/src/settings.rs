@@ -276,6 +276,17 @@ pub(crate) fn sanitize_active_theme_id(value: &str) -> String {
     if trimmed.is_empty() || trimmed == "default" {
         return "default".to_string();
     }
+    // Removed in v1.8.9 — fall back so saved settings stay valid.
+    const REMOVED: &[&str] = &[
+        "sunset-warm",
+        "vaporwave-grid",
+        "ocean-depths",
+        "terminal-amber",
+        "arctic-frost",
+    ];
+    if REMOVED.contains(&trimmed.as_str()) {
+        return "default".to_string();
+    }
     let valid = trimmed
         .chars()
         .all(|c| c.is_ascii_alphanumeric() || c == '-')
@@ -560,6 +571,12 @@ mod tests {
         );
         assert_eq!(sanitize_active_theme_id(""), "default");
         assert_eq!(sanitize_active_theme_id("bad id!"), "default");
+        assert_eq!(sanitize_active_theme_id("sunset-warm"), "default");
+        assert_eq!(sanitize_active_theme_id("vaporwave-grid"), "default");
+        assert_eq!(sanitize_active_theme_id("ocean-depths"), "default");
+        assert_eq!(sanitize_active_theme_id("terminal-amber"), "default");
+        assert_eq!(sanitize_active_theme_id("arctic-frost"), "default");
+        assert_eq!(sanitize_active_theme_id("ember-hearth"), "ember-hearth");
     }
 
     #[test]

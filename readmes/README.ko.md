@@ -10,7 +10,7 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.2 새로운 기능
+### v1.8.9 새로운 기능
 
 - **모든 기기에서 Taghawsa** — 모바일과 Windows에서 적응형 WebGL; WebGL 꺼짐 시 CSS 대체
 - **모바일 레이아웃** — 카드 헤더 줄바꿈, 지표 4→3→2열, 가로 스크롤 없음
@@ -24,7 +24,7 @@
 
 ### 릴리스 상태
 
-권장 버전: **v1.8.2**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
+권장 버전: **v1.8.9**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

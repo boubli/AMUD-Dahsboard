@@ -664,6 +664,8 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
         .route("/api/rss/discover", post(rss_discover_handler))
         .route("/api/rss/favicon", get(rss_favicon_handler))
         .route("/api/audit", get(list_audit_handler))
+        .route("/api/audit/clear", post(clear_audit_handler))
+        .route("/api/audit/export", get(export_audit_handler))
         .route("/api/status", get(api_status_handler))
         .route("/api/widgets", get(list_widgets_handler))
         .route("/api/widgets/add", post(add_widget_handler))
@@ -687,6 +689,7 @@ pub fn build_app_router(state: Arc<AppState>) -> Router {
             "/api/integrations/manifest",
             get(integration_manifest_handler),
         )
+        .route("/api/logos", get(logos_list_handler))
         .route(
             "/api/boards",
             get(list_boards_handler).post(create_board_handler),

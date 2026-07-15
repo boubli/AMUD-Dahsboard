@@ -46,20 +46,143 @@ async fn wal_checkpoint(db: Arc<Mutex<Connection>>) {
 pub async fn list_audit_handler(
     headers: HeaderMap,
     State(state): State<Arc<AppState>>,
+    axum::extract::Query(query): axum::extract::Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
     if let Err(resp) = require_admin_session(&headers, &state.sessions) {
         return *resp;
     }
 
-    let result = with_db(state.db.clone(), |db| list_recent_audit(db, 200)).await;
+    let scope = AuditScope::parse(query.get("scope").map(|s| s.as_str()).unwrap_or("all"));
+    let limit = query
+        .get("limit")
+        .and_then(|s| s.parse::<i64>().ok())
+        .unwrap_or(30)
+        .clamp(1, 200);
+    let offset = query
+        .get("offset")
+        .and_then(|s| s.parse::<i64>().ok())
+        .unwrap_or(0)
+        .max(0);
+
+    let result =
+        with_db(state.db.clone(), move |db| list_audit_page(db, limit, offset, scope)).await;
     match result {
-        Ok(entries) => Response::builder()
+        Ok((entries, total)) => Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", "application/json")
             .body(Body::from(
-                serde_json::to_string(&entries).unwrap_or_else(|_| "[]".to_string()),
+                serde_json::json!({
+                    "entries": entries,
+                    "total": total,
+                    "limit": limit,
+                    "offset": offset,
+                    "scope": match scope {
+                        AuditScope::Ops => "ops",
+                        AuditScope::Updates => "updates",
+                        AuditScope::All => "all",
+                    },
+                })
+                .to_string(),
             ))
             .unwrap(),
+        Err(message) => Response::builder()
+            .status(StatusCode::SERVICE_UNAVAILABLE)
+            .header("Content-Type", "application/json")
+            .body(Body::from(
+                serde_json::json!({ "error": message }).to_string(),
+            ))
+            .unwrap(),
+    }
+}
+
+pub async fn clear_audit_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<HashMap<String, String>>,
+) -> impl IntoResponse {
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return *resp;
+    }
+    if !validate_csrf(&headers, &state.sessions, Some(&form)) {
+        return csrf_forbidden_response();
+    }
+
+    let scope = AuditScope::parse(form.get("scope").map(|s| s.as_str()).unwrap_or("all"));
+    let admin_user = get_session(&headers, &state.sessions)
+        .map(|s| s.username)
+        .unwrap_or_else(|| "admin".to_string());
+    let headers_clone = headers.clone();
+    let scope_label = match scope {
+        AuditScope::Ops => "ops",
+        AuditScope::Updates => "updates",
+        AuditScope::All => "all",
+    };
+
+    let result = with_db(state.db.clone(), move |db| {
+        let deleted = clear_audit(db, scope)?;
+        record_audit_blocking(
+            db,
+            &headers_clone,
+            &admin_user,
+            "audit_clear",
+            scope_label,
+            &format!("deleted {deleted} rows"),
+        );
+        Ok::<i64, String>(deleted)
+    })
+    .await;
+
+    match result {
+        Ok(deleted) => Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "application/json")
+            .body(Body::from(
+                serde_json::json!({ "ok": true, "deleted": deleted }).to_string(),
+            ))
+            .unwrap(),
+        Err(message) => Response::builder()
+            .status(StatusCode::SERVICE_UNAVAILABLE)
+            .header("Content-Type", "application/json")
+            .body(Body::from(
+                serde_json::json!({ "error": message }).to_string(),
+            ))
+            .unwrap(),
+    }
+}
+
+pub async fn export_audit_handler(
+    headers: HeaderMap,
+    State(state): State<Arc<AppState>>,
+    axum::extract::Query(query): axum::extract::Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    if let Err(resp) = require_admin_session(&headers, &state.sessions) {
+        return *resp;
+    }
+
+    let scope = AuditScope::parse(query.get("scope").map(|s| s.as_str()).unwrap_or("all"));
+    let result = with_db(state.db.clone(), move |db| {
+        list_audit_page(db, 10_000, 0, scope)
+    })
+    .await;
+
+    match result {
+        Ok((entries, _)) => {
+            let csv = audit_entries_to_csv(&entries);
+            let filename = match scope {
+                AuditScope::Ops => "amud-audit-ops.csv",
+                AuditScope::Updates => "amud-audit-updates.csv",
+                AuditScope::All => "amud-audit.csv",
+            };
+            Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, "text/csv; charset=utf-8")
+                .header(
+                    header::CONTENT_DISPOSITION,
+                    format!("attachment; filename=\"{filename}\""),
+                )
+                .body(Body::from(csv))
+                .unwrap()
+        }
         Err(message) => Response::builder()
             .status(StatusCode::SERVICE_UNAVAILABLE)
             .header("Content-Type", "application/json")

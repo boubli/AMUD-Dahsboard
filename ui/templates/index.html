@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="{{theme_mode}}" data-greeting-animations="{{greeting_animations_enabled}}">
+<html lang="en" data-theme="{{theme_mode}}" data-theme-id="{{active_theme_id}}" data-greeting-animations="{{greeting_animations_enabled}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -269,7 +269,6 @@
             <div>
                 <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Registry</p>
                 <h2>Add App</h2>
-                <p class="form-help" style="margin-top:0.35rem;">Homelab service on the main dashboard. News feeds → <a href="/admin/settings?tab=rss" style="color:var(--accent-color);">Settings → RSS Feeds</a>.</p>
             </div>
             <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="addAppModalOpen = false">
                 <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
@@ -1306,6 +1305,7 @@
         })();
     </script>
     <script src="/static/integration-picker.js"></script>
+    <script src="/static/logo-picker.js"></script>
     <script nonce="{{csp_nonce}}">
         (function () {
             fetch('/api/integrations/manifest', { credentials: 'same-origin' })

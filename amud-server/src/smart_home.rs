@@ -109,8 +109,42 @@ pub async fn start_ha_polling(state: Arc<AppState>) {
         }
 
         let settings = state.settings_cache.read().unwrap().clone();
-        let ha_url = settings.get("ha_url").cloned().unwrap_or_default();
-        let ha_token = settings.get("ha_token").cloned().unwrap_or_default();
+        let (mut ha_url, mut ha_token) = (
+            settings.get("ha_url").cloned().unwrap_or_default(),
+            settings.get("ha_token").cloned().unwrap_or_default(),
+        );
+
+        // Prefer credentials from a Home Assistant integrated app (Add App flow).
+        if let Ok(app_creds) = tokio::task::spawn_blocking({
+            let db = state.db.clone();
+            move || {
+                let conn = db.lock().unwrap();
+                let mut stmt = conn
+                    .prepare(
+                        "SELECT url, api_key FROM apps
+                         WHERE LOWER(integration_type) = 'homeassistant'
+                           AND TRIM(url) != '' AND TRIM(api_key) != ''
+                         ORDER BY sort_order ASC, id ASC LIMIT 1",
+                    )
+                    .ok()?;
+                stmt.query_row([], |row| {
+                    Ok((
+                        row.get::<_, String>(0).unwrap_or_default(),
+                        row.get::<_, String>(1).unwrap_or_default(),
+                    ))
+                })
+                .ok()
+            }
+        })
+        .await
+        {
+            if let Some((url, token)) = app_creds {
+                if !url.is_empty() && !token.is_empty() {
+                    ha_url = url;
+                    ha_token = token;
+                }
+            }
+        }
 
         if ha_url.is_empty() || ha_token.is_empty() {
             tokio::time::sleep(Duration::from_secs(300)).await;

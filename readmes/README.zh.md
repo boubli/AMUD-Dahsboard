@@ -10,7 +10,7 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.2 新特性
+### v1.8.9 新特性
 
 - **全设备 Taghawsa** — 手机与 Windows 上自适应 WebGL；WebGL 关闭时使用 CSS 备用效果
 - **移动端布局** — 卡片标题自动换行，指标 4→3→2 列，窄屏无横向滚动
@@ -24,7 +24,7 @@
 
 ### 版本状态
 
-当前推荐：**v1.8.2**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**v1.8.9**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

@@ -162,21 +162,69 @@ fn rebuild_audit_log_table(db: &Connection) -> Result<(), rusqlite::Error> {
     ))
 }
 
+#[allow(dead_code)]
 pub(crate) fn list_recent_audit(
     db: &Connection,
     limit: i64,
 ) -> Result<Vec<serde_json::Value>, String> {
+    let (entries, _) = list_audit_page(db, limit, 0, AuditScope::All)?;
+    Ok(entries)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum AuditScope {
+    All,
+    Ops,
+    Updates,
+}
+
+impl AuditScope {
+    pub(crate) fn parse(raw: &str) -> Self {
+        match raw.trim().to_ascii_lowercase().as_str() {
+            "ops" => Self::Ops,
+            "updates" => Self::Updates,
+            _ => Self::All,
+        }
+    }
+
+    fn where_sql(self) -> &'static str {
+        match self {
+            Self::All => "",
+            Self::Ops => " WHERE action NOT LIKE 'system_update_%'",
+            Self::Updates => " WHERE action LIKE 'system_update_%'",
+        }
+    }
+}
+
+pub(crate) fn list_audit_page(
+    db: &Connection,
+    limit: i64,
+    offset: i64,
+    scope: AuditScope,
+) -> Result<(Vec<serde_json::Value>, i64), String> {
     ensure_audit_log_schema(db).map_err(|e| format!("audit log unavailable: {e}"))?;
+
+    let limit = limit.clamp(1, 200);
+    let offset = offset.max(0);
+    let where_sql = scope.where_sql();
+
+    let total: i64 = db
+        .query_row(
+            &format!("SELECT COUNT(*) FROM audit_log{where_sql}"),
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("audit log count failed: {e}"))?;
 
     let mut out = Vec::new();
     let mut stmt = db
-        .prepare(
+        .prepare(&format!(
             "SELECT id, created_at, username, action, target, details, client_ip
-         FROM audit_log ORDER BY id DESC LIMIT ?",
-        )
+         FROM audit_log{where_sql} ORDER BY id DESC LIMIT ?1 OFFSET ?2"
+        ))
         .map_err(|e| format!("audit log query prepare failed: {e}"))?;
     let mut rows = stmt
-        .query(params![limit])
+        .query(params![limit, offset])
         .map_err(|e| format!("audit log query failed: {e}"))?;
     while let Some(row) = rows
         .next()
@@ -192,7 +240,38 @@ pub(crate) fn list_recent_audit(
             "client_ip": row.get::<_, String>(6).unwrap_or_default(),
         }));
     }
-    Ok(out)
+    Ok((out, total))
+}
+
+pub(crate) fn clear_audit(db: &Connection, scope: AuditScope) -> Result<i64, String> {
+    ensure_audit_log_schema(db).map_err(|e| format!("audit log unavailable: {e}"))?;
+    let where_sql = scope.where_sql();
+    let deleted = db
+        .execute(&format!("DELETE FROM audit_log{where_sql}"), [])
+        .map_err(|e| format!("audit log clear failed: {e}"))?;
+    Ok(deleted as i64)
+}
+
+pub(crate) fn audit_entries_to_csv(entries: &[serde_json::Value]) -> String {
+    let mut out = String::from("id,created_at,username,action,target,details,client_ip\n");
+    for e in entries {
+        let cell = |key: &str| {
+            let raw = e.get(key).and_then(|v| v.as_str()).unwrap_or("").replace('"', "\"\"");
+            format!("\"{raw}\"")
+        };
+        let id = e.get("id").and_then(|v| v.as_i64()).unwrap_or(0);
+        out.push_str(&format!(
+            "{},{},{},{},{},{},{}\n",
+            id,
+            cell("created_at"),
+            cell("username"),
+            cell("action"),
+            cell("target"),
+            cell("details"),
+            cell("client_ip")
+        ));
+    }
+    out
 }
 
 #[cfg(test)]

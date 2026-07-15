@@ -4,7 +4,7 @@
 
 :root {
     --theme-font: 'Syne', sans-serif;
-    --theme-bg-fallback: #000000;
+    --theme-bg-fallback: #0f1412;
     --theme-card-r: 0;
     --theme-card-g: 66;
     --theme-card-b: 56;
@@ -21,7 +21,7 @@
         radial-gradient(ellipse 80% 50% at 20% 80%, rgba(241, 90, 34, 0.28), transparent),
         radial-gradient(ellipse 60% 45% at 80% 20%, rgba(0, 66, 56, 0.65), transparent),
         radial-gradient(ellipse 50% 40% at 50% 50%, rgba(241, 90, 34, 0.12), transparent),
-        linear-gradient(180deg, #000000 0%, #004238 45%, #0a0e27 70%, #000000 100%);
+        linear-gradient(180deg, #0f1412 0%, #004238 45%, #0a0e27 70%, #0f1412 100%);
 }
 
 body::before {

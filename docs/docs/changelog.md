@@ -11,6 +11,25 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.9 — Settings UX, audit tools, icons, themes
+
+**2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.9)
+
+### Added
+- Audit Log / System Update History: pagination (30), clear, CSV export; scoped audit API
+- Add/Edit App searchable icon gallery (`GET /api/logos`)
+- Themes: Ember Hearth, Neon Boulevard, Kelp Abyss, Amber Console, Glacier Mist
+
+### Changed
+- Settings: Integrations → **Infrastructure**; Support → **Branding**; HA via Add App
+- Theme Mode: Light/Dark variants of the selected gallery theme (`data-theme-id` on `<html>`)
+- Unique chrome icon packs per theme; SW v44
+
+### Removed
+- Themes `sunset-warm`, `vaporwave-grid`, `ocean-depths`, `terminal-amber`, `arctic-frost`
+
+---
+
 ## v1.8.7 — Restore centered desktop margins
 
 **2026-07-15** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.7)

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amud-dashboard-v43';
+const CACHE_NAME = 'amud-dashboard-v44';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
@@ -21,7 +21,8 @@ const ASSETS_TO_CACHE = [
   '/static/app-search.js',
   '/static/shortcuts.js',
   '/static/embed-tabs.js',
-  '/static/drag.js'
+  '/static/drag.js',
+  '/static/logo-picker.js'
 ];
 
 const LAYOUT_CSS_PATHS = [

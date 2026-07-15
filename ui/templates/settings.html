@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="{{theme_mode}}">
+<html lang="en" data-theme="{{theme_mode}}" data-theme-id="{{active_theme_id}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -575,20 +575,14 @@
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'appearance' }" @click="switchTab('appearance')">
                     <i data-lucide="palette"></i> Appearance
                 </button>
-                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'integrations' }" @click="switchTab('integrations')">
-                    <i data-lucide="plug"></i> Integrations
+                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'infrastructure' || activeTab === 'integrations' }" @click="switchTab('infrastructure')">
+                    <i data-lucide="server"></i> Infrastructure
                 </button>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'privacy' }" @click="switchTab('privacy')">
                     <i data-lucide="eye"></i> Privacy & Access
                 </button>
                 <button type="button" class="nav-item" :class="{ 'active': activeTab === 'performance' }" @click="switchTab('performance')">
                     <i data-lucide="gauge"></i> Performance
-                </button>
-                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'smarthome' }" @click="switchTab('smarthome')">
-                    <i data-lucide="home"></i> Smart Home
-                </button>
-                <button type="button" class="nav-item" :class="{ 'active': activeTab === 'donation' }" @click="switchTab('donation')">
-                    <i data-lucide="heart"></i> Support
                 </button>
             </div>
             <div class="nav-section">
@@ -697,6 +691,23 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="settings-block">
+                            <h3><i data-lucide="heart" style="color:var(--accent-color);"></i> Support / Donation</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">AMUD is free — donations are optional. Toggle the dashboard Support card here; donation links are fixed.</p>
+                            <div class="form-group">
+                                <label for="setting-donate-enabled">Show Support card on the dashboard</label>
+                                <select id="setting-donate-enabled" name="donate_enabled" class="form-control" style="height:3rem; cursor:pointer;">
+                                    <option value="1" {{eq_donate_on}}>Enabled</option>
+                                    <option value="0" {{eq_donate_off}}>Disabled</option>
+                                </select>
+                            </div>
+                            <ul style="list-style:none; padding:0; margin:1rem 0 0; display:flex; flex-direction:column; gap:0.6rem;">
+                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="github" style="width:1rem; height:1rem; color:var(--text-muted);"></i> GitHub Sponsors</li>
+                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="credit-card" style="width:1rem; height:1rem; color:var(--text-muted);"></i> Donate via Card (Stripe)</li>
+                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="coffee" style="width:1rem; height:1rem; color:var(--text-muted);"></i> Ko-fi</li>
+                            </ul>
+                        </div>
                     </div>
 
                     <!-- TAB: APPEARANCE -->
@@ -763,19 +774,10 @@
                             <div class="appearance-settings-grid">
                                 <div class="settings-block settings-block--pair" style="margin:0;">
                                     <h3><i data-lucide="palette" style="color:var(--accent-color);"></i> Quick Colors</h3>
-                                    <div class="appearance-pair-row">
-                                        <div class="form-group" style="margin:0;">
-                                            <label for="setting-accent-color">Accent Color</label>
-                                            <input type="color" id="setting-accent-color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
-                                        </div>
-                                        <div class="form-group" style="margin:0;">
-                                            <label for="theme-mode-select">Theme Mode</label>
-                                            <select name="theme_mode" id="theme-mode-select" class="form-control" style="height:3rem; cursor:pointer;">
-                                                <option value="dark" {{eq_theme_dark}}>Dark Mode</option>
-                                                <option value="light" {{eq_theme_light}}>Light Mode</option>
-                                            </select>
-                                            <p class="form-help">Fallback when the scheduler is off or sunrise times are unavailable.</p>
-                                        </div>
+                                    <div class="form-group" style="margin:0;">
+                                        <label for="setting-accent-color">Accent Color</label>
+                                        <input type="color" id="setting-accent-color" name="accent_color" class="form-control" value="{{accent_color}}" style="height:3rem; padding:0.2rem; cursor:pointer;">
+                                        <p class="form-help">Override the selected theme’s accent if needed.</p>
                                     </div>
                                 </div>
 
@@ -897,10 +899,17 @@
                                         <strong>Save Changes</strong> applies to the dashboard.
                                         <a href="https://boubli.github.io/AMUD-Dashboard/themes" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Online gallery</a>
                                     </p>
+                                    <div class="appearance-pair-row" style="margin-bottom:1rem; max-width:420px;">
+                                        <div class="form-group" style="margin:0;">
+                                            <label for="theme-mode-select">Light / Dark</label>
+                                            <select name="theme_mode" id="theme-mode-select" class="form-control" style="height:3rem; cursor:pointer;">
+                                                <option value="dark" {{eq_theme_dark}}>Dark</option>
+                                                <option value="light" {{eq_theme_light}}>Light</option>
+                                            </select>
+                                            <p class="form-help">Variant of the selected gallery theme. Scheduler can auto-switch the same theme’s light/dark.</p>
+                                        </div>
+                                    </div>
                                     <input type="hidden" name="active_theme_id" id="setting-active-theme-id" value="{{active_theme_id}}">
-                                    <output id="theme-light-mode-warning" class="theme-light-mode-warning" style="display:none;">
-                                        Light mode is on — bundled themes look best in dark mode. Consider switching Theme Mode to Dark or turning off the scheduler.
-                                    </output>
                                     <div class="theme-picker-toolbar">
                                         <label for="theme-picker-search" class="visually-hidden">Search themes</label>
                                         <input type="search" id="theme-picker-search" class="form-control" placeholder="Search themes…" autocomplete="off" style="max-width:280px;">
@@ -927,10 +936,10 @@
                         </div>
                     </div>
 
-                    <!-- TAB: INTEGRATIONS -->
-                    <div x-show="activeTab === 'integrations'" x-transition.opacity style="display:none;">
-                        <h1 class="settings-page-title">Integrations</h1>
-                        <p class="settings-page-subtitle">Connect media servers so AMUD can show real active playback instead of simulated stream data.</p>
+                    <!-- TAB: INFRASTRUCTURE -->
+                    <div x-show="activeTab === 'infrastructure' || activeTab === 'integrations'" x-transition.opacity style="display:none;">
+                        <h1 class="settings-page-title">Infrastructure</h1>
+                        <p class="settings-page-subtitle">Proxmox monitoring, Docker discovery, and imports from Homepage or Homarr. Per-app integrations (Jellyfin, Home Assistant, Radarr, …) are configured in Add/Edit App.</p>
 
                         <div class="settings-block">
                             <h3><i data-lucide="server" style="color:var(--accent-color);"></i> Proxmox VE</h3>
@@ -1148,6 +1157,7 @@
                                     <div class="form-group">
                                         <label for="setting-ha-poll-interval">Home Assistant poll (s)</label>
                                         <input type="number" id="setting-ha-poll-interval" name="ha_poll_interval_secs" class="form-control" value="{{ha_poll_interval_secs}}" min="10" max="300">
+                                        <p class="form-help">Configure Home Assistant via Add App → Integration → Home Assistant (URL + token). Legacy settings still work as fallback.</p>
                                     </div>
                                     <div class="form-group">
                                         <label for="setting-telemetry-broadcast-interval">WebSocket telemetry (s)</label>
@@ -1193,49 +1203,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB: SMART HOME -->
-                    <div x-show="activeTab === 'smarthome'" x-transition.opacity style="display:none;">
-                        <h1 class="settings-page-title">Smart Home</h1>
-                        <p class="settings-page-subtitle">Connect AMUD to Home Assistant to show live sensors and states on the dashboard.</p>
-                        
-                        <div class="settings-block">
-                            <h3><i data-lucide="home" style="color:var(--accent-color);"></i> Home Assistant Config</h3>
-                            <div class="form-group">
-                                <label for="setting-ha-url">Home Assistant URL</label>
-                                <input type="url" id="setting-ha-url" name="ha_url" class="form-control" value="{{ha_url}}" placeholder="http://homeassistant.local:8123">
-                            </div>
-                            <div class="form-group" style="margin-top:1rem;">
-                                <label for="setting-ha-token">Long-Lived Access Token</label>
-                                <input type="password" id="setting-ha-token" name="ha_token" class="form-control" value="" placeholder="{{ha_token_placeholder}}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB: SUPPORT / DONATION -->
-                    <div x-show="activeTab === 'donation'" x-transition.opacity style="display:none;">
-                        <h1 class="settings-page-title">Support / Donation</h1>
-                        <p class="settings-page-subtitle">AMUD is free with every feature unlocked — a donation is purely optional support for the project author, not a way to buy features. You can show or hide the Support card here; the links themselves are fixed and cannot be changed.</p>
-
-                        <div class="settings-block">
-                            <h3><i data-lucide="heart" style="color:var(--accent-color);"></i> Support card</h3>
-                            <div class="form-group">
-                                <label for="setting-donate-enabled">Show Support card on the dashboard</label>
-                                <select id="setting-donate-enabled" name="donate_enabled" class="form-control" style="height:3rem; cursor:pointer;">
-                                    <option value="1" {{eq_donate_on}}>Enabled</option>
-                                    <option value="0" {{eq_donate_off}}>Disabled</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="settings-block">
-                            <h3><i data-lucide="link" style="color:var(--accent-color);"></i> Donation Links</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">These links support the AMUD author and are fixed in the app.</p>
-                            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.6rem;">
-                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="github" style="width:1rem; height:1rem; color:var(--text-muted);"></i> GitHub Sponsors</li>
-                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="credit-card" style="width:1rem; height:1rem; color:var(--text-muted);"></i> Donate via Card (Stripe)</li>
-                                <li style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem;"><i data-lucide="coffee" style="width:1rem; height:1rem; color:var(--text-muted);"></i> Ko-fi</li>
-                            </ul>
-                        </div>
                     </div>
 
                 </div>
@@ -1313,7 +1280,7 @@
                 <p class="settings-page-subtitle">Manage feed categories and news sources. Headlines appear on your <a href="/feeds" style="color:var(--accent-color);">Feeds</a> page.</p>
 
                 <div class="settings-block" x-show="!feedsEnabled" style="border:1px solid var(--border-color); background:rgba(255,180,0,0.08); padding:1rem 1.25rem; margin-bottom:1rem;">
-                    <p style="margin:0; font-size:0.9rem;"><strong>Feeds are disabled.</strong> Background RSS polling is off and the Feeds page is hidden. Enable under <button type="button" class="btn btn-secondary" style="font-size:0.78rem; padding:0.2rem 0.5rem; vertical-align:baseline;" @click="activeTab = 'integrations'">Integrations → Performance</button> or keep managing sources here for when you re-enable.</p>
+                    <p style="margin:0; font-size:0.9rem;"><strong>Feeds are disabled.</strong> Background RSS polling is off and the Feeds page is hidden. Enable under <button type="button" class="btn btn-secondary" style="font-size:0.78rem; padding:0.2rem 0.5rem; vertical-align:baseline;" @click="switchTab('performance')">Performance</button> or keep managing sources here for when you re-enable.</p>
                 </div>
 
                 <div class="feed-categories-block settings-block" style="padding:0;">
@@ -1755,13 +1722,25 @@
 
                 <!-- Update History Table -->
                 <div class="settings-block" style="padding: 0; border: 1px solid rgba(255,255,255,0.05);">
-                    <h3 style="padding: 1.25rem 1.25rem 0.5rem 1.25rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                        <i data-lucide="history" style="color: var(--accent-color); width: 1.2rem; height: 1.2rem;"></i>
-                        System Update History
-                    </h3>
-                    <p style="padding: 0 1.25rem 1rem 1.25rem; font-size: 0.85rem; color: var(--text-muted); margin: 0;">
-                        Past system update events from the audit log. Script or manual upgrades on LXC/native are recorded on next server start.
-                    </p>
+                    <div style="padding: 1.25rem 1.25rem 0.5rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
+                        <div>
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-lucide="history" style="color: var(--accent-color); width: 1.2rem; height: 1.2rem;"></i>
+                                System Update History
+                            </h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.35rem 0 0;">
+                                Past system update events. Script or manual upgrades on LXC/native are recorded on next server start.
+                            </p>
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                            <button type="button" class="btn btn-secondary" style="font-size:0.8rem;" @click="exportUpdateHistory()">
+                                <i data-lucide="download" style="width:0.9rem;height:0.9rem;"></i> Export
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="font-size:0.8rem; color:var(--danger);" @click="clearUpdateHistory()">
+                                <i data-lucide="trash-2" style="width:0.9rem;height:0.9rem;"></i> Remove history
+                            </button>
+                        </div>
+                    </div>
                     <table class="mgmt-table">
                         <thead>
                             <tr>
@@ -1781,7 +1760,7 @@
                             <tr x-show="!loadingHistory && !updateHistoryError && !updateHistory.length">
                                 <td colspan="4" style="color:var(--text-muted); text-align:center; padding: 2rem 0;">No updates recorded yet.</td>
                             </tr>
-                            <template x-for="entry in updateHistory" :key="entry.created_at">
+                            <template x-for="entry in updateHistory" :key="entry.id || entry.created_at">
                                 <tr>
                                     <td style="font-size:0.8rem; white-space:nowrap;" x-text="entry.created_at"></td>
                                     <td>
@@ -1800,14 +1779,26 @@
                             </template>
                         </tbody>
                     </table>
+                    <div style="padding:0.85rem 1.25rem; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05);" x-show="!loadingHistory && updateHistoryTotal > 0">
+                        <span style="font-size:0.78rem; color:var(--text-muted);" x-text="`Page ${updateHistoryPage} of ${Math.max(1, Math.ceil(updateHistoryTotal / 30))} · ${updateHistoryTotal} total`"></span>
+                        <div style="display:flex; gap:0.35rem; align-items:center;">
+                            <button type="button" class="btn btn-secondary" style="font-size:0.75rem;" :disabled="updateHistoryPage <= 1" @click="updateHistoryPage = Math.max(1, updateHistoryPage - 1); loadUpdateHistory()">Prev</button>
+                            <template x-for="p in updateHistoryPageNumbers()" :key="'uh-'+p">
+                                <button type="button" class="btn btn-secondary" style="font-size:0.75rem; min-width:2rem;"
+                                    :style="p === updateHistoryPage ? 'background:var(--accent-color); color:#111;' : ''"
+                                    @click="updateHistoryPage = p; loadUpdateHistory()" x-text="p"></button>
+                            </template>
+                            <button type="button" class="btn btn-secondary" style="font-size:0.75rem;" :disabled="updateHistoryPage >= Math.ceil(updateHistoryTotal / 30)" @click="updateHistoryPage += 1; loadUpdateHistory()">Next</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- TAB: AUDIT LOG -->
             <div x-show="activeTab === 'audit'" x-transition.opacity style="display:none;" class="settings-content-wrapper">
                 <h1 class="settings-page-title">Audit Log</h1>
-                <p class="settings-page-subtitle">Recent administrative actions recorded by the server (last 200 entries). <span id="audit-meta-badge" style="font-size:0.85rem;"></span></p>
-                <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
+                <p class="settings-page-subtitle">Administrative actions (system updates are listed under System Settings). <span id="audit-meta-badge" style="font-size:0.85rem;"></span></p>
+                <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem; align-items:flex-end;">
                     <div class="form-group" style="margin:0; flex:1; min-width:180px;">
                         <label for="audit-filter-search" style="font-size:0.75rem;">Search</label>
                         <input type="search" id="audit-filter-search" class="form-control" placeholder="User, action, target…" oninput="filterAuditLog()">
@@ -1817,6 +1808,14 @@
                         <select id="audit-filter-action" class="form-control" onchange="filterAuditLog()">
                             <option value="">All actions</option>
                         </select>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; margin-left:auto;">
+                        <button type="button" class="btn btn-secondary" style="font-size:0.8rem;" onclick="exportAuditLog()">
+                            <i data-lucide="download" style="width:0.9rem;height:0.9rem;"></i> Export
+                        </button>
+                        <button type="button" class="btn btn-secondary" style="font-size:0.8rem; color:var(--danger);" onclick="clearAuditLog()">
+                            <i data-lucide="trash-2" style="width:0.9rem;height:0.9rem;"></i> Remove all history
+                        </button>
                     </div>
                 </div>
                 <p id="audit-filter-count" style="font-size:0.78rem; color:var(--text-muted); margin:-0.5rem 0 0.75rem;"></p>
@@ -1835,6 +1834,7 @@
                             <tr><td colspan="5" style="color:var(--text-muted);">Loading audit log…</td></tr>
                         </tbody>
                     </table>
+                    <div id="audit-pagination" style="padding:0.85rem 1.25rem; display:none; flex-wrap:wrap; gap:0.5rem; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05);"></div>
                 </div>
             </div>
 
@@ -2103,6 +2103,8 @@
                 updateHistory: [],
                 loadingHistory: false,
                 updateHistoryError: null,
+                updateHistoryPage: 1,
+                updateHistoryTotal: 0,
                 showToast: false,
                 toastMessage: '',
                 toastVersion: '',
@@ -2111,10 +2113,13 @@
                     const urlParams = new URLSearchParams(window.location.search);
                     const tabParam = urlParams.get('tab');
                     if (tabParam) {
-                        this.activeTab = tabParam;
-                        localStorage.setItem('amud_settings_tab', tabParam);
+                        this.activeTab = tabParam === 'integrations' ? 'infrastructure'
+                            : (tabParam === 'smarthome' || tabParam === 'donation' ? 'branding' : tabParam);
+                        localStorage.setItem('amud_settings_tab', this.activeTab);
                         window.history.replaceState({}, document.title, window.location.pathname);
                     }
+                    if (this.activeTab === 'integrations') this.activeTab = 'infrastructure';
+                    if (this.activeTab === 'smarthome' || this.activeTab === 'donation') this.activeTab = 'branding';
 
                     if (this.activeTab === 'weather') {
                         this.activeTab = 'appearance';
@@ -2212,21 +2217,21 @@
                 loadUpdateHistory() {
                     this.loadingHistory = true;
                     this.updateHistoryError = null;
+                    const page = Math.max(1, this.updateHistoryPage || 1);
+                    const offset = (page - 1) * 30;
                     const versionPromise = this.systemVersion
                         ? Promise.resolve(this.systemVersion)
                         : fetch('/api/system/version', { credentials: 'same-origin', cache: 'no-store' })
                             .then(res => res.ok ? res.json() : null)
                             .catch(() => null);
 
-                    fetch('/api/audit', { credentials: 'same-origin', cache: 'no-store' })
+                    fetch(`/api/audit?scope=updates&limit=30&offset=${offset}`, { credentials: 'same-origin', cache: 'no-store' })
                         .then(res => parseApiResponse(res))
                         .then(async ({ ok, data }) => {
                             if (!ok) throw new Error(data?.error || 'Failed to fetch audit log');
-                            if (!Array.isArray(data)) {
-                                throw new Error(data?.error || 'Unexpected audit log response');
-                            }
-                            let history = data.filter(entry => entry.action && entry.action.startsWith('system_update_'));
-                            if (!history.length) {
+                            let history = Array.isArray(data?.entries) ? data.entries : (Array.isArray(data) ? data.filter(e => e.action?.startsWith('system_update_')) : []);
+                            this.updateHistoryTotal = Number(data?.total ?? history.length) || 0;
+                            if (!history.length && page === 1) {
                                 const versionData = await versionPromise;
                                 if (versionData?.last_version_change_at) {
                                     history = [{
@@ -2235,6 +2240,7 @@
                                         target: versionData.current || '{{app_version}}',
                                         details: 'Method: ' + (versionData.last_update_method || 'detected on startup')
                                     }];
+                                    this.updateHistoryTotal = 1;
                                 }
                             }
                             this.updateHistory = history;
@@ -2243,10 +2249,46 @@
                             console.error('Failed to load update history:', err);
                             this.updateHistoryError = err.message || 'Failed to load update history';
                             this.updateHistory = [];
+                            this.updateHistoryTotal = 0;
                         })
                         .finally(() => {
                             this.loadingHistory = false;
                         });
+                },
+
+                updateHistoryPageNumbers() {
+                    const totalPages = Math.max(1, Math.ceil((this.updateHistoryTotal || 0) / 30));
+                    const cur = this.updateHistoryPage || 1;
+                    const pages = [];
+                    const start = Math.max(1, cur - 2);
+                    const end = Math.min(totalPages, start + 4);
+                    for (let i = start; i <= end; i++) pages.push(i);
+                    return pages;
+                },
+
+                exportUpdateHistory() {
+                    window.location.href = '/api/audit/export?scope=updates&format=csv';
+                },
+
+                clearUpdateHistory() {
+                    if (!confirm('Remove all system update history from this server? This cannot be undone.')) return;
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                    const formData = new URLSearchParams();
+                    formData.append('csrf_token', csrfToken);
+                    formData.append('scope', 'updates');
+                    fetch('/api/audit/clear', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData
+                    })
+                        .then(res => parseApiResponse(res))
+                        .then(({ ok, data }) => {
+                            if (!ok) throw new Error(data?.error || 'Clear failed');
+                            this.updateHistoryPage = 1;
+                            this.loadUpdateHistory();
+                        })
+                        .catch(err => alert(err.message || 'Failed to clear update history'));
                 },
 
                 showUpdateToast(version) {
@@ -2907,8 +2949,11 @@
             alert(message || 'Request failed');
         }
 
-        // Audit log
+        // Audit log (ops only — system updates live under System Update History)
         let auditEntriesCache = [];
+        let auditPage = 1;
+        let auditTotal = 0;
+        const AUDIT_PAGE_SIZE = 30;
 
         function renderAuditRows(entries) {
             const tbody = document.getElementById('audit-table-body');
@@ -2934,6 +2979,41 @@
             });
         }
 
+        function renderAuditPagination() {
+            const el = document.getElementById('audit-pagination');
+            if (!el) return;
+            const totalPages = Math.max(1, Math.ceil(auditTotal / AUDIT_PAGE_SIZE));
+            if (auditTotal <= 0) {
+                el.style.display = 'none';
+                el.replaceChildren();
+                return;
+            }
+            el.style.display = 'flex';
+            el.replaceChildren();
+            const info = document.createElement('span');
+            info.style.cssText = 'font-size:0.78rem; color:var(--text-muted);';
+            info.textContent = `Page ${auditPage} of ${totalPages} · ${auditTotal} total`;
+            el.appendChild(info);
+            const nav = document.createElement('div');
+            nav.style.cssText = 'display:flex; gap:0.35rem; align-items:center; flex-wrap:wrap;';
+            const mkBtn = (label, page, disabled, active) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'btn btn-secondary';
+                b.style.cssText = 'font-size:0.75rem;' + (active ? ' background:var(--accent-color); color:#111;' : '') + (page && !active ? ' min-width:2rem;' : '');
+                b.textContent = label;
+                b.disabled = !!disabled;
+                if (page && !disabled) b.onclick = () => { auditPage = page; loadAuditLog(); };
+                return b;
+            };
+            nav.appendChild(mkBtn('Prev', Math.max(1, auditPage - 1), auditPage <= 1, false));
+            const start = Math.max(1, auditPage - 2);
+            const end = Math.min(totalPages, start + 4);
+            for (let p = start; p <= end; p++) nav.appendChild(mkBtn(String(p), p, false, p === auditPage));
+            nav.appendChild(mkBtn('Next', auditPage + 1, auditPage >= totalPages, false));
+            el.appendChild(nav);
+        }
+
         function filterAuditLog() {
             const search = (document.getElementById('audit-filter-search')?.value || '').toLowerCase().trim();
             const actionFilter = document.getElementById('audit-filter-action')?.value || '';
@@ -2951,9 +3031,29 @@
             const countEl = document.getElementById('audit-filter-count');
             if (countEl) {
                 countEl.textContent = filtered.length === auditEntriesCache.length
-                    ? `Showing ${filtered.length} entries`
-                    : `Showing ${filtered.length} of ${auditEntriesCache.length} entries`;
+                    ? `Showing ${filtered.length} on this page`
+                    : `Showing ${filtered.length} of ${auditEntriesCache.length} on this page`;
             }
+            renderAuditPagination();
+        }
+
+        function rebuildAuditActionOptions(entries) {
+            const actionSelect = document.getElementById('audit-filter-action');
+            if (!actionSelect) return;
+            const prev = actionSelect.value;
+            actionSelect.replaceChildren();
+            const all = document.createElement('option');
+            all.value = '';
+            all.textContent = 'All actions';
+            actionSelect.appendChild(all);
+            const actions = [...new Set(entries.map(e => e.action).filter(Boolean))].sort();
+            actions.forEach(action => {
+                const opt = document.createElement('option');
+                opt.value = action;
+                opt.textContent = action;
+                actionSelect.appendChild(opt);
+            });
+            if (prev && actions.includes(prev)) actionSelect.value = prev;
         }
 
         async function loadAuditLog() {
@@ -2961,49 +3061,67 @@
             const tbody = document.getElementById('audit-table-body');
             if (!tbody) return;
             try {
+                const offset = (Math.max(1, auditPage) - 1) * AUDIT_PAGE_SIZE;
                 const [auditRes, versionRes] = await Promise.all([
-                    fetch('/api/audit', { credentials: 'same-origin', cache: 'no-store' }),
+                    fetch(`/api/audit?scope=ops&limit=${AUDIT_PAGE_SIZE}&offset=${offset}`, { credentials: 'same-origin', cache: 'no-store' }),
                     fetch('/api/system/version', { credentials: 'same-origin', cache: 'no-store' }).catch(() => null)
                 ]);
                 const { ok, data } = await parseApiResponse(auditRes);
                 if (!ok) throw new Error(data.error || 'Failed to load audit log');
-                if (!Array.isArray(data)) {
-                    throw new Error(data?.error || 'Unexpected audit log response');
-                }
-                auditEntriesCache = data;
+                const entries = Array.isArray(data?.entries) ? data.entries : (Array.isArray(data) ? data.filter(e => !(e.action || '').startsWith('system_update_')) : []);
+                auditEntriesCache = entries;
+                auditTotal = Number(data?.total ?? entries.length) || 0;
 
                 const metaBadge = document.getElementById('audit-meta-badge');
                 if (metaBadge && versionRes?.ok) {
                     const versionData = await versionRes.json();
-                    const count = versionData.audit_entry_count ?? data.length;
                     const deploy = versionData.deployment_type === 'proxmox' ? 'Proxmox LXC'
                         : versionData.deployment_type === 'docker' ? 'Docker'
                         : 'Native Linux';
-                    metaBadge.textContent = `${count} entries · ${deploy}`;
+                    metaBadge.textContent = `${auditTotal} entries · ${deploy}`;
                 } else if (metaBadge) {
-                    metaBadge.textContent = `${data.length} entries`;
+                    metaBadge.textContent = `${auditTotal} entries`;
                 }
 
-                if (!data.length) {
+                if (!entries.length && auditTotal === 0) {
                     setTableMessage(tbody, 5, 'No audit entries yet. Sign out and sign back in, then save a setting — new actions are recorded from that point forward.', { style: 'color:var(--text-muted);' });
                     const countEl = document.getElementById('audit-filter-count');
                     if (countEl) countEl.textContent = '';
+                    renderAuditPagination();
                     return;
                 }
-                const actionSelect = document.getElementById('audit-filter-action');
-                if (actionSelect && actionSelect.options.length <= 1) {
-                    const actions = [...new Set(data.map(e => e.action).filter(Boolean))].sort();
-                    actions.forEach(action => {
-                        const opt = document.createElement('option');
-                        opt.value = action;
-                        opt.textContent = action;
-                        actionSelect.appendChild(opt);
-                    });
-                }
+                rebuildAuditActionOptions(entries);
                 filterAuditLog();
+                if (window.lucide) lucide.createIcons();
             } catch (e) {
                 console.error(e);
                 setTableMessage(tbody, 5, e.message || 'Failed to load audit log', { style: 'color:var(--danger);' });
+            }
+        }
+
+        function exportAuditLog() {
+            window.location.href = '/api/audit/export?scope=ops&format=csv';
+        }
+
+        async function clearAuditLog() {
+            if (!confirm('Remove all audit log history (except system update events) from this server? This cannot be undone.')) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const formData = new URLSearchParams();
+            formData.append('csrf_token', csrfToken);
+            formData.append('scope', 'ops');
+            try {
+                const res = await fetch('/api/audit/clear', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+                const { ok, data } = await parseApiResponse(res);
+                if (!ok) throw new Error(data?.error || 'Clear failed');
+                auditPage = 1;
+                await loadAuditLog();
+            } catch (e) {
+                alert(e.message || 'Failed to clear audit log');
             }
         }
 

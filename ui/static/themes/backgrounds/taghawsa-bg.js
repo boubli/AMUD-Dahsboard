@@ -456,7 +456,8 @@
 
     function enableCssFallback() {
         document.body.classList.remove('has-webgl-bg');
-        if (document.body.getAttribute('data-theme-id') === THEME_ID) {
+        if (document.documentElement.getAttribute('data-theme-id') === THEME_ID
+            || document.body.getAttribute('data-theme-id') === THEME_ID) {
             document.body.classList.add('taghawsa-css-fallback');
         }
     }

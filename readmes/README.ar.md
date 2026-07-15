@@ -10,7 +10,7 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### الجديد في v1.8.2
+### الجديد في v1.8.9
 
 - **Taghawsa على كل الأجهزة** — WebGL تكيفي على الهاتف وWindows؛ بديل CSS عند إيقاف WebGL
 - **تخطيط الجوال** — ترويسات البطاقات تلتف، المقاييس 4→3→2 أعمدة، بلا تمرير أفقي
@@ -24,7 +24,7 @@
 
 ### حالة الإصدار
 
-الإصدار الموصى به: **v1.8.2**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
+الإصدار الموصى به: **v1.8.9**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
