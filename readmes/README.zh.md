@@ -32,32 +32,6 @@
 
 与运行在笨重运行时（PHP-FPM、Node.js）并依赖复杂的嵌套 YAML 配置文件的主流仪表板（Heimdall、Homepage、Homarr）不同，AMUD 采用编译型 Rust 编写，并完全持久化在 SQLite 中。服务器和遥测代理在空闲时合计 **30–50 MB RAM**（完整集成网格峰值约 150 MB），路由执行时间在亚毫秒级。
 
-## 移动端
-
-适配手机的 Taghawsa 主题布局 — 随时随地访问面板与登录页。
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
-  &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
-</p>
-
-## 添加应用 — 无需 YAML
-
-填写 URL，选择图标与集成。无需配置文件。
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
-</p>
-
-## 品牌设置
-
-在设置中自定义名称、徽标和强调色 — 你的面板，你的品牌。
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
-</p>
-
 ## 架构与设计决策
 
 AMUD Dashboard 拆分为两个原生二进制文件：

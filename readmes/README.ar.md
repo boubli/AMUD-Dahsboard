@@ -32,32 +32,6 @@
 
 على عكس لوحات التحكم القديمة (Heimdall، Homepage، Homarr) التي تعمل على بيئات تشغيل ثقيلة (PHP-FPM، Node.js) وتعتمد على ملفات تكوين YAML المعقدة والمتداخلة، فإن AMUD مكتوب بلغة Rust المجمعة ويتم حفظ البيانات بالكامل في SQLite. في وضع الخمول، يستهلك الخادم ووكيل القياس عن بعد **30–50 ميجابايت RAM** (ذروة ~150 ميجابايت مع شبكة تكامل كاملة) مع وقت تنفيذ للمسارات أقل من جزء من الملي ثانية.
 
-## الجوال
-
-تخطيط جاهز للجوال بسمة Taghawsa — اللوحة وتسجيل الدخول أينما كنت.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
-  &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
-</p>
-
-## إضافة تطبيق — بدون YAML
-
-أدخل الرابط، واختر أيقونة وتكاملاً. بدون ملفات إعداد.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
-</p>
-
-## الهوية البصرية
-
-الاسم والشعار واللون من الإعدادات — لوحتك، هويتك.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
-</p>
-
 ## الهندسة المعمارية وقرارات التصميم
 
 ينقسم لوحة تحكم AMUD إلى برنامجين أصليين:

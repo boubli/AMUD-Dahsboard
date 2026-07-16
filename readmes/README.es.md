@@ -32,32 +32,6 @@ Recomendado ahora: **v1.8.10**. Detalles y versiones retiradas: **[README en ing
 
 A diferencia de los paneles tradicionales (Heimdall, Homepage, Homarr) que se ejecutan en entornos pesados (PHP-FPM, Node.js) y dependen de complejos archivos de configuración YAML anidados, AMUD está escrito en Rust compilado y se almacena por completo en SQLite. Combinados, el servidor y el agente de telemetría consumen en reposo **30–50 MB de RAM** (pico ~150 MB con la cuadrícula de integraciones completa) con una ejecución de rutas en menos de un milisegundo.
 
-## Móvil
-
-Diseño listo para el teléfono con el tema Taghawsa — panel e inicio de sesión donde vayas.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
-  &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
-</p>
-
-## Añadir una app — sin YAML
-
-Indica la URL, elige un icono y una integración. Sin archivos de configuración.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
-</p>
-
-## Identidad de marca
-
-Nombre, logo y acento desde Ajustes — tu panel, tu identidad.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
-</p>
-
 ## Arquitectura y Decisiones de Diseño
 
 El panel de AMUD se divide en dos binarios nativos:

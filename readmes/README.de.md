@@ -32,32 +32,6 @@ Aktuell empfohlen: **v1.8.10**. Details und zurückgezogene Tags: **[englisches 
 
 Im Gegensatz zu älteren Dashboards (Heimdall, Homepage, Homarr), die auf schwerfälligen Laufzeiten (PHP-FPM, Node.js) laufen und auf komplexen verschachtelten YAML-Konfigurationsdateien basieren, ist AMUD in kompiliertem Rust geschrieben und wird vollständig in SQLite gespeichert. Zusammen verbrauchen Server und Telemetrie-Agent im Leerlauf **30–50 MB RAM** (Spitze ~150 MB mit vollem Integrationsraster) bei einer Routenausführung im Sub-Millisekundenbereich.
 
-## Mobil
-
-Handytaugliches Layout mit dem Taghawsa-Theme — Dashboard und Anmeldung unterwegs.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
-  &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
-</p>
-
-## App hinzufügen — ohne YAML
-
-URL angeben, Icon und Integration wählen. Keine Konfigurationsdateien.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
-</p>
-
-## Branding
-
-Name, Logo und Akzent in den Einstellungen — dein Cockpit, deine Identität.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
-</p>
-
 ## Architektur & Design-Entscheidungen
 
 Das AMUD Dashboard ist in zwei native Binärdateien aufgeteilt:

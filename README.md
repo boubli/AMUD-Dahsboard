@@ -13,7 +13,6 @@
 ### What's new in v1.8.10
 
 - **Settings fix** — Categories through Audit Log no longer show a blank page
-- **Screenshots** — desktop hero, plus Mobile / Add App / Branding story on README
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
@@ -36,32 +35,6 @@ Last **5** validated releases (full history: **[Changelog](https://boubli.github
 Unlike legacy dashboards (Heimdall, Homepage, Homarr) that run on heavy runtimes (PHP-FPM, Node.js) and rely on complex nested YAML configuration files, AMUD is written in compiled Rust and persisted entirely in SQLite. Combined, the server and telemetry agent idle at **30–50 MB of RAM** (peak ~150 MB with a full integration grid) with sub-millisecond route execution.
 
 **Homepage & Homarr parity:** AMUD ships integration cache, Homepage YAML import, Custom API widgets, LDAP, per-user boards, Plex/Jellyfin cards, and a growing long-tail catalog — see [Comparison](https://boubli.github.io/AMUD-Dashboard/docs/comparison).
-
-## Mobile
-
-Phone-ready layout with the Taghawsa theme — dashboard and sign-in on the go.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
-  &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
-</p>
-
-## Add an app — no YAML
-
-Point at a URL, pick an icon, choose an integration. No config files.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
-</p>
-
-## Branding
-
-Name, logo, and accent from Settings — your cockpit, your identity.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
-</p>
 
 ## Architecture & Design Decisions
 

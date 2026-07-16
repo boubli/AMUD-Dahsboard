@@ -32,32 +32,6 @@
 
 В отличие от устаревших панелей (Heimdall, Homepage, Homarr), работающих на тяжелых средах выполнения (PHP-FPM, Node.js) и полагающихся на сложные вложенные файлы конфигурации YAML, AMUD написан на скомпилированном Rust и полностью сохраняет данные в SQLite. В связке сервер и агент телеметрии в режиме простоя потребляют **30–50 МБ ОЗУ** (пик ~150 МБ при полной сетке интеграций), а время обработки маршрутов составляет менее миллисекунды.
 
-## Мобильная версия
-
-Готовый к телефону макет с темой Taghawsa — панель и вход, где бы вы ни были.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
-  &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
-</p>
-
-## Добавить приложение — без YAML
-
-Укажите URL, выберите иконку и интеграцию. Без файлов конфигурации.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
-</p>
-
-## Брендинг
-
-Имя, логотип и акцент в Настройках — ваша панель, ваш стиль.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
-</p>
-
 ## Архитектура и проектные решения
 
 Панель мониторинга AMUD разделена на два нативных исполняемых файла:

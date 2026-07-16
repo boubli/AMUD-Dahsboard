@@ -32,32 +32,6 @@ Dernière version recommandée : **v1.8.10**. Détails et versions à éviter : 
 
 Contrairement aux tableaux de bord hérités (Heimdall, Homepage, Homarr) qui s'exécutent sur des environnements lourds (PHP-FPM, Node.js) et s'appuient sur des fichiers de configuration YAML imbriqués et complexes, AMUD est écrit en Rust compilé et ses données sont entièrement persistées dans SQLite. Ensemble, le serveur et l'agent de télémétrie consomment **30 à 50 Mo de RAM** au repos (pic ~150 Mo avec une grille d'intégrations complète), avec un temps d'exécution des requêtes inférieur à la milliseconde.
 
-## Mobile
-
-Prêt pour le téléphone avec le thème Taghawsa — tableau de bord et connexion où que vous soyez.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
-  &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
-</p>
-
-## Ajouter une appli — sans YAML
-
-Indiquez une URL, choisissez une icône et une intégration. Aucun fichier de config.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
-</p>
-
-## Personnalisation
-
-Nom, logo et accent depuis les Paramètres — votre cockpit, votre identité.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
-</p>
-
 ## Architecture & Décisions de conception
 
 Le tableau de bord AMUD est divisé en deux binaires natifs :

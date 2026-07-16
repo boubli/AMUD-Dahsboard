@@ -32,32 +32,6 @@
 
 पुराने डैशबोर्ड (Heimdall, Homepage, Homarr) जो भारी रनटाइम्स (PHP-FPM, Node.js) पर चलते हैं और जटिल नेस्टेड YAML कॉन्फ़िगरेशन फ़ाइलों पर निर्भर करते हैं, उनके विपरीत, AMUD को संकलित Rust में लिखा गया है और पूरी तरह से SQLite में संग्रहीत किया जाता है। खाली रहने पर सर्वर और टेलीमेट्री एजेंट मिलकर **30–50 MB RAM** (पूर्ण इंटीग्रेशन ग्रिड पर चरम ~150 MB) का उपयोग करते हैं और रूट निष्पादन उप-मिलीसेकंड में होता है।
 
-## मोबाइल
-
-Taghawsa थीम के साथ फ़ोन-तैयार लेआउट — जहाँ भी हों, डैशबोर्ड और साइन-इन।
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_mobile_taghawsa_theme.png" alt="AMUD Dashboard on mobile — Taghawsa theme" width="270" />
-  &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_login_mobile_taghawsa_theme.png" alt="AMUD sign-in on mobile — Taghawsa theme" width="270" />
-</p>
-
-## ऐप जोड़ें — बिना YAML
-
-URL बताएँ, आइकन और इंटीग्रेशन चुनें। कोई कॉन्फ़िग फ़ाइल नहीं।
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_add_app.png" alt="Add App dialog in AMUD" width="720" />
-</p>
-
-## ब्रांडिंग
-
-सेटिंग्स से नाम, लोगो और रंग — आपका पैनल, आपकी पहचान।
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" width="720" />
-</p>
-
 ## वास्तुकला और डिज़ाइन निर्णय
 
 AMUD डैशबोर्ड को दो मूल बायनेरिज़ (native binaries) में विभाजित किया गया है:
