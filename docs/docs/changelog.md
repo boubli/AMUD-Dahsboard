@@ -11,6 +11,17 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.11 — Theme wallpaper refresh
+
+**2026-07-19** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.11)
+
+### Changed
+- New Unsplash wallpapers/previews: Catppuccin Mocha, Azure Calm (`tokyo-night`), Sakura Dream, Peach Blossom, Lavender Mist
+- Gallery label **Azure Calm** (theme id remains `tokyo-night`)
+- SW v46
+
+---
+
 ## v1.8.10 — Settings panels fix + screenshots
 
 **2026-07-16** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.10)

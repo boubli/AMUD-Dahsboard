@@ -20,7 +20,7 @@ Or pick a theme in **Settings → Appearance → Theme Gallery** — wallpaper i
 | Cyberpunk Neon | `cyberpunk-neon.webp` |
 | Catppuccin Mocha | `catppuccin-mocha.webp` |
 | Gruvbox Dark | `gruvbox-dark.webp` |
-| Tokyo Night | `tokyo-night.webp` |
+| Tokyo Night | `tokyo-night.webp` | Display name **Azure Calm** |
 | One Dark | `one-dark.webp` |
 | Everforest | `everforest.webp` |
 | Monokai | `monokai.webp` |

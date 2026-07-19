@@ -10,21 +10,22 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.10
+### What's new in v1.8.11
 
-- **Settings fix** — Categories through Audit Log no longer show a blank page
+- **Theme wallpapers** — refreshed Catppuccin, Azure Calm, Sakura, Peach Blossom, Lavender Mist
+- **Azure Calm** — new gallery name for the former Tokyo Night theme (same theme id)
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (2026-07-16)
+### Release status (2026-07-19)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.10` (current latest recommended)
+- `v1.8.11` (current latest recommended)
+- `v1.8.10`
 - `v1.8.9`
 - `v1.8.7`
 - `v1.8.4`
-- `v1.8.0`
 
 **Do not use:** `v1.8.6`, `v1.8.5` (layout), `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 

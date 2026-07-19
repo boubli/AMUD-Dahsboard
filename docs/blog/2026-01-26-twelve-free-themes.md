@@ -15,7 +15,7 @@ So I built a [theme gallery](/themes) with twelve ready-made CSS themes and actu
 
 ## Included themes
 
-Dracula, Nord, Catppuccin Mocha, Tokyo Night, Gruvbox Dark, Cyberpunk Neon, Solarized Dark, Rose Pine, Everforest, Monokai, One Dark — and later **Ember Hearth** (replaces the old Sunset Warm palette as of v1.8.9).
+Dracula, Nord, Catppuccin Mocha, Azure Calm (formerly Tokyo Night), Gruvbox Dark, Cyberpunk Neon, Solarized Dark, Rose Pine, Everforest, Monokai, One Dark — and later **Ember Hearth** (replaces the old Sunset Warm palette as of v1.8.9).
 
 ## Apply one in three clicks
 

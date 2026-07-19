@@ -8,6 +8,15 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.8.11](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.11) — 2026-07-19
+
+Theme wallpaper refresh and Azure Calm gallery rename.
+
+### Changed
+- Unsplash wallpapers for five themes; Azure Calm display name for `tokyo-night`; SW v46
+
+---
+
 ## [v1.8.10](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.10) — 2026-07-16
 
 Settings blank-tab fix and updated product screenshots on README / docs.

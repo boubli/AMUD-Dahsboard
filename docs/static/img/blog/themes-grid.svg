@@ -29,6 +29,6 @@
       <rect x="50" y="40" width="85" height="42" rx="8" fill="#1a1a2e" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
       <rect x="150" y="40" width="85" height="42" rx="8" fill="#0d1117" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/></g>
   <text x="640" y="500" text-anchor="middle" fill="#f4f4f5" font-family="system-ui,Segoe UI,sans-serif" font-size="42" font-weight="700">12 Free Themes</text>
-  <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">Nord, Dracula, Tokyo Night & more</text>
+  <text x="640" y="548" text-anchor="middle" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="22">Nord, Dracula, Azure Calm & more</text>
   <text x="640" y="640" text-anchor="middle" fill="#ff6b2b" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em">AMUD DASHBOARD BLOG</text>
 </svg>

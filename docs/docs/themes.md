@@ -38,7 +38,7 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 | Cyberpunk Neon | Neon pink on black + scanlines |
 | Catppuccin Mocha | Soft pastel lavender |
 | Gruvbox Dark | Warm retro terminal |
-| Tokyo Night | Deep blue city night |
+| Azure Calm | Deep blue, calm (`tokyo-night` id) |
 | One Dark | Classic Atom palette |
 | Everforest | Muted green forest |
 | Monokai | Neon green developer |

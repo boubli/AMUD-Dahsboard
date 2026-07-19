@@ -112,12 +112,13 @@
     },
     {
       "id": "tokyo-night",
-      "name": "Tokyo Night",
+      "name": "Azure Calm",
       "file": "tokyo-night.css",
       "category": "classic",
       "tags": [
         "blue",
-        "night"
+        "calm",
+        "azure"
       ],
       "preview": "/static/themes/previews/tokyo-night.webp",
       "wallpaper": "/static/themes/wallpapers/tokyo-night.webp",

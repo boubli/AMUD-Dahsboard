@@ -1,4 +1,5 @@
 amud local dev/
+amud local/
 
 target/
 
@@ -20,3 +21,5 @@ docs/.docusaurus/
 docs/node_modules/
 
 docs/.gitignore
+
+/amud local/
