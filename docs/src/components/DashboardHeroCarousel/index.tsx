@@ -3,8 +3,6 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const SLIDE_DEFS = [
   {src: 'img/AMUD-Dashboard.png', alt: 'AMUD Dashboard — default theme', label: 'Default'},
-  {src: 'img/AMUD-Dashboard_mobile_taghawsa_theme.png', alt: 'AMUD Dashboard — mobile Taghawsa theme', label: 'Taghawsa Mobile'},
-  {src: 'img/AMUD-Dashboard_login_mobile_taghawsa_theme.png', alt: 'AMUD login — mobile Taghawsa theme', label: 'Login Mobile'},
   {src: 'img/hero/brutalist-mono.png', alt: 'AMUD Dashboard — Brutalist Mono theme', label: 'Brutalist Mono'},
   {src: 'img/hero/cotton-candy.png', alt: 'AMUD Dashboard — Cotton Candy theme', label: 'Cotton Candy'},
   {src: 'img/hero/rainforest-mist.png', alt: 'AMUD Dashboard — Rainforest Mist theme', label: 'Rainforest Mist'},

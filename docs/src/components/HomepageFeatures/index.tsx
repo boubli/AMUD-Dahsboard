@@ -128,14 +128,6 @@ function HomepageDemos(): ReactNode {
       </Heading>
       <div className="homepage-demos__grid">
         <figure>
-          <img src="img/AMUD-Dashboard_add_app.png" alt="Adding an app in AMUD Dashboard" />
-          <figcaption>Add an app — no YAML</figcaption>
-        </figure>
-        <figure>
-          <img src="img/AMUD-Dashboard_settings_Branding.png" alt="AMUD Settings — Branding" />
-          <figcaption>Settings — Branding</figcaption>
-        </figure>
-        <figure>
           <img src="img/amud-update.gif" alt="Updating AMUD from Settings" />
           <figcaption>One-click update (native install)</figcaption>
         </figure>
