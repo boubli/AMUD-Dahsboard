@@ -36,7 +36,6 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 | Dracula | Dark purple hacker |
 | Nord | Arctic blue, calm |
 | Cyberpunk Neon | Neon pink on black + scanlines |
-| Sunset Warm | Amber golden-hour |
 | Catppuccin Mocha | Soft pastel lavender |
 | Gruvbox Dark | Warm retro terminal |
 | Tokyo Night | Deep blue city night |
@@ -45,18 +44,23 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 | Monokai | Neon green developer |
 | Rose Pine | Elegant rose & pine |
 | Solarized Dark | Low-contrast scientific |
+| Ember Hearth | Warm copper on deep charcoal |
+| Neon Boulevard | Magenta/cyan nightlife |
+| Kelp Abyss | Teal lagoon depth |
+| Glacier Mist | Cool blue-gray frost |
 | **Terminal Phosphor** ★ | CRT green monospace + scanlines |
-| **Vaporwave Grid** ★ | 80s sunset perspective grid |
+| **Amber Console** ★ | Soft amber CRT on charcoal |
+| **Terminal Matrix** ★ | Matrix green drift |
 | **Blueprint Tech** ★ | Engineering schematic cyan |
 | **Luxury Gold** ★ | Obsidian + gold serif headers |
 | **Holographic Prism** ★ | Animated iridescent borders |
 | **Brutalist Mono** ★ | Raw concrete, no blur, bold mono |
-| **Nature pack (5)** | Aurora, desert, ocean, rainforest, volcanic |
-| **Terminal pack (3)** | Phosphor, amber CRT, matrix green |
-| **Feminine pack (5)** | Sakura, lavender, rose gold, cotton candy, peach |
-| **Variety pack (6)** | Nebula, arctic frost, steampunk, zen, arcade, midnight city |
+| **Taghawsa** ★ | WebGL Moroccan orange/teal gradient |
+| **Nature pack** | Aurora, desert, rainforest, volcanic |
+| **Feminine pack** | Sakura, lavender, rose gold, cotton candy, peach |
+| **Variety pack** | Nebula, steampunk, zen, arcade, midnight city |
 
-★ = distinct UI profiles (layout, typography, icons) — not just color swaps
+★ = distinct UI profiles (layout, typography, icons, or WebGL) — not just color swaps
 
 **Bundled assets:** `ui/static/themes/` (CSS, WebP wallpapers/previews, SVG icon packs) and `ui/static/theme-layouts/` ship in every release `ui.tar.gz`.
 
@@ -108,7 +112,7 @@ body {
 | `--glass-opacity` | Glass panel opacity | `0.45` |
 | `--radius-xl` | Large border radius | `16px` |
 
-Advanced themes can also style `.glass-panel`, `.header-title`, `body::before`, and animations — see `terminal-phosphor.css` or `vaporwave-grid.css` for examples.
+Advanced themes can also style `.glass-panel`, `.header-title`, `body::before`, and animations — see `terminal-phosphor.css` or `neon-boulevard.css` for examples.
 
 ### Adding a theme to the gallery
 

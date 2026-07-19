@@ -17,14 +17,14 @@ AMUD Dashboard can show on that card:
 - How many **switches** are on
 - Average home **temperature**
 
-## The one naming rule that trips people up
+## The naming / integration rule
 
-Your app card has to be named exactly **`Home Assistant`**. Not "HA" or "homeassistant" or "the smart house thing." Exactly that string. Yes, I should make that more flexible someday. For now, that's the deal.
+Use **Add App → Integration = Home Assistant** with the HA URL and long-lived token on that app card. The card name can be whatever you like; the integration type is what matters.
 
 ## Setup
 
 1. HA → Profile → Long-Lived Access Tokens → create one
-2. AMUD → **Settings → Smart Home** → URL + token → save
+2. AMUD → **Add App** (or Edit) → Integration = **Home Assistant** → URL + long-lived token → save
 
 ## How it polls without being rude to HA
 

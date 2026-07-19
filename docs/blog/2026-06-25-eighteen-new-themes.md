@@ -5,7 +5,7 @@ authors: [boubli]
 tags: [themes]
 ---
 
-AMUD now ships **37 themes** total — 18 brand-new palettes plus a visual **Theme Gallery** built into Settings → Appearance.
+AMUD now ships **38 themes** total — including packs added after this post. At publish time it was **37** with a visual **Theme Gallery** in Settings → Appearance.
 
 <!--truncate-->
 
@@ -19,21 +19,25 @@ No more dropdown + "Load into editor". The Appearance tab now shows a **grid of 
 
 ## New theme packs
 
-### Nature (5)
+### Nature
 
-Aurora Borealis, Desert Dusk, Ocean Depths, Rainforest Mist, Volcanic Ember — totally different moods from the classic developer palettes.
+Aurora Borealis, Desert Dusk, Rainforest Mist, Volcanic Ember — plus **Kelp Abyss** (ocean successor as of v1.8.9).
 
-### Terminal (2 new)
+### Terminal
 
-Terminal Amber and Terminal Matrix join Terminal Phosphor for CRT lovers.
+Terminal Phosphor, Terminal Matrix, and **Amber Console** (replaces Terminal Amber as of v1.8.9).
 
 ### Feminine (5)
 
 Sakura Dream, Lavender Mist, Rose Gold Blush, Cotton Candy, Peach Blossom — soft pastels and blossom tones.
 
-### Variety (6)
+### Variety
 
-Nebula Void, Arctic Frost, Steampunk Brass, Zen Garden, Retro Arcade, Midnight City.
+Nebula Void, Steampunk Brass, Zen Garden, Retro Arcade, Midnight City — plus **Glacier Mist** (arctic successor as of v1.8.9).
+
+:::note
+v1.8.9 also replaced **Sunset Warm → Ember Hearth** and **Vaporwave Grid → Neon Boulevard**.
+:::
 
 ## Offline-first
 

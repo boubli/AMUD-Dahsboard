@@ -4,7 +4,6 @@ Wallpapers are **vendored** in this repository (WebP) for offline use.
 
 | File | Source | License |
 |------|--------|---------|
-| `arctic-frost.jpg` | Pexels 1287145 (arctic snow) | Pexels License |
 | `aurora-borealis.jpg` | Unsplash photo-1531366936337 (aurora) | Unsplash License |
 | `catppuccin-mocha.jpg` | Unsplash photo-1558618666 | Unsplash License |
 | `cotton-candy.jpg` | Unsplash photo-1501594907352 (pastel sky) | Unsplash License |
@@ -21,7 +20,6 @@ Wallpapers are **vendored** in this repository (WebP) for offline use.
 | `monokai.jpg` | Unsplash photo-1470071459604 | Unsplash License |
 | `nebula-void.jpg` | Unsplash photo-1419242902214 (milky way) | Unsplash License |
 | `nord.jpg` | Pexels 1933239 (aurora) | Pexels License |
-| `ocean-depths.jpg` | Unsplash photo-1559827260 (ocean) | Unsplash License |
 | `one-dark.jpg` | Unsplash photo-1451187580459 | Unsplash License |
 | `peach-blossom.jpg` | Unsplash photo-1490750967868 (peach flowers) | Unsplash License |
 | `rainforest-mist.jpg` | Pexels 1770809 (misty forest) | Pexels License |
@@ -31,8 +29,16 @@ Wallpapers are **vendored** in this repository (WebP) for offline use.
 | `sakura-dream.jpg` | Unsplash photo-1522383225653 (cherry blossom) | Unsplash License |
 | `solarized-dark.jpg` | Unsplash photo-1469474968028 | Unsplash License |
 | `steampunk-brass.jpg` | Unsplash photo-1581092160562 (industrial gears) | Unsplash License |
-| `sunset-warm.jpg` | Unsplash photo-1507525428034 | Unsplash License |
 | `tokyo-night.jpg` | Pexels 2506923 (city night) | Pexels License |
-| `vaporwave-grid.jpg` | Pexels 360912 (synthwave sunset) | Pexels License |
 | `volcanic-ember.jpg` | Pexels 417173 (volcanic landscape) | Pexels License |
 | `zen-garden.jpg` | Unsplash photo-1528360983277 (zen garden) | Unsplash License |
+
+### Removed themes (v1.8.9) — credit kept for history
+
+| File | Source | License | Successor |
+|------|--------|---------|-----------|
+| `arctic-frost.jpg` | Pexels 1287145 (arctic snow) | Pexels License | `glacier-mist` |
+| `ocean-depths.jpg` | Unsplash photo-1559827260 (ocean) | Unsplash License | `kelp-abyss` |
+| `sunset-warm.jpg` | Unsplash photo-1507525428034 | Unsplash License | `ember-hearth` |
+| `vaporwave-grid.jpg` | Pexels 360912 (synthwave sunset) | Pexels License | `neon-boulevard` |
+| `terminal-amber` (CSS-only) | — | — | `amber-console` |

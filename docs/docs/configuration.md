@@ -307,15 +307,17 @@ sqlite3 /opt/amud/data/amud.db "SELECT key, value FROM settings WHERE key LIKE '
 
 ## Smart Home Integration (Home Assistant)
 
-Connect your dashboard to Home Assistant to view live sensor telemetry directly inside the Home Assistant app card.
+Connect your dashboard to Home Assistant to view live sensor telemetry on the Home Assistant app card.
 
-1. Open **Settings → Smart Home**.
-2. Enter your **Home Assistant URL** (e.g. `http://homeassistant.local:8123`).
-3. Enter your **Long-Lived Access Token** (created from your user profile in HA).
+1. Open **Add App** (or Edit an existing app).
+2. Set **Integration** to **Home Assistant**.
+3. Enter your **Home Assistant URL** (e.g. `http://homeassistant.local:8123`) as the app URL.
+4. Paste your **Long-Lived Access Token** in the API key field (created from your user profile in HA).
+5. Save the app.
 
-If you have an application named exactly `Home Assistant` on your dashboard, its telemetry will now include the number of active lights, switches, and average home temperature.
+AMUD prefers credentials from the first Home Assistant–integrated app. Legacy `ha_url` / `ha_token` settings (if still present in the database) are used only as a fallback. Poll interval remains under **Settings → Performance**.
 
-AMUD polls Home Assistant using the lightweight **Template API** (`POST /api/template`) to compute those counts on the HA host, falling back to the full `/api/states` dump only when template rendering is unavailable.
+The card telemetry includes active lights, switches, and average home temperature. AMUD polls using the lightweight **Template API** (`POST /api/template`), falling back to `/api/states` when template rendering is unavailable.
 
 ---
 
@@ -329,7 +331,7 @@ Make the dashboard truly yours by overriding the default styling.
 
 *(Note: If invalid CSS breaks the layout, see [Troubleshooting](./troubleshooting.md) for recovery.)*
 
-Browse **37 themes** with preview screenshots on the **[Theme Gallery](/themes)** — use the in-dashboard gallery for one-click preview, or copy CSS/wallpaper from the site. See [CSS variable reference](./themes.md).
+Browse **38 themes** with preview screenshots on the **[Theme Gallery](/themes)** — use the in-dashboard gallery for one-click preview, or copy CSS/wallpaper from the site. See [CSS variable reference](./themes.md).
 
 ---
 

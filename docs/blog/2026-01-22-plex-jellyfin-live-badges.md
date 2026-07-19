@@ -15,11 +15,13 @@ That's the question I wanted answered from the dashboard, not from opening Plex 
 
 ## Setup (boring but fast)
 
-**Settings → Integrations**
+**Add App / Edit App → Integration**
 
-**Jellyfin:** base URL + API key from Dashboard → Advanced → API Keys.
+**Jellyfin:** Integration = Jellyfin/Emby, base URL + API key from Dashboard → Advanced → API Keys.
 
-**Plex:** base URL + `X-Plex-Token`. If you've never extracted a Plex token before, welcome to the club — there's a few documented ways and they're all mildly annoying.
+**Plex:** Integration = Plex, base URL + `X-Plex-Token`. If you've never extracted a Plex token before, welcome to the club — there's a few documented ways and they're all mildly annoying.
+
+*(Older installs may still have credentials under the legacy Settings fields; AMUD migrates them onto the matching app card automatically.)*
 
 ## What the badge does
 

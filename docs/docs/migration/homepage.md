@@ -12,7 +12,7 @@ AMUD does not use YAML as primary config, but supports **one-time import** from 
 
 ## Import steps
 
-1. Open **Settings → Integrations → Import from Homepage**
+1. Open **Settings → Infrastructure → Import from Homepage**
 2. Paste `services.yaml` into the text area
 3. Click **Preview** — AMUD maps known `widget.type` values to integration types
 4. Click **Import** — apps are inserted into SQLite (duplicates by name/URL are skipped)

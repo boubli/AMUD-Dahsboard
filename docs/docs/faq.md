@@ -90,7 +90,7 @@ Details: [Troubleshooting](/docs/troubleshooting) · [Blog: Fix CHECKING... badg
 
 ## Does AMUD Dashboard support Home Assistant?
 
-**Yes.** Add URL and a long-lived access token under **Settings → Smart Home**. An app card named exactly **Home Assistant** shows lights, switches, and average temperature.
+**Yes.** Add an app with **Integration = Home Assistant**, set the URL and a long-lived access token on that app card. The card shows lights, switches, and average temperature. Poll interval is under **Settings → Performance**.
 
 ---
 
@@ -98,7 +98,7 @@ Details: [Troubleshooting](/docs/troubleshooting) · [Blog: Fix CHECKING... badg
 
 **Yes.** Accent color, grid layout, background image, and **Custom CSS** under **Settings → Appearance**.
 
-Browse 18 ready-made themes: [Theme Gallery](/themes)
+Browse 38 ready-made themes: [Theme Gallery](/themes)
 
 ---
 
