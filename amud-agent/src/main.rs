@@ -724,24 +724,18 @@ fn perform_pve_test(token: &str) -> PveTestResult {
 }
 
 // Native Proxmox LXC fetch over HTTPS (replaces the `pvesh` subprocess fork).
-// Reads PVE_API_TOKEN and queries the local PVE API. Returns an empty vec on any
-// failure so a missing token or unreachable node never crashes the telemetry loop.
-fn fetch_lxc_containers() -> Vec<LxcContainer> {
+// Reads PVE_API_TOKEN and queries the local PVE API.
+// Ok(empty) = intentional empty (Proxmox disabled, or API returned zero CTs).
+// Err = transient/API failure — caller must retain last-known cache.
+fn fetch_lxc_containers() -> Result<Vec<LxcContainer>, String> {
     if !agent_poll_config().read().unwrap().enable_proxmox {
-        return Vec::new();
+        return Ok(Vec::new());
     }
     let token = get_pve_api_token();
     if token.is_empty() {
-        eprintln!("[LXC] PVE_API_TOKEN not set or empty, skipping LXC fetch.");
-        return Vec::new();
+        return Err("PVE_API_TOKEN not set or empty".to_string());
     }
-    match fetch_lxc_containers_with_token(&token) {
-        Ok(containers) => containers,
-        Err(e) => {
-            eprintln!("[LXC] Error fetching containers: {}", e);
-            Vec::new()
-        }
-    }
+    fetch_lxc_containers_with_token(&token)
 }
 
 fn fetch_lxc_containers_with_token(token: &str) -> Result<Vec<LxcContainer>, String> {
@@ -918,14 +912,15 @@ fn network_rates(
 }
 
 // Native Docker fetch over the Engine API UNIX socket (replaces the `curl` fork).
-// Returns Docker containers with real CPU and memory stats where available.
+// Ok(empty) = Docker disabled or truly no containers.
+// Err = socket/API failure — caller must retain last-known cache.
 #[cfg(unix)]
-fn fetch_docker_containers() -> Vec<LxcContainer> {
+fn fetch_docker_containers() -> Result<Vec<LxcContainer>, String> {
     if !docker_enabled() {
-        return Vec::new();
+        return Ok(Vec::new());
     }
     if !std::path::Path::new("/var/run/docker.sock").exists() {
-        return Vec::new();
+        return Err("docker.sock not available".to_string());
     }
 
     let rt = agent_runtime();
@@ -946,17 +941,17 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
             .body(Empty::<Bytes>::new())
         {
             Ok(r) => r,
-            Err(_) => return Vec::new(),
+            Err(e) => return Err(format!("Failed to build Docker request: {}", e)),
         };
 
         let resp = match client.request(req).await {
             Ok(r) => r,
-            Err(_) => return Vec::new(),
+            Err(e) => return Err(format!("Docker Engine API request failed: {}", e)),
         };
 
         let body = match resp.into_body().collect().await {
             Ok(b) => b.to_bytes(),
-            Err(_) => return Vec::new(),
+            Err(e) => return Err(format!("Failed to read Docker response: {}", e)),
         };
 
         #[derive(serde::Deserialize)]
@@ -1103,16 +1098,16 @@ fn fetch_docker_containers() -> Vec<LxcContainer> {
                     }
                 }
                 out.sort_by_key(|c| c.vmid);
-                out
+                Ok(out)
             }
-            Err(_) => Vec::new(),
+            Err(e) => Err(format!("Failed to parse Docker containers list: {}", e)),
         }
     })
 }
 
 #[cfg(not(unix))]
-fn fetch_docker_containers() -> Vec<LxcContainer> {
-    Vec::new()
+fn fetch_docker_containers() -> Result<Vec<LxcContainer>, String> {
+    Ok(Vec::new())
 }
 
 #[derive(Serialize)]
@@ -1219,6 +1214,12 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         .checked_sub(Duration::from_secs(10))
         .unwrap_or_else(Instant::now);
     let mut cached_merged: Arc<Vec<LxcContainer>> = Arc::new(Vec::new());
+    let mut last_lxc_err_log = Instant::now()
+        .checked_sub(Duration::from_secs(60))
+        .unwrap_or_else(Instant::now);
+    let mut last_docker_err_log = Instant::now()
+        .checked_sub(Duration::from_secs(60))
+        .unwrap_or_else(Instant::now);
     let mut telemetry_buf: Vec<u8> = Vec::with_capacity(4096);
     let mut gpu_cache = GpuCache::default();
     let mut components = sysinfo::Components::new_with_refreshed_list();
@@ -1311,22 +1312,50 @@ fn run_telemetry_loop(mut stream: StreamType) -> Result<(), std::io::Error> {
         if !idle {
             let mut containers_refreshed = false;
             if last_lxc_fetch.elapsed() >= Duration::from_secs(poll_cfg.lxc_poll_interval_secs) {
-                cached_lxc = Arc::new(filter_containers_by_linked(
-                    fetch_lxc_containers(),
-                    &poll_cfg.linked_container_names,
-                ));
+                match fetch_lxc_containers() {
+                    Ok(containers) => {
+                        cached_lxc = Arc::new(filter_containers_by_linked(
+                            containers,
+                            &poll_cfg.linked_container_names,
+                        ));
+                        containers_refreshed = true;
+                    }
+                    Err(e) => {
+                        if last_lxc_err_log.elapsed() >= Duration::from_secs(30) {
+                            eprintln!(
+                                "[LXC] Fetch failed (keeping last-known cache, {} containers): {}",
+                                cached_lxc.len(),
+                                e
+                            );
+                            last_lxc_err_log = Instant::now();
+                        }
+                    }
+                }
                 last_lxc_fetch = Instant::now();
-                containers_refreshed = true;
             }
             if last_docker_fetch.elapsed()
                 >= Duration::from_secs(poll_cfg.docker_poll_interval_secs)
             {
-                cached_docker = Arc::new(filter_containers_by_linked(
-                    fetch_docker_containers(),
-                    &poll_cfg.linked_container_names,
-                ));
+                match fetch_docker_containers() {
+                    Ok(containers) => {
+                        cached_docker = Arc::new(filter_containers_by_linked(
+                            containers,
+                            &poll_cfg.linked_container_names,
+                        ));
+                        containers_refreshed = true;
+                    }
+                    Err(e) => {
+                        if last_docker_err_log.elapsed() >= Duration::from_secs(30) {
+                            eprintln!(
+                                "[Docker] Fetch failed (keeping last-known cache, {} containers): {}",
+                                cached_docker.len(),
+                                e
+                            );
+                            last_docker_err_log = Instant::now();
+                        }
+                    }
+                }
                 last_docker_fetch = Instant::now();
-                containers_refreshed = true;
             }
             if containers_refreshed {
                 cached_merged = merge_container_caches(&cached_lxc, &cached_docker);

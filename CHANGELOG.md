@@ -8,6 +8,20 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.8.12](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.12) — 2026-07-22
+
+Post-reboot telemetry: keep last-known containers, CHECKING instead of premature UNKNOWN, softer URL health.
+
+### Fixed
+- Agent retains LXC/Docker cache on PVE/Docker fetch failure
+- Dashboard badges stay CHECKING while waiting for Proxmox (SW v47)
+- URL health needs 2 consecutive failures before OFFLINE
+
+### Docs
+- FAQ / troubleshooting note for post-reboot wait
+
+---
+
 ## [v1.8.11](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.11) — 2026-07-19
 
 Theme wallpaper refresh and Azure Calm gallery rename.

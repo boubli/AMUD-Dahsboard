@@ -1140,9 +1140,9 @@ fn render_apps_grid(
             (
                 None,
                 if is_admin {
-                    "Waiting for container or URL health status"
+                    "Waiting for Proxmox / agent…"
                 } else {
-                    "Public availability check"
+                    "Waiting for live status…"
                 },
             )
         };

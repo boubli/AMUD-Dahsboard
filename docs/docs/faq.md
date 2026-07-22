@@ -76,6 +76,18 @@ Details: [Troubleshooting](/docs/troubleshooting) · [Blog: Fix CHECKING... badg
 
 ---
 
+## After a Proxmox reboot, host metrics work but app cards show CHECKING...
+
+That is expected for a short window. Host CPU/RAM comes from the agent reading `/proc` as soon as it starts. LXC badges need the **Proxmox API** (`localhost:8006`) and the containers themselves to be up. From **v1.8.12** onward:
+
+- Cards stay on **CHECKING...** (or last-known status) instead of jumping to **UNKNOWN** while PVE is still booting.
+- URL health needs two consecutive failures before **OFFLINE**, so a single boot blip does not flap the badge.
+- Integration banners (for example Jellyfin Sessions) may still error until the guest service is listening on its port.
+
+Wait a minute or two after a full host reboot. If badges stay stuck forever, see [Apps Stuck on CHECKING...](#why-are-my-app-cards-stuck-on-checking) and [Troubleshooting](/docs/troubleshooting).
+
+---
+
 ## Can I start and stop Proxmox containers from AMUD Dashboard?
 
 **Yes**, if your API token role includes `VM.PowerMgmt` and the app card is linked to an LXC/VM ID. Admin users see power controls; Guest users see status only.

@@ -56,6 +56,10 @@ pub(crate) fn normalize_webhook_event_types(raw: &str) -> Option<String> {
 
 pub(crate) fn start_status_poller(state: Arc<AppState>) {
     tokio::spawn(async move {
+        // Consecutive URL-health failures per app. Require 2 before writing OFFLINE
+        // so a single blip during boot/reconnect does not flap the dashboard.
+        let mut fail_streak: std::collections::HashMap<String, u32> =
+            std::collections::HashMap::new();
         loop {
             if !crate::activity::is_active(&state) {
                 tokio::time::sleep(Duration::from_secs(30)).await;
@@ -118,7 +122,28 @@ pub(crate) fn start_status_poller(state: Arc<AppState>) {
             if !checks_empty {
                 let mut statuses = state.app_statuses.write().unwrap();
                 for (name, status) in checks {
-                    statuses.insert(name, status);
+                    let upper = status.status.to_uppercase();
+                    if upper == "ONLINE" || upper == "BLOCKED" {
+                        fail_streak.remove(&name);
+                        statuses.insert(name, status);
+                        continue;
+                    }
+                    // Probe failed — soft-start: need 2 consecutive failures for OFFLINE.
+                    let streak = fail_streak.entry(name.clone()).or_insert(0);
+                    *streak = streak.saturating_add(1);
+                    if *streak >= 2 {
+                        statuses.insert(name, status);
+                    } else if !statuses.contains_key(&name) {
+                        // First failure with no prior status: stay in CHECKING (UI waiting state).
+                        statuses.insert(
+                            name,
+                            AppStatus {
+                                status: "CHECKING".to_string(),
+                                latency_ms: None,
+                            },
+                        );
+                    }
+                    // If previously ONLINE, leave it until the second consecutive failure.
                 }
                 while statuses.len() > crate::activity::MAX_VISIBLE_APPS {
                     if let Some(key) = statuses.keys().next().cloned() {

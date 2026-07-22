@@ -10,22 +10,23 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.11
+### What's new in v1.8.12
 
-- **Theme wallpapers** — refreshed Catppuccin, Azure Calm, Sakura, Peach Blossom, Lavender Mist
-- **Azure Calm** — new gallery name for the former Tokyo Night theme (same theme id)
+- **Post-reboot UX** — keep last-known LXC/Docker lists when PVE is briefly down; cards stay CHECKING instead of UNKNOWN
+- **Softer URL health** — two consecutive failures before OFFLINE
+- **Docs** — FAQ note for the host-metrics-first reboot window
 
 Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
-### Release status (2026-07-19)
+### Release status (2026-07-22)
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.11` (current latest recommended)
+- `v1.8.12` (current latest recommended)
+- `v1.8.11`
 - `v1.8.10`
 - `v1.8.9`
 - `v1.8.7`
-- `v1.8.4`
 
 **Do not use:** `v1.8.6`, `v1.8.5` (layout), `v1.5.5.4`, `v1.5.6.1`, `v1.6.1` (withdrawn or broken).
 

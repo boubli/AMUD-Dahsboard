@@ -30,6 +30,8 @@ In the examples below, replace `<CT_ID>` with that number (for example `102`, `1
 
 **Symptom:** Your dashboard loads correctly and shows live CPU, RAM, and Disk metrics in the top bar, but individual application cards display a grey **"CHECKING..."** badge instead of **RUNNING** or **STOPPED**.
 
+**After a full Proxmox host reboot:** host metrics usually appear first. LXC badges stay on **CHECKING...** (or last-known status from **v1.8.12+**) until the Proxmox API and containers are ready — that is normal for a short window. If badges remain stuck for several minutes after the node is fully up, continue with the steps below.
+
 **Root Cause:** The AMUD agent cannot retrieve the list of LXC containers from the Proxmox API. This is almost always caused by a missing or misconfigured API token.
 
 ### Diagnostic Steps

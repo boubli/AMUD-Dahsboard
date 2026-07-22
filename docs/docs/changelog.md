@@ -11,6 +11,20 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.12 — Post-reboot telemetry UX
+
+**2026-07-22** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.12)
+
+### Fixed
+- Agent keeps last-known LXC/Docker lists when PVE/Docker fetch fails
+- App cards use CHECKING instead of premature UNKNOWN while waiting for Proxmox (SW v47)
+- URL health requires two consecutive failures before OFFLINE
+
+### Docs
+- FAQ and troubleshooting note for the post-reboot wait window
+
+---
+
 ## v1.8.11 — Theme wallpaper refresh
 
 **2026-07-19** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.11)

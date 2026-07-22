@@ -142,11 +142,14 @@
     }
 
     function styleStatusBadge(badge, status, latencyMs = null) {
-        const normalized = (status || '').toLowerCase();
-        badge.innerText = (status || 'UNKNOWN').toUpperCase();
+        const raw = (status || 'CHECKING...').trim();
+        const normalized = raw.toLowerCase().replace(/\.\.\.$/, '');
+        const display = normalized === 'checking' ? 'CHECKING...' : raw.toUpperCase();
+        badge.innerText = display;
 
         const isHealthy = ['running', 'online'].includes(normalized);
-        const isWarn = ['not configured', 'checking', 'unknown'].includes(normalized);
+        const isChecking = normalized === 'checking';
+        const isWarn = isChecking || ['not configured', 'unknown'].includes(normalized);
         badge.classList.remove('status-online', 'status-offline', 'status-checking', 'status-unknown', 'ms');
         if (isHealthy) {
             badge.classList.add('status-online');
@@ -154,11 +157,14 @@
                 badge.title = `Online — ${latencyMs} ms`;
             }
         } else if (isWarn) {
-            badge.classList.add(normalized === 'checking' ? 'status-checking' : 'status-unknown');
+            badge.classList.add(isChecking ? 'status-checking' : 'status-unknown');
         } else {
             badge.classList.add('status-offline');
         }
-        badge.dataset.lastStatus = normalized || 'unknown';
+        // Don't stamp lastStatus for provisional CHECKING so later polls can fill in.
+        if (!isChecking) {
+            badge.dataset.lastStatus = normalized || 'unknown';
+        }
     }
 
     function updateHostTelemetry(sys) {
@@ -294,8 +300,11 @@
             const badge = card.querySelector('.status-badge');
             if (!badge || badge.dataset.containerManaged === 'true') return;
             if (!status) {
-                styleStatusBadge(badge, 'UNKNOWN');
-                badge.title = 'No URL health status has been received for this app';
+                // Keep CHECKING while waiting for the first URL health poll.
+                if (!badge.dataset.lastStatus) {
+                    styleStatusBadge(badge, 'CHECKING...');
+                    badge.title = 'Waiting for health check…';
+                }
                 return;
             }
 
@@ -392,6 +401,22 @@
                     }
                     const match = findContainerByNames(containers, containerNamesForCard(card));
                     const isHostAgentApp = card.getAttribute('data-host-agent-app') === 'true';
+                    const expectsContainer = !!(card.getAttribute('data-container-aliases') || '').trim()
+                        || isHostAgentApp;
+
+                    // Live WS but no LXC payload yet — keep CHECKING for container-linked cards.
+                    if (!match && expectsContainer && containers.length === 0 && data.agent_connected) {
+                        const badgeContainer = card.querySelector('.app-card-badges');
+                        const existingBadge = badgeContainer && badgeContainer.querySelector('.status-badge');
+                        if (existingBadge && !existingBadge.classList.contains('ms')
+                            && !existingBadge.dataset.lastStatus
+                            && existingBadge.dataset.containerManaged !== 'true') {
+                            styleStatusBadge(existingBadge, 'CHECKING...');
+                            existingBadge.title = isAdmin
+                                ? 'Waiting for Proxmox / agent…'
+                                : 'Waiting for live status…';
+                        }
+                    }
 
                     if (match) {
                         const ctrlContainer = card.querySelector('.container-controls');
@@ -817,20 +842,41 @@
             link.click();
         });
 
+        // Soft timeout: only URL-health badges (not container-managed) may become
+        // UNKNOWN after a long wait. Container-linked cards stay CHECKING while
+        // waiting for Proxmox/agent LXC data.
         setTimeout(() => {
             let unknownCount = 0;
             document.querySelectorAll('.status-badge').forEach(badge => {
-                if (!badge.dataset.lastStatus) {
-                    styleStatusBadge(badge, 'UNKNOWN');
-                    badge.title = 'No live status received yet';
-                    unknownCount += 1;
+                if (badge.dataset.lastStatus) return;
+                if (badge.dataset.containerManaged === 'true') {
+                    styleStatusBadge(badge, 'CHECKING...');
+                    badge.title = isAdmin
+                        ? 'Waiting for Proxmox / agent…'
+                        : 'Waiting for live status…';
+                    return;
                 }
+                const card = badge.closest('.app-card');
+                const expectsContainer = card && (
+                    !!(card.getAttribute('data-container-aliases') || '').trim()
+                    || card.getAttribute('data-host-agent-app') === 'true'
+                );
+                if (expectsContainer) {
+                    styleStatusBadge(badge, 'CHECKING...');
+                    badge.title = isAdmin
+                        ? 'Waiting for Proxmox / agent…'
+                        : 'Waiting for live status…';
+                    return;
+                }
+                styleStatusBadge(badge, 'UNKNOWN');
+                badge.title = 'No live status received yet';
+                unknownCount += 1;
             });
             const hint = document.getElementById('health-status-hint');
             if (hint && isAdmin && unknownCount > 0) {
                 hint.style.display = 'block';
             }
-        }, 20000);
+        }, 90000);
     }
 
     if (document.readyState === 'loading') {
