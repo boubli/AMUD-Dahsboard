@@ -535,8 +535,8 @@
                     </label>
                     <div x-show="newApp.show_integration_metrics" class="integration-metrics-picker" style="margin-top:0.65rem; display:flex; flex-direction:column; gap:0.35rem;">
                         <template x-for="metric in amudCardMetricsFor(newApp.integration_type)" :key="metric.key">
-                            <label class="checkbox-row" style="display:flex; align-items:center; gap:0.5rem; font-weight:400; cursor:pointer;">
-                                <input type="checkbox" :checked="(newApp.integration_visible_metrics || []).includes(metric.key)" @change="amudToggleMetricKey(newApp, metric.key, $event.target.checked)">
+                            <label class="checkbox-row" :for="'add-metric-' + metric.key" style="display:flex; align-items:center; gap:0.5rem; font-weight:400; cursor:pointer;">
+                                <input type="checkbox" :id="'add-metric-' + metric.key" :aria-label="metric.label" :checked="(newApp.integration_visible_metrics || []).includes(metric.key)" @change="amudToggleMetricKey(newApp, metric.key, $event.target.checked)">
                                 <span x-text="metric.label"></span>
                             </label>
                         </template>
@@ -769,8 +769,8 @@
                     </label>
                     <div x-show="editApp.show_integration_metrics" class="integration-metrics-picker" style="margin-top:0.65rem; display:flex; flex-direction:column; gap:0.35rem;">
                         <template x-for="metric in amudCardMetricsFor(editApp.integration_type)" :key="metric.key">
-                            <label class="checkbox-row" style="display:flex; align-items:center; gap:0.5rem; font-weight:400; cursor:pointer;">
-                                <input type="checkbox" :checked="(editApp.integration_visible_metrics || []).includes(metric.key)" @change="amudToggleMetricKey(editApp, metric.key, $event.target.checked)">
+                            <label class="checkbox-row" :for="'edit-metric-' + metric.key" style="display:flex; align-items:center; gap:0.5rem; font-weight:400; cursor:pointer;">
+                                <input type="checkbox" :id="'edit-metric-' + metric.key" :aria-label="metric.label" :checked="(editApp.integration_visible_metrics || []).includes(metric.key)" @change="amudToggleMetricKey(editApp, metric.key, $event.target.checked)">
                                 <span x-text="metric.label"></span>
                             </label>
                         </template>

@@ -2749,6 +2749,7 @@ input[type="color"].form-control {
         max-width: 100%;
         min-width: 0;
         overflow: hidden;
+        padding: 0.85rem;
     }
 
     .app-card--guest-compact .app-card-badges {
@@ -2852,10 +2853,6 @@ input[type="color"].form-control {
 
     .app-card:not(.app-card--guest-compact) .app-card-desc {
         display: none;
-    }
-
-    .app-card:not(.app-card--guest-compact) {
-        padding: 0.85rem;
     }
 
     .btn-edit-app {

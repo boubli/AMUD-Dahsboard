@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amud-dashboard-v47';
+const CACHE_NAME = 'amud-dashboard-v48';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
@@ -48,23 +48,25 @@ function cacheThemePreviews() {
 }
 
 function isLayoutCss(pathname) {
-  return LAYOUT_CSS_PATHS.some(function (p) {
-    return pathname === p;
-  });
+  return LAYOUT_CSS_PATHS.includes(pathname);
 }
 
 function hasVersionQuery(url) {
   return url.searchParams.has('v');
 }
 
+function putIfOk(cache, request, response) {
+  if (response?.ok) {
+    cache.put(request, response.clone());
+  }
+  return response;
+}
+
 function networkFirst(request) {
   return caches.open(CACHE_NAME).then(function (cache) {
     return fetch(request)
       .then(function (response) {
-        if (response && response.ok) {
-          cache.put(request, response.clone());
-        }
-        return response;
+        return putIfOk(cache, request, response);
       })
       .catch(function () {
         return cache.match(request);
@@ -77,10 +79,7 @@ function staleWhileRevalidate(request) {
     return cache.match(request).then(function (cached) {
       const networkFetch = fetch(request)
         .then(function (response) {
-          if (response && response.ok) {
-            cache.put(request, response.clone());
-          }
-          return response;
+          return putIfOk(cache, request, response);
         })
         .catch(function () { return cached; });
       return cached || networkFetch;
@@ -88,19 +87,21 @@ function staleWhileRevalidate(request) {
   });
 }
 
+function deleteLayoutCssEntries(cache) {
+  return cache.keys().then(function (requests) {
+    const layoutRequests = requests.filter(function (req) {
+      return isLayoutCss(new URL(req.url).pathname);
+    });
+    return Promise.all(layoutRequests.map(function (req) {
+      return cache.delete(req);
+    }));
+  });
+}
+
 function purgeLayoutCssFromAllCaches() {
   return caches.keys().then(function (keys) {
     return Promise.all(keys.map(function (key) {
-      return caches.open(key).then(function (cache) {
-        return cache.keys().then(function (requests) {
-          return Promise.all(requests.filter(function (req) {
-            const pathname = new URL(req.url).pathname;
-            return isLayoutCss(pathname);
-          }).map(function (req) {
-            return cache.delete(req);
-          }));
-        });
-      });
+      return caches.open(key).then(deleteLayoutCssEntries);
     }));
   });
 }

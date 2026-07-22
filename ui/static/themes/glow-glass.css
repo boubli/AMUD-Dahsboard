@@ -307,8 +307,8 @@ html[data-theme-id="glow-glass"] body::after {
 
 :root[data-theme="light"][data-theme-id="glow-glass"] .btn.btn-primary,
 :root[data-theme="light"][data-theme-id="glow-glass"] .gg-cta {
-    background: linear-gradient(135deg, #00d2ff, #bd00ff);
-    color: #fff;
+    background: linear-gradient(135deg, #007a9e, #7a00b8);
+    color: #ffffff;
     box-shadow: 0 0 28px rgba(0, 210, 255, 0.45), 0 0 16px rgba(189, 0, 255, 0.35);
 }
 

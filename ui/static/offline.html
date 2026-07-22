@@ -50,7 +50,9 @@
         document.getElementById('offline-status-hint').textContent =
           n ? `Last known status for ${n} app(s) cached on this device.` : '';
       }
-    } catch (_) {}
+    } catch (err) {
+      console.debug('offline status cache unreadable', err);
+    }
   </script>
 </body>
 </html>

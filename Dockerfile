@@ -7,7 +7,7 @@ ARG TARGETARCH
 ARG GIT_TAG
 ENV GIT_TAG=$GIT_TAG
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     musl-tools \
     gcc-aarch64-linux-gnu \
     && rm -rf /var/lib/apt/lists/*
@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
       *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
     esac; \
     for attempt in 1 2 3; do \
-      cargo build --release --target "${RUST_TARGET}" && exit 0; \
+      cargo build --release --locked --target "${RUST_TARGET}" && exit 0; \
       echo "cargo build attempt ${attempt} failed, retrying..."; \
       sleep $((attempt * 15)); \
     done; \

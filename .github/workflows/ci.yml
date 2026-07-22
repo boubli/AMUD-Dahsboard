@@ -44,7 +44,7 @@ jobs:
           cache-dependency-path: docs/package-lock.json
 
       - name: Build docs site
-        run: npm ci && npm run build
+        run: npm ci --ignore-scripts && npm run build
         working-directory: docs
 
   rust-audit:

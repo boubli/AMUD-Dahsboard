@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-amd64-cargo-
 
       - name: Build Projects in Release Mode
-        run: GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release
+        run: GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release --locked
 
       - name: Stage amd64 binaries
         run: |
@@ -75,7 +75,7 @@ jobs:
             ${{ runner.os }}-arm64-cargo-
 
       - name: Build Projects in Release Mode
-        run: GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release
+        run: GIT_TAG=${GITHUB_REF#refs/tags/} cargo build --release --locked
 
       - name: Stage arm64 binaries
         run: |

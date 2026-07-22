@@ -174,7 +174,7 @@ msg_ok "Guest root password configured"
 # 6. Fetch Latest Release Version
 msg_info "Querying latest release from GitHub API"
 REPO="boubli/AMUD-Dashboard"
-LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
+LATEST_RELEASE=$(curl --proto '=https' --tlsv1.2 -sS "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
 
 if [[ -z "$LATEST_RELEASE" ]]; then
     LATEST_RELEASE="v1.0.0"
@@ -184,7 +184,7 @@ msg_ok "Targeting release: $LATEST_RELEASE"
 AMUD_AGENT_SECRET=$(openssl rand -base64 32 | tr -d '/+=' | head -c 43)
 
 msg_info "Downloading release checksum manifest"
-curl -L -sS -f -o /tmp/amud-SHA256SUMS "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/SHA256SUMS"
+curl --proto '=https' --tlsv1.2 -L -sS -f -o /tmp/amud-SHA256SUMS "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/SHA256SUMS"
 msg_ok "Release checksum manifest downloaded"
 
 verify_release_asset() {
@@ -206,12 +206,12 @@ verify_release_asset() {
 # 7. Create Directories and Download Server inside Guest
 msg_info "Provisioning server binary and assets inside LXC guest"
 pct exec "$CT_ID" -- mkdir -p /opt/amud/data
-curl -L -sS -f -o /tmp/amud-server "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-server"
+curl --proto '=https' --tlsv1.2 -L -sS -f -o /tmp/amud-server "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-server"
 verify_release_asset /tmp/amud-server amud-server
 pct push "$CT_ID" /tmp/amud-server /opt/amud/amud-server >/dev/null
 pct exec "$CT_ID" -- chmod +x /opt/amud/amud-server
 
-curl -L -sS -f -o /tmp/ui.tar.gz "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/ui.tar.gz"
+curl --proto '=https' --tlsv1.2 -L -sS -f -o /tmp/ui.tar.gz "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/ui.tar.gz"
 verify_release_asset /tmp/ui.tar.gz ui.tar.gz
 pct push "$CT_ID" /tmp/ui.tar.gz /tmp/ui.tar.gz >/dev/null
 pct exec "$CT_ID" -- tar -xzf /tmp/ui.tar.gz -C /opt/amud/
@@ -268,7 +268,7 @@ fi
 
 # 9. Download and Install Host Telemetry Agent on Proxmox Host
 msg_info "Installing amud-agent on Proxmox host"
-curl -L -sS -f -o /tmp/amud-agent "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent"
+curl --proto '=https' --tlsv1.2 -L -sS -f -o /tmp/amud-agent "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent"
 verify_release_asset /tmp/amud-agent amud-agent
 install -m 755 /tmp/amud-agent /usr/local/bin/amud-agent
 rm -f /tmp/amud-agent /tmp/amud-SHA256SUMS
@@ -310,7 +310,7 @@ TEMPLATE_MOTD=$(cat << 'EOF'
 AMUD-Dashboard (LXC OS: Debian 12 - Native Service)
 ==============================================================
   Local IP Address: http://__IP__
-  Access UI / API:   http://__IP__:8000 (Port 8000)
+  Access UI / API:   http://__IP__:8000 (Port 8000) # NOSONAR — intentional clear-text LAN URL
   First login:       user admin — password: __ADMIN_PASS__
   Root Console:      username: root — password: __ROOT_PASS__
 ==============================================================
@@ -332,6 +332,7 @@ echo -e "  RAM / Swap Alloc:   ${GN}256MB / 256MB${CL}"
 echo -e "  Root Password:      ${GN}$LXC_ROOT_PASSWORD${CL}"
 echo -e "  Admin Password:     ${GN}$BOOTSTRAP_PASS${CL}"
 echo -e "--------------------------------------------------------------"
-echo -e "  ${LAUNCH}  ${BGN}AMUD UI & API:     http://${CT_IP_ADDR}:8000${CL}"
+# Local LAN UI is HTTP by default (optional HTTPS via reverse proxy).
+echo -e "  ${LAUNCH}  ${BGN}AMUD UI & API:     http://${CT_IP_ADDR}:8000${CL}" # NOSONAR — intentional clear-text LAN URL
 echo -e "=============================================================="
 echo
