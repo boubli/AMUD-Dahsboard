@@ -133,17 +133,14 @@ pub(crate) fn start_status_poller(state: Arc<AppState>) {
                     *streak = streak.saturating_add(1);
                     if *streak >= 2 {
                         statuses.insert(name, status);
-                    } else if !statuses.contains_key(&name) {
+                    } else {
                         // First failure with no prior status: stay in CHECKING (UI waiting state).
-                        statuses.insert(
-                            name,
-                            AppStatus {
-                                status: "CHECKING".to_string(),
-                                latency_ms: None,
-                            },
-                        );
+                        // If previously ONLINE, leave it until the second consecutive failure.
+                        statuses.entry(name).or_insert_with(|| AppStatus {
+                            status: "CHECKING".to_string(),
+                            latency_ms: None,
+                        });
                     }
-                    // If previously ONLINE, leave it until the second consecutive failure.
                 }
                 while statuses.len() > crate::activity::MAX_VISIBLE_APPS {
                     if let Some(key) = statuses.keys().next().cloned() {
