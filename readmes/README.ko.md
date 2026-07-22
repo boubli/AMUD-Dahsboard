@@ -24,7 +24,7 @@
 
 ### 릴리스 상태
 
-권장 버전: **v1.8.12**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
+권장 버전: **v1.8.13**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

@@ -24,7 +24,7 @@ Historique complet : **[Journal des modifications](https://boubli.github.io/AMUD
 
 ### État des versions
 
-Dernière version recommandée : **v1.8.12**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
+Dernière version recommandée : **v1.8.13**. Détails et versions à éviter : **[README anglais](../README.md)** (section Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

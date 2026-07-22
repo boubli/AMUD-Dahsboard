@@ -8,6 +8,16 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.8.13](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.13) — 2026-07-23
+
+Two new advanced themes with dedicated dashboard shells: Glow and Glass, and Neumorphism.
+
+### Added
+- Glow and Glass theme (neon cyan glass + light cyan/purple; dedicated shell)
+- Neumorphism theme (soft extruded UI; dedicated shell)
+
+---
+
 ## [v1.8.12](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.12) — 2026-07-22
 
 Post-reboot telemetry: keep last-known containers, CHECKING instead of premature UNKNOWN, softer URL health.

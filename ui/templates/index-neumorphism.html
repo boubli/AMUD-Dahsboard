@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{theme_mode}}" data-theme-id="{{active_theme_id}}" data-greeting-animations="{{greeting_animations_enabled}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{{app_name}} {{page_title_suffix}}</title>
+    <link rel="icon" href="{{favicon_url}}" type="{{favicon_type}}">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="{{accent_color}}">
+    <meta name="description" content="AMUD Dashboard homelab operations cockpit">
+    <meta name="csrf-token" content="{{csrf_token}}">
+    <meta name="amud-webgl-effects" content="{{webgl_effects_enabled}}">
+    <meta name="amud-greeting-animations" content="{{greeting_animations_enabled}}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="{{app_name}}">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{apple_touch_icon_url}}">
+    {{webgl_preload_script}}
+    <link rel="stylesheet" href="/static/style.css?v={{app_version}}">
+    
+    <!-- Alpine.js for drawer state / bindings -->
+    <script defer src="/static/vendor/alpine.min.js"></script>
+    <!-- Lucide Vector Icons -->
+    <script src="/static/vendor/lucide.min.js"></script>
+    <script src="/static/admin.js"></script>
+    <script id="amud-theme-config" type="application/json">{{theme_scheduler_config}}</script>
+    <script src="/static/theme-scheduler.js?v={{app_version}}"></script>
+    <script src="/static/theme-engine.js?v={{app_version}}"></script>
+    <script id="amud-live-config" type="application/json">{"isAdmin":{{is_admin}},"hideTelemetry":{{hide_telemetry}},"totalApps":{{total_apps}},"pageSize":50}</script>
+    <script src="/static/dashboard-live.js?v={{app_version}}"></script>
+    <script src="/static/app-search.js?v={{app_version}}"></script>
+    <script src="/static/shortcuts.js?v={{app_version}}"></script>
+    <script src="/static/embed-tabs.js?v={{app_version}}"></script>
+    <script src="/static/pwa-install.js?v={{app_version}}"></script>
+    {{admin_drag_script}}
+
+    <!-- Inline variables setup for clean database variable override -->
+    <style>
+        :root {
+            /* ROOT_CSS */
+        }
+    </style>
+    <style id="amud-custom-css">{{custom_css}}</style>
+    <link rel="stylesheet" href="/static/theme-guards.css?v={{app_version}}">
+</head>
+<body data-theme-id="{{active_theme_id}}" x-data="{ addAppModalOpen: false, editAppModalOpen: false, appIconUrl: '', newApp: { integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link', show_integration_metrics: true, integration_visible_metrics: [] }, editApp: { id: '', name: '', url: '', icon: '', description: '', category: '', node_tag: '', mac_address: '', integration_type: '', api_key: '', card_span: '1x1', show_container_metrics: true, guest_visible: true, embed_mode: 'link', show_integration_metrics: true, integration_visible_metrics: [] } }" class="theme-{{active_theme_id}} {{video_bg_class}} {{body_page_class}}">
+    {{video_bg_element}}
+    {{update_banner}}
+    <div class="dashboard-container nm-shell">
+        
+        <!-- Soft neumorphic nav -->
+        <header class="topbar glass-panel nm-soft-nav" x-data="{ topbarMenuOpen: false }">
+            <div class="brand-section topbar-inner">
+                <div class="brand-logo">{{if app_logo}}<img src="{{app_logo}}" alt="{{app_name}}" class="brand-logo-img">{{end}}</div>
+                <h1 class="brand-title">{{app_name}} {{page_title_suffix}}</h1>
+            </div>
+            
+            <div class="topbar-end" @click.outside="topbarMenuOpen = false">
+                <div class="topbar-essential">
+                <div id="ws-status-pill" class="ws-status-pill ws-connecting" title="Live dashboard connection">
+                    <span class="ws-status-dot"></span>
+                    <span id="ws-status-text">Connecting</span>
+                </div>
+                <div class="weather-widget">
+                    <i data-lucide="sun"></i>
+                    <span id="live-weather">Detecting...</span>
+                </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="glass-panel topbar-action topbar-menu-toggle"
+                    @click="topbarMenuOpen = !topbarMenuOpen"
+                    :aria-expanded="topbarMenuOpen ? 'true' : 'false'"
+                    aria-controls="topbar-overflow-menu"
+                    aria-label="Open menu">
+                    <i data-lucide="menu"></i>
+                </button>
+
+                <div id="topbar-overflow-menu" class="topbar-overflow" :class="{ 'is-open': topbarMenuOpen }" @click="topbarMenuOpen = false">
+                <!-- FEEDS_NAV -->
+                <!-- AUTH_BUTTONS -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero: greeting + glass widgets -->
+        <section class="hero-section nm-hero">
+            <div class="greeting-box greeting-widget glass-panel">
+                <h2 class="greeting-title"><span id="greeting-text">Working late</span>, <span class="username-highlight" id="username-display">{{username}}</span></h2>
+                <p class="greeting-subtitle" id="live-date">Monday · June 1, 2026</p>
+            </div>
+            <div class="hero-widgets">
+                <div class="clock-box glass-panel">
+                    <div class="clock-display">
+                        <span class="clock-time" id="live-time">12:00</span>
+                        <div class="clock-meta">
+                            <span class="clock-ampm" id="live-ampm">AM</span>
+                            <span class="clock-label">LOCAL TIME</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="weather-box glass-panel" aria-live="polite">
+                    <div class="weather-display">
+                        <span class="weather-temp" id="live-weather-temp">—</span>
+                        <div class="weather-meta">
+                            <i data-lucide="sun" id="weather-icon"></i>
+                            <span class="weather-label" id="live-weather-cond">Detecting...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Bar Widget -->
+        <div class="search-bar-wrapper" id="search-bar-wrapper">
+            <button type="button" class="search-toggle glass-panel" id="search-toggle" aria-expanded="false" aria-controls="search-bar" aria-label="Open search">
+                <i data-lucide="search"></i>
+            </button>
+            <div class="search-bar glass-panel" id="search-bar">
+                <div class="search-mode-toggle" aria-label="Search mode">
+                    <button type="button" id="search-mode-apps" class="search-mode-btn active" aria-pressed="true">Apps</button>
+                    <button type="button" id="search-mode-web" class="search-mode-btn" aria-pressed="false">Web</button>
+                </div>
+                <div class="search-input-divider"></div>
+                <label for="search-engine" class="visually-hidden">Search engine</label>
+                <select id="search-engine" class="search-engine-select" aria-label="Search engine">
+                    <option value="google">Google</option>
+                    <option value="bing">Bing</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="github">GitHub</option>
+                </select>
+                <div class="search-input-divider"></div>
+                <div class="search-input-wrapper">
+                    <label for="search-input" class="visually-hidden">Search</label>
+                    <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
+                    <input type="text" id="search-input" class="search-input" placeholder="Search apps... (Ctrl+K)" aria-label="Search apps">
+                </div>
+            </div>
+        </div>
+
+        <!-- Soft gauge strip -->
+        <section class="telemetry-row nm-gauge-strip" id="telemetry-section">
+            <div class="glass-panel telemetry-card nm-gauge" id="pve-card">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">CPU</span>
+                    <span class="telemetry-value" id="val-pve-cpu">0%</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-pve-cpu" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span id="val-cpu-model">Host CPU</span>
+                    <span id="val-cpu-temp">—</span>
+                </div>
+            </div>
+
+            <div class="glass-panel telemetry-card nm-gauge">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">RAM</span>
+                    <span class="telemetry-value" id="val-pve-mem">0%</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-pve-mem" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span id="val-ram-used">0.0 GB Used</span>
+                    <span id="val-ram-total">0.0 GB Total</span>
+                </div>
+            </div>
+
+            <div class="glass-panel telemetry-card nm-gauge" id="gpu-card" style="display:none;">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">GPU</span>
+                    <span class="telemetry-value" id="val-gpu-usage">0%</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-gpu-usage" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span id="val-gpu-name">—</span>
+                    <span id="val-gpu-vram">VRAM —</span>
+                </div>
+            </div>
+
+            <div class="glass-panel telemetry-card nm-gauge" id="disk-aggregate-card">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">Disk</span>
+                    <span class="telemetry-value" id="val-nas-used">0 GB Used</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-nas-usage" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span id="val-nas-free">0 GB Free</span>
+                    <span id="val-disk-total">0 GB Total</span>
+                    <span id="val-disk-hint" style="font-size:0.72rem;color:var(--text-muted);"></span>
+                </div>
+            </div>
+            <div id="disk-volumes-container" class="disk-volumes-container" aria-live="polite"></div>
+
+            <div class="glass-panel telemetry-card nm-gauge">
+                <div class="telemetry-header">
+                    <span class="telemetry-title">Bandwidth</span>
+                    <span class="telemetry-value" id="val-net-total">—</span>
+                </div>
+                <div class="telemetry-bar-container">
+                    <div class="telemetry-bar-fill" id="bar-net-total" style="width: 0%;"></div>
+                </div>
+                <div class="telemetry-subinfo">
+                    <span id="val-net-up">↑ —</span>
+                    <span id="val-net-down">↓ —</span>
+                    <span id="val-net-hint" style="font-size:0.72rem;color:var(--text-muted);"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Category Filters Tabs -->
+        <div class="category-filters-wrapper">
+            <div class="category-filters" id="category-tabs-container">
+                <!-- CATEGORY_TABS -->
+            </div>
+        </div>
+
+        <!-- Custom dashboard widgets -->
+        <!-- DASHBOARD_WIDGETS -->
+
+        <!-- Embed panel (Organizr-style) -->
+        <div id="embed-panel" class="embed-panel glass-panel" style="display:none; margin: 1rem 0; padding: 0; overflow: hidden;">
+            <iframe id="embed-panel-frame" class="embed-panel-frame" title="Embedded app" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style="width:100%; min-height:70vh; border:0;"></iframe>
+        </div>
+
+        <!-- Second Row: Media / Proxmox stream cards -->
+        <!-- STREAMS_ROW -->
+
+        <!-- Wake-on-LAN Row -->
+        <!-- WOL_SECTION -->
+
+        <!-- Featured headline (feeds page) -->
+        <!-- FEED_HERO -->
+
+        <!-- Main Bento Grid Columns -->
+        <div id="reorder-hint-banner" class="reorder-hint-banner" aria-live="polite">
+            <i data-lucide="info" style="width:1rem;height:1rem;flex-shrink:0;"></i>
+            <span>Switch to the <strong>All</strong> category to drag and reorder app cards.</span>
+        </div>
+        <div class="nm-apps-frame">
+        <main class="{{main_grid_class}}">
+            <!-- APPS_GRID -->
+        </main>
+        </div>
+        <div id="health-status-hint" class="health-status-hint" style="display:none;">
+            Some app health checks have not returned yet. Check the app URLs or the AMUD server logs if this persists.
+        </div>
+
+        <!-- Support / Donation Card (optional) -->
+        <!-- SUPPORT_SECTION -->
+
+        <footer class="dashboard-footer">
+            <span class="version-badge {{update_status_class}}">v{{app_version}}</span>
+        </footer>
+    </div>
+
+
+    <!-- Add Application Modal -->
+    <div class="modal-backdrop" x-show="addAppModalOpen" x-transition.opacity @click="addAppModalOpen = false" style="display: none;"></div>
+    <div class="modal" x-show="addAppModalOpen" x-transition style="display: none;">
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Registry</p>
+                <h2>Add App</h2>
+            </div>
+            <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="addAppModalOpen = false">
+                <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
+            </button>
+        </div>
+
+        <form action="/apps" method="POST" class="settings-form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <div class="form-group">
+                <label for="add-app-name">Name</label>
+                <input type="text" id="add-app-name" name="name" class="form-control" required placeholder="e.g. Radarr" oninput="checkDuplicateAppName()">
+                <p class="form-help duplicate-warning" data-duplicate-warning style="display:none;">An app with this name already exists.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="add-app-url">URL</label>
+                <input type="url" id="add-app-url" name="url" class="form-control" required placeholder="http://192.168.1.50:7878">
+                <p class="form-help">Used for the link and ONLINE/OFFLINE health check.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="add-app-category">Category</label>
+                <select id="add-app-category" name="category" class="form-control">
+                    <!-- CATEGORY_OPTIONS -->
+                </select>
+            </div>
+
+            <details class="form-advanced-block">
+                <summary>More options</summary>
+                <div class="form-group" style="margin-top:1rem;">
+                    <label for="add-app-icon">Icon</label>
+                    <div class="icon-input-row">
+                        <input type="text" id="add-app-icon" name="icon" x-model="appIconUrl" class="form-control" placeholder="radarr, sonarr, or image URL">
+                        <button type="button" class="btn btn-secondary" aria-label="Upload app icon image" @click="$refs.appIconFileInput.click()">Upload</button>
+                    </div>
+                    <label for="add-app-icon-file" class="visually-hidden">Upload app icon image file</label>
+                    <input type="file" id="add-app-icon-file" x-ref="appIconFileInput" class="visually-hidden" accept="image/*" @change="handleFileUpload($event, 'appIcon')">
+                </div>
+
+                <div class="form-group">
+                    <label for="add-app-card-span">Card size</label>
+                    <select id="add-app-card-span" name="card_span" x-model="newApp.card_span" class="form-control">
+                        <option value="1x1">1x1 Standard</option>
+                        <option value="2x1">2x1 Wide</option>
+                        <option value="1x2">1x2 Tall</option>
+                    </select>
+                    <p class="form-help" x-show="newApp.integration_type && newApp.integration_type !== 'rss'">Integration cards use a tall 1x2 layout with a filled stats grid.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="add-app-node-tag">Node tag</label>
+                    <input type="text" id="add-app-node-tag" name="node_tag" class="form-control" placeholder="Local">
+                </div>
+
+                <div class="form-group">
+                    <input type="hidden" name="show_container_metrics" aria-label="Show container metrics value" :value="newApp.show_container_metrics ? '1' : '0'">
+                    <label class="checkbox-row" for="add-app-show-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="add-app-show-metrics" x-model="newApp.show_container_metrics" @change="if (newApp.integration_type && newApp.integration_type !== 'rss') newApp.card_span = '1x2'" style="margin-top:0.15rem;">
+                        <span>
+                            Show CPU / RAM from host agent
+                            <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Turn off for remote services (not on this Proxmox/Docker host) so the card stays clean.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <input type="hidden" name="guest_visible" :value="newApp.guest_visible ? '1' : '0'">
+                    <label class="checkbox-row" for="add-app-guest-visible" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="add-app-guest-visible" x-model="newApp.guest_visible" style="margin-top:0.15rem;">
+                        <span>Visible to guests and anonymous visitors</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="add-app-embed-mode">Open behavior</label>
+                    <select id="add-app-embed-mode" name="embed_mode" x-model="newApp.embed_mode" class="form-control">
+                        <option value="link">Open in new tab</option>
+                        <option value="iframe">Embed in dashboard (iframe)</option>
+                        <option value="tab">Embed tab panel</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="add-app-integration-type">Integration</label>
+                    <div id="add-app-integration-picker" class="integration-picker" data-alpine-field="newApp">
+                        <input type="hidden" id="add-app-integration-type" name="integration_type" x-model="newApp.integration_type">
+                        <button type="button" class="integration-picker-trigger form-control" aria-expanded="false" aria-haspopup="true">
+                            <img class="integration-picker-trigger-icon" src="/static/fallback.svg" alt="" width="20" height="20">
+                            <span class="integration-picker-trigger-label">None</span>
+                            <i data-lucide="chevron-down" class="integration-picker-chevron"></i>
+                        </button>
+                        <div class="integration-picker-panel" hidden>
+                            <label for="add-app-integration-search" class="visually-hidden">Filter integrations</label>
+                            <input type="search" id="add-app-integration-search" class="integration-picker-search form-control" placeholder="Filter integrations…" autocomplete="off">
+                            <div class="integration-picker-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" x-show="newApp.integration_type !== ''">
+                    <label for="add-app-api-key">
+                        <span x-show="newApp.integration_type === 'adguard'">Basic auth credential</span>
+                        <span x-show="newApp.integration_type === 'pihole'">API token</span>
+                        <span x-show="newApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
+                        <span x-show="newApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
+                        <span x-show="newApp.integration_type === 'peanut'">API token (optional)</span>
+                        <span x-show="newApp.integration_type === 'qbittorrent' || newApp.integration_type === 'nzbget' || newApp.integration_type === 'fritz' || newApp.integration_type === 'unifi' || newApp.integration_type === 'nextcloud' || newApp.integration_type === 'navidrome' || newApp.integration_type === 'photoprism'">Web UI credentials</span>
+                        <span x-show="newApp.integration_type === 'opnsense'">API key and secret</span>
+                        <span x-show="newApp.integration_type === 'deluge'">Deluge Web UI password</span>
+                        <span x-show="newApp.integration_type === 'netdata' || newApp.integration_type === 'glances'">API token (optional)</span>
+                        <span x-show="newApp.integration_type === 'vaultwarden'">Admin token</span>
+                        <span x-show="newApp.integration_type === 'transmission'">RPC credentials (optional)</span>
+                        <span x-show="newApp.integration_type === 'audiobookshelf'">API token</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent','nzbget','transmission','audiobookshelf','fritz','unifi','nextcloud','navidrome','photoprism','opnsense','deluge','netdata','glances','vaultwarden'].includes(newApp.integration_type)">API key / token</span>
+                    </label>
+                    <input type="text" id="add-app-api-key" name="api_key" class="form-control" x-model="newApp.api_key"
+                        :placeholder="newApp.integration_type === 'adguard' ? 'Base64 username:password' : (newApp.integration_type === 'pihole' ? 'Pi-hole API token (Settings → API)' : (newApp.integration_type === 'uptime_kuma' ? 'my-status-page-slug' : (newApp.integration_type === 'cloudflare_tunnel' ? 'account_id|tunnel_id|api_token' : (newApp.integration_type === 'peanut' ? 'Leave empty if no auth' : (newApp.integration_type === 'qbittorrent' || newApp.integration_type === 'nzbget' || newApp.integration_type === 'fritz' ? 'admin|yourpassword' : (newApp.integration_type === 'transmission' ? 'Leave empty if no RPC auth' : 'From the service settings'))))))">
+                    <p class="form-help" x-show="newApp.integration_type === 'adguard'">
+                        AdGuard Home does <strong>not</strong> use an API key. Encode your AdGuard UI login as Base64 <code>username:password</code>
+                        (Linux/macOS: <code>echo -n 'admin:yourpass' | base64</code>).
+                        <a href="https://boubli.github.io/AMUD-Dashboard/docs/configuration" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Configuration docs</a>
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'pihole'">
+                        Use the API token from Pi-hole <strong>Settings → API</strong> (or web password on older installs).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'radarr' || newApp.integration_type === 'sonarr' || newApp.integration_type === 'lidarr' || newApp.integration_type === 'readarr' || newApp.integration_type === 'whisparr'">
+                        Copy the API key from <strong>Settings → General</strong> in the *arr app.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'overseerr' || newApp.integration_type === 'jellyseerr'">
+                        Copy the API key from the service settings (Overseerr/Jellyseerr → General).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'prowlarr'">
+                        API key from Prowlarr <strong>Settings → General</strong>. Hover the card to see indexers and queue.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'nzbget'">
+                        Format: <code>username|password</code> for the NZBGet Web UI. Hover the card for queue and download speed.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'transmission'">
+                        Optional <code>username|password</code> if RPC auth is enabled. Leave empty on trusted LAN. Hover for torrent stats.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'sabnzbd'">
+                        API key from SABnzbd <strong>Config → General</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'jackett'">
+                        API key from Jackett <strong>UI → API Key</strong> (or copy from dashboard).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'tautulli'">
+                        API key from Tautulli <strong>Settings → Web Interface</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'audiobookshelf'">
+                        Long-lived API token from Audiobookshelf user settings.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'immich'">
+                        API key from Immich <strong>Account → API Keys</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'tdarr'">
+                        Tdarr URL only — no API key needed on most LAN installs. Use Tdarr server port (default 8265).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'maintainerr'">
+                        API key from Maintainerr <strong>Settings → API</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'frigate'">
+                        Optional JWT/API key if auth is enabled. Leave empty on trusted LAN.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'qbittorrent'">
+                        Format: <code>username|password</code> for the qBittorrent Web UI. Enable Web UI in qBittorrent settings. Hover the card for download speed and active torrents.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'bazarr'">
+                        API key from Bazarr <strong>Settings → General</strong>. Shows missing subtitles (hover card).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'uptime_kuma'">
+                        Use your public <strong>status page slug</strong> (Settings → Status Pages), or an Uptime Kuma API key for monitor count.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'cloudflare_tunnel'">
+                        Format: <code>account_id|tunnel_id|api_token</code> — token needs Account → Cloudflare Tunnel → Read.
+                        App URL can point to your tunnel hostname or Cloudflare dashboard.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'peanut'">
+                        Peanut/NUT base URL in the URL field. Leave credential empty if your instance has no API auth.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'fritz'">
+                        URL: <code>https://fritz.box</code> (or your box LAN IP). Credential: <code>username|password</code> for a FRITZ!Box user — use a dedicated limited account if possible. Enable <strong>Accept invalid certs</strong> in Settings if needed.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'portainer'">
+                        API access token from Portainer <strong>My account → Access tokens</strong>. URL is your Portainer instance (e.g. <code>https://portainer:9443</code>).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'opnsense'">
+                        Format: <code>api_key|api_secret</code> from OPNsense <strong>System → Access → API Keys</strong>. Enable API on the firewall.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'pfsense'">
+                        REST API key from pfSense (requires REST API package). URL is your pfSense host.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'truenas'">
+                        API key from TrueNAS <strong>Credentials → API Keys</strong>. Use the TrueNAS web URL (SCALE or CORE).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'unifi'">
+                        UniFi OS / Controller URL. Credential: <code>username|password</code> for a local admin account.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'grafana'">
+                        Service account or API key from Grafana <strong>Administration → Service accounts</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'netdata' || newApp.integration_type === 'glances'">
+                        Leave as <code>none</code> if your instance has no auth on the LAN. Otherwise use a bearer token or password.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'beszel'">
+                        API token from Beszel hub <strong>Settings → API tokens</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'paperless'">
+                        API token from Paperless-ngx <strong>Settings → API</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'mealie'">
+                        Bearer token from Mealie user profile <strong>API tokens</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'nextcloud'">
+                        Format: <code>username|app_password</code> — create an app password in Nextcloud security settings.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'vaultwarden'">
+                        <code>ADMIN_TOKEN</code> from your Vaultwarden environment. Used for admin user/org counts.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'deluge'">
+                        Deluge Web UI password (from <strong>Preferences → WebUI</strong>). Enable Web UI and JSON-RPC.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'navidrome'">
+                        Subsonic API: <code>username|password</code> (or token password from Navidrome user settings).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'komga'">
+                        API key from Komga <strong>User → API keys</strong>.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'photoprism'">
+                        App password: <code>username|password</code> or a PhotoPrism app password token.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'proxmox'">
+                        Format: <code>user@pam!tokenid|secret</code> — API token from Proxmox Datacenter → Permissions → API Tokens.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'tailscale'">
+                        Tailscale OAuth/API key with <code>devices:read</code>. URL field is ignored (uses Tailscale API).
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'netbird'">
+                        NetBird personal access token. URL is your NetBird dashboard/API host.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'ollama'">
+                        Ollama base URL (e.g. <code>http://host:11434</code>). No API key required for local installs.
+                    </p>
+                    <p class="form-help" x-show="newApp.integration_type === 'open_webui'">
+                        Open WebUI URL. Optional API key from Settings → Account → API Keys (lists models); without key, health check only.
+                    </p>
+                    <p class="form-help" x-show="['synology','nginx_proxy_manager','homeassistant','emby','unraid','dockge','traefik','authentik','crowdsec','node_red','zigbee2mqtt','scrypted','mylar','kapowarr','huntarr','proxmox_backup','technitium','openwrt'].includes(newApp.integration_type)">
+                        API key or credentials from the service settings. See docs for format hints per app.
+                    </p>
+                    <p class="form-help" x-show="window.HEALTH_ONLY_INTEGRATIONS && window.HEALTH_ONLY_INTEGRATIONS.has(newApp.integration_type)">
+                        Health-check integration: use <code>none</code> if no API auth. Keeps a 1×1 link card with online status.
+                    </p>
+                </div>
+
+                <div class="form-group" x-show="newApp.integration_type && newApp.integration_type !== 'rss' && amudCardMetricsFor(newApp.integration_type).length">
+                    <input type="hidden" name="integration_visible_metrics" :value="amudSerializeVisibleMetrics(newApp)">
+                    <label class="checkbox-row" for="add-app-show-integration-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="add-app-show-integration-metrics" x-model="newApp.show_integration_metrics" @change="amudOnIntegrationMetricsToggle(newApp)" style="margin-top:0.15rem;">
+                        <span>
+                            Show integration stats on this card
+                            <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Disable to show CPU/RAM only. Jellyfin/Plex/Emby stream cards above the grid still use the API.</span>
+                        </span>
+                    </label>
+                    <div x-show="newApp.show_integration_metrics" class="integration-metrics-picker" style="margin-top:0.65rem; display:flex; flex-direction:column; gap:0.35rem;">
+                        <template x-for="metric in amudCardMetricsFor(newApp.integration_type)" :key="metric.key">
+                            <label class="checkbox-row" style="display:flex; align-items:center; gap:0.5rem; font-weight:400; cursor:pointer;">
+                                <input type="checkbox" :checked="(newApp.integration_visible_metrics || []).includes(metric.key)" @change="amudToggleMetricKey(newApp, metric.key, $event.target.checked)">
+                                <span x-text="metric.label"></span>
+                            </label>
+                        </template>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                            <button type="button" class="btn btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.75rem;" @click="newApp.integration_visible_metrics = amudDefaultVisibleMetricKeys(newApp.integration_type); newApp.show_integration_metrics = true; amudApplyIntegrationSpan(newApp);">Select all</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.75rem;" @click="newApp.show_integration_metrics = false; amudOnIntegrationMetricsToggle(newApp);">Hide all</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="add-app-description">Description</label>
+                    <textarea id="add-app-description" name="description" class="form-control" rows="2" placeholder="Optional"></textarea>
+                </div>
+            </details>
+
+            <div class="drawer-footer">
+                <button type="button" class="btn btn-secondary" @click="addAppModalOpen = false">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add App</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Edit Application Modal -->
+    <div class="modal-backdrop" x-show="editAppModalOpen" x-transition.opacity @click="editAppModalOpen = false" style="display: none;"></div>
+    <div class="modal" x-show="editAppModalOpen" x-transition style="display: none;">
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow" style="text-transform:uppercase; letter-spacing:0.1em; font-size:0.68rem; color:var(--text-muted);">Registry</p>
+                <h2>Edit App</h2>
+            </div>
+            <button type="button" class="btn btn-secondary" style="padding:0.4rem; border-radius:50%;" @click="editAppModalOpen = false">
+                <i data-lucide="x" style="width:1.1rem; height:1.1rem;"></i>
+            </button>
+        </div>
+
+        <form action="/apps/edit" method="POST" class="settings-form">
+            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+            <input type="hidden" name="id" aria-label="App identifier" x-model="editApp.id">
+
+            <div class="form-group">
+                <label for="edit-app-name">Name</label>
+                <input type="text" id="edit-app-name" name="name" class="form-control" required x-model="editApp.name" placeholder="e.g. Radarr" oninput="checkDuplicateAppName()">
+                <p class="form-help duplicate-warning" data-duplicate-warning style="display:none;">Another app already uses this name.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-app-url">URL</label>
+                <input type="url" id="edit-app-url" name="url" class="form-control" required x-model="editApp.url" placeholder="http://192.168.1.50:7878">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-app-category">Category</label>
+                <select id="edit-app-category" name="category" x-model="editApp.category" class="form-control">
+                    <!-- CATEGORY_OPTIONS -->
+                </select>
+            </div>
+
+            <details class="form-advanced-block" open>
+                <summary>More options</summary>
+                <div class="form-group" style="margin-top:1rem;">
+                    <label for="edit-app-icon">Icon</label>
+                    <div class="icon-input-row">
+                        <input type="text" id="edit-app-icon" name="icon" x-model="editApp.icon" class="form-control" placeholder="radarr, sonarr, or image URL">
+                        <button type="button" class="btn btn-secondary" aria-label="Upload app icon image" @click="$refs.editAppIconFileInput.click()">Upload</button>
+                    </div>
+                    <label for="edit-app-icon-file" class="visually-hidden">Upload app icon image file</label>
+                    <input type="file" id="edit-app-icon-file" x-ref="editAppIconFileInput" class="visually-hidden" accept="image/*" @change="handleFileUpload($event, 'editAppIcon')">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-app-card-span">Card size</label>
+                    <select id="edit-app-card-span" name="card_span" x-model="editApp.card_span" class="form-control">
+                        <option value="1x1">1x1 Standard</option>
+                        <option value="2x1">2x1 Wide</option>
+                        <option value="1x2">1x2 Tall</option>
+                    </select>
+                    <p class="form-help" x-show="editApp.integration_type && editApp.integration_type !== 'rss'">Integration cards use a tall 1x2 layout with a filled stats grid.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-app-node-tag">Node tag</label>
+                    <input type="text" id="edit-app-node-tag" name="node_tag" x-model="editApp.node_tag" class="form-control" placeholder="Local">
+                </div>
+
+                <div class="form-group">
+                    <input type="hidden" name="show_container_metrics" aria-label="Show container metrics value" :value="editApp.show_container_metrics ? '1' : '0'">
+                    <label class="checkbox-row" for="edit-app-show-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="edit-app-show-metrics" x-model="editApp.show_container_metrics" @change="if (editApp.integration_type && editApp.integration_type !== 'rss') editApp.card_span = '1x2'" style="margin-top:0.15rem;">
+                        <span>
+                            Show CPU / RAM from host agent
+                            <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Disable when this app runs elsewhere — status badge still works.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <input type="hidden" name="guest_visible" :value="editApp.guest_visible ? '1' : '0'">
+                    <label class="checkbox-row" for="edit-app-guest-visible" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="edit-app-guest-visible" x-model="editApp.guest_visible" style="margin-top:0.15rem;">
+                        <span>Visible to guests and anonymous visitors</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-app-embed-mode">Open behavior</label>
+                    <select id="edit-app-embed-mode" name="embed_mode" x-model="editApp.embed_mode" class="form-control">
+                        <option value="link">Open in new tab</option>
+                        <option value="iframe">Embed in dashboard (iframe)</option>
+                        <option value="tab">Embed tab panel</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-app-integration-type">Integration</label>
+                    <div id="edit-app-integration-picker" class="integration-picker" data-alpine-field="editApp">
+                        <input type="hidden" id="edit-app-integration-type" name="integration_type" x-model="editApp.integration_type">
+                        <button type="button" class="integration-picker-trigger form-control" aria-expanded="false" aria-haspopup="true">
+                            <img class="integration-picker-trigger-icon" src="/static/fallback.svg" alt="" width="20" height="20">
+                            <span class="integration-picker-trigger-label">None</span>
+                            <i data-lucide="chevron-down" class="integration-picker-chevron"></i>
+                        </button>
+                        <div class="integration-picker-panel" hidden>
+                            <label for="edit-app-integration-search" class="visually-hidden">Filter integrations</label>
+                            <input type="search" id="edit-app-integration-search" class="integration-picker-search form-control" placeholder="Filter integrations…" autocomplete="off">
+                            <div class="integration-picker-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" x-show="editApp.integration_type !== ''">
+                    <label for="edit-app-api-key">
+                        <span x-show="editApp.integration_type === 'adguard'">Basic auth credential</span>
+                        <span x-show="editApp.integration_type === 'pihole'">API token</span>
+                        <span x-show="editApp.integration_type === 'uptime_kuma'">Status page slug or API key</span>
+                        <span x-show="editApp.integration_type === 'cloudflare_tunnel'">Cloudflare credentials</span>
+                        <span x-show="editApp.integration_type === 'peanut'">API token (optional)</span>
+                        <span x-show="editApp.integration_type === 'qbittorrent' || editApp.integration_type === 'nzbget' || editApp.integration_type === 'fritz' || editApp.integration_type === 'unifi' || editApp.integration_type === 'nextcloud' || editApp.integration_type === 'navidrome' || editApp.integration_type === 'photoprism'">Web UI credentials</span>
+                        <span x-show="editApp.integration_type === 'opnsense'">API key and secret</span>
+                        <span x-show="editApp.integration_type === 'deluge'">Deluge Web UI password</span>
+                        <span x-show="editApp.integration_type === 'netdata' || editApp.integration_type === 'glances'">API token (optional)</span>
+                        <span x-show="editApp.integration_type === 'vaultwarden'">Admin token</span>
+                        <span x-show="editApp.integration_type === 'transmission'">RPC credentials (optional)</span>
+                        <span x-show="editApp.integration_type === 'audiobookshelf'">API token</span>
+                        <span x-show="!['adguard','pihole','uptime_kuma','cloudflare_tunnel','peanut','qbittorrent','nzbget','transmission','audiobookshelf','fritz','unifi','nextcloud','navidrome','photoprism','opnsense','deluge','netdata','glances','vaultwarden'].includes(editApp.integration_type)">API key / token</span>
+                    </label>
+                    <input type="text" id="edit-app-api-key" name="api_key" class="form-control" x-model="editApp.api_key"
+                        :placeholder="editApp.integration_type === 'adguard' ? 'Base64 username:password' : (editApp.integration_type === 'pihole' ? 'Leave blank to keep unchanged' : 'Leave blank to keep unchanged')">
+                    <p class="form-help" x-show="editApp.integration_type === 'adguard'">
+                        AdGuard Home does <strong>not</strong> use an API key. Encode your AdGuard UI login as Base64 <code>username:password</code>
+                        (Linux/macOS: <code>echo -n 'admin:yourpass' | base64</code>).
+                        <a href="https://boubli.github.io/AMUD-Dashboard/docs/configuration" target="_blank" rel="noopener noreferrer" style="color:var(--accent-color);">Configuration docs</a>
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'pihole'">
+                        Use the API token from Pi-hole <strong>Settings → API</strong>. Leave blank to keep the saved token.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'radarr' || editApp.integration_type === 'sonarr' || editApp.integration_type === 'lidarr' || editApp.integration_type === 'readarr' || editApp.integration_type === 'whisparr'">
+                        API key from <strong>Settings → General</strong> in the *arr app. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'overseerr' || editApp.integration_type === 'jellyseerr'">
+                        API key from service settings. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'prowlarr'">
+                        Prowlarr API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'qbittorrent' || editApp.integration_type === 'nzbget'">
+                        <code>username|password</code> for Web UI. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'transmission'">
+                        Optional <code>username|password</code> for RPC auth. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'sabnzbd' || editApp.integration_type === 'jackett' || editApp.integration_type === 'tautulli' || editApp.integration_type === 'immich' || editApp.integration_type === 'maintainerr'">
+                        API key from service settings. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'audiobookshelf'">
+                        Bearer API token. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'tdarr' || editApp.integration_type === 'frigate'">
+                        Optional — leave blank if no auth on your LAN. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'bazarr'">
+                        Bazarr API key from <strong>Settings → General</strong>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'uptime_kuma'">
+                        Status page slug or API key. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'cloudflare_tunnel'">
+                        <code>account_id|tunnel_id|api_token</code>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'peanut'">
+                        Optional API token. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'fritz'">
+                        <code>username|password</code> for FRITZ!Box login. URL should be <code>https://fritz.box</code>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'portainer' || editApp.integration_type === 'pfsense' || editApp.integration_type === 'truenas' || editApp.integration_type === 'grafana' || editApp.integration_type === 'beszel' || editApp.integration_type === 'paperless' || editApp.integration_type === 'mealie' || editApp.integration_type === 'komga'">
+                        API key or token from service settings. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'opnsense'">
+                        <code>api_key|api_secret</code>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'unifi' || editApp.integration_type === 'nextcloud' || editApp.integration_type === 'navidrome' || editApp.integration_type === 'photoprism'">
+                        <code>username|password</code> (or app password). Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'netdata' || editApp.integration_type === 'glances'">
+                        Use <code>none</code> if no auth. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'vaultwarden'">
+                        Vaultwarden <code>ADMIN_TOKEN</code>. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'deluge'">
+                        Deluge Web UI password. Leave blank to keep unchanged.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'ollama'">
+                        Ollama base URL (e.g. <code>http://host:11434</code>). No API key required for local installs.
+                    </p>
+                    <p class="form-help" x-show="editApp.integration_type === 'open_webui'">
+                        Open WebUI URL. Optional API key from Settings → Account → API Keys.
+                    </p>
+                </div>
+
+                <div class="form-group" x-show="editApp.integration_type && editApp.integration_type !== 'rss' && amudCardMetricsFor(editApp.integration_type).length">
+                    <input type="hidden" name="integration_visible_metrics" :value="amudSerializeVisibleMetrics(editApp)">
+                    <label class="checkbox-row" for="edit-app-show-integration-metrics" style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer; font-weight:500;">
+                        <input type="checkbox" id="edit-app-show-integration-metrics" x-model="editApp.show_integration_metrics" @change="amudOnIntegrationMetricsToggle(editApp)" style="margin-top:0.15rem;">
+                        <span>
+                            Show integration stats on this card
+                            <span class="form-help" style="display:block; margin-top:0.25rem; font-weight:400;">Disable to show CPU/RAM only. Jellyfin/Plex/Emby stream cards above the grid still use the API.</span>
+                        </span>
+                    </label>
+                    <div x-show="editApp.show_integration_metrics" class="integration-metrics-picker" style="margin-top:0.65rem; display:flex; flex-direction:column; gap:0.35rem;">
+                        <template x-for="metric in amudCardMetricsFor(editApp.integration_type)" :key="metric.key">
+                            <label class="checkbox-row" style="display:flex; align-items:center; gap:0.5rem; font-weight:400; cursor:pointer;">
+                                <input type="checkbox" :checked="(editApp.integration_visible_metrics || []).includes(metric.key)" @change="amudToggleMetricKey(editApp, metric.key, $event.target.checked)">
+                                <span x-text="metric.label"></span>
+                            </label>
+                        </template>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                            <button type="button" class="btn btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.75rem;" @click="editApp.integration_visible_metrics = amudDefaultVisibleMetricKeys(editApp.integration_type); editApp.show_integration_metrics = true; amudApplyIntegrationSpan(editApp);">Select all</button>
+                            <button type="button" class="btn btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.75rem;" @click="editApp.show_integration_metrics = false; amudOnIntegrationMetricsToggle(editApp);">Hide all</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-app-description">Description</label>
+                    <textarea id="edit-app-description" name="description" x-model="editApp.description" class="form-control" rows="2" placeholder="Optional"></textarea>
+                </div>
+            </details>
+
+            <div class="drawer-footer">
+                <button type="button" class="btn btn-secondary" @click="editAppModalOpen = false">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+
+
+    <script nonce="{{csp_nonce}}">
+
+        // Init Lucide vector icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        function checkUpdateBannerDismissal() {
+            const banner = document.getElementById('update-banner');
+            if (!banner) return;
+            const dismissedUntil = localStorage.getItem('amud_update_dismissed_until');
+            if (dismissedUntil && Date.now() < parseInt(dismissedUntil, 10)) {
+                banner.style.display = 'none';
+            }
+        }
+        
+        function dismissUpdateBanner() {
+            const banner = document.getElementById('update-banner');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            const hideUntil = Date.now() + 24 * 60 * 60 * 1000;
+            localStorage.setItem('amud_update_dismissed_until', hideUntil.toString());
+        }
+
+        document.addEventListener('DOMContentLoaded', checkUpdateBannerDismissal);
+
+        const isAdmin = "{{is_admin}}" === "true";
+        globalThis.activeCategoryFilter = 'all';
+        const knownAppNames = new Set({{app_names_json}});
+
+        window.HEALTH_ONLY_INTEGRATIONS = window.HEALTH_ONLY_INTEGRATIONS || new Set();
+
+        function amudApplyIntegrationSpan(app) {
+            if (!app || !app.integration_type || app.integration_type === 'rss') return;
+            if (window.HEALTH_ONLY_INTEGRATIONS.has(app.integration_type)) return;
+            if (app.show_integration_metrics === false) {
+                if (app.show_container_metrics) app.card_span = '1x1';
+                return;
+            }
+            app.card_span = '1x2';
+        }
+
+        function amudMediaStreamIntegrations() {
+            return ['jellyfin', 'plex', 'emby'];
+        }
+
+        function amudCardMetricsFor(integrationId) {
+            if (!integrationId || !window.INTEGRATION_MANIFEST?.groups) return [];
+            for (const group of window.INTEGRATION_MANIFEST.groups) {
+                for (const item of group.integrations || []) {
+                    if (item.id === integrationId) return item.card_metrics || [];
+                }
+            }
+            return [];
+        }
+
+        function amudDefaultShowIntegrationMetrics(integrationId) {
+            return !amudMediaStreamIntegrations().includes(integrationId);
+        }
+
+        function amudDefaultVisibleMetricKeys(integrationId) {
+            if (!amudDefaultShowIntegrationMetrics(integrationId)) return [];
+            return amudCardMetricsFor(integrationId).map(function (m) { return m.key; });
+        }
+
+        function amudHydrateAppMetrics(app) {
+            if (!app) return;
+            const raw = app.integration_visible_metrics;
+            if (raw === '[]' || (typeof raw === 'string' && raw.trim() === '[]')) {
+                app.show_integration_metrics = false;
+                app.integration_visible_metrics = [];
+            } else if (raw === '' || raw == null || raw === undefined) {
+                app.show_integration_metrics = true;
+                app.integration_visible_metrics = amudDefaultVisibleMetricKeys(app.integration_type);
+            } else if (typeof raw === 'string') {
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length === 0) {
+                        app.show_integration_metrics = false;
+                        app.integration_visible_metrics = [];
+                    } else {
+                        app.show_integration_metrics = true;
+                        app.integration_visible_metrics = Array.isArray(parsed) ? parsed : [];
+                    }
+                } catch (e) {
+                    app.show_integration_metrics = true;
+                    app.integration_visible_metrics = amudDefaultVisibleMetricKeys(app.integration_type);
+                }
+            } else if (Array.isArray(raw)) {
+                app.show_integration_metrics = raw.length > 0;
+                app.integration_visible_metrics = raw;
+            }
+            amudApplyIntegrationSpan(app);
+        }
+
+        function amudOnIntegrationMetricsToggle(app) {
+            if (!app) return;
+            if (app.show_integration_metrics) {
+                if (!app.integration_visible_metrics || !app.integration_visible_metrics.length) {
+                    app.integration_visible_metrics = amudDefaultVisibleMetricKeys(app.integration_type);
+                }
+            } else {
+                app.integration_visible_metrics = [];
+            }
+            amudApplyIntegrationSpan(app);
+        }
+
+        function amudOnIntegrationTypeChange(app, integrationId) {
+            if (!app) return;
+            app.integration_type = integrationId || '';
+            app.show_integration_metrics = amudDefaultShowIntegrationMetrics(integrationId);
+            app.integration_visible_metrics = amudDefaultVisibleMetricKeys(integrationId);
+            if (!app.icon && integrationId) {
+                app.icon = integrationId;
+                if (app === document.body._x_dataStack?.[0]?.newApp) {
+                    document.body._x_dataStack[0].appIconUrl = integrationId;
+                }
+            }
+            amudApplyIntegrationSpan(app);
+        }
+
+        function amudSerializeVisibleMetrics(app) {
+            if (!app || !app.integration_type || app.integration_type === 'rss') return '';
+            if (app.show_integration_metrics === false) return '[]';
+            const keys = app.integration_visible_metrics || [];
+            const allKeys = amudDefaultVisibleMetricKeys(app.integration_type);
+            if (!keys.length || (allKeys.length && keys.length >= allKeys.length)) return '';
+            return JSON.stringify(keys);
+        }
+
+        function amudToggleMetricKey(app, key, checked) {
+            if (!app) return;
+            const set = new Set(app.integration_visible_metrics || []);
+            if (checked) set.add(key);
+            else set.delete(key);
+            app.integration_visible_metrics = Array.from(set);
+            app.show_integration_metrics = app.integration_visible_metrics.length > 0;
+            amudApplyIntegrationSpan(app);
+        }
+
+        window.amudCardMetricsFor = amudCardMetricsFor;
+        window.amudHydrateAppMetrics = amudHydrateAppMetrics;
+        window.amudSerializeVisibleMetrics = amudSerializeVisibleMetrics;
+        window.amudOnIntegrationMetricsToggle = amudOnIntegrationMetricsToggle;
+        window.amudOnIntegrationTypeChange = amudOnIntegrationTypeChange;
+
+        function amudSafeLower(value) {
+            return (value || '').trim().toLowerCase();
+        }
+
+        function checkDuplicateAppName() {
+            document.querySelectorAll('.modal form').forEach(form => {
+                const input = form.querySelector('input[name="name"]');
+                const warning = form.querySelector('[data-duplicate-warning]');
+                if (!input || !warning) return;
+                const currentId = form.querySelector('input[name="id"]')?.value || '';
+                const originalName = currentId ? amudSafeLower(window.editingAppOriginalName) : '';
+                const value = amudSafeLower(input.value);
+                const duplicate = value && knownAppNames.has(value) && value !== originalName;
+                warning.style.display = duplicate ? 'block' : 'none';
+            });
+        }
+
+        // Category filtering — app search handled by app-search.js
+        function filterCategory(category, element) {
+            globalThis.activeCategoryFilter = category;
+            document.dispatchEvent(new CustomEvent('amud:category-filter', { detail: { category: category } }));
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            if (element) {
+                element.classList.add('active');
+            }
+
+            const cardSelector = '.app-card:not(.filter-empty-msg), .feed-card:not(.filter-empty-msg)';
+            document.querySelectorAll(cardSelector).forEach(card => {
+                if (category === 'all') {
+                    card.style.display = 'flex';
+                } else {
+                    const cardCat = card.getAttribute('data-category');
+                    card.style.display = cardCat === category ? 'flex' : 'none';
+                }
+            });
+
+            document.querySelectorAll('[data-filter-section]').forEach(section => {
+                const sectionCat = section.getAttribute('data-filter-section');
+                section.style.display = (category === 'all' || sectionCat === category) ? '' : 'none';
+            });
+
+            const grid = document.querySelector('main.bento-grid, .feeds-grid');
+            if (!grid) return;
+
+            let emptyMsg = grid.querySelector('.filter-empty-msg');
+            const visibleCount = [...grid.querySelectorAll(cardSelector)]
+                .filter(card => card.style.display !== 'none').length;
+
+            if (visibleCount === 0 && category !== 'all') {
+                if (!emptyMsg) {
+                    emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'glass-panel filter-empty-msg ' + (grid.classList.contains('feeds-grid') ? 'feed-card' : 'app-card');
+                    grid.appendChild(emptyMsg);
+                }
+                const categoryLabel = element
+                    ? element.textContent.replace(/\s*\d+\s*$/, '').trim()
+                    : category;
+                setFilterEmptyMessage(emptyMsg, {
+                    isFeeds: grid.classList.contains('feeds-grid'),
+                    categoryLabel: categoryLabel
+                });
+                emptyMsg.style.display = 'flex';
+            } else if (emptyMsg) {
+                emptyMsg.style.display = 'none';
+            }
+        }
+
+        async function initFeedHero() {
+            const hero = document.getElementById('feed-hero');
+            if (!hero) return;
+
+            const cards = [...document.querySelectorAll('.feed-card[data-app-id]')];
+            for (const card of cards) {
+                const id = card.getAttribute('data-app-id');
+                if (!id) continue;
+
+                const source = card.querySelector('.feed-card-title')?.textContent?.trim() || 'Feed';
+                const iconSrc = card.querySelector('.feed-card-icon img')?.getAttribute('src') || '/static/feeds/icons/rss.svg';
+                const category = card.querySelector('.feed-category-pill')?.textContent?.trim() || '';
+
+                try {
+                    const res = await fetch(`/api/apps/${id}/integration`);
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const entry = data?.entries?.[0];
+                    if (!entry?.title) continue;
+
+                    const link = entry.link || entry.url || '#';
+                    const date = entry.date || entry.published || '';
+
+                    hero.replaceChildren();
+                    const anchor = document.createElement('a');
+                    anchor.href = link;
+                    anchor.target = '_blank';
+                    anchor.rel = 'noopener noreferrer';
+                    anchor.className = 'feed-hero-link';
+
+                    const media = document.createElement('div');
+                    media.className = 'feed-hero-media';
+                    const img = document.createElement('img');
+                    img.src = iconSrc;
+                    img.alt = '';
+                    img.onerror = () => { img.src = '/static/feeds/icons/rss.svg'; };
+                    media.appendChild(img);
+
+                    const content = document.createElement('div');
+                    content.className = 'feed-hero-content';
+                    const eyebrow = document.createElement('span');
+                    eyebrow.className = 'feed-hero-eyebrow';
+                    eyebrow.textContent = category || source;
+                    const title = document.createElement('h2');
+                    title.className = 'feed-hero-title';
+                    title.textContent = entry.title;
+                    const meta = document.createElement('p');
+                    meta.className = 'feed-hero-meta';
+                    meta.textContent = date ? `${source} · ${date}` : source;
+                    content.append(eyebrow, title, meta);
+
+                    const cta = document.createElement('span');
+                    cta.className = 'feed-hero-cta';
+                    cta.innerHTML = 'Read <i data-lucide="arrow-up-right"></i>';
+
+                    anchor.append(media, content, cta);
+                    hero.appendChild(anchor);
+                    hero.hidden = false;
+                    if (window.lucide) window.lucide.createIcons();
+                    return;
+                } catch (_) {
+                    /* try next feed */
+                }
+            }
+
+            hero.remove();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.body.classList.contains('page-feeds')) {
+                initFeedHero();
+            }
+        });
+
+        // Trigger container actions (start/stop/restart) for Admin
+        function triggerContainerAction(button, action) {
+            const ctrlContainer = button.closest('.container-controls');
+            if (!ctrlContainer) return;
+            
+            const id = ctrlContainer.getAttribute('data-id');
+            const provider = ctrlContainer.getAttribute('data-provider');
+            if (!id || !provider) return;
+            
+            // Add loading/disabled state to the controls
+            ctrlContainer.classList.add('loading');
+            const btns = ctrlContainer.querySelectorAll('.btn-ctrl');
+            btns.forEach(btn => btn.disabled = true);
+            
+            // Show loading spinner
+            setButtonLoading(button, true);
+            
+            const formData = new URLSearchParams();
+            formData.append('provider', provider);
+            formData.append('id', id);
+            formData.append('action', action);
+            formData.append('csrf_token', amudCsrfToken());
+            
+            fetch('/apps/action', {
+                method: 'POST',
+                headers: amudCsrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                body: formData.toString()
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                ctrlContainer.classList.remove('loading');
+                btns.forEach(btn => btn.disabled = false);
+                setButtonLoading(button, false);
+                if (ok && data.success) {
+                    console.log(`Action ${action} confirmed for ${provider} container ${id}`);
+                } else {
+                    alert(data.error || 'Failed to trigger action.');
+                }
+            })
+            .catch(() => {
+                alert('Network error.');
+                ctrlContainer.classList.remove('loading');
+                btns.forEach(btn => btn.disabled = false);
+                setButtonLoading(button, false);
+            });
+        }
+
+        // Trigger Wake-on-LAN
+        function triggerWakeAction(button) {
+            const id = button.getAttribute('data-wake-id');
+            if (!id) {
+                alert('Wake-on-LAN is not configured for this app.');
+                return;
+            }
+            setButtonLoading(button, true, '1.1');
+            
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            formData.append('csrf_token', amudCsrfToken());
+            
+            fetch('/apps/wake', {
+                method: 'POST',
+                headers: amudCsrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                body: formData.toString()
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                setButtonLoading(button, false);
+                if (ok && data.success) {
+                    console.log(`Wake packet sent for app ${id}`);
+                    // Flash success
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.style.color = 'var(--success)';
+                        setTimeout(() => { icon.style.color = ''; }, 1500);
+                    }
+                } else {
+                    alert(data.error || 'Failed to send Wake packet.');
+                }
+            })
+            .catch(() => {
+                setButtonLoading(button, false);
+                alert('Network error.');
+            });
+        }
+
+    </script>
+    <script nonce="{{csp_nonce}}">
+        (function () {
+            var CSS_VERSION = '{{app_version}}';
+            var KEY = 'amud-css-version';
+            var reloaded = false;
+
+            function maybeReloadForCss() {
+                if (reloaded) return;
+                try {
+                    var stored = localStorage.getItem(KEY);
+                    if (stored && stored !== CSS_VERSION) {
+                        reloaded = true;
+                        localStorage.setItem(KEY, CSS_VERSION);
+                        location.reload();
+                        return;
+                    }
+                    if (!stored) {
+                        localStorage.setItem(KEY, CSS_VERSION);
+                    }
+                } catch (e) {}
+            }
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('controllerchange', maybeReloadForCss);
+                window.addEventListener('load', function () {
+                    navigator.serviceWorker.register('/static/sw.js').then(function () {
+                        maybeReloadForCss();
+                    });
+                });
+            }
+        })();
+    </script>
+    <script nonce="{{csp_nonce}}">
+        // Fetch Live Weather — use manual coordinates if set, otherwise auto-detect via IP
+        (function() {
+            const manualLat = '{{weather_latitude}}'.trim();
+            const manualLon = '{{weather_longitude}}'.trim();
+            const tempUnit = ('{{weather_temp_unit}}'.trim() || 'celsius').toLowerCase();
+
+            function formatTemp(celsius) {
+                const c = Number(celsius);
+                if (!Number.isFinite(c)) return { value: '—', suffix: '' };
+                if (tempUnit === 'fahrenheit') {
+                    return { value: String(Math.round(c * 9 / 5 + 32)), suffix: '°F' };
+                }
+                return { value: String(c), suffix: '°C' };
+            }
+
+            function tempDisplay(celsius) {
+                const t = formatTemp(celsius);
+                return t.value + t.suffix;
+            }
+
+            function weatherIconForCode(code) {
+                if (code === 0) return 'sun';
+                if (code > 0 && code <= 3) return 'cloud';
+                if (code >= 45 && code <= 48) return 'cloud-fog';
+                if (code >= 51 && code <= 67) return 'cloud-rain';
+                if (code >= 71 && code <= 77) return 'cloud-snow';
+                if (code >= 95) return 'cloud-lightning';
+                return 'sun';
+            }
+
+            function weatherConditionForCode(code) {
+                if (code === 0) return 'Clear';
+                if (code > 0 && code <= 3) return 'Cloudy';
+                if (code >= 45 && code <= 48) return 'Fog';
+                if (code >= 51 && code <= 67) return 'Rain';
+                if (code >= 71 && code <= 77) return 'Snow';
+                if (code >= 95) return 'Storm';
+                return 'Clear';
+            }
+
+            function setWeatherDisplay(temp, cond, iconName) {
+                const compact = document.getElementById('live-weather');
+                const tempEl = document.getElementById('live-weather-temp');
+                const condEl = document.getElementById('live-weather-cond');
+                const iconEl = document.getElementById('weather-icon');
+                const tempText = tempDisplay(temp);
+                const text = tempText + ' ' + cond;
+                if (compact) compact.textContent = text;
+                if (tempEl) {
+                    tempEl.textContent = tempText;
+                    tempEl.classList.remove('weather-temp--compact', 'weather-temp--wide');
+                    if (tempText.length >= 7) {
+                        tempEl.classList.add('weather-temp--wide');
+                    } else if (tempText.length >= 5) {
+                        tempEl.classList.add('weather-temp--compact');
+                    }
+                }
+                if (condEl) condEl.textContent = cond;
+                if (iconEl) {
+                    iconEl.setAttribute('data-lucide', iconName);
+                    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                        window.lucide.createIcons({ nodes: [iconEl] });
+                    }
+                }
+            }
+
+            function setWeatherError(label) {
+                setWeatherDisplay('—', label, 'cloud-off');
+            }
+
+            function fetchWeather(lat, lon) {
+                fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.current_weather) {
+                            const w = data.current_weather;
+                            const cond = weatherConditionForCode(w.weathercode);
+                            const icon = weatherIconForCode(w.weathercode);
+                            setWeatherDisplay(String(w.temperature), cond, icon);
+                        } else {
+                            setWeatherError('Unavailable');
+                        }
+                    })
+                    .catch(() => {
+                        setWeatherError('Offline');
+                    });
+            }
+
+            if (manualLat && manualLon && !isNaN(parseFloat(manualLat)) && !isNaN(parseFloat(manualLon))) {
+                fetchWeather(manualLat, manualLon);
+            } else {
+                fetch('https://get.geojs.io/v1/ip/geo.json')
+                    .then(res => res.json())
+                    .then(geo => fetchWeather(geo.latitude, geo.longitude))
+                    .catch(() => {
+                        setWeatherError('Offline');
+                    });
+            }
+        })();
+    </script>
+    <script src="/static/integration-picker.js"></script>
+    <script src="/static/logo-picker.js"></script>
+    <script nonce="{{csp_nonce}}">
+        (function () {
+            fetch('/api/integrations/manifest', { credentials: 'same-origin' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) {
+                    if (data && typeof window.amudInitIntegrationPickers === 'function') {
+                        window.amudInitIntegrationPickers(data);
+                    }
+                })
+                .catch(function () {});
+        })();
+    </script>
+</body>
+</html>

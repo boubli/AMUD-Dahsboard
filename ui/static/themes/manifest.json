@@ -689,6 +689,24 @@
       "uiProfile": "glow_glass",
       "iconPack": "/static/themes/icons/glow-glass/pack.json",
       "layoutCss": "/static/theme-layouts/glow_glass.css"
+    },
+    {
+      "id": "neumorphism",
+      "name": "Neumorphism",
+      "file": "neumorphism.css",
+      "category": "advanced",
+      "tags": [
+        "soft",
+        "neumorphic",
+        "clay"
+      ],
+      "preview": "/static/themes/previews/neumorphism.webp",
+      "wallpaper": "/static/themes/wallpapers/neumorphism.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;600;700&display=swap",
+      "uiProfile": "neumorphism",
+      "iconPack": "/static/themes/icons/neumorphism/pack.json",
+      "layoutCss": "/static/theme-layouts/neumorphism.css"
     }
   ]
 }

@@ -5,7 +5,7 @@ title: Features
 
 # Features
 
-Complete inventory of what AMUD Dashboard ships today (v1.8.12). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
+Complete inventory of what AMUD Dashboard ships today (v1.8.13). Everything below is implemented in the compiled Rust binaries — no YAML files, no Node.js runtime.
 
 ![AMUD Dashboard — default theme](/img/AMUD-Dashboard.png)
 

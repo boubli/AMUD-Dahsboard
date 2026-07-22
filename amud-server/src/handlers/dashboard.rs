@@ -195,7 +195,7 @@ async fn render_page(
                 iframe_embeds_enabled,
                 &known_statuses,
                 &known_containers,
-                active_theme_id == "glow-glass",
+                active_theme_id.as_str(),
             )
         }
     };
@@ -255,10 +255,10 @@ async fn render_page(
 
     let root_css = build_root_css(&branding);
 
-    let index_tmpl = if active_theme_id == "glow-glass" {
-        include_str!("../../../ui/templates/index-glow-glass.html")
-    } else {
-        include_str!("../../../ui/templates/index.html")
+    let index_tmpl = match active_theme_id.as_str() {
+        "glow-glass" => include_str!("../../../ui/templates/index-glow-glass.html"),
+        "neumorphism" => include_str!("../../../ui/templates/index-neumorphism.html"),
+        _ => include_str!("../../../ui/templates/index.html"),
     };
     let username = session
         .as_ref()
@@ -1065,7 +1065,7 @@ fn render_apps_grid(
     iframe_embeds_enabled: bool,
     known_statuses: &HashMap<String, crate::models::AppStatus>,
     known_containers: &[crate::models::LxcContainer],
-    glow_glass_chrome: bool,
+    theme_id: &str,
 ) -> String {
     if apps.is_empty() {
         return r#"
@@ -1646,15 +1646,10 @@ fn render_apps_grid(
         } else {
             ""
         };
-        let glow_class = if glow_glass_chrome {
-            " glow-glass-card"
-        } else {
-            ""
-        };
-        let icon_class = if glow_glass_chrome {
-            "app-card-icon gg-icon-frame"
-        } else {
-            "app-card-icon"
+        let (chrome_class, icon_class) = match theme_id {
+            "glow-glass" => (" glow-glass-card", "app-card-icon gg-icon-frame"),
+            "neumorphism" => (" neumorphism-card", "app-card-icon nm-icon-well"),
+            _ => ("", "app-card-icon"),
         };
 
         let card_description = if is_admin {
@@ -1733,7 +1728,7 @@ fn render_apps_grid(
             </div>"#,
             guest_compact_class,
             span_class,
-            glow_class,
+            chrome_class,
             escape_html(&name_lower),
             app.id,
             escape_html(&cat_slug),

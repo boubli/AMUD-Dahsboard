@@ -24,7 +24,7 @@ Histórico completo: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/
 
 ### Estado da versão
 
-Recomendado: **v1.8.12**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
+Recomendado: **v1.8.13**. Detalhes e tags retiradas: **[README em inglês](../README.md)** (secção Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

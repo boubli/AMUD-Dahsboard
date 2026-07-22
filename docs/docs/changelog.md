@@ -11,6 +11,16 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.8.13 — Glow and Glass + Neumorphism
+
+**2026-07-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.13)
+
+### Added
+- **Glow and Glass** — cyan glass/glow theme with dedicated dashboard shell
+- **Neumorphism** — soft extruded clay UI with dedicated dashboard shell
+
+---
+
 ## v1.8.12 — Post-reboot telemetry UX
 
 **2026-07-22** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.12)

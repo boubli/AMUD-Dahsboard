@@ -1,0 +1,244 @@
+/* AMUD Theme: neumorphism — soft extruded UI */
+@import url('_shared.css');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;600;700&display=swap');
+
+:root {
+    --theme-font: 'Nunito', sans-serif;
+    --theme-display: 'Quicksand', 'Nunito', sans-serif;
+    --theme-bg-fallback: #2a2d35;
+    --theme-card-r: 42;
+    --theme-card-g: 45;
+    --theme-card-b: 53;
+    --bg-card: #2a2d35;
+    --accent-color: #8fa8c4;
+    --accent-glow: rgba(143, 168, 196, 0.2);
+    --text-primary: #e8ecf2;
+    --text-secondary: #a8b0bd;
+    --text-muted: #7a8494;
+    --border-card: transparent;
+    --border-hover: transparent;
+    --neu-shadow-dark: rgba(0, 0, 0, 0.45);
+    --neu-shadow-light: rgba(70, 76, 90, 0.55);
+    --neu-inset-dark: rgba(0, 0, 0, 0.4);
+    --neu-inset-light: rgba(70, 76, 90, 0.35);
+    --radius-xl: 20px;
+}
+
+body {
+    font-family: var(--theme-font), system-ui, sans-serif;
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+
+.brand-title,
+.greeting-title,
+.clock-time,
+.settings-page-title {
+    font-family: var(--theme-display), var(--theme-font), system-ui, sans-serif;
+}
+
+.dashboard-container {
+    position: relative;
+    z-index: 1;
+}
+
+[data-theme-id="neumorphism"] .glass-panel {
+    background: var(--theme-bg-fallback) !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow:
+        8px 8px 16px var(--neu-shadow-dark),
+        -6px -6px 14px var(--neu-shadow-light) !important;
+}
+
+[data-theme-id="neumorphism"] .topbar.nm-soft-nav,
+[data-theme-id="neumorphism"] .topbar {
+    border-radius: 24px;
+    padding: 0.55rem 1rem;
+    margin-bottom: 1.5rem;
+    background: var(--theme-bg-fallback) !important;
+    box-shadow:
+        6px 6px 14px var(--neu-shadow-dark),
+        -5px -5px 12px var(--neu-shadow-light) !important;
+}
+
+[data-theme-id="neumorphism"] .brand-title {
+    color: var(--accent-color);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+[data-theme-id="neumorphism"] .topbar-action {
+    border-radius: 16px;
+    border: none;
+    background: var(--theme-bg-fallback);
+    box-shadow:
+        4px 4px 8px var(--neu-shadow-dark),
+        -3px -3px 7px var(--neu-shadow-light);
+    transition: box-shadow 0.2s ease;
+}
+
+[data-theme-id="neumorphism"] .topbar-action:hover {
+    color: var(--accent-color);
+    box-shadow:
+        inset 3px 3px 6px var(--neu-inset-dark),
+        inset -2px -2px 5px var(--neu-inset-light);
+}
+
+[data-theme-id="neumorphism"] .btn.btn-primary {
+    border-radius: 16px;
+    border: none;
+    background: var(--theme-bg-fallback);
+    color: var(--accent-color);
+    font-weight: 700;
+    box-shadow:
+        5px 5px 10px var(--neu-shadow-dark),
+        -4px -4px 9px var(--neu-shadow-light);
+}
+
+[data-theme-id="neumorphism"] .btn.btn-primary:hover {
+    box-shadow:
+        inset 3px 3px 7px var(--neu-inset-dark),
+        inset -2px -2px 6px var(--neu-inset-light);
+}
+
+[data-theme-id="neumorphism"] .clock-time {
+    color: var(--accent-color);
+}
+
+[data-theme-id="neumorphism"] .telemetry-bar-container {
+    border-radius: 999px;
+    background: var(--theme-bg-fallback);
+    box-shadow:
+        inset 3px 3px 6px var(--neu-inset-dark),
+        inset -2px -2px 5px var(--neu-inset-light);
+    overflow: hidden;
+}
+
+[data-theme-id="neumorphism"] .telemetry-bar-fill {
+    background: linear-gradient(90deg, #6b8cae, #8fa8c4);
+    box-shadow: none;
+    border-radius: 999px;
+}
+
+[data-theme-id="neumorphism"] .app-card,
+[data-theme-id="neumorphism"] .app-card.neumorphism-card {
+    border-radius: var(--radius-xl);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+[data-theme-id="neumorphism"] .app-card:hover,
+[data-theme-id="neumorphism"] .app-card.neumorphism-card:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        10px 10px 20px var(--neu-shadow-dark),
+        -7px -7px 16px var(--neu-shadow-light) !important;
+}
+
+[data-theme-id="neumorphism"] .neumorphism-card .nm-icon-well,
+[data-theme-id="neumorphism"] .nm-icon-well {
+    border-radius: 16px;
+    box-shadow:
+        inset 3px 3px 6px var(--neu-inset-dark),
+        inset -2px -2px 5px var(--neu-inset-light);
+    overflow: hidden;
+}
+
+[data-theme-id="neumorphism"] .status-badge {
+    border-radius: 12px;
+    box-shadow:
+        3px 3px 6px var(--neu-shadow-dark),
+        -2px -2px 5px var(--neu-shadow-light);
+    border: none;
+}
+
+[data-theme-id="neumorphism"] .category-filters .filter-tab,
+[data-theme-id="neumorphism"] .category-tabs .filter-tab {
+    border-radius: 14px;
+    border: none;
+    background: var(--theme-bg-fallback);
+    box-shadow:
+        4px 4px 8px var(--neu-shadow-dark),
+        -3px -3px 7px var(--neu-shadow-light);
+}
+
+[data-theme-id="neumorphism"] .category-filters .filter-tab.active,
+[data-theme-id="neumorphism"] .category-tabs .filter-tab.active {
+    color: var(--accent-color);
+    box-shadow:
+        inset 3px 3px 6px var(--neu-inset-dark),
+        inset -2px -2px 5px var(--neu-inset-light);
+}
+
+[data-theme-id="neumorphism"] .search-bar,
+[data-theme-id="neumorphism"] .search-toggle {
+    border: none !important;
+    box-shadow:
+        inset 4px 4px 8px var(--neu-inset-dark),
+        inset -3px -3px 7px var(--neu-inset-light) !important;
+}
+
+[data-theme-id="neumorphism"] .form-control {
+    border: none;
+    background: var(--theme-bg-fallback);
+    box-shadow:
+        inset 3px 3px 7px var(--neu-inset-dark),
+        inset -2px -2px 6px var(--neu-inset-light);
+    border-radius: 14px;
+}
+
+[data-theme-id="neumorphism"] .settings-sidebar .nav-item:hover,
+[data-theme-id="neumorphism"] .settings-sidebar .nav-item.active {
+    color: var(--accent-color);
+}
+
+[data-theme-id="neumorphism"] .metric-value {
+    font-weight: 700;
+}
+
+[data-theme-id="neumorphism"] .ws-status-pill {
+    border-radius: 14px;
+    border: none;
+    box-shadow:
+        3px 3px 6px var(--neu-shadow-dark),
+        -2px -2px 5px var(--neu-shadow-light);
+}
+
+/* —— Light mode: classic soft grey —— */
+:root[data-theme="light"][data-theme-id="neumorphism"] {
+    --theme-bg-fallback: #e0e5ec;
+    --theme-card-r: 224;
+    --theme-card-g: 229;
+    --theme-card-b: 236;
+    --bg-card: #e0e5ec;
+    --accent-color: #6b8cae;
+    --accent-glow: rgba(107, 140, 174, 0.18);
+    --text-primary: #3d4450;
+    --text-secondary: #5c6573;
+    --text-muted: #8891a0;
+    --border-card: transparent;
+    --border-hover: transparent;
+    --neu-shadow-dark: rgba(163, 177, 198, 0.55);
+    --neu-shadow-light: rgba(255, 255, 255, 0.9);
+    --neu-inset-dark: rgba(163, 177, 198, 0.5);
+    --neu-inset-light: rgba(255, 255, 255, 0.8);
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="neumorphism"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+
+:root[data-theme="light"][data-theme-id="neumorphism"] .telemetry-bar-fill {
+    background: linear-gradient(90deg, #6b8cae, #8fa8c4);
+}
+
+:root[data-theme="light"][data-theme-id="neumorphism"] .btn.btn-primary {
+    color: #4a6a8a;
+}
