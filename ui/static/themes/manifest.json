@@ -670,6 +670,25 @@
       "uiProfile": "crystal",
       "iconPack": "/static/themes/icons/glacier-mist/pack.json",
       "layoutCss": "/static/theme-layouts/crystal.css"
+    },
+    {
+      "id": "glow-glass",
+      "name": "Glow and Glass",
+      "file": "glow-glass.css",
+      "category": "advanced",
+      "tags": [
+        "glow",
+        "glass",
+        "neon",
+        "cyan"
+      ],
+      "preview": "/static/themes/previews/glow-glass.webp",
+      "wallpaper": "/static/themes/wallpapers/glow-glass.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap",
+      "uiProfile": "glow_glass",
+      "iconPack": "/static/themes/icons/glow-glass/pack.json",
+      "layoutCss": "/static/theme-layouts/glow_glass.css"
     }
   ]
 }

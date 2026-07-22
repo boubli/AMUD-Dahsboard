@@ -1,0 +1,105 @@
+/* AMUD layout profile: glow_glass */
+
+[data-ui-profile="glow_glass"] .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+[data-ui-profile="glow_glass"] .topbar-inner {
+    gap: 0.75rem;
+}
+
+[data-ui-profile="glow_glass"] .hero-section {
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+[data-ui-profile="glow_glass"] .greeting-widget {
+    border-radius: 24px;
+    padding: 1.25rem 1.5rem;
+}
+
+[data-ui-profile="glow_glass"] .clock-box,
+[data-ui-profile="glow_glass"] .weather-box {
+    border-radius: 24px;
+}
+
+[data-ui-profile="glow_glass"] .telemetry-row {
+    margin-bottom: 1.5rem;
+}
+
+[data-ui-profile="glow_glass"] .telemetry-card {
+    border-radius: 22px;
+    min-height: 6.5rem;
+}
+
+[data-ui-profile="glow_glass"] .search-bar,
+[data-ui-profile="glow_glass"] .search-toggle {
+    border-radius: 999px;
+}
+
+[data-ui-profile="glow_glass"] .category-filters-wrapper {
+    margin-bottom: 1rem;
+}
+
+[data-ui-profile="glow_glass"] .category-filters .filter-tab,
+[data-ui-profile="glow_glass"] .category-tabs .filter-tab {
+    border-radius: 999px;
+    padding: 0.4rem 0.95rem;
+}
+
+[data-ui-profile="glow_glass"] .bento-grid {
+    gap: 1.25rem;
+}
+
+[data-ui-profile="glow_glass"] .app-card.glass-panel {
+    border-radius: 22px;
+    padding: 1.1rem 1.15rem;
+}
+
+[data-ui-profile="glow_glass"] .app-card-header {
+    gap: 0.75rem;
+}
+
+[data-ui-profile="glow_glass"] .status-badge {
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    font-size: 0.68rem;
+}
+
+[data-ui-profile="glow_glass"] .gg-floating-nav {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 40;
+}
+
+[data-ui-profile="glow_glass"] .gg-gauge-strip .telemetry-title {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.68rem;
+    opacity: 0.85;
+}
+
+[data-ui-profile="glow_glass"] .gg-apps-frame > .bento-grid {
+    position: relative;
+    z-index: 1;
+}
+
+[data-ui-profile="glow_glass"] .dashboard-footer .version-badge {
+    border-radius: 999px;
+    border: 1px solid var(--border-card, rgba(0, 242, 255, 0.2));
+    padding: 0.2rem 0.65rem;
+}
+
+@media (max-width: 768px) {
+    [data-ui-profile="glow_glass"] .topbar {
+        border-radius: 20px;
+        flex-wrap: wrap;
+    }
+
+    [data-ui-profile="glow_glass"] .gg-floating-nav {
+        top: 0.35rem;
+    }
+}

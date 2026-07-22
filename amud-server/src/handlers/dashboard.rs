@@ -195,6 +195,7 @@ async fn render_page(
                 iframe_embeds_enabled,
                 &known_statuses,
                 &known_containers,
+                active_theme_id == "glow-glass",
             )
         }
     };
@@ -254,7 +255,11 @@ async fn render_page(
 
     let root_css = build_root_css(&branding);
 
-    let index_tmpl = include_str!("../../../ui/templates/index.html");
+    let index_tmpl = if active_theme_id == "glow-glass" {
+        include_str!("../../../ui/templates/index-glow-glass.html")
+    } else {
+        include_str!("../../../ui/templates/index.html")
+    };
     let username = session
         .as_ref()
         .map(|s| s.username.as_str())
@@ -1060,6 +1065,7 @@ fn render_apps_grid(
     iframe_embeds_enabled: bool,
     known_statuses: &HashMap<String, crate::models::AppStatus>,
     known_containers: &[crate::models::LxcContainer],
+    glow_glass_chrome: bool,
 ) -> String {
     if apps.is_empty() {
         return r#"
@@ -1640,6 +1646,16 @@ fn render_apps_grid(
         } else {
             ""
         };
+        let glow_class = if glow_glass_chrome {
+            " glow-glass-card"
+        } else {
+            ""
+        };
+        let icon_class = if glow_glass_chrome {
+            "app-card-icon gg-icon-frame"
+        } else {
+            "app-card-icon"
+        };
 
         let card_description = if is_admin {
             escape_html(&app.description)
@@ -1696,10 +1712,10 @@ fn render_apps_grid(
 
         let card = format!(
             r#"
-            <div class="glass-panel app-card{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-node-tag="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" data-integration-visible-metrics="{}" {}>
+            <div class="glass-panel app-card{}{}{}" data-app-name="{}" data-app-id="{}" data-category="{}" data-node-tag="{}" data-container-aliases="{}" data-host-agent-app="{}" data-show-container-metrics="{}" data-integration-visible-metrics="{}" {}>
                 <div class="app-card-header">
                     <a href="{}"{}{} class="app-card-identity app-card-open" style="text-decoration:none; color:inherit;">
-                        <div class="app-card-icon">
+                        <div class="{}">
                             <img src="{}" onerror="this.src='/static/fallback.svg'">
                         </div>
                         <div>
@@ -1717,6 +1733,7 @@ fn render_apps_grid(
             </div>"#,
             guest_compact_class,
             span_class,
+            glow_class,
             escape_html(&name_lower),
             app.id,
             escape_html(&cat_slug),
@@ -1733,6 +1750,7 @@ fn render_apps_grid(
             escape_html(&open_url),
             link_target,
             embed_mode_attr,
+            icon_class,
             escape_html(&brand_logo),
             escape_html(&app.name),
             card_description,

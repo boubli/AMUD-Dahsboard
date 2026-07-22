@@ -1,0 +1,326 @@
+/* AMUD Theme: glow-glass — Glow and Glass */
+@import url('_shared.css');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+    --theme-font: 'Space Grotesk', sans-serif;
+    --theme-display: 'Orbitron', 'Space Grotesk', sans-serif;
+    --theme-bg-fallback: #05070a;
+    --theme-card-r: 12;
+    --theme-card-g: 18;
+    --theme-card-b: 28;
+    --bg-card: rgba(12, 18, 28, calc(var(--glass-opacity) * 0.85 + 0.2));
+    --accent-color: #00f2ff;
+    --accent-secondary: #00d2ff;
+    --accent-glow: rgba(0, 242, 255, 0.28);
+    --text-primary: #ffffff;
+    --text-secondary: #a8b4c4;
+    --text-muted: #6b7a8c;
+    --border-card: rgba(0, 242, 255, 0.22);
+    --border-hover: #00f2ff;
+    --glow-halo: rgba(0, 242, 255, 0.35);
+    --radius-xl: 22px;
+}
+
+body {
+    font-family: var(--theme-font), system-ui, sans-serif;
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+
+.brand-title,
+.greeting-title,
+.clock-time,
+.settings-page-title {
+    font-family: var(--theme-display), var(--theme-font), system-ui, sans-serif;
+}
+
+.dashboard-container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Dot-grid + cyan rear glow (dark) */
+body.theme-glow-glass::before,
+html[data-theme-id="glow-glass"] body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(ellipse 50% 40% at 50% 35%, var(--glow-halo), transparent 70%),
+        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1px, transparent 0);
+    background-size: 100% 100%, 28px 28px;
+    opacity: 0.9;
+}
+
+body.theme-glow-glass::after,
+html[data-theme-id="glow-glass"] body::after {
+    content: "";
+    position: fixed;
+    width: min(60vw, 520px);
+    height: min(60vw, 520px);
+    left: 50%;
+    top: 28%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(0, 242, 255, 0.22), transparent 68%);
+    filter: blur(40px);
+}
+
+[data-theme-id="glow-glass"] .glass-panel {
+    background: rgba(var(--theme-card-r), var(--theme-card-g), var(--theme-card-b), calc(var(--glass-opacity) * 0.7 + 0.25)) !important;
+    border: 1px solid var(--border-card);
+    box-shadow:
+        0 0 0 1px rgba(0, 242, 255, 0.06),
+        0 12px 40px rgba(0, 0, 0, 0.45),
+        0 0 32px rgba(0, 242, 255, 0.08);
+    backdrop-filter: blur(calc(var(--glass-blur-intensity) + 6px));
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur-intensity) + 6px));
+}
+
+[data-theme-id="glow-glass"] .topbar.gg-floating-nav,
+[data-theme-id="glow-glass"] .topbar {
+    border-radius: 999px;
+    padding: 0.45rem 0.85rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-card);
+    background: rgba(8, 12, 18, 0.72) !important;
+    box-shadow: 0 0 40px rgba(0, 242, 255, 0.12);
+}
+
+[data-theme-id="glow-glass"] .brand-title {
+    background: linear-gradient(90deg, #00f2ff, #00d2ff 55%, #7dd3fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(0, 242, 255, 0.35);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+[data-theme-id="glow-glass"] .topbar-action {
+    border-radius: 999px;
+    border: 1px solid transparent;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+[data-theme-id="glow-glass"] .topbar-action:hover {
+    color: var(--accent-color);
+    border-color: var(--border-card);
+    box-shadow: 0 0 18px var(--accent-glow);
+}
+
+[data-theme-id="glow-glass"] .btn.btn-primary,
+[data-theme-id="glow-glass"] .gg-cta {
+    border-radius: 999px;
+    background: linear-gradient(135deg, #00f2ff, #0088cc);
+    border: none;
+    color: #041018;
+    font-weight: 700;
+    box-shadow: 0 0 28px rgba(0, 242, 255, 0.55), 0 0 8px rgba(0, 242, 255, 0.8);
+}
+
+[data-theme-id="glow-glass"] .btn.btn-primary:hover {
+    box-shadow: 0 0 36px rgba(0, 242, 255, 0.7);
+}
+
+[data-theme-id="glow-glass"] .greeting-title {
+    letter-spacing: -0.02em;
+}
+
+[data-theme-id="glow-glass"] .clock-time {
+    color: var(--accent-color);
+    text-shadow: 0 0 20px var(--accent-glow);
+}
+
+[data-theme-id="glow-glass"] .telemetry-row.gg-gauge-strip,
+[data-theme-id="glow-glass"] .telemetry-row {
+    gap: 1rem;
+}
+
+[data-theme-id="glow-glass"] .telemetry-card {
+    border-radius: var(--radius-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+[data-theme-id="glow-glass"] .telemetry-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -20% -40% auto;
+    width: 55%;
+    height: 70%;
+    background: radial-gradient(circle, rgba(0, 242, 255, 0.18), transparent 70%);
+    pointer-events: none;
+}
+
+[data-theme-id="glow-glass"] .telemetry-bar-fill {
+    background: linear-gradient(90deg, #00f2ff, #00a8cc);
+    box-shadow: 0 0 12px rgba(0, 242, 255, 0.55);
+}
+
+[data-theme-id="glow-glass"] .app-card,
+[data-theme-id="glow-glass"] .app-card.glow-glass-card {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-card);
+    transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+[data-theme-id="glow-glass"] .app-card:hover,
+[data-theme-id="glow-glass"] .app-card.glow-glass-card:hover {
+    border-color: var(--border-hover);
+    box-shadow:
+        0 0 0 1px rgba(0, 242, 255, 0.25),
+        0 16px 48px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(0, 242, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+[data-theme-id="glow-glass"] .glow-glass-card .app-card-icon {
+    border-radius: 16px;
+    border: 1px solid rgba(0, 242, 255, 0.25);
+    box-shadow: 0 0 16px rgba(0, 242, 255, 0.15);
+    overflow: hidden;
+}
+
+[data-theme-id="glow-glass"] .status-badge.status-online {
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+[data-theme-id="glow-glass"] .status-badge.status-checking {
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.25);
+}
+
+[data-theme-id="glow-glass"] .category-tabs .filter-tab.active,
+[data-theme-id="glow-glass"] .category-filters .filter-tab.active {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 16px var(--accent-glow);
+}
+
+[data-theme-id="glow-glass"] .category-tabs .filter-tab:hover {
+    color: var(--accent-color);
+}
+
+[data-theme-id="glow-glass"] .gg-apps-frame {
+    position: relative;
+    padding: 0.25rem;
+    border-radius: calc(var(--radius-xl) + 4px);
+}
+
+[data-theme-id="glow-glass"] .gg-hero.glass-panel,
+[data-theme-id="glow-glass"] .hero-section .glass-panel {
+    border-radius: var(--radius-xl);
+}
+
+[data-theme-id="glow-glass"] .modal-content.glass-panel,
+[data-theme-id="glow-glass"] .modal .modal-header {
+    border-color: var(--border-card);
+}
+
+[data-theme-id="glow-glass"] .settings-sidebar .nav-item:hover,
+[data-theme-id="glow-glass"] .settings-sidebar .nav-item.active {
+    color: var(--accent-color);
+}
+
+[data-theme-id="glow-glass"] .metric-value {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+[data-theme-id="glow-glass"] .ws-status-pill {
+    border-radius: 999px;
+    border: 1px solid var(--border-card);
+}
+
+/* —— Light mode: cyan → purple frosted glass (ref image 1 accents) —— */
+:root[data-theme="light"][data-theme-id="glow-glass"] {
+    --theme-bg-fallback: #e8eef5;
+    --theme-card-r: 255;
+    --theme-card-g: 255;
+    --theme-card-b: 255;
+    --bg-card: rgba(255, 255, 255, calc(var(--glass-opacity) * 0.55 + 0.35));
+    --accent-color: #00a8d8;
+    --accent-secondary: #bd00ff;
+    --accent-glow: rgba(0, 210, 255, 0.22);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --border-card: rgba(189, 0, 255, 0.18);
+    --border-hover: #bd00ff;
+    --glow-halo: rgba(189, 0, 255, 0.2);
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] body::before {
+    background-image:
+        radial-gradient(ellipse 55% 45% at 70% 20%, rgba(189, 0, 255, 0.18), transparent 65%),
+        radial-gradient(ellipse 50% 40% at 20% 60%, rgba(0, 210, 255, 0.2), transparent 70%),
+        radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.06) 1px, transparent 0);
+    background-size: 100% 100%, 100% 100%, 28px 28px;
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] body::after {
+    background: radial-gradient(circle, rgba(0, 210, 255, 0.2), transparent 68%);
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] .glass-panel {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border-color: rgba(0, 210, 255, 0.25);
+    box-shadow:
+        0 0 0 1px rgba(189, 0, 255, 0.08),
+        0 12px 36px rgba(15, 23, 42, 0.08),
+        0 0 28px rgba(0, 210, 255, 0.12);
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] .topbar.gg-floating-nav,
+:root[data-theme="light"][data-theme-id="glow-glass"] .topbar {
+    background: rgba(255, 255, 255, 0.65) !important;
+    box-shadow: 0 0 32px rgba(0, 210, 255, 0.15);
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] .brand-title {
+    background: linear-gradient(90deg, #00d2ff, #0080ff 40%, #bd00ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.35));
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] .clock-time {
+    color: #0080ff;
+    text-shadow: 0 0 16px rgba(189, 0, 255, 0.25);
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] .btn.btn-primary,
+:root[data-theme="light"][data-theme-id="glow-glass"] .gg-cta {
+    background: linear-gradient(135deg, #00d2ff, #bd00ff);
+    color: #fff;
+    box-shadow: 0 0 28px rgba(0, 210, 255, 0.45), 0 0 16px rgba(189, 0, 255, 0.35);
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] .telemetry-bar-fill {
+    background: linear-gradient(90deg, #00d2ff, #bd00ff);
+    box-shadow: 0 0 12px rgba(189, 0, 255, 0.4);
+}
+
+:root[data-theme="light"][data-theme-id="glow-glass"] .app-card:hover {
+    border-color: #bd00ff;
+    box-shadow:
+        0 0 0 1px rgba(189, 0, 255, 0.2),
+        0 16px 40px rgba(15, 23, 42, 0.1),
+        0 0 36px rgba(0, 210, 255, 0.2);
+}
