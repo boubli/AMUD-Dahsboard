@@ -52,7 +52,6 @@ body {
         -6px -6px 14px var(--neu-shadow-light) !important;
 }
 
-[data-theme-id="neumorphism"] .topbar.nm-soft-nav,
 [data-theme-id="neumorphism"] .topbar {
     border-radius: 24px;
     padding: 0.55rem 1rem;
@@ -136,8 +135,8 @@ body {
         -7px -7px 16px var(--neu-shadow-light) !important;
 }
 
-[data-theme-id="neumorphism"] .neumorphism-card .nm-icon-well,
-[data-theme-id="neumorphism"] .nm-icon-well {
+[data-theme-id="neumorphism"] .neumorphism-card .app-card-icon,
+[data-theme-id="neumorphism"] .app-card-icon.nm-icon-well {
     border-radius: 16px;
     box-shadow:
         inset 3px 3px 6px var(--neu-inset-dark),

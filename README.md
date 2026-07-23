@@ -10,7 +10,7 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme Gallery](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Docs](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### What's new in v1.8.13
+### What's new in v1.9.0
 
 - **Glow and Glass** — neon cyan glass theme with a dedicated dashboard shell
 - **Neumorphism** — soft extruded clay UI with a dedicated dashboard shell
@@ -21,7 +21,7 @@ Full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changel
 
 Last **5** validated releases (full history: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**):
 
-- `v1.8.13` (current latest recommended)
+- `v1.9.0` (current latest recommended)
 - `v1.8.12`
 - `v1.8.11`
 - `v1.8.10`

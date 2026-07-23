@@ -11,6 +11,16 @@ Every stable release is tagged on GitHub with binaries, checksums, and install s
 
 ---
 
+## v1.9.0 — Theme shell consolidation + Sonar cleanup
+
+**2026-07-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.0)
+
+### Changed
+- Glow and Glass / Neumorphism use one dashboard HTML shell (CSS chrome)
+- Sonar maintainability fixes and CPD exclusions for docs theme mirrors
+
+---
+
 ## v1.8.13 — Glow and Glass + Neumorphism
 
 **2026-07-23** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.13)

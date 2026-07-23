@@ -54,8 +54,8 @@ If a theme breaks your layout, see [Recovering from Broken Custom CSS](./trouble
 | **Blueprint Tech** ★ | Engineering schematic cyan |
 | **Luxury Gold** ★ | Obsidian + gold serif headers |
 | **Holographic Prism** ★ | Animated iridescent borders |
-| **Glow and Glass** ★ | Cyan glass + glow; dedicated dashboard shell |
-| **Neumorphism** ★ | Soft extruded clay UI; dedicated dashboard shell |
+| **Glow and Glass** ★ | Cyan glass + glow (CSS shell / layout profile) |
+| **Neumorphism** ★ | Soft extruded clay UI (CSS shell / layout profile) |
 | **Brutalist Mono** ★ | Raw concrete, no blur, bold mono |
 | **Taghawsa** ★ | WebGL Moroccan orange/teal gradient |
 | **Nature pack** | Aurora, desert, rainforest, volcanic |

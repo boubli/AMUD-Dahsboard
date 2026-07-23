@@ -81,7 +81,6 @@ html[data-theme-id="glow-glass"] body::after {
     -webkit-backdrop-filter: blur(calc(var(--glass-blur-intensity) + 6px));
 }
 
-[data-theme-id="glow-glass"] .topbar.gg-floating-nav,
 [data-theme-id="glow-glass"] .topbar {
     border-radius: 999px;
     padding: 0.45rem 0.85rem;
@@ -113,8 +112,7 @@ html[data-theme-id="glow-glass"] body::after {
     box-shadow: 0 0 18px var(--accent-glow);
 }
 
-[data-theme-id="glow-glass"] .btn.btn-primary,
-[data-theme-id="glow-glass"] .gg-cta {
+[data-theme-id="glow-glass"] .btn.btn-primary {
     border-radius: 999px;
     background: linear-gradient(135deg, #00f2ff, #0088cc);
     border: none;
@@ -136,7 +134,6 @@ html[data-theme-id="glow-glass"] body::after {
     text-shadow: 0 0 20px var(--accent-glow);
 }
 
-[data-theme-id="glow-glass"] .telemetry-row.gg-gauge-strip,
 [data-theme-id="glow-glass"] .telemetry-row {
     gap: 1rem;
 }
@@ -205,14 +202,7 @@ html[data-theme-id="glow-glass"] body::after {
     color: var(--accent-color);
 }
 
-[data-theme-id="glow-glass"] .gg-apps-frame {
-    position: relative;
-    padding: 0.25rem;
-    border-radius: calc(var(--radius-xl) + 4px);
-}
-
-[data-theme-id="glow-glass"] .gg-hero.glass-panel,
-[data-theme-id="glow-glass"] .hero-section .glass-panel {
+[data-theme-id="glow-glass"] .hero-section .greeting-widget {
     border-radius: var(--radius-xl);
 }
 
@@ -285,7 +275,6 @@ html[data-theme-id="glow-glass"] body::after {
         0 0 28px rgba(0, 210, 255, 0.12);
 }
 
-:root[data-theme="light"][data-theme-id="glow-glass"] .topbar.gg-floating-nav,
 :root[data-theme="light"][data-theme-id="glow-glass"] .topbar {
     background: rgba(255, 255, 255, 0.65) !important;
     box-shadow: 0 0 32px rgba(0, 210, 255, 0.15);
@@ -305,8 +294,7 @@ html[data-theme-id="glow-glass"] body::after {
     text-shadow: 0 0 16px rgba(189, 0, 255, 0.25);
 }
 
-:root[data-theme="light"][data-theme-id="glow-glass"] .btn.btn-primary,
-:root[data-theme="light"][data-theme-id="glow-glass"] .gg-cta {
+:root[data-theme="light"][data-theme-id="glow-glass"] .btn.btn-primary {
     background: linear-gradient(135deg, #007a9e, #7a00b8);
     color: #ffffff;
     box-shadow: 0 0 28px rgba(0, 210, 255, 0.45), 0 0 16px rgba(189, 0, 255, 0.35);

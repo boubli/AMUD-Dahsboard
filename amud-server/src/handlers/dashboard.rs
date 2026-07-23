@@ -255,11 +255,7 @@ async fn render_page(
 
     let root_css = build_root_css(&branding);
 
-    let index_tmpl = match active_theme_id.as_str() {
-        "glow-glass" => include_str!("../../../ui/templates/index-glow-glass.html"),
-        "neumorphism" => include_str!("../../../ui/templates/index-neumorphism.html"),
-        _ => include_str!("../../../ui/templates/index.html"),
-    };
+    let index_tmpl = include_str!("../../../ui/templates/index.html");
     let username = session
         .as_ref()
         .map(|s| s.username.as_str())

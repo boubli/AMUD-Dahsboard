@@ -8,6 +8,16 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [v1.9.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.0) — 2026-07-23
+
+Theme shell consolidation (no duplicate index HTML) and SonarCloud maintainability / CPD cleanup.
+
+### Changed
+- Single `index.html` for all themes; Glow/Neu chrome via CSS
+- SW v50; installer `CURL_SECURE`; Sonar exclusions for docs mirrors
+
+---
+
 ## [v1.8.13](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.8.13) — 2026-07-23
 
 Two new advanced themes with dedicated dashboard shells: Glow and Glass, and Neumorphism.

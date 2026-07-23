@@ -54,20 +54,20 @@
     padding: 1.15rem 1.2rem;
 }
 
-[data-ui-profile="neumorphism"] .nm-soft-nav {
+[data-ui-profile="neumorphism"] .topbar {
     position: sticky;
     top: 0.75rem;
     z-index: 40;
 }
 
-[data-ui-profile="neumorphism"] .nm-gauge-strip .telemetry-title {
+[data-ui-profile="neumorphism"] .telemetry-row .telemetry-title {
     text-transform: uppercase;
     letter-spacing: 0.1em;
     font-size: 0.68rem;
     opacity: 0.8;
 }
 
-[data-ui-profile="neumorphism"] .nm-apps-frame > .bento-grid {
+[data-ui-profile="neumorphism"] .bento-grid {
     position: relative;
     z-index: 1;
 }
@@ -87,7 +87,7 @@
         flex-wrap: wrap;
     }
 
-    [data-ui-profile="neumorphism"] .nm-soft-nav {
+    [data-ui-profile="neumorphism"] .topbar {
         top: 0.35rem;
     }
 }

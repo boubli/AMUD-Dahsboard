@@ -10,6 +10,11 @@
 set -euo pipefail
 
 AWK_FIRST_FIELD='{print $1}'
+CURL_SECURE=(--proto '=https' --tlsv1.2)
+
+amud_curl() {
+  curl "${CURL_SECURE[@]}" "$@"
+}
 
 # Color Definitions
 RD="\033[01;31m"
@@ -174,7 +179,7 @@ msg_ok "Guest root password configured"
 # 6. Fetch Latest Release Version
 msg_info "Querying latest release from GitHub API"
 REPO="boubli/AMUD-Dashboard"
-LATEST_RELEASE=$(curl --proto '=https' --tlsv1.2 -sS "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
+LATEST_RELEASE=$(amud_curl -sS "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
 
 if [[ -z "$LATEST_RELEASE" ]]; then
     LATEST_RELEASE="v1.0.0"
@@ -184,7 +189,7 @@ msg_ok "Targeting release: $LATEST_RELEASE"
 AMUD_AGENT_SECRET=$(openssl rand -base64 32 | tr -d '/+=' | head -c 43)
 
 msg_info "Downloading release checksum manifest"
-curl --proto '=https' --tlsv1.2 -L -sS -f -o /tmp/amud-SHA256SUMS "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/SHA256SUMS"
+amud_curl -L -sS -f -o /tmp/amud-SHA256SUMS "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/SHA256SUMS"
 msg_ok "Release checksum manifest downloaded"
 
 verify_release_asset() {
@@ -206,12 +211,12 @@ verify_release_asset() {
 # 7. Create Directories and Download Server inside Guest
 msg_info "Provisioning server binary and assets inside LXC guest"
 pct exec "$CT_ID" -- mkdir -p /opt/amud/data
-curl --proto '=https' --tlsv1.2 -L -sS -f -o /tmp/amud-server "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-server"
+amud_curl -L -sS -f -o /tmp/amud-server "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-server"
 verify_release_asset /tmp/amud-server amud-server
 pct push "$CT_ID" /tmp/amud-server /opt/amud/amud-server >/dev/null
 pct exec "$CT_ID" -- chmod +x /opt/amud/amud-server
 
-curl --proto '=https' --tlsv1.2 -L -sS -f -o /tmp/ui.tar.gz "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/ui.tar.gz"
+amud_curl -L -sS -f -o /tmp/ui.tar.gz "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/ui.tar.gz"
 verify_release_asset /tmp/ui.tar.gz ui.tar.gz
 pct push "$CT_ID" /tmp/ui.tar.gz /tmp/ui.tar.gz >/dev/null
 pct exec "$CT_ID" -- tar -xzf /tmp/ui.tar.gz -C /opt/amud/
@@ -268,7 +273,7 @@ fi
 
 # 9. Download and Install Host Telemetry Agent on Proxmox Host
 msg_info "Installing amud-agent on Proxmox host"
-curl --proto '=https' --tlsv1.2 -L -sS -f -o /tmp/amud-agent "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent"
+amud_curl -L -sS -f -o /tmp/amud-agent "https://github.com/${REPO}/releases/download/${LATEST_RELEASE}/amud-agent"
 verify_release_asset /tmp/amud-agent amud-agent
 install -m 755 /tmp/amud-agent /usr/local/bin/amud-agent
 rm -f /tmp/amud-agent /tmp/amud-SHA256SUMS

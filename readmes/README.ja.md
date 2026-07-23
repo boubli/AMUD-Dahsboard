@@ -24,7 +24,7 @@
 
 ### リリース状況
 
-推奨バージョン: **v1.8.13**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **v1.9.0**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

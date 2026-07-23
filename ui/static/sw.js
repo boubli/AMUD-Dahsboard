@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amud-dashboard-v49';
+const CACHE_NAME = 'amud-dashboard-v50';
 const ASSETS_TO_CACHE = [
   '/static/style.css',
   '/static/theme-guards.css',
@@ -25,10 +25,10 @@ const ASSETS_TO_CACHE = [
   '/static/logo-picker.js'
 ];
 
-const LAYOUT_CSS_PATHS = [
+const LAYOUT_CSS_PATHS = new Set([
   '/static/style.css',
   '/static/theme-guards.css',
-];
+]);
 
 function parseManifestJson(res) {
   if (!res.ok) return null;
@@ -48,7 +48,7 @@ function cacheThemePreviews() {
 }
 
 function isLayoutCss(pathname) {
-  return LAYOUT_CSS_PATHS.includes(pathname);
+  return LAYOUT_CSS_PATHS.has(pathname);
 }
 
 function hasVersionQuery(url) {
