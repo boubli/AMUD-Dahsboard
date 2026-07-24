@@ -24,7 +24,7 @@
 
 ### Статус релизов
 
-Рекомендуется: **v1.9.0**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
+Рекомендуется: **1.9.1**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

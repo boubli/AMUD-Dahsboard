@@ -24,7 +24,7 @@
 
 ### 版本状态
 
-当前推荐：**v1.9.0**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**1.9.1**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

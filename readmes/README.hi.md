@@ -24,7 +24,7 @@
 
 ### रिलीज़ स्थिति
 
-अनुशंसित: **v1.9.0**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
+अनुशंसित: **1.9.1**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

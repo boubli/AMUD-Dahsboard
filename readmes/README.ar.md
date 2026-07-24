@@ -24,7 +24,7 @@
 
 ### حالة الإصدار
 
-الإصدار الموصى به: **v1.9.0**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
+الإصدار الموصى به: **1.9.1**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

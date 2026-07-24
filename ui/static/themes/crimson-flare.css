@@ -1,0 +1,191 @@
+/* AMUD Theme: crimson-flare — distinct UI profile: cosmic */
+@import url('_shared.css');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+    --theme-font: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --theme-font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --theme-bg-fallback: #070204;
+    --theme-card-r: 18;
+    --theme-card-g: 6;
+    --theme-card-b: 10;
+    --bg-card: rgba(18, 6, 10, var(--glass-opacity));
+    --accent-color: #ff3b30;
+    --accent-glow: rgba(255, 59, 48, 0.22);
+    --text-primary: #fff1f2;
+    --text-secondary: #fda4af;
+    --text-muted: #9f1239;
+    --border-card: rgba(255, 59, 48, 0.2);
+    --border-hover: #ff3b30;
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.15);
+    --danger: #ef4444;
+    --danger-bg: rgba(239, 68, 68, 0.15);
+}
+
+/* Base Body & Layout Typography */
+body {
+    font-family: var(--theme-font);
+    color: var(--text-primary);
+}
+
+.brand-title, .greeting-title, .clock-time, .settings-page-title, .app-card-header .app-name {
+    font-family: var(--theme-font-heading);
+    letter-spacing: -0.01em;
+}
+
+/* Ambient Flare Effect Overlay */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 75% 15%, rgba(255, 59, 48, 0.12), transparent 45%),
+                radial-gradient(circle at 20% 85%, rgba(244, 63, 94, 0.08), transparent 50%);
+    z-index: 0;
+}
+
+/* Dashboard & Cards Micro-Interactions */
+.dashboard-container {
+    position: relative;
+    z-index: 1;
+}
+
+.topbar-inner {
+    align-items: center;
+}
+
+.topbar {
+    border-bottom: 1px solid var(--border-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.app-card.glass-panel {
+    border: 1px solid var(--border-card);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35), 0 0 15px rgba(255, 59, 48, 0.08);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-card.glass-panel:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-hover);
+    box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.45), 0 0 22px rgba(255, 59, 48, 0.22);
+}
+
+.brand-title {
+    text-shadow: 0 0 16px rgba(255, 59, 48, 0.4);
+}
+
+.clock-widget .clock-time {
+    color: var(--accent-color);
+    text-shadow: 0 0 12px rgba(255, 59, 48, 0.3);
+}
+
+.category-tabs .filter-tab {
+    cursor: pointer;
+    font-family: var(--theme-font-heading);
+}
+
+.category-tabs .filter-tab:hover {
+    color: var(--accent-color);
+}
+
+.category-tabs .filter-tab.active {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: rgba(255, 59, 48, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #ff3b30 0%, #e11d48 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(255, 59, 48, 0.35);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 59, 48, 0.5) !important;
+}
+
+.modal-content.glass-panel {
+    border-color: var(--border-card);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* Theme Scope Overrides */
+[data-theme-id="crimson-flare"] .topbar-action:hover {
+    color: var(--accent-color);
+}
+
+[data-theme-id="crimson-flare"] .metric-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+[data-theme-id="crimson-flare"] .settings-sidebar .nav-item:hover {
+    color: var(--accent-color);
+}
+
+/* ==========================================================================
+   AMUD Light Mode — Crimson Flare (Vivid Red Light Mode)
+   ========================================================================== */
+:root[data-theme="light"][data-theme-id="crimson-flare"] {
+    --theme-bg-fallback: #fff2f4;
+    --theme-card-r: 255;
+    --theme-card-g: 255;
+    --theme-card-b: 255;
+    --bg-card: rgba(255, 255, 255, 0.88);
+    --accent-color: #e11d48;
+    --accent-glow: rgba(225, 29, 72, 0.2);
+    --text-primary: #3b0712;
+    --text-secondary: #6b1222;
+    --text-muted: #881337;
+    --border-card: rgba(225, 29, 72, 0.18);
+    --border-hover: #e11d48;
+    --success: #16a34a;
+    --success-bg: rgba(22, 163, 74, 0.12);
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+    color-scheme: light;
+}
+
+:root[data-theme="light"][data-theme-id="crimson-flare"] body {
+    background-color: var(--theme-bg-fallback);
+    color: var(--text-primary);
+}
+
+:root[data-theme="light"][data-theme-id="crimson-flare"] body::after {
+    background: radial-gradient(circle at 80% 10%, rgba(225, 29, 72, 0.07), transparent 45%),
+                radial-gradient(circle at 10% 90%, rgba(249, 115, 22, 0.05), transparent 50%);
+}
+
+:root[data-theme="light"][data-theme-id="crimson-flare"] .app-card.glass-panel {
+    box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.12), 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"][data-theme-id="crimson-flare"] .app-card.glass-panel:hover {
+    box-shadow: 0 14px 30px -5px rgba(225, 29, 72, 0.2), 0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"][data-theme-id="crimson-flare"] .brand-title {
+    text-shadow: none;
+    color: #9f1239;
+}
+
+:root[data-theme="light"][data-theme-id="crimson-flare"] .clock-widget .clock-time {
+    text-shadow: none;
+    color: var(--accent-color);
+}
+
+:root[data-theme="light"][data-theme-id="crimson-flare"] .btn-primary {
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3);
+}
+
+/* AMUD light mode end */

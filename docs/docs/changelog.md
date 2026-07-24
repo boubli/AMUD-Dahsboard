@@ -5,6 +5,16 @@ title: Changelog
 
 # Changelog
 
+## v1.9.1 — Crimson Flare theme & UI-UX Pro Max design
+
+**2026-07-24** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.1)
+
+### Added
+- **Crimson Flare Theme** — Vivid crimson red light mode & pitch obsidian cosmic dark mode with abstract light flares
+- High-res wallpaper and theme previews registered in theme gallery manifest
+
+---
+
 Every stable release is tagged on GitHub with binaries, checksums, and install scripts.
 
 **Download latest:** [GitHub Releases](https://github.com/boubli/AMUD-Dashboard/releases/latest)

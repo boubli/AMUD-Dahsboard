@@ -24,7 +24,7 @@ Vollständiger Verlauf: **[Changelog](https://boubli.github.io/AMUD-Dashboard/do
 
 ### Release-Status
 
-Aktuell empfohlen: **v1.9.0**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
+Aktuell empfohlen: **1.9.1**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

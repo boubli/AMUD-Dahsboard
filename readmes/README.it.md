@@ -24,7 +24,7 @@ Cronologia completa: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/
 
 ### Stato release
 
-Consigliato: **v1.9.0**. Dettagli e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
+Consigliato: **1.9.1**. Dettagli e tag ritirati: **[README inglese](../README.md)** (sezione Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

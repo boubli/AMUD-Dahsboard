@@ -8,6 +8,16 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [1.9.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.1) — 2026-07-24
+
+New Crimson Flare theme built with UI-UX Pro Max design intelligence, featuring abstract red & orange light flares wallpaper and dynamic light/dark modes.
+
+### Added
+- **Crimson Flare Theme** — Vivid crimson light mode & deep obsidian cosmic dark mode with particle flare overlays
+- High-resolution wallpaper (`universtock-km9n85Sm9c4-unsplash`), preview thumbnails, and icon pack
+
+---
+
 ## [v1.9.0](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.0) — 2026-07-23
 
 Theme shell consolidation (no duplicate index HTML) and SonarCloud maintainability / CPD cleanup.

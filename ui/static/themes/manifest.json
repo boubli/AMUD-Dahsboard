@@ -28,6 +28,26 @@
       "iconPack": "/static/themes/icons/default/pack.json"
     },
     {
+      "id": "crimson-flare",
+      "name": "Crimson Flare",
+      "file": "crimson-flare.css",
+      "category": "variety",
+      "tags": [
+        "red",
+        "crimson",
+        "flare",
+        "obsidian",
+        "glass"
+      ],
+      "preview": "/static/themes/previews/crimson-flare.webp",
+      "wallpaper": "/static/themes/wallpapers/crimson-flare.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
+      "uiProfile": "cosmic",
+      "iconPack": "/static/themes/icons/crimson-flare/pack.json",
+      "layoutCss": "/static/theme-layouts/cosmic.css"
+    },
+    {
       "id": "dracula",
       "name": "Dracula",
       "file": "dracula.css",
