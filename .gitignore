@@ -1,11 +1,11 @@
-amud local dev/
+﻿amud local dev/
 amud local/
 
 target/
 
 .cargo/
 
-data/
+/data/
 amud-server/data/
 uploads/
 *.db
