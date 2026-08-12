@@ -10,21 +10,17 @@
 
 **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[المدونة](https://boubli.github.io/AMUD-Dashboard/blog)** · **[معرض السمات](https://boubli.github.io/AMUD-Dashboard/themes)** · **[خارطة الطريق](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[المستندات](https://boubli.github.io/AMUD-Dashboard/)** · **[الأسئلة الشائعة](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### الجديد في v1.8.9
+### الجديد في v1.9.2
 
-- **Taghawsa على كل الأجهزة** — WebGL تكيفي على الهاتف وWindows؛ بديل CSS عند إيقاف WebGL
-- **تخطيط الجوال** — ترويسات البطاقات تلتف، المقاييس 4→3→2 أعمدة، بلا تمرير أفقي
-- **تبويب الأداء** — بطاقات مسبقة الإعداد، شارة نشاط مباشرة، إعدادات الاستطلاع خارج الخصوصية
-- **سجل التحديث على LXC** — تحديثات السكربت تُسجَّل عند الإقلاع؛ «آخر تحديث» في النظام
-- **إعادة ترتيب البطاقات** — يحفظ كل معرّفات التطبيقات، مقبض أكبر، سحب باللمس، مفتاح في المظهر
-- **سجل التدقيق** — إعادة بناء تلقائية لمخططات SQLite القديمة
-- **v1.8.1** — ملصقات Jellyfin، تكامل الوسائط لكل تطبيق، حالة فورية
+- **Docs currency** — Theme Gallery + roadmap synced to 41 themes
+- **v1.9.1** — Crimson Flare theme
+- **v1.9.0** — Glow & Glass / Neumorphism shell consolidation
 
 السجل الكامل: **[سجل التغييرات](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### حالة الإصدار
 
-الإصدار الموصى به: **1.9.1**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
+الإصدار الموصى به: **1.9.2**. التفاصيل والإصدارات المسحوبة: **[README الإنجليزي](../README.md)** (قسم Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

@@ -10,21 +10,17 @@
 
 **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ブログ](https://boubli.github.io/AMUD-Dashboard/blog)** · **[テーマギャラリー](https://boubli.github.io/AMUD-Dashboard/themes)** · **[ロードマップ](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[ドキュメント](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.9 の新機能
+### v1.9.2 の新機能
 
-- **全デバイスで Taghawsa** — スマホと Windows で適応型 WebGL；WebGL オフ時は CSS フォールバック
-- **モバイルレイアウト** — カードヘッダーの折り返し、メトリクス 4→3→2 列、横スクロールなし
-- **パフォーマンスタブ** — プリセットカード、ライブ活動バッジ、ポーリング設定をプライバシーから分離
-- **LXC の更新履歴** — スクリプト更新を起動時に記録；システムに「最終更新」を表示
-- **カード並べ替え** — 全アプリ ID を保存、大きなハンドル、タッチドラッグ、外観で切り替え
-- **監査ログ** — レガシー SQLite スキーマの自動再構築
-- **v1.8.1** — Jellyfin ポスター、アプリ別メディア統合、即時ステータス
+- **Docs currency** — Theme Gallery + roadmap synced to 41 themes
+- **v1.9.1** — Crimson Flare theme
+- **v1.9.0** — Glow & Glass / Neumorphism shell consolidation
 
 履歴: **[変更履歴](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### リリース状況
 
-推奨バージョン: **1.9.1**。詳細は **[英語 README](../README.md)**（Release status）を参照。
+推奨バージョン: **1.9.2**。詳細は **[英語 README](../README.md)**（Release status）を参照。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

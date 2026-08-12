@@ -10,21 +10,17 @@
 
 **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Galería de temas](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Hoja de ruta](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Documentación](https://boubli.github.io/AMUD-Dashboard/)** · **[Preguntas frecuentes](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Novedades en v1.8.9
+### Novedades en v1.9.2
 
-- **Taghawsa en todos los dispositivos** — WebGL adaptativo en móvil y Windows; respaldo CSS cuando WebGL está desactivado
-- **Diseño móvil** — cabeceras de tarjetas flexibles, métricas 4→3→2 columnas, sin scroll horizontal
-- **Pestaña Rendimiento** — tarjetas de preset, indicador de actividad en vivo, sondeo fuera de Privacidad
-- **Historial de actualizaciones en LXC** — actualizaciones por script registradas al arrancar; «Última actualización» en Sistema
-- **Reordenar tarjetas** — guarda todos los IDs, asa más grande, arrastre táctil, interruptor en Apariencia
-- **Registro de auditoría** — reconstrucción automática de esquemas legacy
-- **v1.8.1** — pósters Jellyfin, integración de medios por app, estado instantáneo
+- **Docs currency** — Theme Gallery + roadmap synced to 41 themes
+- **v1.9.1** — Crimson Flare theme
+- **v1.9.0** — Glow & Glass / Neumorphism shell consolidation
 
 Historial completo: **[Registro de cambios](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Estado de versiones
 
-Recomendado ahora: **1.9.1**. Detalles y versiones retiradas: **[README en inglés](../README.md)** (sección Release status).
+Recomendado ahora: **1.9.2**. Detalles y versiones retiradas: **[README en inglés](../README.md)** (sección Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

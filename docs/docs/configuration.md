@@ -331,7 +331,7 @@ Make the dashboard truly yours by overriding the default styling.
 
 *(Note: If invalid CSS breaks the layout, see [Troubleshooting](./troubleshooting.md) for recovery.)*
 
-Browse **38 themes** with preview screenshots on the **[Theme Gallery](/themes)** — use the in-dashboard gallery for one-click preview, or copy CSS/wallpaper from the site. See [CSS variable reference](./themes.md).
+Browse **41 themes** with preview screenshots on the **[Theme Gallery](/themes)** — use the in-dashboard gallery for one-click preview, or copy CSS/wallpaper from the site. See [CSS variable reference](./themes.md).
 
 ---
 

@@ -1,20 +1,7 @@
 import type {AmudTheme, ThemeDefinition} from './types';
 
-const PREVIEW_ASSET_PREFIX = 'themes/assets/';
+const PREVIEW_PREFIX = 'themes/previews/';
 const WALLPAPER_PREFIX = 'themes/wallpapers/';
-
-function previewAssetFilename(themeId: string): string {
-  if (themeId === 'cyberpunk-neon') {
-    return 'AMUD-Theme-Neon.png';
-  }
-
-  const label = themeId
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('-');
-
-  return `AMUD-Theme-${label}.png`;
-}
 
 function resolveCategory(definition: ThemeDefinition): string {
   if (definition.category) {
@@ -35,11 +22,11 @@ function resolveCategory(definition: ThemeDefinition): string {
 export function createTheme(definition: ThemeDefinition): AmudTheme {
   const cssFile = definition.cssFile ?? `themes/${definition.id}.css`;
   const previewImage =
-    definition.previewImage ?? `${PREVIEW_ASSET_PREFIX}${previewAssetFilename(definition.id)}`;
+    definition.previewImage ?? `${PREVIEW_PREFIX}${definition.id}.webp`;
   const wallpaper =
     definition.wallpaper === ''
       ? undefined
-      : definition.wallpaper ?? `${WALLPAPER_PREFIX}${definition.id}.jpg`;
+      : definition.wallpaper ?? `${WALLPAPER_PREFIX}${definition.id}.webp`;
   const bundled = definition.bundled ?? definition.id !== 'default';
   const category = resolveCategory(definition);
 

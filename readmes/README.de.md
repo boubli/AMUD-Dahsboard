@@ -10,21 +10,17 @@
 
 **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Blog](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Theme-Galerie](https://boubli.github.io/AMUD-Dashboard/themes)** · **[Roadmap](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Dokumentation](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Was ist neu in v1.8.9
+### Was ist neu in v1.9.2
 
-- **Taghawsa auf allen Geräten** — adaptives WebGL auf Handy und Windows; CSS-Fallback wenn WebGL aus ist
-- **Mobiles Layout** — Kartenköpfe umbrechen, Metriken 4→3→2 Spalten, kein horizontaler Scroll
-- **Performance-Tab** — Profilkarten, Live-Aktivitätsanzeige, Abfrage-Intervalle aus Datenschutz ausgelagert
-- **Update-Verlauf auf LXC** — Script-Updates beim Start protokolliert; « Zuletzt aktualisiert » unter System
-- **Karten sortieren** — speichert alle App-IDs, größerer Griff, Touch-Ziehen, Schalter unter Erscheinungsbild
-- **Audit-Log** — automatische Migration alter SQLite-Schemas
-- **v1.8.1** — Jellyfin-Poster, Medien-Integration pro App, Sofortstatus
+- **Docs currency** — Theme Gallery + roadmap synced to 41 themes
+- **v1.9.1** — Crimson Flare theme
+- **v1.9.0** — Glow & Glass / Neumorphism shell consolidation
 
 Vollständiger Verlauf: **[Changelog](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Release-Status
 
-Aktuell empfohlen: **1.9.1**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
+Aktuell empfohlen: **1.9.2**. Details und zurückgezogene Tags: **[englisches README](../README.md)** (Abschnitt Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

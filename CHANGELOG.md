@@ -8,6 +8,17 @@ All notable changes to AMUD Dashboard are documented here and on the docs site.
 
 ---
 
+## [1.9.2](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.2) — 2026-08-12
+
+Docs currency and release hygiene: Theme Gallery / roadmap / README surfaces aligned with the live **41**-theme UI set.
+
+### Changed
+- Docs theme definitions and static theme mirror include Crimson Flare; gallery source drops obsolete v1.8.9 themes
+- Roadmap Recently shipped / Now / Next / Later refreshed for v1.9.x
+- Backfilled `.github/release-notes/v1.9.1.md`; CONTRIBUTING points at `ci-check` + audit/Sonar notes
+
+---
+
 ## [1.9.1](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.1) — 2026-07-24
 
 New Crimson Flare theme built with UI-UX Pro Max design intelligence, featuring abstract red & orange light flares wallpaper and dynamic light/dark modes.

@@ -1,6 +1,6 @@
 # AMUD Theme Compatibility Audit
 
-Audit date: 2026-07-16 (updated for v1.8.9 theme replacements + html `data-theme-id`).
+Audit date: 2026-08-12 (updated for v1.9.2 — 41 themes including Crimson Flare, Glow and Glass, Neumorphism).
 
 ## Variable contract (all bundled themes)
 
@@ -40,6 +40,6 @@ Per-theme light palettes live on `:root[data-theme="light"][data-theme-id="…"]
 
 `sunset-warm`, `vaporwave-grid`, `ocean-depths`, `terminal-amber`, `arctic-frost` → replaced by `ember-hearth`, `neon-boulevard`, `kelp-abyss`, `amber-console`, `glacier-mist`.
 
-## Current theme set (38)
+## Current theme set (41)
 
-Classic / advanced / nature / terminal / feminine / variety packs plus Taghawsa and the five v1.8.9 replacements. See `ui/static/themes/manifest.json`.
+Classic / advanced / nature / terminal / feminine / variety packs, plus Taghawsa, the five v1.8.9 replacements, Glow and Glass, Neumorphism, and Crimson Flare. See `ui/static/themes/manifest.json` (docs mirror: `docs/static/themes/manifest.json`).

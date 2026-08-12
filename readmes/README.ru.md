@@ -10,21 +10,17 @@
 
 **[Список изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[Блог](https://boubli.github.io/AMUD-Dashboard/blog)** · **[Галерея тем](https://boubli.github.io/AMUD-Dashboard/themes)** · **[План разработки](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[Документация](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### Что нового в v1.8.9
+### Что нового в v1.9.2
 
-- **Taghawsa на всех устройствах** — адаптивный WebGL на телефонах и Windows; CSS-запасной вариант, если WebGL выключен
-- **Мобильная вёрстка** — перенос заголовков карточек, метрики 4→3→2 колонки, без горизонтальной прокрутки
-- **Вкладка «Производительность»** — карточки профилей, индикатор активности, опросы вынесены из «Конфиденциальность»
-- **История обновлений на LXC** — script-обновления записываются при запуске; «Последнее обновление» в «Система»
-- **Перетаскивание карточек** — сохраняет все ID, большая ручка, touch-перетаскивание, переключатель в «Внешний вид»
-- **Журнал аудита** — автоматическая миграция устаревших схем SQLite
-- **v1.8.1** — постеры Jellyfin, медиа-интеграция по приложению, мгновенный статус
+- **Docs currency** — Theme Gallery + roadmap synced to 41 themes
+- **v1.9.1** — Crimson Flare theme
+- **v1.9.0** — Glow & Glass / Neumorphism shell consolidation
 
 Полная история: **[Журнал изменений](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### Статус релизов
 
-Рекомендуется: **1.9.1**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
+Рекомендуется: **1.9.2**. Подробности и отозванные теги: **[английский README](../README.md)** (раздел Release status).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

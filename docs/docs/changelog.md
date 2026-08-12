@@ -5,6 +5,17 @@ title: Changelog
 
 # Changelog
 
+## v1.9.2 — Docs currency and release hygiene
+
+**2026-08-12** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.2)
+
+### Changed
+- Theme Gallery + docs static mirror synced to **41** UI themes (Crimson Flare included)
+- Roadmap and public version surfaces refreshed for v1.9.x
+- Release-notes hygiene (v1.9.1 backfill) and CONTRIBUTING CI/Sonar pointers
+
+---
+
 ## v1.9.1 — Crimson Flare theme & UI-UX Pro Max design
 
 **2026-07-24** · [Release notes](https://github.com/boubli/AMUD-Dashboard/releases/tag/v1.9.1)

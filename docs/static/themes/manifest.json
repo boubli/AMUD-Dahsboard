@@ -1,7 +1,7 @@
 {
   "version": 5,
   "assetBase": "/static/themes",
-  "description": "Bundled AMUD themes \u2014 CSS, icons, wallpapers, and previews ship in ui.tar.gz (fully offline after install).",
+  "description": "Bundled AMUD themes — CSS, icons, wallpapers, and previews ship in ui.tar.gz (fully offline after install).",
   "categories": [
     "default",
     "classic",
@@ -26,6 +26,26 @@
       "wallpaper": "/static/wallpaper.png",
       "usesWallpaper": true,
       "iconPack": "/static/themes/icons/default/pack.json"
+    },
+    {
+      "id": "crimson-flare",
+      "name": "Crimson Flare",
+      "file": "crimson-flare.css",
+      "category": "variety",
+      "tags": [
+        "red",
+        "crimson",
+        "flare",
+        "obsidian",
+        "glass"
+      ],
+      "preview": "/static/themes/previews/crimson-flare.webp",
+      "wallpaper": "/static/themes/wallpapers/crimson-flare.webp",
+      "usesWallpaper": true,
+      "fontUrl": "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
+      "uiProfile": "cosmic",
+      "iconPack": "/static/themes/icons/crimson-flare/pack.json",
+      "layoutCss": "/static/theme-layouts/cosmic.css"
     },
     {
       "id": "dracula",

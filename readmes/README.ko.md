@@ -10,21 +10,17 @@
 
 **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[블로그](https://boubli.github.io/AMUD-Dashboard/blog)** · **[테마 갤러리](https://boubli.github.io/AMUD-Dashboard/themes)** · **[로드맵](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[문서](https://boubli.github.io/AMUD-Dashboard/)** · **[FAQ](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.9 새로운 기능
+### v1.9.2 새로운 기능
 
-- **모든 기기에서 Taghawsa** — 모바일과 Windows에서 적응형 WebGL; WebGL 꺼짐 시 CSS 대체
-- **모바일 레이아웃** — 카드 헤더 줄바꿈, 지표 4→3→2열, 가로 스크롤 없음
-- **성능 탭** — 프리셋 카드, 실시간 활동 배지, 폴링 설정을 개인정보에서 분리
-- **LXC 업데이트 기록** — 스크립트 업데이트를 부팅 시 기록; 시스템에 «마지막 업데이트» 표시
-- **카드 순서 변경** — 모든 앱 ID 저장, 더 큰 핸들, 터치 드래그, 모양에서 토글
-- **감사 로그** — 레거시 SQLite 스키마 자동 재구성
-- **v1.8.1** — Jellyfin 포스터, 앱별 미디어 통합, 즉시 상태
+- **Docs currency** — Theme Gallery + roadmap synced to 41 themes
+- **v1.9.1** — Crimson Flare theme
+- **v1.9.0** — Glow & Glass / Neumorphism shell consolidation
 
 전체 기록: **[변경 로그](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 릴리스 상태
 
-권장 버전: **1.9.1**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
+권장 버전: **1.9.2**. 자세한 내용: **[영어 README](../README.md)** (Release status 섹션).
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

@@ -75,13 +75,27 @@ AMUD uses an embedded SQLite database managed via `rusqlite`.
 
 ## Before you push
 
-CI runs `cargo fmt --all -- --check`, `cargo clippy`, and `cargo test --workspace --lib`. Run the same locally before opening a PR:
+Prefer the local CI mirror (fmt, clippy, tests, docs build):
+
+```bash
+./scripts/ci-check.sh
+```
+
+On Windows PowerShell:
+
+```powershell
+.\scripts\ci-check.ps1
+```
+
+Or run the same checks manually:
 
 ```bash
 cargo fmt --all
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace --lib
 ```
+
+GitHub Actions also runs **`cargo audit`**. SonarCloud is configured via `sonar-project.properties` (exclusions for docs theme mirrors and localized READMEs); it is not a required local gate.
 
 ---
 

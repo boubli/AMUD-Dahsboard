@@ -10,21 +10,17 @@
 
 **[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[博客](https://boubli.github.io/AMUD-Dashboard/blog)** · **[主题画廊](https://boubli.github.io/AMUD-Dashboard/themes)** · **[路线图](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[文档](https://boubli.github.io/AMUD-Dashboard/)** · **[常见问题](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.9 新特性
+### v1.9.2 新特性
 
-- **全设备 Taghawsa** — 手机与 Windows 上自适应 WebGL；WebGL 关闭时使用 CSS 备用效果
-- **移动端布局** — 卡片标题自动换行，指标 4→3→2 列，窄屏无横向滚动
-- **性能设置页** — 预设卡片、实时活动指示，轮询选项移出隐私页
-- **LXC 更新历史** — 脚本升级在启动时写入审计；系统页显示「最后更新」
-- **卡片拖拽排序** — 保存全部应用 ID、更大拖柄、触摸拖拽、外观页开关
-- **审计日志** — 自动重建旧版 SQLite 表结构
-- **v1.8.1** — Jellyfin 海报、按应用配置媒体、刷新即时状态
+- **Docs currency** — Theme Gallery + roadmap synced to 41 themes
+- **v1.9.1** — Crimson Flare theme
+- **v1.9.0** — Glow & Glass / Neumorphism shell consolidation
 
 完整历史：**[更新日志](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### 版本状态
 
-当前推荐：**1.9.1**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
+当前推荐：**1.9.2**。详情与已撤回版本：见 **[英文 README](../README.md)**（Release status 部分）。
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 

@@ -10,21 +10,17 @@
 
 **[बदलावों की सूची](https://boubli.github.io/AMUD-Dashboard/docs/changelog)** · **[ब्लॉग](https://boubli.github.io/AMUD-Dashboard/blog)** · **[थीम गैलरी](https://boubli.github.io/AMUD-Dashboard/themes)** · **[रोडमैप](https://boubli.github.io/AMUD-Dashboard/docs/roadmap)** · **[दस्तावेज़](https://boubli.github.io/AMUD-Dashboard/)** · **[अक्सर पूछे जाने वाले सवाल](https://boubli.github.io/AMUD-Dashboard/docs/faq)**
 
-### v1.8.9 में नया
+### v1.9.2 में नया
 
-- **हर डिवाइस पर Taghawsa** — मोबाइल और Windows पर अनुकूली WebGL; WebGL बंद होने पर CSS फ़ॉलबैक
-- **मोबाइल लेआउट** — कार्ड हेडर रैप, मेट्रिक्स 4→3→2 कॉलम, कोई क्षैतिज स्क्रॉल नहीं
-- **प्रदर्शन टैब** — प्रीसेट कार्ड, लाइव गतिविधि बैज, पोलिंग सेटिंग्स गोपनीयता से अलग
-- **LXC पर अपडेट इतिहास** — स्क्रिप्ट अपडेट बूट पर दर्ज; सिस्टम में «अंतिम अपडेट»
-- **कार्ड क्रम बदलना** — सभी ऐप ID सहेजता है, बड़ा हैंडल, टच ड्रैग, दिखावट में टॉगल
-- **ऑडिट लॉग** — पुराने SQLite स्कीमा का स्वचालित पुनर्निर्माण
-- **v1.8.1** — Jellyfin पोस्टर, प्रति-ऐप मीडिया, तुरंत स्थिति
+- **Docs currency** — Theme Gallery + roadmap synced to 41 themes
+- **v1.9.1** — Crimson Flare theme
+- **v1.9.0** — Glow & Glass / Neumorphism shell consolidation
 
 पूरा इतिहास: **[चेंजलॉग](https://boubli.github.io/AMUD-Dashboard/docs/changelog)**
 
 ### रिलीज़ स्थिति
 
-अनुशंसित: **1.9.1**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
+अनुशंसित: **1.9.2**. विवरण: **[अंग्रेज़ी README](../README.md)** (Release status अनुभाग)।
 
 ![AMUD Dashboard UI](https://raw.githubusercontent.com/boubli/AMUD-Dashboard/main/docs/static/img/AMUD-Dashboard.png)
 
